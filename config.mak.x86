@@ -1,0 +1,13 @@
+# No, I won't use GNU Autocrap. When you actually need portability,
+# editing the variables manually usually results in less time wasted.
+#
+
+CC=gcc
+LD=gcc
+STRIP=strip
+
+GENODEFX=../genode-fx/trunk
+
+CFLAGS=-O2 -Wall $(shell sdl-config --cflags) -I$(GENODEFX)/dope-embedded/include
+LDFLAGS=$(shell sdl-config --libs) -L$(GENODEFX)/dope-embedded/lib/sdl
+STRIPFLAGS=
