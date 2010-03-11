@@ -1,11 +1,11 @@
 include config.mak
 
-OBJS=main.o
+OBJS=main.o shutdown.o
 
 all: flickernoise
 
 flickernoise: $(OBJS)
-	$(LD) -o $@ $< $(LDFLAGS) -ldope
+	$(LD) -o $@ $(OBJS) $(LDFLAGS) -ldope
 	$(STRIP) $(STRIPFLAGS) $@
 
 clean:
