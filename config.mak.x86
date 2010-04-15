@@ -6,7 +6,7 @@ CC=gcc
 LD=gcc
 STRIP=strip
 
-GENODEFX=../genode-fx/trunk
+GENODEFX=../genode-fx
 
 CFLAGS=-O2 -Wall $(shell sdl-config --cflags) -I$(GENODEFX)/dope-embedded/include
 LDFLAGS=$(shell sdl-config --libs) -L$(GENODEFX)/dope-embedded/lib/sdl
