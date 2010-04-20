@@ -40,12 +40,14 @@ void init_patcheditor()
 		"b_open = new Button(-text \"Open\")",
 		"b_save = new Button(-text \"Save\")",
 		"b_saveas = new Button(-text \"Save As\")",
-		"b_test = new Button(-text \"Test!\")",
+		"sep1 = new Separator(-vertical yes)",
+		"b_run = new Button(-text \"Run!\")",
 		"g_btn.place(b_new, -column 1 -row 1)",
 		"g_btn.place(b_open, -column 2 -row 1)",
 		"g_btn.place(b_save, -column 3 -row 1)",
 		"g_btn.place(b_saveas, -column 4 -row 1)",
-		"g_btn.place(b_test, -column 5 -row 1)",
+		"g_btn.place(sep1, -column 5 -row 1)",
+		"g_btn.place(b_run, -column 6 -row 1)",
 		"g.place(g_btn, -column 1 -row 1)",
 		"ed = new Edit(-text \""
 "[preset00]\n"
