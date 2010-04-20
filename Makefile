@@ -1,6 +1,6 @@
 include config.mak
 
-OBJS=main.o shutdown.o
+OBJS=main.o patcheditor.o shutdown.o
 
 all: flickernoise
 

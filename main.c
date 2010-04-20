@@ -24,6 +24,7 @@
 #include <vscreen.h>
 #include <SDL.h> /* for SDL_Quit */
 
+#include "patcheditor.h"
 #include "shutdown.h"
 
 static long appid;
@@ -75,7 +76,7 @@ static void cp_callback(dope_event *e, void *arg)
 			break;
 
 		case CP_ITEM_EDITOR:
-			printf("editor\n");
+			open_patcheditor_window();
 			break;
 		case CP_ITEM_MONITOR:
 			printf("monitor\n");
@@ -194,6 +195,7 @@ int main(int argc, char *argv[])
 	atexit(SDL_Quit); /* FIXME: this should be done by DoPE */
 	
 	init_cp();
+	init_patcheditor();
 	init_shutdown();
 
 	dope_eventloop(0);
