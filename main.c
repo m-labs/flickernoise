@@ -25,6 +25,7 @@
 #include <SDL.h> /* for SDL_Quit */
 
 #include "patcheditor.h"
+#include "monitor.h"
 #include "shutdown.h"
 
 static long appid;
@@ -79,7 +80,7 @@ static void cp_callback(dope_event *e, void *arg)
 			open_patcheditor_window();
 			break;
 		case CP_ITEM_MONITOR:
-			printf("monitor\n");
+			open_monitor_window();
 			break;
 
 		case CP_ITEM_START:
@@ -220,6 +221,7 @@ int main(int argc, char *argv[])
 	
 	init_cp();
 	init_patcheditor();
+	init_monitor();
 	init_shutdown();
 
 	dope_eventloop(0);
