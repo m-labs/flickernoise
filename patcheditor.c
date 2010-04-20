@@ -117,6 +117,8 @@ void init_patcheditor()
 "per_pixel_1=zoom=(zoom-1.0)*rad+1.0;\n"
 		"\")",
 		"g.place(ed, -column 1 -row 2)",
+		"status = new Label(-text \"Ready.\" -font \"title\")",
+		"g.place(status, -column 1 -row 3 -align \"nw\")",
 		"w = new Window(-content g -title \"Patch editor [untitled]\")",
 		0);
 
