@@ -2,8 +2,8 @@
 # editing the variables manually usually results in less time wasted.
 #
 
-CC=gcc
-LD=gcc
+CC=clang
+LD=clang
 STRIP=strip
 
 GENODEFX=../genode-fx
