@@ -21,6 +21,7 @@
 #include <dopelib.h>
 #include <vscreen.h>
 
+#include "filedialog.h"
 #include "patcheditor.h"
 
 static long appid;
@@ -28,6 +29,11 @@ static long appid;
 static void close_callback(dope_event *e, void *arg)
 {
 	dope_cmd(appid, "w.close()");
+}
+
+static void openbtn_callback(dope_event *e, void *arg)
+{
+	open_filedialog(appid, "opendlg");
 }
 
 void init_patcheditor()
@@ -122,6 +128,10 @@ void init_patcheditor()
 		"w = new Window(-content g -title \"Patch editor [untitled]\")",
 		0);
 
+	create_filedialog(appid, "opendlg", 0, NULL, NULL);
+
+	dope_bind(appid, "b_open", "commit", openbtn_callback, NULL);
+	
 	dope_bind(appid, "w", "close", close_callback, NULL);
 }
 
