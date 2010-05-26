@@ -36,6 +36,24 @@ static void openbtn_callback(dope_event *e, void *arg)
 	open_filedialog(appid, "opendlg");
 }
 
+static void openok_callback(dope_event *e, void *arg)
+{
+	close_filedialog(appid, "opendlg");
+}
+
+static void opencancel_callback(dope_event *e, void *arg)
+{
+	close_filedialog(appid, "opendlg");
+}
+
+static void saveasok_callback(dope_event *e, void *arg)
+{
+}
+
+static void saveascancel_callback(dope_event *e, void *arg)
+{
+}
+
 void init_patcheditor()
 {
 	appid = dope_init_app("Patch editor");
@@ -128,7 +146,7 @@ void init_patcheditor()
 		"w = new Window(-content g -title \"Patch editor [untitled]\")",
 		0);
 
-	create_filedialog(appid, "opendlg", 0, NULL, NULL);
+	create_filedialog(appid, "opendlg", 0, openok_callback, opencancel_callback);
 
 	dope_bind(appid, "b_open", "commit", openbtn_callback, NULL);
 	
