@@ -20,58 +20,13 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <dopelib.h>
 
 #include "filedialog.h"
 
-void create_filedialog(long appid, const char *name, int is_save, void (*ok_callback)(dope_event *,void *), void (*cancel_callback)(dope_event *,void *))
-{
-	dope_cmdf(appid, "%s_g = new Grid()", name);
-	
-	dope_cmdf(appid, "%s_g1 = new Grid()", name);
-	dope_cmdf(appid, "%s_g1_s1 = new Separator(-vertical no)", name);
-	dope_cmdf(appid, "%s_g1_l = new Label(-text \"/\")", name);
-	dope_cmdf(appid, "%s_g1_s2 = new Separator(-vertical no)", name);
-	dope_cmdf(appid, "%s_g1.place(%s_g1_s1, -column 1 -row 1)", name, name);
-	dope_cmdf(appid, "%s_g1.place(%s_g1_l, -column 2 -row 1)", name, name);
-	dope_cmdf(appid, "%s_g1.place(%s_g1_s2, -column 3 -row 1)", name, name);
-
-	dope_cmdf(appid, "%s_g2 = new Grid()", name);
-	dope_cmdf(appid, "%s_g2_folders = new List()", name);
-	dope_cmdf(appid, "%s_g2_foldersf = new Frame(-content %s_g2_folders -scrollx yes -scrolly yes)", name, name);
-	dope_cmdf(appid, "%s_g2_files = new List()", name);
-	dope_cmdf(appid, "%s_g2_filesf = new Frame(-content %s_g2_files -scrollx yes -scrolly yes)", name, name);
-	dope_cmdf(appid, "%s_g2.place(%s_g2_foldersf, -column 1 -row 1)", name, name);
-	dope_cmdf(appid, "%s_g2.place(%s_g2_filesf, -column 2 -row 1)", name, name);
-	dope_cmdf(appid, "%s_g2.rowconfig(1, -size 200)", name);
-
-	dope_cmdf(appid, "%s_selection = new Label(-text \"Selection: /\")", name);
-
-	dope_cmdf(appid, "%s_filename = new Entry()", name);
-
-	dope_cmdf(appid, "%s_g3 = new Grid()", name);
-	dope_cmdf(appid, "%s_g3_ok = new Button(-text \"OK\")", name);
-	dope_cmdf(appid, "%s_g3_cancel = new Button(-text \"Cancel\")", name);
-	dope_cmdf(appid, "%s_g3.columnconfig(1, -size 230)", name);
-	dope_cmdf(appid, "%s_g3.place(%s_g3_ok, -column 2 -row 1)", name, name);
-	dope_cmdf(appid, "%s_g3.place(%s_g3_cancel, -column 3 -row 1)", name, name);
-
-	dope_cmdf(appid, "%s_g.place(%s_g1, -column 1 -row 1)", name, name);
-	dope_cmdf(appid, "%s_g.place(%s_g2, -column 1 -row 2)", name, name);
-	dope_cmdf(appid, "%s_g.place(%s_selection, -column 1 -row 3 -align \"w\")", name, name);
-	dope_cmdf(appid, "%s_g.place(%s_filename, -column 1 -row 4)", name, name);
-	dope_cmdf(appid, "%s_g.place(%s_g3, -column 1 -row 5)", name, name);
-	dope_cmdf(appid, "%s_g.rowconfig(3, -size 0)", name);
-	
-	dope_cmdf(appid, "%s = new Window(-content %s_g -title \"%s\")", name, name, is_save ? "Save As" : "Open");
-
-	dope_bindf(appid, "%s_g3_ok", "commit", ok_callback, (void *)name, name);
-	dope_bindf(appid, "%s_g3_cancel", "commit", cancel_callback, (void *)name, name);
-	dope_bindf(appid, "%s", "close", cancel_callback, (void *)name, name);
-}
-
-static void display_folder(long appid, const char *name, const char *folder)
+static void display_folder(long appid, const char *folder)
 {
 	char fmt_folders[8192];
 	char *c_folders;
@@ -83,6 +38,7 @@ static void display_folder(long appid, const char *name, const char *folder)
 	struct stat s;
 	int len;
 
+	// TODO: sort output
 	d = opendir(folder);
 	if(!d) return;
 	strcpy(fmt_folders, "../");
@@ -90,8 +46,7 @@ static void display_folder(long appid, const char *name, const char *folder)
 	fmt_files[0] = 0;
 	c_files = fmt_files;
 	while(entry = readdir(d)) {
-		if(strcmp(entry->d_name, ".") == 0) continue;
-		if(strcmp(entry->d_name, "..") == 0) continue;
+		if(entry->d_name[0] == '.') continue;
 		strncpy(fullname, folder, sizeof(fullname));
 		strncat(fullname, entry->d_name, sizeof(fullname));
 		lstat(fullname, &s);
@@ -115,21 +70,163 @@ static void display_folder(long appid, const char *name, const char *folder)
 	}
 	closedir(d);
 
-	dope_cmdf(appid, "%s_g2_folders.set(-text \"%s\")", name, fmt_folders);
-	dope_cmdf(appid, "%s_g2_files.set(-text \"%s\")", name, fmt_files);
+	dope_cmdf(appid, "fd_g2_folders.set(-text \"%s\" -selection 0)", fmt_folders);
+	dope_cmdf(appid, "fd_g2_files.set(-text \"%s\" -selection 0)", fmt_files);
+	dope_cmdf(appid, "fd_g1_l.set(-text \"%s\")", folder);
+	dope_cmdf(appid, "fd_selection.set(-text \"Selection: %s\")", folder);
+	dope_cmd(appid, "fd_g2_foldersf.set(-xview 0 -yview 0)");
+	dope_cmd(appid, "fd_g2_filesf.set(-xview 0 -yview 0)");
 }
 
-void open_filedialog(long appid, const char *name)
+static char *get_selection(char *list, int n)
 {
-	display_folder(appid, name, "/home/lekernel/");
-	dope_cmdf(appid, "%s.open()", name);
+	int i;
+	char *s;
+
+	s = list;
+	i = 0;
+	while(*list != 0) {
+		if(*list == '\n') {
+			*list = 0;
+			if(i == n) break;
+			i++;
+			s = list+1;
+		}
+		list++;
+	}
+	return s;
 }
 
-void close_filedialog(long appid, const char *name)
+static void folder_selcommit_callback(dope_event *e, void *arg)
 {
-	dope_cmdf(appid, "%s.close()", name);
+	long appid = (long)arg;
+	char curfolder[384];
+	char folderlist[8192];
+	char num[8];
+	int nselection;
+	char *selection;
+	
+	dope_req(appid, curfolder, sizeof(curfolder), "fd_g1_l.text");
+	dope_req(appid, folderlist, sizeof(folderlist), "fd_g2_folders.text");
+	dope_req(appid, num, sizeof(num), "fd_g2_folders.selection");
+	nselection = atoi(num);
+	selection = get_selection(folderlist, nselection);
+
+	if(strcmp(selection, "../") == 0) {
+		char *c;
+		if(strcmp(curfolder, "/") == 0) return;
+		*(curfolder+strlen(curfolder)-1) = 0;
+		c = strrchr(curfolder, '/');
+		c++;
+		*c = 0;
+	} else
+		strncat(curfolder, selection, sizeof(curfolder));
+	display_folder(appid, curfolder);
 }
 
-void get_filedialog_selection(long appid, const char *name, char *buffer, int buflen)
+static void update_filename(long appid)
 {
+	char filelist[8192];
+	char num[8];
+	int nselection;
+	char *selection;
+
+	dope_req(appid, filelist, sizeof(filelist), "fd_g2_files.text");
+	if(strlen(filelist) == 0) return;
+	dope_req(appid, num, sizeof(num), "fd_g2_files.selection");
+	nselection = atoi(num);
+	selection = get_selection(filelist, nselection);
+
+	dope_cmdf(appid, "fd_filename.set(-text \"%s\")", selection);
+}
+
+static void file_selchange_callback(dope_event *e, void *arg)
+{
+	long appid = (long)arg;
+	
+	update_filename(appid);
+}
+
+static void file_selcommit_callback(dope_event *e, void *arg)
+{
+	long appid = (long)arg;
+
+	update_filename(appid);
+}
+
+long create_filedialog(const char *name, int is_save, void (*ok_callback)(dope_event *,void *), void *ok_callback_arg, void (*cancel_callback)(dope_event *,void *), void *cancel_callback_arg)
+{
+	long appid;
+
+	appid = dope_init_app(name);
+	
+	dope_cmd(appid, "fd_g = new Grid()");
+	
+	dope_cmd(appid, "fd_g1 = new Grid()");
+	dope_cmd(appid, "fd_g1_s1 = new Separator(-vertical no)");
+	dope_cmd(appid, "fd_g1_l = new Label(-text \"/\")");
+	dope_cmd(appid, "fd_g1_s2 = new Separator(-vertical no)");
+	dope_cmd(appid, "fd_g1.place(fd_g1_s1, -column 1 -row 1)");
+	dope_cmd(appid, "fd_g1.place(fd_g1_l, -column 2 -row 1)");
+	dope_cmd(appid, "fd_g1.place(fd_g1_s2, -column 3 -row 1)");
+
+	dope_cmd(appid, "fd_g2 = new Grid()");
+	dope_cmd(appid, "fd_g2_folders = new List()");
+	dope_cmd(appid, "fd_g2_foldersf = new Frame(-content fd_g2_folders -scrollx yes -scrolly yes)");
+	dope_cmd(appid, "fd_g2_files = new List()");
+	dope_cmd(appid, "fd_g2_filesf = new Frame(-content fd_g2_files -scrollx yes -scrolly yes)");
+	dope_cmd(appid, "fd_g2.place(fd_g2_foldersf, -column 1 -row 1)");
+	dope_cmd(appid, "fd_g2.place(fd_g2_filesf, -column 2 -row 1)");
+	dope_cmd(appid, "fd_g2.rowconfig(1, -size 200)");
+
+	dope_cmd(appid, "fd_selection = new Label(-text \"Selection: /\")");
+
+	dope_cmd(appid, "fd_filename = new Entry()");
+
+	dope_cmd(appid, "fd_g3 = new Grid()");
+	dope_cmd(appid, "fd_g3_ok = new Button(-text \"OK\")");
+	dope_cmd(appid, "fd_g3_cancel = new Button(-text \"Cancel\")");
+	dope_cmd(appid, "fd_g3.columnconfig(1, -size 340)");
+	dope_cmd(appid, "fd_g3.place(fd_g3_ok, -column 2 -row 1)");
+	dope_cmd(appid, "fd_g3.place(fd_g3_cancel, -column 3 -row 1)");
+
+	dope_cmd(appid, "fd_g.place(fd_g1, -column 1 -row 1)");
+	dope_cmd(appid, "fd_g.place(fd_g2, -column 1 -row 2)");
+	dope_cmd(appid, "fd_g.place(fd_selection, -column 1 -row 3 -align \"w\")");
+	dope_cmd(appid, "fd_g.place(fd_filename, -column 1 -row 4)");
+	dope_cmd(appid, "fd_g.place(fd_g3, -column 1 -row 5)");
+	dope_cmd(appid, "fd_g.rowconfig(3, -size 0)");
+	
+	dope_cmdf(appid, "fd = new Window(-content fd_g -title \"%s\")", is_save ? "Save As" : "Open");
+
+	dope_bind(appid, "fd_g2_folders", "selcommit", folder_selcommit_callback, (void *)appid);
+	dope_bind(appid, "fd_g2_files", "selchange", file_selchange_callback, (void *)appid);
+	dope_bind(appid, "fd_g2_files", "selcommit", file_selcommit_callback, (void *)appid);
+
+	dope_bind(appid, "fd_g3_ok", "commit", ok_callback, ok_callback_arg);
+	dope_bind(appid, "fd_g3_cancel", "commit", cancel_callback, cancel_callback_arg);
+	dope_bind(appid, "fd", "close", cancel_callback, cancel_callback_arg);
+
+	return appid;
+}
+
+void open_filedialog(long appid, const char *folder)
+{
+	display_folder(appid, folder);
+	dope_cmd(appid, "fd_filename.set(-text \"\")");
+	dope_cmd(appid, "fd.open()");
+}
+
+void close_filedialog(long appid)
+{
+	dope_cmd(appid, "fd.close()");
+}
+
+void get_filedialog_selection(long appid, char *buffer, int buflen)
+{
+	char file[384];
+
+	dope_req(appid, buffer, buflen, "fd_g1_l.text");
+	dope_req(appid, file, sizeof(file), "fd_filename.text");
+	strncat(buffer, file, buflen);
 }

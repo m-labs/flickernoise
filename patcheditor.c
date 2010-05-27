@@ -25,6 +25,7 @@
 #include "patcheditor.h"
 
 static long appid;
+static long fileopen_appid;
 
 static void close_callback(dope_event *e, void *arg)
 {
@@ -33,17 +34,20 @@ static void close_callback(dope_event *e, void *arg)
 
 static void openbtn_callback(dope_event *e, void *arg)
 {
-	open_filedialog(appid, "opendlg");
+	open_filedialog(fileopen_appid, "/");
 }
 
 static void openok_callback(dope_event *e, void *arg)
 {
-	close_filedialog(appid, "opendlg");
+	char buf[384];
+	get_filedialog_selection(fileopen_appid, buf, sizeof(buf));
+	printf("file: %s\n", buf);
+	close_filedialog(fileopen_appid);
 }
 
 static void opencancel_callback(dope_event *e, void *arg)
 {
-	close_filedialog(appid, "opendlg");
+	close_filedialog(fileopen_appid);
 }
 
 static void saveasok_callback(dope_event *e, void *arg)
@@ -146,7 +150,7 @@ void init_patcheditor()
 		"w = new Window(-content g -title \"Patch editor [untitled]\")",
 		0);
 
-	create_filedialog(appid, "opendlg", 0, openok_callback, opencancel_callback);
+	fileopen_appid = create_filedialog("Open patch", 0, openok_callback, NULL, opencancel_callback, NULL);
 
 	dope_bind(appid, "b_open", "commit", openbtn_callback, NULL);
 	

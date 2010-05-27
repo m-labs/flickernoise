@@ -18,9 +18,9 @@
 #ifndef __FILEDIALOG_H
 #define __FILEDIALOG_H
 
-void create_filedialog(long appid, const char *name, int is_save, void (*ok_callback)(dope_event *,void *), void (*cancel_callback)(dope_event *,void *));
-void open_filedialog(long appid, const char *name);
-void close_filedialog(long appid, const char *name);
-void get_filedialog_selection(long appid, const char *name, char *buffer, int buflen);
+long create_filedialog(const char *name, int is_save, void (*ok_callback)(dope_event *,void *), void *ok_callback_arg, void (*cancel_callback)(dope_event *,void *), void *cancel_callback_arg);
+void open_filedialog(long appid, const char *folder);
+void close_filedialog(long appid);
+void get_filedialog_selection(long appid, char *buffer, int buflen);
 
 #endif /* __FILEDIALOG_H */
