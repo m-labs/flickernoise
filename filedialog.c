@@ -70,12 +70,14 @@ static void display_folder(long appid, const char *folder)
 	}
 	closedir(d);
 
+
 	dope_cmdf(appid, "fd_g2_folders.set(-text \"%s\" -selection 0)", fmt_folders);
 	dope_cmdf(appid, "fd_g2_files.set(-text \"%s\" -selection 0)", fmt_files);
 	dope_cmdf(appid, "fd_g1_l.set(-text \"%s\")", folder);
 	dope_cmdf(appid, "fd_selection.set(-text \"Selection: %s\")", folder);
 	dope_cmd(appid, "fd_g2_foldersf.set(-xview 0 -yview 0)");
 	dope_cmd(appid, "fd_g2_filesf.set(-xview 0 -yview 0)");
+
 }
 
 static char *get_selection(char *list, int n)
@@ -100,6 +102,7 @@ static char *get_selection(char *list, int n)
 static void folder_selcommit_callback(dope_event *e, void *arg)
 {
 	long appid = (long)arg;
+
 	char curfolder[384];
 	char folderlist[8192];
 	char num[8];
@@ -111,16 +114,20 @@ static void folder_selcommit_callback(dope_event *e, void *arg)
 	dope_req(appid, num, sizeof(num), "fd_g2_folders.selection");
 	nselection = atoi(num);
 	selection = get_selection(folderlist, nselection);
-
-	if(strcmp(selection, "../") == 0) {
+	
+	if(strcmp(selection, "../") == 0)
+	{
 		char *c;
 		if(strcmp(curfolder, "/") == 0) return;
 		*(curfolder+strlen(curfolder)-1) = 0;
 		c = strrchr(curfolder, '/');
 		c++;
 		*c = 0;
-	} else
-		strncat(curfolder, selection, sizeof(curfolder));
+	}
+	else strncat(curfolder, selection, sizeof(curfolder));
+
+	printf("folder_selcommit_callback - current folder : %s\n", curfolder);
+
 	display_folder(appid, curfolder);
 }
 
@@ -149,6 +156,8 @@ static void file_selchange_callback(dope_event *e, void *arg)
 
 static void file_selcommit_callback(dope_event *e, void *arg)
 {
+	printf("file_selcommit_callback\n");
+
 	long appid = (long)arg;
 
 	update_filename(appid);
@@ -196,6 +205,8 @@ long create_filedialog(const char *name, int is_save, void (*ok_callback)(dope_e
 	dope_cmd(appid, "fd_g.place(fd_filename, -column 1 -row 4)");
 	dope_cmd(appid, "fd_g.place(fd_g3, -column 1 -row 5)");
 	dope_cmd(appid, "fd_g.rowconfig(3, -size 0)");
+
+	dope_cmd(appid,"fd = new Window(-content fd_g -title \"Flash milkymist\")");
 	
 	dope_cmdf(appid, "fd = new Window(-content fd_g -title \"%s\")", is_save ? "Save As" : "Open");
 
@@ -213,6 +224,7 @@ long create_filedialog(const char *name, int is_save, void (*ok_callback)(dope_e
 void open_filedialog(long appid, const char *folder)
 {
 	display_folder(appid, folder);
+
 	dope_cmd(appid, "fd_filename.set(-text \"\")");
 	dope_cmd(appid, "fd.open()");
 }
@@ -224,9 +236,14 @@ void close_filedialog(long appid)
 
 void get_filedialog_selection(long appid, char *buffer, int buflen)
 {
+	printf("get_filedialog_selection\n");	
+
 	char file[384];
 
 	dope_req(appid, buffer, buflen, "fd_g1_l.text");
 	dope_req(appid, file, sizeof(file), "fd_filename.text");
 	strncat(buffer, file, buflen);
 }
+
+
+

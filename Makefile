@@ -1,11 +1,11 @@
-include config.mak
+include config.mak.x86
 
-OBJS=filedialog.o main.o patcheditor.o monitor.o shutdown.o
+OBJS=filedialog.o main.o patcheditor.o monitor.o shutdown.o flash.o
 
 all: flickernoise
 
 flickernoise: $(OBJS)
-	$(LD) -o $@ $(OBJS) $(LDFLAGS) -ldope
+	$(LD) -o $@ $(OBJS) $(LDFLAGS) -ldope 
 	$(STRIP) $(STRIPFLAGS) $@
 
 clean:

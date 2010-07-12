@@ -27,8 +27,13 @@
 #include "patcheditor.h"
 #include "monitor.h"
 #include "shutdown.h"
+#include "flash.h"
+
 
 static long appid;
+long fileDialog_id;
+char fileDialogPath[8192];
+
 
 enum {
 	CP_ITEM_KEYB,
@@ -48,7 +53,9 @@ enum {
 
 	CP_ITEM_AUTOSTART,
 	CP_ITEM_FILEMANAGER,
-	CP_ITEM_SHUTDOWN
+	CP_ITEM_SHUTDOWN,
+
+	CP_ITEM_FLASH
 };
 
 static void cp_callback(dope_event *e, void *arg)
@@ -92,16 +99,22 @@ static void cp_callback(dope_event *e, void *arg)
 		case CP_ITEM_SAVE:
 			printf("save\n");
 			break;
-
 		case CP_ITEM_AUTOSTART:
 			printf("autostart\n");
 			break;
 		case CP_ITEM_FILEMANAGER:
-			printf("filemanager\n");
+			open_filedialog(fileDialog_id, "/");	// TODO
 			break;
 		case CP_ITEM_SHUTDOWN:
 			open_shutdown_window();
 			break;
+		case CP_ITEM_FLASH:
+			open_flash_window();
+			break;
+		default:
+			// TODO
+			break;
+
 	}
 }
 
@@ -182,9 +195,11 @@ static void init_cp()
 		"b_autostart = new Button(-text \"Autostart\")",
 		"b_filemanager = new Button(-text \"File manager\")",
 		"b_shutdown = new Button(-text \"Shutdown\")",
+		"b_flash = new Button(-text \"Flash\")",
 		"g_system.place(b_autostart, -column 1 -row 1)",
 		"g_system.place(b_filemanager, -column 2 -row 1)",
-		"g_system.place(b_shutdown, -column 3 -row 1)",
+		"g_system.place(b_shutdown, -column 2 -row 2)",
+		"g_system.place(b_flash, -column 1 -row 2)",
 		"g.place(g_system0, -column 1 -row 9)",
 		"g.place(g_system, -column 1 -row 10)",
 
@@ -209,8 +224,26 @@ static void init_cp()
 	dope_bind(appid, "b_filemanager", "commit", cp_callback, (void *)CP_ITEM_FILEMANAGER);
 	dope_bind(appid, "b_shutdown", "commit", cp_callback, (void *)CP_ITEM_SHUTDOWN);
 
+	dope_bind(appid, "b_flash", "commit", cp_callback, (void *)CP_ITEM_FLASH);
+
 	dope_bind(appid, "w", "close", cp_callback, (void *)CP_ITEM_SHUTDOWN);
 }
+
+void filedialog_ok_callback(dope_event *e, void *arg)
+{
+	char filepath[384];
+	get_filedialog_selection(fileDialog_id, filepath, sizeof(filepath));
+	close_filedialog(fileDialog_id);
+
+	printf("filedialog_ok_callback : %s\n", filepath);
+}
+
+void filedialog_cancel_callback(dope_event *e, void *arg)
+{
+	printf("filedialog_cancel_callback\n");
+	close_filedialog(fileDialog_id);
+}
+
 
 
 int main(int argc, char *argv[])
@@ -223,6 +256,9 @@ int main(int argc, char *argv[])
 	init_patcheditor();
 	init_monitor();
 	init_shutdown();
+	init_flash();
+
+	fileDialog_id = create_filedialog("Filedialog", 0, filedialog_ok_callback, fileDialogPath,filedialog_cancel_callback, NULL);
 
 	dope_eventloop(0);
 
