@@ -25,7 +25,8 @@
 #include "filedialog.h"
 
 static long appid;
-static long fileDialog_id;
+static long file_dialog_id;
+static long current_file_to_choose;
 
 static void cancel_callback(dope_event *e, void *arg)
 {
@@ -34,48 +35,61 @@ static void cancel_callback(dope_event *e, void *arg)
 
 void flash_filedialog_ok_callback()
 {
-	char filepath[384];
-	get_filedialog_selection(fileDialog_id, filepath, sizeof(filepath));
-
 	char dope_cmd_str [384];
-	sprintf(dope_cmd_str, "e1.set(-text \"%s\")", filepath);
+	char filepath[384];
+
+	get_filedialog_selection(file_dialog_id, filepath, sizeof(filepath));
+
+	switch(current_file_to_choose){
+		case 1:
+			sprintf(dope_cmd_str, "e1.set(-text \"%s\")", filepath);
+			break;
+		case 2:
+			sprintf(dope_cmd_str, "e2.set(-text \"%s\")", filepath);
+			break;
+		case 3:
+			sprintf(dope_cmd_str, "e3.set(-text \"%s\")", filepath);
+			break;
+		default:
+			sprintf(dope_cmd_str, " ");
+			break;
+		}
+
 	dope_cmd(appid, dope_cmd_str);
-
-	char name[384];
-	dope_req(appid, name, sizeof(name), "w.title");
-
-	close_filedialog(fileDialog_id);
+	close_filedialog(file_dialog_id);
 }
 
 void flash_filedialog_cancel_callback()
 {
-	close_filedialog(fileDialog_id);
+	close_filedialog(file_dialog_id);
 }
 
 static void flash_callback(dope_event *e, void *arg)
-{	
-	switch ((int) arg)
-	{
+{		
+	char name[384];
+
+	switch ((int) arg){
 		case 0:
 			break;
 	
 		case 1:
-			fileDialog_id = create_filedialog("Bitstream path", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
-			open_filedialog(fileDialog_id, "/");
+			current_file_to_choose = 1;
+			file_dialog_id = create_filedialog("Bitstream path", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
+			open_filedialog(file_dialog_id, "/");
 			break;
 		case 2:
-			fileDialog_id = create_filedialog("Bios path", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
-			open_filedialog(fileDialog_id, "/");
+			current_file_to_choose = 2;
+			file_dialog_id = create_filedialog("Bios path", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
+			open_filedialog(file_dialog_id, "/");
 			break;
 		case 3:
-			fileDialog_id = create_filedialog("Program path", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
-			open_filedialog(fileDialog_id, "/");
+			current_file_to_choose = 3;
+			file_dialog_id = create_filedialog("Program path", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
+			open_filedialog(file_dialog_id, "/");
 			break;
 		case 4:
-			printf("Flash device\n");
 			// TODO : check files and Flash it into Milkyboard
-
-			char name[384];
+			
 			dope_req(appid, name, sizeof(name), "e1.text");
 			printf("Bitstream :\t%s\n", name);
 			dope_req(appid, name, sizeof(name), "e2.text");
