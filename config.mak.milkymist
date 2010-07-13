@@ -1,0 +1,9 @@
+CC=lm32-rtems4.11-gcc
+LD=lm32-rtems4.11-gcc
+STRIP=lm32-rtems4.11-strip
+
+GENODEFX=../genode-fx
+
+CFLAGS=-O2 -Wall -DRTEMS -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -I$(GENODEFX)/dope-embedded/include -I$(RTEMS_MAKEFILE_PATH)/lib/include 
+LDFLAGS=-L$(GENODEFX)/dope-embedded/lib/milkymist -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
+STRIPFLAGS=

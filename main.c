@@ -17,17 +17,23 @@
 
 /* Inspired by "test.c" from Genode FX (DOpE-embedded demo application) */
 
+#ifdef RTEMS
+#include <bsp.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <dopelib.h>
 #include <vscreen.h>
+#ifndef RTEMS
 #include <SDL.h> /* for SDL_Quit */
+#endif
 
 #include "patcheditor.h"
 #include "monitor.h"
 #include "shutdown.h"
 #include "flash.h"
+#include "filedialog.h"
 
 
 static long appid;
@@ -250,7 +256,9 @@ int main(int argc, char *argv[])
 {
 	if(dope_init()) return 2;
 	atexit(dope_deinit);
+#ifndef RTEMS
 	atexit(SDL_Quit); /* FIXME: this should be done by DoPE */
+#endif
 	
 	init_cp();
 	init_patcheditor();
@@ -264,3 +272,22 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
+#ifdef RTEMS
+void *POSIX_Init(void *argument)
+{
+	main(0, NULL);
+	return NULL;
+}
+
+#define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
+#define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
+#define CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER
+#define CONFIGURE_EXTRA_TASK_STACKS 1900
+#define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 4
+#define CONFIGURE_MAXIMUM_POSIX_THREADS         1
+#define CONFIGURE_POSIX_INIT_THREAD_TABLE
+#define CONFIGURE_MAXIMUM_POSIX_MUTEXES 1
+#define CONFIGURE_INIT
+#include <rtems/confdefs.h>
+#endif

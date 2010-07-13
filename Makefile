@@ -1,4 +1,4 @@
-include config.mak.x86
+include config.mak
 
 OBJS=filedialog.o main.o patcheditor.o monitor.o shutdown.o flash.o
 

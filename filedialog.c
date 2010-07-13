@@ -21,6 +21,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <dopelib.h>
 
@@ -45,7 +46,7 @@ static void display_folder(long appid, const char *folder)
 	c_folders = fmt_folders + 3;
 	fmt_files[0] = 0;
 	c_files = fmt_files;
-	while(entry = readdir(d)) {
+	while((entry = readdir(d))) {
 		if(entry->d_name[0] == '.') continue;
 		strncpy(fullname, folder, sizeof(fullname));
 		strncat(fullname, entry->d_name, sizeof(fullname));
