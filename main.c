@@ -22,6 +22,7 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include <dopelib.h>
 #include <vscreen.h>
@@ -37,11 +38,7 @@
 #include "flash.h"
 #include "filedialog.h"
 
-
 static long appid;
-long fileDialog_id;
-char fileDialogPath[8192];
-
 
 enum {
 	CP_ITEM_KEYB,
@@ -111,7 +108,6 @@ static void cp_callback(dope_event *e, void *arg)
 			printf("autostart\n");
 			break;
 		case CP_ITEM_FILEMANAGER:
-			open_filedialog(fileDialog_id, "/");	// TODO
 			break;
 		case CP_ITEM_SHUTDOWN:
 			open_shutdown_window();
@@ -237,28 +233,20 @@ static void init_cp()
 	dope_bind(appid, "w", "close", cp_callback, (void *)CP_ITEM_SHUTDOWN);
 }
 
-void filedialog_ok_callback(dope_event *e, void *arg)
-{
-	char filepath[384];
-	get_filedialog_selection(fileDialog_id, filepath, sizeof(filepath));
-	close_filedialog(fileDialog_id);
-
-	printf("filedialog_ok_callback : %s\n", filepath);
-}
-
-void filedialog_cancel_callback(dope_event *e, void *arg)
-{
-	printf("filedialog_cancel_callback\n");
-	close_filedialog(fileDialog_id);
-}
-
-
-
+#ifdef RTEMS
+rtems_task gui_task(rtems_task_argument argument)
+#else
 int main(int argc, char *argv[])
+#endif
 {
-	if(dope_init()) return 2;
-	atexit(dope_deinit);
+	if(dope_init()) 
+#ifdef RTEMS
+		return;
+#else
+		return 2;
+#endif
 #ifndef RTEMS
+	atexit(dope_deinit);
 	atexit(SDL_Quit); /* FIXME: this should be done by DoPE */
 #endif
 	
@@ -268,18 +256,20 @@ int main(int argc, char *argv[])
 	init_shutdown();
 	init_flash();
 
-	fileDialog_id = create_filedialog("Filedialog", 0, filedialog_ok_callback, fileDialogPath,filedialog_cancel_callback, NULL);
-
 	dope_eventloop(0);
-
+#ifndef RTEMS
 	return 0;
+#endif
 }
 
 #ifdef RTEMS
-void *POSIX_Init(void *argument)
+static rtems_id gui_task_id;
+rtems_task Init(rtems_task_argument argument)
 {
-	main(0, NULL);
-	return NULL;
+	printf("Flickernoise starting...\n");
+	assert(rtems_task_create(rtems_build_name('G','U','I',' '), 1, 2*1024, 0, RTEMS_FLOATING_POINT, &gui_task_id) == RTEMS_SUCCESSFUL);
+	assert(rtems_task_start(gui_task_id, gui_task, 0) == RTEMS_SUCCESSFUL);
+	rtems_task_delete(RTEMS_SELF);
 }
 
 #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
@@ -288,11 +278,22 @@ void *POSIX_Init(void *argument)
 #define CONFIGURE_APPLICATION_EXTRA_DRIVERS \
 	USBINPUT_DRIVER_TABLE_ENTRY
 
-#define CONFIGURE_EXTRA_TASK_STACKS (1024*1024)
+#define CONFIGURE_EXECUTIVE_RAM_SIZE (32*1024*1024)
+
 #define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 16
-#define CONFIGURE_MAXIMUM_POSIX_THREADS         1
-#define CONFIGURE_POSIX_INIT_THREAD_TABLE
+#define CONFIGURE_MAXIMUM_TASKS 2
+#define CONFIGURE_MAXIMUM_POSIX_THREADS 1
 #define CONFIGURE_MAXIMUM_POSIX_MUTEXES 8
+
+#define CONFIGURE_RTEMS_INIT_TASKS_TABLE
+#define CONFIGURE_INIT_TASK_STACK_SIZE (8*1024)
+#define CONFIGURE_INIT_TASK_PRIORITY 120
+#define CONFIGURE_INIT_TASK_ATTRIBUTES RTEMS_FLOATING_POINT
+#define CONFIGURE_INIT_TASK_INITIAL_MODES \
+	(RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR | \
+	RTEMS_INTERRUPT_LEVEL(0))
+#define CONFIGURE_STACK_CHECKER_ENABLED
+
 #define CONFIGURE_INIT
 #include <rtems/confdefs.h>
 #endif
