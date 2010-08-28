@@ -27,6 +27,8 @@
 #include <vscreen.h>
 #ifndef RTEMS
 #include <SDL.h> /* for SDL_Quit */
+#else
+#include <bsp/milkymist_usbinput.h>
 #endif
 
 #include "patcheditor.h"
@@ -283,6 +285,9 @@ void *POSIX_Init(void *argument)
 #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER
+#define CONFIGURE_APPLICATION_EXTRA_DRIVERS \
+	USBINPUT_DRIVER_TABLE_ENTRY
+
 #define CONFIGURE_EXTRA_TASK_STACKS 1900
 #define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 4
 #define CONFIGURE_MAXIMUM_POSIX_THREADS         1
