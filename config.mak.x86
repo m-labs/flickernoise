@@ -5,6 +5,7 @@
 CC=clang
 LD=clang
 STRIP=strip
+OBJCOPY=objcopy
 
 GENODEFX=../genode-fx
 

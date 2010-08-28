@@ -8,7 +8,14 @@ flickernoise: $(OBJS)
 	$(LD) -o $@ $(OBJS) $(LDFLAGS) -ldope 
 	$(STRIP) $(STRIPFLAGS) $@
 
-clean:
-	rm -f flickernoise $(OBJS)
+flickernoise.ralf: flickernoise
+	$(OBJCOPY) -O binary flickernoise flickernoise.ralf
 
-.PHONY: clean
+# convenience target for loading to MM board
+load: flickernoise.ralf
+	flterm --port /dev/ttyUSB0 --kernel flickernoise.ralf
+
+clean:
+	rm -f flickernoise flickernoise.ralf $(OBJS)
+
+.PHONY: clean load

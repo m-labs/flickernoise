@@ -1,6 +1,7 @@
 CC=lm32-rtems4.11-gcc
 LD=lm32-rtems4.11-gcc
 STRIP=lm32-rtems4.11-strip
+OBJCOPY=lm32-rtems4.11-objcopy
 
 GENODEFX=../genode-fx
 
