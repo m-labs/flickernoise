@@ -30,6 +30,7 @@
 #include <SDL.h> /* for SDL_Quit */
 #else
 #include <bsp/milkymist_usbinput.h>
+#include <rtems/stackchk.h>
 #endif
 
 #include "patcheditor.h"
@@ -267,7 +268,8 @@ static rtems_id gui_task_id;
 rtems_task Init(rtems_task_argument argument)
 {
 	printf("Flickernoise starting...\n");
-	assert(rtems_task_create(rtems_build_name('G','U','I',' '), 1, 2*1024, 0, RTEMS_FLOATING_POINT, &gui_task_id) == RTEMS_SUCCESSFUL);
+	assert(rtems_task_create(rtems_build_name('G','U','I',' '), 1, 512*1024, RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR | \
+	RTEMS_INTERRUPT_LEVEL(0), RTEMS_FLOATING_POINT, &gui_task_id) == RTEMS_SUCCESSFUL);
 	assert(rtems_task_start(gui_task_id, gui_task, 0) == RTEMS_SUCCESSFUL);
 	rtems_task_delete(RTEMS_SELF);
 }
@@ -292,7 +294,9 @@ rtems_task Init(rtems_task_argument argument)
 #define CONFIGURE_INIT_TASK_INITIAL_MODES \
 	(RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR | \
 	RTEMS_INTERRUPT_LEVEL(0))
-#define CONFIGURE_STACK_CHECKER_ENABLED
+
+//#define CONFIGURE_ZERO_WORKSPACE_AUTOMATICALLY TRUE
+//#define CONFIGURE_STACK_CHECKER_ENABLED
 
 #define CONFIGURE_INIT
 #include <rtems/confdefs.h>
