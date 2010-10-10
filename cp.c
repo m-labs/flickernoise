@@ -21,9 +21,8 @@
 
 #include "patcheditor.h"
 #include "monitor.h"
+#include "about.h"
 #include "shutdown.h"
-#include "flash.h"
-#include "filedialog.h"
 
 #include "cp.h"
 
@@ -47,9 +46,8 @@ enum {
 
 	CP_ITEM_AUTOSTART,
 	CP_ITEM_FILEMANAGER,
-	CP_ITEM_SHUTDOWN,
-
-	CP_ITEM_FLASH
+	CP_ITEM_ABOUT,
+	CP_ITEM_SHUTDOWN
 };
 
 static void cp_callback(dope_event *e, void *arg)
@@ -98,16 +96,15 @@ static void cp_callback(dope_event *e, void *arg)
 			break;
 		case CP_ITEM_FILEMANAGER:
 			break;
+		case CP_ITEM_ABOUT:
+			open_about_window();
+			break;
 		case CP_ITEM_SHUTDOWN:
 			open_shutdown_window();
-			break;
-		case CP_ITEM_FLASH:
-			open_flash_window();
 			break;
 		default:
 			// TODO
 			break;
-
 	}
 }
 
@@ -188,11 +185,11 @@ void init_cp()
 		"b_autostart = new Button(-text \"Autostart\")",
 		"b_filemanager = new Button(-text \"File manager\")",
 		"b_shutdown = new Button(-text \"Shutdown\")",
-		"b_flash = new Button(-text \"Flash\")",
+		"b_about = new Button(-text \"About\")",
 		"g_system.place(b_autostart, -column 1 -row 1)",
 		"g_system.place(b_filemanager, -column 2 -row 1)",
 		"g_system.place(b_shutdown, -column 2 -row 2)",
-		"g_system.place(b_flash, -column 1 -row 2)",
+		"g_system.place(b_about, -column 1 -row 2)",
 		"g.place(g_system0, -column 1 -row 9)",
 		"g.place(g_system, -column 1 -row 10)",
 
@@ -215,9 +212,8 @@ void init_cp()
 	dope_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
 	dope_bind(appid, "b_autostart", "commit", cp_callback, (void *)CP_ITEM_AUTOSTART);
 	dope_bind(appid, "b_filemanager", "commit", cp_callback, (void *)CP_ITEM_FILEMANAGER);
+	dope_bind(appid, "b_about", "commit", cp_callback, (void *)CP_ITEM_ABOUT);
 	dope_bind(appid, "b_shutdown", "commit", cp_callback, (void *)CP_ITEM_SHUTDOWN);
-
-	dope_bind(appid, "b_flash", "commit", cp_callback, (void *)CP_ITEM_FLASH);
 
 	dope_bind(appid, "w", "close", cp_callback, (void *)CP_ITEM_SHUTDOWN);
 }

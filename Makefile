@@ -1,6 +1,6 @@
 include config.mak
 
-OBJS=filedialog.o main.o cp.o patcheditor.o monitor.o shutdown.o flash.o
+OBJS=filedialog.o main.o cp.o patcheditor.o monitor.o about.o flash.o shutdown.o
 
 all: flickernoise
 
@@ -23,7 +23,7 @@ flickernoise.mcs: flickernoise.fbi
 
 # convenience target for loading to MM board
 load: flickernoise.ralf
-	flterm --port /dev/ttyUSB0 --kernel flickernoise.ralf
+	sudo cp flickernoise.ralf /milkymist/boot.bin
 
 clean:
 	rm -f flickernoise flickernoise.ralf flickernoise.fbi flickernoise-rescue.mcs flickernoise.mcs $(OBJS)

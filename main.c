@@ -37,6 +37,7 @@
 #include "patcheditor.h"
 #include "monitor.h"
 #include "shutdown.h"
+#include "about.h"
 #include "flash.h"
 #include "filedialog.h"
 
@@ -61,8 +62,9 @@ int main(int argc, char *argv[])
 	init_cp();
 	init_patcheditor();
 	init_monitor();
-	init_shutdown();
+        init_about();
 	init_flash();
+        init_shutdown();
 
 	dope_eventloop(0);
 #ifndef RTEMS
