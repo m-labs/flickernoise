@@ -26,27 +26,21 @@
 
 static long appid;
 
-enum {
-	AB_ITEM_CLOSE,
-	AB_ITEM_FLASH
-};
-
-static void cp_callback(dope_event *e, void *arg)
+static void close_callback(dope_event *e, void *arg)
 {
-	switch((int)arg) {
-		case AB_ITEM_CLOSE:
-			dope_cmd(appid, "w.close()");
-			break;
-		case AB_ITEM_FLASH:
-			open_flash_window();
-			break;
-	}
+	dope_cmd(appid, "w.close()");
+}
+
+static void flash_callback(dope_event *e, void *arg)
+{
+	open_flash_window();
 }
 
 void init_about()
 {
 	appid = dope_init_app("About");
 
+	// TODO: display actual numbers in some places
 	dope_cmd_seq(appid,
 		"g = new Grid()",
 
@@ -84,10 +78,10 @@ void init_about()
 		0);
 
 
-	dope_bind(appid, "b_flash", "commit", cp_callback, (void *)AB_ITEM_FLASH);
-	dope_bind(appid, "b_close", "commit", cp_callback, (void *)AB_ITEM_CLOSE);
+	dope_bind(appid, "b_flash", "commit", flash_callback, NULL);
+	dope_bind(appid, "b_close", "commit", close_callback, NULL);
 
-	dope_bind(appid, "w", "close", cp_callback, (void *)AB_ITEM_CLOSE);
+	dope_bind(appid, "w", "close", close_callback, NULL);
 }
 
 void open_about_window()

@@ -30,10 +30,12 @@
 #include <SDL.h> /* for SDL_Quit */
 #else
 #include <bsp/milkymist_usbinput.h>
+#include <bsp/milkymist_ac97.h>
 #include <rtems/stackchk.h>
 #endif
 
 #include "cp.h"
+#include "audio.h"
 #include "patcheditor.h"
 #include "monitor.h"
 #include "shutdown.h"
@@ -60,6 +62,7 @@ int main(int argc, char *argv[])
 #endif
 
 	init_cp();
+        init_audio();
 	init_patcheditor();
 	init_monitor();
         init_about();
@@ -87,6 +90,7 @@ rtems_task Init(rtems_task_argument argument)
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER
 #define CONFIGURE_APPLICATION_EXTRA_DRIVERS \
+        AC97_DRIVER_TABLE_ENTRY, \
 	USBINPUT_DRIVER_TABLE_ENTRY
 
 #define CONFIGURE_EXECUTIVE_RAM_SIZE (16*1024*1024)
@@ -99,13 +103,13 @@ rtems_task Init(rtems_task_argument argument)
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
 #define CONFIGURE_INIT_TASK_STACK_SIZE (8*1024)
 #define CONFIGURE_INIT_TASK_PRIORITY 120
-#define CONFIGURE_INIT_TASK_ATTRIBUTES RTEMS_FLOATING_POINT
+#define CONFIGURE_INIT_TASK_ATTRIBUTES 0
 #define CONFIGURE_INIT_TASK_INITIAL_MODES \
 	(RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR | \
 	RTEMS_INTERRUPT_LEVEL(0))
 
 //#define CONFIGURE_ZERO_WORKSPACE_AUTOMATICALLY TRUE
-#define CONFIGURE_STACK_CHECKER_ENABLED
+//#define CONFIGURE_STACK_CHECKER_ENABLED
 
 #define CONFIGURE_INIT
 #include <rtems/confdefs.h>

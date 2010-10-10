@@ -19,6 +19,7 @@
 #include <dopelib.h>
 #include <vscreen.h>
 
+#include "audio.h"
 #include "patcheditor.h"
 #include "monitor.h"
 #include "about.h"
@@ -60,7 +61,7 @@ static void cp_callback(dope_event *e, void *arg)
 			printf("ir\n");
 			break;
 		case CP_ITEM_AUDIO:
-			printf("audio\n");
+			open_audio_window();
 			break;
 		case CP_ITEM_MIDI:
 			printf("midi\n");
