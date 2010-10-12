@@ -147,11 +147,11 @@ void init_flash()
 
 		"g3 = new Grid()",
 
+		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
-		"b_ok = new Button(-text \"Ok\")",
 
-		"g3.place(b_cancel, -column 1 -row 1)",
-		"g3.place(b_ok, -column 2 -row 1)",
+		"g3.place(b_ok, -column 1 -row 1)",
+		"g3.place(b_cancel, -column 2 -row 1)",
 
 		"g.place(g3, -column 1 -row 3)",
 

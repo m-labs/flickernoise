@@ -17,22 +17,112 @@
 
 #include <bsp.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
 #include <dopelib.h>
 #include <vscreen.h>
+#ifdef RTEMS
+#include <bsp/milkymist_ac97.h>
+#else
+#include <linux/soundcard.h>
+#endif
 
+#include "util.h"
 #include "version.h"
 #include "flash.h"
 #include "about.h"
 
 static long appid;
 
+static int mixer_fd;
+
+static int prev_line_vol;
+static int prev_line_mute;
+static int prev_mic_vol;
+static int prev_mic_mute;
+
+static int line_vol;
+static int line_mute;
+static int mic_vol;
+static int mic_mute;
+
+static void set_level(int channel, unsigned int val)
+{
+	int request;
+
+	val = val | (val << 8);
+	request = channel ? SOUND_MIXER_WRITE(SOUND_MIXER_MIC) : SOUND_MIXER_WRITE(SOUND_MIXER_LINE);
+	ioctl(mixer_fd, request, &val);
+}
+
+static void load_levels()
+{
+	if(line_mute)
+		set_level(0, 0);
+	else
+		set_level(0, line_vol);
+	if(mic_mute)
+		set_level(1, 0);
+	else
+		set_level(1, mic_vol);
+}
+
+static void slide_callback(dope_event *e, void *arg)
+{
+	unsigned int channel = (unsigned int)arg;
+	unsigned int val;
+
+	val = 100 - dope_req_l(appid, channel ? "s_micvol.value" : "s_linevol.value");
+	if(channel)
+		mic_vol = val;
+	else
+		line_vol = val;
+	if(channel ? !mic_mute : !line_mute)
+		set_level(channel, val);
+}
+
+static void mute_callback(dope_event *e, void *arg)
+{
+	unsigned int channel = (unsigned int)arg;
+
+	if(channel) {
+		mic_mute = !mic_mute;
+		if(mic_mute)
+			set_level(1, 0);
+		else
+			set_level(1, mic_vol);
+		dope_cmdf(appid, "b_mutmic.set(-state %s)", mic_mute ? "on" : "off");
+	} else {
+		line_mute = !line_mute;
+		if(line_mute)
+			set_level(0, 0);
+		else
+			set_level(0, line_vol);
+		dope_cmdf(appid, "b_mutline.set(-state %s)", line_mute ? "on" : "off");
+	}
+}
+
 static void ok_callback(dope_event *e, void *arg)
 {
+	dope_cmd(appid, "w.close()");
 }
 
 static void close_callback(dope_event *e, void *arg)
 {
 	dope_cmd(appid, "w.close()");
+
+	line_vol = prev_line_vol;
+	line_mute = prev_line_mute;
+	mic_vol = prev_mic_vol;
+	mic_mute = prev_mic_mute;
+
+	load_levels();
+	dope_cmdf(appid, "s_linevol.set(-value %d)", 100-line_vol);
+	dope_cmdf(appid, "b_mutline.set(-state %s)", line_mute ? "on" : "off");
+	dope_cmdf(appid, "s_micvol.set(-value %d)", 100-mic_vol);
+	dope_cmdf(appid, "b_mutmic.set(-state %s)", mic_mute ? "on" : "off");
 }
 
 void init_audio()
@@ -44,9 +134,9 @@ void init_audio()
 
 		"gv = new Grid()",
 		"l_linevol = new Label(-text \"Line volume\")",
-		"s_linevol = new Scale(-orient vertical)",
+		"s_linevol = new Scale(-from 0 -to 100 -value 0 -orient vertical)",
 		"l_micvol = new Label(-text \"Mic volume\")",
-		"s_micvol = new Scale(-orient vertical)",
+		"s_micvol = new Scale(-from 0 -to 100 -value 0 -orient vertical)",
 
 		"b_mutline = new Button(-text \"Mute\")",
 		"b_mutmic = new Button(-text \"Mute\")",
@@ -77,14 +167,33 @@ void init_audio()
 		"w = new Window(-content g -title \"Audio settings\")",
 		0);
 
+	dope_bind(appid, "s_linevol", "change", slide_callback, (void *)0);
+	dope_bind(appid, "s_micvol", "change", slide_callback, (void *)1);
+
+	dope_bind(appid, "b_mutline", "press", mute_callback, (void *)0);
+	dope_bind(appid, "b_mutmic", "press", mute_callback, (void *)1);
 
 	dope_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	dope_bind(appid, "b_cancel", "commit", close_callback, NULL);
 
 	dope_bind(appid, "w", "close", close_callback, NULL);
+
+	mixer_fd = open("/dev/mixer", O_RDWR);
+	if(mixer_fd == -1)
+		perror("Unable to open audio mixer");
+
+	line_vol = 100;
+	line_mute = 0;
+	mic_vol = 100;
+	mic_mute = 0;
+	load_levels();
 }
 
 void open_audio_window()
 {
+	prev_line_vol = line_vol;
+	prev_line_mute = line_mute;
+	prev_mic_vol = mic_vol;
+	prev_mic_mute = mic_mute;
 	dope_cmd(appid, "w.open()");
 }
