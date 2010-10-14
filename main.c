@@ -28,6 +28,7 @@
 #include <bsp/milkymist_ac97.h>
 #include <rtems/stackchk.h>
 #include <rtems/shell.h>
+#include <rtems/rtems_bsdnet.h>
 
 #include "cp.h"
 #include "audio.h"
@@ -60,6 +61,9 @@ rtems_task Init(rtems_task_argument argument)
 {
 	rtems_status_code sc;
 
+	/* TODO: read network configuration */
+	rtems_bsdnet_initialize_network();
+
 	printf("Starting GUI task...\n");
 
 	assert(rtems_task_create(rtems_build_name('G','U','I',' '), 100, 512*1024, RTEMS_PREEMPT | RTEMS_TIMESLICE | RTEMS_NO_ASR | \
@@ -87,7 +91,45 @@ rtems_task Init(rtems_task_argument argument)
 
 #define CONFIGURE_SHELL_COMMANDS_INIT
 #define CONFIGURE_SHELL_COMMANDS_ALL
+#define CONFIGURE_SHELL_COMMANDS_ALL_NETWORKING
 #include <rtems/shellconfig.h>
+
+static struct rtems_bsdnet_ifconfig netdriver_config = {
+	RTEMS_BSP_NETWORK_DRIVER_NAME,
+	RTEMS_BSP_NETWORK_DRIVER_ATTACH,
+	NULL,
+	"192.168.0.42",
+	"255.255.255.0",
+	NULL,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	NULL
+};
+
+
+struct rtems_bsdnet_config rtems_bsdnet_config = {
+	&netdriver_config,
+	NULL,
+	0,
+	0,
+	0,
+	"milkymist",
+	"local.domain",
+	"192.168.0.42",
+	NULL,
+	{"192.168.0.14" },
+	{"192.168.0.14" },
+	0,
+	0,
+	0,
+	0,
+	0
+};
 
 #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
@@ -102,7 +144,7 @@ rtems_task Init(rtems_task_argument argument)
 #define CONFIGURE_EXECUTIVE_RAM_SIZE (16*1024*1024)
 
 #define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 16
-#define CONFIGURE_MAXIMUM_TASKS 4
+#define CONFIGURE_MAXIMUM_TASKS 8
 #define CONFIGURE_MAXIMUM_POSIX_MUTEXES 8
 
 #define CONFIGURE_TICKS_PER_TIMESLICE 3
