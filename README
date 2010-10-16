@@ -3,9 +3,6 @@ Flickernoise
 
 A end-user VJ application for Milkymist.
 
-Based on:
- - Genode FX (http://www.genode-labs.com/products/fpga-graphics)
- - SDL (http://www.libsdl.org)
-
 (C) Copyright 2010 Sebastien Bourdeauducq.
 Licensed under GNU GPL v3. See file LICENSE.
+
