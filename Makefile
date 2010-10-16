@@ -1,4 +1,13 @@
-include config.mak
+CC=lm32-rtems4.11-gcc
+LD=lm32-rtems4.11-gcc
+STRIP=lm32-rtems4.11-strip
+OBJCOPY=lm32-rtems4.11-objcopy
+
+GENODEFX=../genode-fx
+
+CFLAGS=-O2 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -I$(GENODEFX)/dope-embedded/include -I$(RTEMS_MAKEFILE_PATH)/lib/include
+LDFLAGS=-L$(GENODEFX)/dope-embedded/lib/milkymist -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
+STRIPFLAGS=
 
 OBJS=filedialog.o main.o cp.o audio.o patcheditor.o monitor.o about.o flash.o shutdown.o
 
