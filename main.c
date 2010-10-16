@@ -43,7 +43,6 @@
 
 static rtems_task gui_task(rtems_task_argument argument)
 {
-	printf("GUI task started\n");
 	if(dope_init())
 		return;
 
@@ -67,17 +66,14 @@ rtems_task Init(rtems_task_argument argument)
 	/* TODO: read network configuration */
 	rtems_bsdnet_initialize_network();
 
-	printf("Starting GUI task...\n");
-
 	assert(rtems_task_create(rtems_build_name('G','U','I',' '), 100, 512*1024,
 		RTEMS_PREEMPT | RTEMS_TIMESLICE | RTEMS_NO_ASR,
 		0, &gui_task_id) == RTEMS_SUCCESSFUL);
 	assert(rtems_task_start(gui_task_id, gui_task, 0) == RTEMS_SUCCESSFUL);
 
-	printf("Starting shell task...\n");
 	sc = rtems_shell_init(
 		"SHLL",
-		RTEMS_MINIMUM_STACK_SIZE * 4,
+		RTEMS_MINIMUM_STACK_SIZE * 8,
 		100,
 		"/dev/console",
 		false,
