@@ -41,7 +41,7 @@
 #include "flash.h"
 #include "filedialog.h"
 
-rtems_task gui_task(rtems_task_argument argument)
+static rtems_task gui_task(rtems_task_argument argument)
 {
 	printf("GUI task started\n");
 	if(dope_init())
@@ -59,6 +59,7 @@ rtems_task gui_task(rtems_task_argument argument)
 }
 
 static rtems_id gui_task_id;
+
 rtems_task Init(rtems_task_argument argument)
 {
 	rtems_status_code sc;
@@ -68,8 +69,9 @@ rtems_task Init(rtems_task_argument argument)
 
 	printf("Starting GUI task...\n");
 
-	assert(rtems_task_create(rtems_build_name('G','U','I',' '), 100, 512*1024, RTEMS_PREEMPT | RTEMS_TIMESLICE | RTEMS_NO_ASR | \
-		RTEMS_INTERRUPT_LEVEL(0), RTEMS_FLOATING_POINT, &gui_task_id) == RTEMS_SUCCESSFUL);
+	assert(rtems_task_create(rtems_build_name('G','U','I',' '), 100, 512*1024,
+		RTEMS_PREEMPT | RTEMS_TIMESLICE | RTEMS_NO_ASR,
+		0, &gui_task_id) == RTEMS_SUCCESSFUL);
 	assert(rtems_task_start(gui_task_id, gui_task, 0) == RTEMS_SUCCESSFUL);
 
 	/* disable shell because it uses 100% CPU (polled console driver) */

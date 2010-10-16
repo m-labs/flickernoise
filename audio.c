@@ -109,8 +109,8 @@ static void test_callback(dope_event *e, void *arg)
 {
 	int fd;
 	int i;
-	static struct snd_buffer *snd_buffers[TEST_NBUFFERS];
-	static struct snd_buffer *ret_buffers[TEST_NBUFFERS];
+	struct snd_buffer *snd_buffers[TEST_NBUFFERS];
+	struct snd_buffer *ret_buffers[TEST_NBUFFERS];
 
 	fd = open("/dev/snd", O_RDWR);
 	if(fd == -1) {
@@ -119,7 +119,7 @@ static void test_callback(dope_event *e, void *arg)
 	}
 
 	for(i=0;i<TEST_NBUFFERS;i++) {
-		snd_buffers[i] = malloc(TEST_NSAMPLES*4+4);
+		snd_buffers[i] = malloc(TEST_NSAMPLES*4+sizeof(struct snd_buffer));
 		if(snd_buffers[i] == NULL) {
 			perror("malloc");
 			return;

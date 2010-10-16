@@ -5,17 +5,29 @@ OBJCOPY=lm32-rtems4.11-objcopy
 
 GENODEFX=../genode-fx
 
-CFLAGS=-O2 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -I$(GENODEFX)/dope-embedded/include -I$(RTEMS_MAKEFILE_PATH)/lib/include
+CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(GENODEFX)/dope-embedded/include -I$(RTEMS_MAKEFILE_PATH)/lib/include
 LDFLAGS=-L$(GENODEFX)/dope-embedded/lib/milkymist -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
 STRIPFLAGS=
 
-OBJS=filedialog.o main.o cp.o audio.o patcheditor.o monitor.o about.o flash.o shutdown.o
+# base
+OBJS=main.o
+
+# GUI
+OBJS+=filedialog.o cp.o audio.o patcheditor.o monitor.o about.o flash.o shutdown.o
+
+# renderer
+OBJS+=framedescriptor.o analyzer.o sampler.o
 
 all: flickernoise
 
 flickernoise: $(OBJS)
 	$(LD) -o $@ $(OBJS) $(LDFLAGS) -ldope -lfpvm
 	$(STRIP) $(STRIPFLAGS) $@
+
+bandfilters.h: bandfilters.sce
+	scilab -nw -nwni -nogui -nb -f bandfilters.sce
+
+analyzer.c: bandfilters.h
 
 # boot images for Milkymist
 flickernoise.ralf: flickernoise
@@ -35,6 +47,6 @@ load: flickernoise.ralf
 	sudo cp flickernoise.ralf /milkymist/boot.bin
 
 clean:
-	rm -f flickernoise flickernoise.ralf flickernoise.fbi flickernoise-rescue.mcs flickernoise.mcs $(OBJS)
+	rm -f bandfilters.h flickernoise flickernoise.ralf flickernoise.fbi flickernoise-rescue.mcs flickernoise.mcs $(OBJS)
 
 .PHONY: clean load
