@@ -26,6 +26,8 @@
 #include <vscreen.h>
 #include <bsp/milkymist_usbinput.h>
 #include <bsp/milkymist_ac97.h>
+#include <bsp/milkymist_pfpu.h>
+#include <bsp/milkymist_tmu.h>
 #include <rtems/stackchk.h>
 #include <rtems/shell.h>
 #include <rtems/rtems_bsdnet.h>
@@ -135,8 +137,10 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER
 #define CONFIGURE_APPLICATION_EXTRA_DRIVERS \
-        AC97_DRIVER_TABLE_ENTRY, \
-	USBINPUT_DRIVER_TABLE_ENTRY
+	USBINPUT_DRIVER_TABLE_ENTRY, \
+	AC97_DRIVER_TABLE_ENTRY, \
+	PFPU_DRIVER_TABLE_ENTRY, \
+	TMU_DRIVER_TABLE_ENTRY
 
 #define CONFIGURE_APPLICATION_NEEDS_LIBBLOCK
 #define CONFIGURE_USE_IMFS_AS_BASE_FILESYSTEM

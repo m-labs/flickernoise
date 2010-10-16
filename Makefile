@@ -5,7 +5,7 @@ OBJS=filedialog.o main.o cp.o audio.o patcheditor.o monitor.o about.o flash.o sh
 all: flickernoise
 
 flickernoise: $(OBJS)
-	$(LD) -o $@ $(OBJS) $(LDFLAGS) -ldope
+	$(LD) -o $@ $(OBJS) $(LDFLAGS) -ldope -lfpvm
 	$(STRIP) $(STRIPFLAGS) $@
 
 # boot images for Milkymist
