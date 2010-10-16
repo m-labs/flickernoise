@@ -23,6 +23,8 @@
 
 #include "filedialog.h"
 #include "patcheditor.h"
+#include "framedescriptor.h"
+#include "sampler.h"
 
 static long appid;
 static long fileopen_appid;
@@ -56,6 +58,27 @@ static void saveasok_callback(dope_event *e, void *arg)
 
 static void saveascancel_callback(dope_event *e, void *arg)
 {
+}
+
+static void mycallback(struct frame_descriptor *frd)
+{
+	/*static int i;
+
+	if(i++ == 24) {
+		printf("bass:%f mid:%f treb:%f\n", frd->bass, frd->mid, frd->treb);
+		i = 0;
+	}*/
+	sampler_return(frd);
+}
+
+static bool sampler_running;
+static void run_callback(dope_event *e, void *arg)
+{
+	if(sampler_running)
+		sampler_stop();
+	else
+		sampler_start(mycallback);
+	sampler_running = !sampler_running;
 }
 
 void init_patcheditor()
@@ -101,6 +124,7 @@ void init_patcheditor()
 	fileopen_appid = create_filedialog("Open patch", 0, openok_callback, NULL, opencancel_callback, NULL);
 
 	dope_bind(appid, "b_open", "commit", openbtn_callback, NULL);
+	dope_bind(appid, "b_run", "commit", run_callback, NULL);
 
 	dope_bind(appid, "w", "close", close_callback, NULL);
 }

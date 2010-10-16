@@ -74,8 +74,6 @@ rtems_task Init(rtems_task_argument argument)
 		0, &gui_task_id) == RTEMS_SUCCESSFUL);
 	assert(rtems_task_start(gui_task_id, gui_task, 0) == RTEMS_SUCCESSFUL);
 
-	/* disable shell because it uses 100% CPU (polled console driver) */
-#if 0
 	printf("Starting shell task...\n");
 	sc = rtems_shell_init(
 		"SHLL",
@@ -88,7 +86,6 @@ rtems_task Init(rtems_task_argument argument)
 	);
 	if(sc != RTEMS_SUCCESSFUL)
 		printf("Unable to start shell (error code %d)\n", sc);
-#endif
 
 	rtems_task_delete(RTEMS_SELF);
 }
@@ -153,6 +150,7 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 #define CONFIGURE_MAXIMUM_TASKS 8
 #define CONFIGURE_MAXIMUM_MESSAGE_QUEUES 8
 #define CONFIGURE_MAXIMUM_SEMAPHORES 8
+#define CONFIGURE_MAXIMUM_BARRIERS 8
 
 #define CONFIGURE_TICKS_PER_TIMESLICE 3
 #define CONFIGURE_MICROSECONDS_PER_TICK 10000

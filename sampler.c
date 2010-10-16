@@ -193,12 +193,12 @@ static rtems_task sampler_task(rtems_task_argument argument)
 				break;
 			}
 		}
+		if(!recording)
+			break;
 
-		if(recording) {
-			ioctl(snd_fd, SOUND_SND_COLLECT_RECORD, &recorded_buf);
-			recorded_descriptor = (struct frame_descriptor *)recorded_buf->user;
-			recorded_descriptor->status = FRD_STATUS_SAMPLED;
-		}
+		ioctl(snd_fd, SOUND_SND_COLLECT_RECORD, &recorded_buf);
+		recorded_descriptor = (struct frame_descriptor *)recorded_buf->user;
+		recorded_descriptor->status = FRD_STATUS_NEW;
 	}
 
 	/* Wait for all frame descriptors to be returned */
