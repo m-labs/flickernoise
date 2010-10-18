@@ -16,7 +16,7 @@ OBJS=main.o
 OBJS+=filedialog.o cp.o audio.o patcheditor.o monitor.o about.o flash.o shutdown.o
 
 # renderer
-OBJS+=framedescriptor.o analyzer.o sampler.o
+OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o
 
 all: flickernoise
 

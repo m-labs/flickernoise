@@ -29,8 +29,6 @@
 #include "analyzer.h"
 #include "sampler.h"
 
-#define FRAME_DESCRIPTOR_COUNT 4
-
 struct snd_history {
 	float peak_bass, peak_mid, peak_treb;
 	float bass_att, mid_att, treb_att;
@@ -91,7 +89,7 @@ static rtems_id sampler_done_barrier;
 
 static rtems_task sampler_task(rtems_task_argument argument)
 {
-	struct frame_descriptor *frame_descriptors[FRAME_DESCRIPTOR_COUNT];
+	struct frame_descriptor *frame_descriptors[FRD_COUNT];
 	int i;
 	int snd_fd;
 	struct snd_history history;
@@ -107,7 +105,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 
 	init_history(&history);
 
-	for(i=0;i<FRAME_DESCRIPTOR_COUNT;i++) {
+	for(i=0;i<FRD_COUNT;i++) {
 		frame_descriptors[i] = new_frame_descriptor();
 		if(frame_descriptors[i] == NULL) {
 			perror("new_frame_descriptor");
@@ -127,7 +125,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		 * (i.e. all frame descriptors are pending processing by downstream)
 		 */
 		pending_downstream = true;
-		for(i=0;i<FRAME_DESCRIPTOR_COUNT;i++) {
+		for(i=0;i<FRD_COUNT;i++) {
 			if(frame_descriptors[i]->status < FRD_STATUS_SAMPLED) {
 				pending_downstream = false;
 				break;
@@ -163,7 +161,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 			returned_descriptor->status = FRD_STATUS_NEW;
 		}
 		/* Refill AC97 driver with record buffers */
-		for(i=0;i<FRAME_DESCRIPTOR_COUNT;i++) {
+		for(i=0;i<FRD_COUNT;i++) {
 			if(frame_descriptors[i]->status == FRD_STATUS_NEW) {
 				ioctl(snd_fd, SOUND_SND_SUBMIT_RECORD, frame_descriptors[i]->snd_buf);
 				frame_descriptors[i]->status = FRD_STATUS_SAMPLING;
@@ -187,7 +185,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		bool recording;
 
 		recording = false;
-		for(i=0;i<FRAME_DESCRIPTOR_COUNT;i++) {
+		for(i=0;i<FRD_COUNT;i++) {
 			if(frame_descriptors[i]->status == FRD_STATUS_SAMPLING) {
 				recording = true;
 				break;
@@ -208,7 +206,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		struct frame_descriptor *returned_descriptor;
 
 		all_returned = true;
-		for(i=0;i<FRAME_DESCRIPTOR_COUNT;i++) {
+		for(i=0;i<FRD_COUNT;i++) {
 			if(frame_descriptors[i]->status >= FRD_STATUS_SAMPLED) {
 				all_returned = false;
 				break;
@@ -227,7 +225,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		returned_descriptor->status = FRD_STATUS_NEW;
 	}
 
-	for(i=0;i<FRAME_DESCRIPTOR_COUNT;i++)
+	for(i=0;i<FRD_COUNT;i++)
 		free_frame_descriptor(frame_descriptors[i]);
 
 	close(snd_fd);
@@ -242,7 +240,7 @@ void sampler_start(sampler_callback callback)
 {
 	assert(rtems_message_queue_create(
 		rtems_build_name('S','M','P','L'),
-		FRAME_DESCRIPTOR_COUNT,
+		FRD_COUNT,
 		sizeof(void *),
 		0,
 		&returned_q) == RTEMS_SUCCESSFUL);

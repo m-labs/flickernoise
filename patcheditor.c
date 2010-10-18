@@ -112,7 +112,7 @@ void init_patcheditor()
 "wave_b=0.65\n"
 "wave_x=0.5\n"
 "wave_y=0.55\n"
-"per_frame_1=zoom = 1.01 + 0.05*bass\n"
+"per_frame=zoom = 1.01 + 0.05*bass\n"
 		"\")",
 		"g.place(ed, -column 1 -row 2)",
 		"status = new Label(-text \"Ready.\" -font \"title\")",
