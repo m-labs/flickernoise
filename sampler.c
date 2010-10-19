@@ -85,7 +85,7 @@ static void analyze_snd(struct frame_descriptor *frd, struct snd_history *histor
 }
 
 static rtems_id returned_q;
-static rtems_id sampler_done_barrier;
+static rtems_id sampler_terminated;
 
 static rtems_task sampler_task(rtems_task_argument argument)
 {
@@ -95,7 +95,6 @@ static rtems_task sampler_task(rtems_task_argument argument)
 	struct snd_history history;
 	frd_callback callback = (frd_callback)argument;
 	rtems_event_set dummy;
-	uint32_t nthreads;
 	float time;
 
 	snd_fd = open("/dev/snd", O_RDWR);
@@ -240,7 +239,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 	close(snd_fd);
 
 end:
-	rtems_barrier_release(sampler_done_barrier, &nthreads);
+	rtems_semaphore_release(sampler_terminated);
 	rtems_task_delete(RTEMS_SELF);
 }
 
@@ -249,19 +248,20 @@ static rtems_id sampler_task_id;
 void sampler_start(frd_callback callback)
 {
 	assert(rtems_message_queue_create(
-		rtems_build_name('S','M','P','L'),
+		rtems_build_name('S', 'M', 'P', 'L'),
 		FRD_COUNT,
 		sizeof(void *),
 		0,
 		&returned_q) == RTEMS_SUCCESSFUL);
 
-	assert(rtems_barrier_create(
-		rtems_build_name('S','M','P','L'),
-		RTEMS_BARRIER_MANUAL_RELEASE,
-		1,
-		&sampler_done_barrier) == RTEMS_SUCCESSFUL);
+	assert(rtems_semaphore_create(
+		rtems_build_name('S', 'M', 'P', 'L'),
+		0,
+		RTEMS_SIMPLE_BINARY_SEMAPHORE,
+		0,
+		&sampler_terminated) == RTEMS_SUCCESSFUL);
 
-	assert(rtems_task_create(rtems_build_name('S','M','P','L'), 10, RTEMS_MINIMUM_STACK_SIZE,
+	assert(rtems_task_create(rtems_build_name('S', 'M', 'P', 'L'), 10, RTEMS_MINIMUM_STACK_SIZE,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
 		0, &sampler_task_id) == RTEMS_SUCCESSFUL);
 	assert(rtems_task_start(sampler_task_id, sampler_task, (rtems_task_argument)callback) == RTEMS_SUCCESSFUL);
@@ -276,9 +276,9 @@ void sampler_stop()
 {
 	rtems_event_send(sampler_task_id, RTEMS_EVENT_0);
 
-	rtems_barrier_wait(sampler_done_barrier, RTEMS_NO_TIMEOUT);
+	rtems_semaphore_obtain(sampler_terminated, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
 
 	/* task self-deleted */
-	rtems_barrier_delete(sampler_done_barrier);
+	rtems_semaphore_delete(sampler_terminated);
 	rtems_message_queue_delete(returned_q);
 }

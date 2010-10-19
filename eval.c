@@ -217,12 +217,11 @@ static void eval_pvv(struct patch *p, unsigned int *output, int fd)
 }
 
 static rtems_id eval_q;
-static rtems_id eval_done_barrier;
+static rtems_id eval_terminated;
 
 static rtems_task eval_task(rtems_task_argument argument)
 {
 	frd_callback callback = (frd_callback)argument;
-	uint32_t nthreads;
 	struct frame_descriptor *frd;
 	size_t s;
 	int pfpu_fd;
@@ -268,7 +267,7 @@ static rtems_task eval_task(rtems_task_argument argument)
 	close(pfpu_fd);
 
 end:
-	rtems_barrier_release(eval_done_barrier, &nthreads);
+	rtems_semaphore_release(eval_terminated);
 	rtems_task_delete(RTEMS_SELF);
 }
 
@@ -277,19 +276,20 @@ static rtems_id eval_task_id;
 void eval_start(frd_callback callback)
 {
 	assert(rtems_message_queue_create(
-		rtems_build_name('E','V','A','L'),
+		rtems_build_name('E', 'V', 'A', 'L'),
 		FRD_COUNT,
 		sizeof(void *),
 		0,
 		&eval_q) == RTEMS_SUCCESSFUL);
 
-	assert(rtems_barrier_create(
-		rtems_build_name('E','V','A','L'),
-		RTEMS_BARRIER_MANUAL_RELEASE,
-		1,
-		&eval_done_barrier) == RTEMS_SUCCESSFUL);
+	assert(rtems_semaphore_create(
+		rtems_build_name('E', 'V', 'A', 'L'),
+		0,
+		RTEMS_SIMPLE_BINARY_SEMAPHORE,
+		0,
+		&eval_terminated) == RTEMS_SUCCESSFUL);
 
-	assert(rtems_task_create(rtems_build_name('E','V','A','L'), 10, RTEMS_MINIMUM_STACK_SIZE,
+	assert(rtems_task_create(rtems_build_name('E', 'V', 'A', 'L'), 10, RTEMS_MINIMUM_STACK_SIZE,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
 		0, &eval_task_id) == RTEMS_SUCCESSFUL);
 	assert(rtems_task_start(eval_task_id, eval_task, (rtems_task_argument)callback) == RTEMS_SUCCESSFUL);
@@ -307,9 +307,9 @@ void eval_stop()
 	dummy = NULL;
 	rtems_message_queue_send(eval_q, &dummy, sizeof(void *));
 
-	rtems_barrier_wait(eval_done_barrier, RTEMS_NO_TIMEOUT);
+	rtems_semaphore_obtain(eval_terminated, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
 
 	/* task self-deleted */
-	rtems_barrier_delete(eval_done_barrier);
+	rtems_semaphore_delete(eval_terminated);
 	rtems_message_queue_delete(eval_q);
 }
