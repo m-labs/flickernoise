@@ -15,13 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SAMPLER_H
-#define __SAMPLER_H
+#ifndef __EVAL_H
+#define __EVAL_H
 
 #include "framedescriptor.h"
 
-void sampler_start(frd_callback callback);
-void sampler_return(struct frame_descriptor *frd);
-void sampler_stop();
+void eval_start(frd_callback callback);
+void eval_input(struct frame_descriptor *frd);
+void eval_stop();
 
-#endif /* __SAMPLER_H */
+#endif /* __EVAL_H */

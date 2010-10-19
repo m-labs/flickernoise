@@ -15,13 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SAMPLER_H
-#define __SAMPLER_H
+#include <stdio.h>
 
-#include "framedescriptor.h"
+#include "renderer.h"
 
-void sampler_start(frd_callback callback);
-void sampler_return(struct frame_descriptor *frd);
-void sampler_stop();
+int renderer_texsize;
+int renderer_hmeshlast;
+int renderer_vmeshlast;
 
-#endif /* __SAMPLER_H */
+struct patch *renderer_get_patch()
+{
+	return NULL;
+}

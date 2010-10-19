@@ -3,7 +3,7 @@ LD=lm32-rtems4.11-gcc
 STRIP=lm32-rtems4.11-strip
 OBJCOPY=lm32-rtems4.11-objcopy
 
-GENODEFX=../genode-fx
+GENODEFX?=../genode-fx
 
 CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(GENODEFX)/dope-embedded/include -I$(RTEMS_MAKEFILE_PATH)/lib/include
 LDFLAGS=-L$(GENODEFX)/dope-embedded/lib/milkymist -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
@@ -16,7 +16,7 @@ OBJS=main.o
 OBJS+=filedialog.o cp.o audio.o patcheditor.o monitor.o about.o flash.o shutdown.o
 
 # renderer
-OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o
+OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o renderer.o
 
 all: flickernoise
 

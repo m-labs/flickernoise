@@ -16,6 +16,8 @@
  */
 
 #include <stdlib.h>
+#include <rtems.h>
+#include <bsp/milkymist_tmu.h>
 
 #include "framedescriptor.h"
 
@@ -37,11 +39,19 @@ struct frame_descriptor *new_frame_descriptor()
 	frd->snd_buf->nsamples = FRD_AUDIO_NSAMPLES;
 	frd->snd_buf->user = frd;
 
+	if(posix_memalign((void **)&frd->vertices, sizeof(struct tmu_vertex),
+		sizeof(struct tmu_vertex)*TMU_MESH_MAXSIZE*TMU_MESH_MAXSIZE) != 0) {
+		free(frd->snd_buf);
+		free(frd);
+		return NULL;
+	}
+
 	return frd;
 }
 
 void free_frame_descriptor(struct frame_descriptor *frd)
 {
+	free(frd->vertices);
 	free(frd->snd_buf);
 	free(frd);
 }

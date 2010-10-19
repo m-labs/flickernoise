@@ -93,14 +93,15 @@ static rtems_task sampler_task(rtems_task_argument argument)
 	int i;
 	int snd_fd;
 	struct snd_history history;
-	sampler_callback callback = (sampler_callback)argument;
+	frd_callback callback = (frd_callback)argument;
 	rtems_event_set dummy;
 	uint32_t nthreads;
+	float time;
 
 	snd_fd = open("/dev/snd", O_RDWR);
 	if(snd_fd == -1) {
 		perror("Unable to open audio device");
-		return;
+		goto end;
 	}
 
 	init_history(&history);
@@ -110,9 +111,11 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		if(frame_descriptors[i] == NULL) {
 			perror("new_frame_descriptor");
 			close(snd_fd);
-			return;
+			goto end;
 		}
 	}
+
+	time = 0.0;
 
 	while(rtems_event_receive(RTEMS_EVENT_0, RTEMS_NO_WAIT, RTEMS_NO_TIMEOUT, &dummy) != RTEMS_SUCCESSFUL) {
 		struct snd_buffer *recorded_buf;
@@ -136,11 +139,11 @@ static rtems_task sampler_task(rtems_task_argument argument)
 			struct frame_descriptor *returned_descriptor;
 
 			rtems_message_queue_receive(
-			    returned_q,
-			    &returned_descriptor,
-			    &s,
-			    RTEMS_WAIT,
-			    RTEMS_NO_TIMEOUT
+				returned_q,
+				&returned_descriptor,
+				&s,
+				RTEMS_WAIT,
+				RTEMS_NO_TIMEOUT
 			);
 			returned_descriptor->status = FRD_STATUS_NEW;
 		}
@@ -150,11 +153,11 @@ static rtems_task sampler_task(rtems_task_argument argument)
 			rtems_status_code sc;
 
 			sc = rtems_message_queue_receive(
-			    returned_q,
-			    &returned_descriptor,
-			    &s,
-			    RTEMS_NO_WAIT,
-			    RTEMS_NO_TIMEOUT
+				returned_q,
+				&returned_descriptor,
+				&s,
+				RTEMS_NO_WAIT,
+				RTEMS_NO_TIMEOUT
 			);
 			if(sc != RTEMS_SUCCESSFUL)
 				break;
@@ -170,9 +173,15 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		/* Wait for some sound to be recorded */
 		ioctl(snd_fd, SOUND_SND_COLLECT_RECORD, &recorded_buf);
 		recorded_descriptor = (struct frame_descriptor *)recorded_buf->user;
-		/* Analyze sound */
+		/* Analyze */
 		analyze_snd(recorded_descriptor, &history);
+		recorded_descriptor->time = time;
+		time += 1.0/FPS;
 		/* TODO: collect DMX and MIDI info */
+		recorded_descriptor->idmx1 = 0.0;
+		recorded_descriptor->idmx2 = 0.0;
+		recorded_descriptor->idmx3 = 0.0;
+		recorded_descriptor->idmx4 = 0.0;
 		/* Update status and send downstream */
 		recorded_descriptor->status = FRD_STATUS_SAMPLED;
 		callback(recorded_descriptor);
@@ -216,11 +225,11 @@ static rtems_task sampler_task(rtems_task_argument argument)
 			break;
 
 		rtems_message_queue_receive(
-		    returned_q,
-		    &returned_descriptor,
-		    &s,
-		    RTEMS_WAIT,
-		    RTEMS_NO_TIMEOUT
+			returned_q,
+			&returned_descriptor,
+			&s,
+			RTEMS_WAIT,
+			RTEMS_NO_TIMEOUT
 		);
 		returned_descriptor->status = FRD_STATUS_NEW;
 	}
@@ -230,13 +239,14 @@ static rtems_task sampler_task(rtems_task_argument argument)
 
 	close(snd_fd);
 
+end:
 	rtems_barrier_release(sampler_done_barrier, &nthreads);
 	rtems_task_delete(RTEMS_SELF);
 }
 
 static rtems_id sampler_task_id;
 
-void sampler_start(sampler_callback callback)
+void sampler_start(frd_callback callback)
 {
 	assert(rtems_message_queue_create(
 		rtems_build_name('S','M','P','L'),
