@@ -202,8 +202,8 @@ static void eval_pvv(struct patch *p, unsigned int *output, int fd)
 	struct pfpu_td td;
 
 	td.output = output;
-	td.hmeshlast = 0;
-	td.vmeshlast = 0;
+	td.hmeshlast = renderer_hmeshlast;
+	td.vmeshlast = renderer_vmeshlast;
 	td.program = p->pervertex_prog;
 	td.progsize = p->pervertex_prog_length;
 	td.registers = p->pervertex_regs;
@@ -248,6 +248,8 @@ static rtems_task eval_task(rtems_task_argument argument)
 			break;
 		assert(frd->status == FRD_STATUS_SAMPLED);
 
+		renderer_lock_patch();
+
 		p = renderer_get_patch();
 
 		reinit_all_pfv(p);
@@ -256,6 +258,8 @@ static rtems_task eval_task(rtems_task_argument argument)
 		set_frd_from_pfv(p, frd);
 		transfer_pvv_regs(p);
 		eval_pvv(p, frd->vertices, pfpu_fd);
+
+		renderer_unlock_patch();
 
 		frd->status = FRD_STATUS_EVALUATED;
 		callback(frd);

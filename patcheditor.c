@@ -24,7 +24,8 @@
 #include "filedialog.h"
 #include "patcheditor.h"
 #include "framedescriptor.h"
-#include "sampler.h"
+#include "compiler.h"
+#include "renderer.h"
 
 static long appid;
 static long fileopen_appid;
@@ -60,25 +61,23 @@ static void saveascancel_callback(dope_event *e, void *arg)
 {
 }
 
-static void mycallback(struct frame_descriptor *frd)
+static void rmc(const char *m)
 {
-	/*static int i;
-
-	if(i++ == 24) {
-		printf("bass:%f mid:%f treb:%f\n", frd->bass, frd->mid, frd->treb);
-		i = 0;
-	}*/
-	sampler_return(frd);
+	puts(m);
 }
 
-static bool sampler_running;
+static bool test_running;
 static void run_callback(dope_event *e, void *arg)
 {
-	if(sampler_running)
-		sampler_stop();
-	else
-		sampler_start(mycallback);
-	sampler_running = !sampler_running;
+	if(test_running)
+		renderer_stop();
+	else {
+		struct patch *p;
+		p = patch_compile("per_frame=decay=0.1*bass", rmc);
+		renderer_start(p);
+		patch_free(p);
+	}
+	test_running = !test_running;
 }
 
 void init_patcheditor()
