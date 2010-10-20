@@ -74,7 +74,7 @@ rtems_task Init(rtems_task_argument argument)
 	sc = rtems_shell_init(
 		"SHLL",
 		RTEMS_MINIMUM_STACK_SIZE * 8,
-		100,
+		1, /* We want it to work */
 		"/dev/console",
 		false,
 		false,
@@ -143,9 +143,9 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 #define CONFIGURE_EXECUTIVE_RAM_SIZE (16*1024*1024)
 
 #define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 16
-#define CONFIGURE_MAXIMUM_TASKS 8
-#define CONFIGURE_MAXIMUM_MESSAGE_QUEUES 8
-#define CONFIGURE_MAXIMUM_SEMAPHORES 16
+#define CONFIGURE_MAXIMUM_TASKS 16
+#define CONFIGURE_MAXIMUM_MESSAGE_QUEUES 16
+#define CONFIGURE_MAXIMUM_SEMAPHORES 32
 
 #define CONFIGURE_TICKS_PER_TIMESLICE 3
 #define CONFIGURE_MICROSECONDS_PER_TICK 10000
@@ -158,6 +158,7 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 	(RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR | \
 	RTEMS_INTERRUPT_LEVEL(0))
 
+//#define CONFIGURE_MALLOC_STATISTICS
 //#define CONFIGURE_ZERO_WORKSPACE_AUTOMATICALLY TRUE
 //#define CONFIGURE_STACK_CHECKER_ENABLED
 
