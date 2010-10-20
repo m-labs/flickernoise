@@ -106,5 +106,6 @@ void renderer_stop()
 	eval_stop();
 
 	free(current_patch);
+	current_patch = NULL;
 	rtems_semaphore_delete(patch_lock);
 }
