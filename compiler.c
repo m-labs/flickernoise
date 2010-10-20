@@ -579,10 +579,11 @@ static bool parse_patch(struct compiler_sc *sc, char *patch_code)
 	return true;
 }
 
-struct patch *patch_compile(char *patch_code, report_message rmc)
+struct patch *patch_compile(const char *patch_code, report_message rmc)
 {
 	struct compiler_sc *sc;
 	struct patch *p;
+	char *patch_code_copy;
 
 	sc = malloc(sizeof(struct compiler_sc));
 	if(sc == NULL) {
@@ -603,7 +604,16 @@ struct patch *patch_compile(char *patch_code, report_message rmc)
 	if(!init_pfv(sc)) goto fail;
 	if(!init_pvv(sc)) goto fail;
 
-	if(!parse_patch(sc, patch_code)) goto fail;
+	patch_code_copy = strdup(patch_code);
+	if(patch_code_copy == NULL) {
+		rmc("Failed to allocate memory for patch code");
+		goto fail;
+	}
+	if(!parse_patch(sc, patch_code_copy)) {
+		free(patch_code_copy);
+		goto fail;
+	}
+	free(patch_code_copy);
 
 	if(!finalize_pfv(sc)) goto fail;
 	if(!schedule_pfv(sc)) goto fail;

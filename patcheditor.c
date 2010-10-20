@@ -74,7 +74,13 @@ static void run_callback(dope_event *e, void *arg)
 	else {
 		struct patch *p;
 		p = patch_compile("per_frame=decay=0.1*bass", rmc);
+		if(p == NULL) {
+			printf("Patch compilation failed\n");
+			return;
+		}
+		printf("Patch compilation OK\n");
 		renderer_start(p);
+		printf("Started!\n");
 		patch_free(p);
 	}
 	test_running = !test_running;

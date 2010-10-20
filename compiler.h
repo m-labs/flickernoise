@@ -166,7 +166,7 @@ struct patch {
 
 typedef void (*report_message)(const char *);
 
-struct patch *patch_compile(char *patch_code, report_message rmc);
+struct patch *patch_compile(const char *patch_code, report_message rmc);
 void patch_free(struct patch *p);
 
 #endif /* __COMPILER_H */
