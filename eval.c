@@ -197,11 +197,11 @@ static void eval_pfv(struct patch *p, int fd)
 	ioctl(fd, PFPU_EXECUTE, &td);
 }
 
-static void eval_pvv(struct patch *p, unsigned int *output, int fd)
+static void eval_pvv(struct patch *p, struct tmu_vertex *output, int fd)
 {
 	struct pfpu_td td;
 
-	td.output = output;
+	td.output = (unsigned int *)output;
 	td.hmeshlast = renderer_hmeshlast;
 	td.vmeshlast = renderer_vmeshlast;
 	td.program = p->pervertex_prog;

@@ -29,7 +29,8 @@ enum {
 	FRD_STATUS_NEW = 0,
 	FRD_STATUS_SAMPLING,
 	FRD_STATUS_SAMPLED,
-	FRD_STATUS_EVALUATED
+	FRD_STATUS_EVALUATED,
+	FRD_STATUS_USED
 };
 
 struct frame_descriptor {
@@ -63,7 +64,7 @@ struct frame_descriptor {
 	float vecho_zoom;
 	float vecho_orientation;
 	float dmx1, dmx2, dmx3, dmx4;
-	unsigned int *vertices;
+	struct tmu_vertex *vertices;
 };
 
 typedef void (*frd_callback)(struct frame_descriptor *);

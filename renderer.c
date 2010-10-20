@@ -29,6 +29,8 @@
 int renderer_texsize;
 int renderer_hmeshlast;
 int renderer_vmeshlast;
+int renderer_squarew;
+int renderer_squareh;
 
 static struct patch *current_patch;
 static rtems_id patch_lock;
@@ -92,9 +94,11 @@ void renderer_start(struct patch *p)
 
 	renderer_set_patch(p);
 
+	renderer_texsize = 512;
 	renderer_hmeshlast = 32;
 	renderer_vmeshlast = 32;
-	renderer_texsize = 512;
+	renderer_squarew = renderer_texsize/renderer_hmeshlast;
+	renderer_squareh = renderer_texsize/renderer_vmeshlast;
 
 	eval_start(mycallback);
 	sampler_start(eval_input);

@@ -15,24 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __RENDERER_H
-#define __RENDERER_H
+#ifndef __RASTER_H
+#define __RASTER_H
 
-#include "compiler.h"
+#include "framedescriptor.h"
 
-extern int renderer_texsize;
-extern int renderer_hmeshlast;
-extern int renderer_vmeshlast;
-extern int renderer_squarew;
-extern int renderer_squareh;
+void raster_start(int framebuffer_fd, frd_callback callback);
+void raster_input(struct frame_descriptor *frd);
+void raster_stop();
 
-void renderer_lock_patch();
-void renderer_unlock_patch();
-
-void renderer_set_patch(struct patch *p);
-struct patch *renderer_get_patch();
-
-void renderer_start(struct patch *p);
-void renderer_stop();
-
-#endif /* __RENDERER_H */
+#endif /* __RASTER_H */
