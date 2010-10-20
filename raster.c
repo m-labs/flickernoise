@@ -41,9 +41,23 @@ static void get_screen_res(int framebuffer_fd, int *hres, int *vres)
 	*vres = fb_var.yres;
 }
 
-static void warp(int tmu_fd, unsigned short *src, unsigned short *dest, struct tmu_vertex *vertices, unsigned int brightness)
+static unsigned int get_tmu_wrap_mask(unsigned int x)
+{
+	unsigned int s;
+
+	s = 1 << TMU_FIXEDPOINT_SHIFT;
+	return (x-1)*s+s-1;
+}
+
+static void warp(int tmu_fd, unsigned short *src, unsigned short *dest, struct tmu_vertex *vertices, bool tex_wrap, unsigned int brightness)
 {
 	struct tmu_td td;
+	unsigned int mask;
+
+	if(tex_wrap)
+		mask = get_tmu_wrap_mask(renderer_texsize);
+	else
+		mask = TMU_MASK_FULL;
 
 	td.flags = 0;
 	td.hmeshlast = renderer_hmeshlast;
@@ -54,8 +68,8 @@ static void warp(int tmu_fd, unsigned short *src, unsigned short *dest, struct t
 	td.texfbuf = src;
 	td.texhres = renderer_texsize;
 	td.texvres = renderer_texsize;
-	td.texhmask = TMU_MASK_FULL;
-	td.texvmask = TMU_MASK_FULL;
+	td.texhmask = mask;
+	td.texvmask = mask;
 	td.dstfbuf = dest;
 	td.dsthres = renderer_texsize;
 	td.dstvres = renderer_texsize;
@@ -217,7 +231,7 @@ static rtems_task raster_task(rtems_task_argument argument)
 		if(ibrightness > 64) ibrightness = 64;
 
 		/* Compute frame */
-		warp(tmu_fd, tex_frontbuffer, tex_backbuffer, frd->vertices, ibrightness-1);
+		warp(tmu_fd, tex_frontbuffer, tex_backbuffer, frd->vertices, frd->tex_wrap, ibrightness-1);
 		draw(tex_backbuffer, frd);
 
 		/* Scale and send to screen */
