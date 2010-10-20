@@ -67,7 +67,7 @@ rtems_task Init(rtems_task_argument argument)
 	rtems_bsdnet_initialize_network();
 
 	assert(rtems_task_create(rtems_build_name('G','U','I',' '), 100, 512*1024,
-		RTEMS_PREEMPT | RTEMS_TIMESLICE | RTEMS_NO_ASR,
+		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
 		0, &gui_task_id) == RTEMS_SUCCESSFUL);
 	assert(rtems_task_start(gui_task_id, gui_task, 0) == RTEMS_SUCCESSFUL);
 
