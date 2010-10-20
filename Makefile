@@ -16,12 +16,12 @@ OBJS=main.o
 OBJS+=filedialog.o cp.o audio.o patcheditor.o monitor.o about.o flash.o shutdown.o
 
 # renderer
-OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o renderer.o
+OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o renderer.o
 
 all: flickernoise
 
 flickernoise: $(OBJS)
-	$(LD) -o $@ $(OBJS) $(LDFLAGS) -ldope -lfpvm
+	$(LD) -o $@ $(OBJS) $(LDFLAGS) -ldope -lfpvm -lm
 	$(STRIP) $(STRIPFLAGS) $@
 
 bandfilters.h: bandfilters.sce
