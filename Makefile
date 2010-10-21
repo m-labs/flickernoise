@@ -34,7 +34,7 @@ flickernoise.ralf: flickernoise
 	$(OBJCOPY) -O binary flickernoise flickernoise.ralf
 
 flickernoise.fbi: flickernoise.ralf
-	$(MMDIR)/tools/crc32 flickernoise.ralf write flickernoise.fbi
+	mkmmimg flickernoise.ralf write flickernoise.fbi
 
 flickernoise-rescue.mcs: flickernoise.fbi
 	srec_cat -Output flickernoise-rescue.mcs -Intel flickernoise.fbi -Binary -offset 0x002E0000 --byte-swap 2
