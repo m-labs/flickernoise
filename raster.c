@@ -23,12 +23,16 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <math.h>
 #include <rtems.h>
 #include <rtems/fb.h>
 #include <bsp/milkymist_tmu.h>
 
 #include "framedescriptor.h"
 #include "renderer.h"
+#include "color.h"
+#include "wave.h"
+#include "line.h"
 
 #include "raster.h"
 
@@ -84,8 +88,286 @@ static void warp(int tmu_fd, unsigned short *src, unsigned short *dest, struct t
 	ioctl(tmu_fd, TMU_EXECUTE, &td);
 }
 
+static void draw_dot(struct line_context *ctx, int x, int y, unsigned int l)
+{
+	// TODO: make them round and good looking
+	l >>= 1;
+	hline(ctx, y, x-l, x+l);
+}
+
+static void draw_motion_vectors(unsigned short *fb, struct frame_descriptor *frd)
+{
+	int x, y;
+	struct line_context ctx;
+	float offsetx;
+	float intervalx;
+	float offsety;
+	float intervaly;
+	int nx, ny;
+	int l;
+	int px, py;
+
+	if(frd->mv_a == 0.0) return;
+	if(frd->mv_x == 0.0) return;
+	if(frd->mv_y == 0.0) return;
+
+	l = frd->mv_l;
+	if(l < 1) l = 1;
+	if(l > 10) l = 10;
+
+	line_init_context(&ctx, fb, renderer_texsize, renderer_texsize);
+	ctx.color = float_to_rgb565(frd->mv_r, frd->mv_g, frd->mv_b);
+	ctx.alpha = 64.0*frd->mv_a;
+	ctx.thickness = l;
+
+	offsetx = frd->mv_dx*(float)renderer_texsize;
+	intervalx = (float)renderer_texsize/frd->mv_x;
+	offsety = frd->mv_dy*renderer_texsize;
+	intervaly = (float)renderer_texsize/frd->mv_y;
+
+	nx = frd->mv_x+1.5;
+	ny = frd->mv_y+1.5;
+	for(y=0;y<ny;y++)
+		for (x=0;x<nx;x++) {
+			px = offsetx+x*intervalx;
+			if(px < 0) px = 0;
+			if(px >= renderer_texsize) px = renderer_texsize-1;
+			py = offsety+y*intervaly;
+			if(py < 0) py = 0;
+			if(py >= renderer_texsize) py = renderer_texsize-1;
+			draw_dot(&ctx, px, py, l);
+		}
+}
+
+static void border_rect(unsigned short *fb, int x0, int y0, int x1, int y1, short int color, unsigned int alpha)
+{
+	int y;
+	struct line_context ctx;
+
+	line_init_context(&ctx, fb, renderer_texsize, renderer_texsize);
+	ctx.color = color;
+	ctx.alpha = alpha;
+	for(y=y0;y<=y1;y++)
+		hline(&ctx, y, x0, x1);
+}
+
+static void draw_borders(unsigned short *fb, struct frame_descriptor *frd)
+{
+	unsigned int of;
+	unsigned int iff;
+	unsigned int texof;
+	short int ob_color, ib_color;
+	unsigned int ob_alpha, ib_alpha;
+	int cmax;
+
+	of = renderer_texsize*frd->ob_size*.5;
+	iff = renderer_texsize*frd->ib_size*.5;
+
+	if(of > 30) of = 30;
+	if(iff > 30) iff = 30;
+
+	texof = renderer_texsize-of;
+	cmax = renderer_texsize-1;
+
+	ob_alpha = 80.0*frd->ob_a;
+	if((of != 0) && (ob_alpha != 0)) {
+		ob_color = float_to_rgb565(frd->ob_r, frd->ob_g, frd->ob_b);
+
+
+		border_rect(fb, 0, 0, of, cmax, ob_color, ob_alpha);
+		border_rect(fb, of, 0, texof, of, ob_color, ob_alpha);
+		border_rect(fb, texof, 0, cmax, cmax, ob_color, ob_alpha);
+		border_rect(fb, of, texof, texof, cmax, ob_color, ob_alpha);
+	}
+
+	ib_alpha = 80.0*frd->ib_a;
+	if((iff != 0) && (ib_alpha != 0)) {
+		ib_color = float_to_rgb565(frd->ib_r, frd->ib_g, frd->ib_b);
+
+		border_rect(fb, of, of, of+iff-1, texof-1, ib_color, ib_alpha);
+		border_rect(fb, of+iff, of, texof-iff-1, of+iff-1, ib_color, ib_alpha);
+		border_rect(fb, texof-iff, of, texof-1, texof-1, ib_color, ib_alpha);
+		border_rect(fb, of+iff, texof-iff, texof-iff-1, texof-1, ib_color, ib_alpha);
+	}
+}
+
+/* TODO: implement missing wave modes */
+
+static int wave_mode_0(struct frame_descriptor *frd, struct wave_vertex *vertices)
+{
+	return 0;
+}
+
+static int wave_mode_1(struct frame_descriptor *frd, struct wave_vertex *vertices)
+{
+	return 0;
+}
+
+static int wave_mode_23(struct frame_descriptor *frd, struct wave_vertex *vertices)
+{
+	int nvertices;
+	int i;
+	float s1, s2;
+
+	nvertices = 128-32;
+
+	for(i=0;i<nvertices;i++) {
+		s1 = frd->snd_buf->samples[8*i     ]/32768.0;
+		s2 = frd->snd_buf->samples[8*i+32+1]/32768.0;
+
+		vertices[i].x = (s1*frd->wave_scale*0.5 + frd->wave_x)*renderer_texsize;
+		vertices[i].y = (s2*frd->wave_scale*0.5 + frd->wave_x)*renderer_texsize;
+	}
+
+	return nvertices;
+}
+
+static int wave_mode_4(struct frame_descriptor *frd, struct wave_vertex *vertices)
+{
+	int nvertices;
+	float wave_x;
+	int i;
+	float dy_adj;
+	float s1, s2;
+	float scale;
+
+	nvertices = 128;
+
+	// TODO: rotate using wave_mystery
+	wave_x = frd->wave_x*.75 + .125;
+	scale = 4.0*(float)renderer_texsize/505.0;
+
+	for(i=1;i<=nvertices;i++) {
+		s1 = frd->snd_buf->samples[8*i]/32768.0;
+		s2 = frd->snd_buf->samples[8*i-2]/32768.0;
+
+		dy_adj = s1*20.0*frd->wave_scale-s2*20.0*frd->wave_scale;
+		// nb: x and y reversed to simulate default rotation from wave_mystery
+		vertices[i-1].y = s1*20.0*frd->wave_scale+(float)renderer_texsize*frd->wave_x;
+		vertices[i-1].x = (i*scale)+dy_adj;
+	}
+
+	return nvertices;
+}
+
+static int wave_mode_5(struct frame_descriptor *frd, struct wave_vertex *vertices)
+{
+	int nvertices;
+	int i;
+	float s1, s2;
+	float x0, y0;
+	float cos_rot, sin_rot;
+
+	nvertices = 128-64;
+
+	cos_rot = cosf(frd->time*0.3);
+	sin_rot = sinf(frd->time*0.3);
+
+	for(i=0;i<nvertices;i++) {
+		s1 = frd->snd_buf->samples[8*i     ]/32768.0;
+		s2 = frd->snd_buf->samples[8*i+64+1]/32768.0;
+		x0 = 2.0*s1*s2;
+		y0 = s1*s1 - s2*s2;
+
+		vertices[i].x = (float)renderer_texsize*((x0*cos_rot - y0*sin_rot)*frd->wave_scale*0.5 + frd->wave_x);
+		vertices[i].y = (float)renderer_texsize*((x0*sin_rot + y0*cos_rot)*frd->wave_scale*0.5 + frd->wave_y);
+	}
+
+	return nvertices;
+}
+
+static int wave_mode_6(struct frame_descriptor *frd, struct wave_vertex *vertices)
+{
+	int nvertices;
+	int i;
+	float inc;
+	float offset;
+	float s;
+
+	nvertices = 128;
+
+	// TODO: rotate/scale by wave_mystery
+
+	inc = (float)renderer_texsize/(float)nvertices;
+	offset = (float)renderer_texsize*(1.0-frd->wave_x);
+	for(i=0;i<nvertices;i++) {
+		s = frd->snd_buf->samples[8*i]/32768.0;
+		// nb: x and y reversed to simulate default rotation from wave_mystery
+		vertices[i].y = s*20.0*frd->wave_scale+offset;
+		vertices[i].x = i*inc;
+	}
+
+	return nvertices;
+}
+
+static int wave_mode_7(struct frame_descriptor *frd, struct wave_vertex *vertices)
+{
+	return 0;
+}
+
+static int wave_mode_8(struct frame_descriptor *frd, struct wave_vertex *vertices)
+{
+	return 0;
+}
+
+static void draw_waves(unsigned short *fb, struct frame_descriptor *frd)
+{
+	struct wave_params params;
+	struct wave_vertex vertices[256];
+	int nvertices;
+
+	params.wave_mode = frd->wave_mode;
+	params.wave_additive = frd->wave_additive;
+	params.wave_dots = frd->wave_usedots;
+	params.wave_brighten = frd->wave_brighten;
+	params.wave_thick = frd->wave_thick;
+
+	params.wave_r = frd->wave_r;
+	params.wave_g = frd->wave_g;
+	params.wave_b = frd->wave_b;
+	params.wave_a = frd->wave_a;
+
+	params.treb = frd->treb;
+
+	switch((int)frd->wave_mode) {
+		case 0:
+			nvertices = wave_mode_0(frd, vertices);
+			break;
+		case 1:
+			nvertices = wave_mode_1(frd, vertices);
+			break;
+		case 2:
+		case 3:
+			nvertices = wave_mode_23(frd, vertices);
+			break;
+		case 4:
+			nvertices = wave_mode_4(frd, vertices);
+			break;
+		case 5:
+			nvertices = wave_mode_5(frd, vertices);
+			break;
+		case 6:
+			nvertices = wave_mode_6(frd, vertices);
+			break;
+		case 7:
+			nvertices = wave_mode_7(frd, vertices);
+			break;
+		case 8:
+			nvertices = wave_mode_8(frd, vertices);
+			break;
+		default:
+			nvertices = 0;
+			break;
+	}
+
+	wave_draw(fb, renderer_texsize, renderer_texsize, &params, vertices, nvertices);
+}
+
 static void draw(unsigned short *fb, struct frame_descriptor *frd)
 {
+	draw_motion_vectors(fb, frd);
+	draw_borders(fb, frd);
+	draw_waves(fb, frd);
 }
 
 static unsigned short *get_screen_backbuffer(int framebuffer_fd)
@@ -228,10 +510,12 @@ static rtems_task raster_task(rtems_task_argument argument)
 		brightness_error += frd->decay;
 		ibrightness = 64.0*brightness_error;
 		brightness_error -= (float)ibrightness/64.0;
-		if(ibrightness > 64) ibrightness = 64;
+		ibrightness--;
+		if(ibrightness > 63) ibrightness = 63;
+		if(ibrightness < 0) ibrightness = 0;
 
 		/* Compute frame */
-		warp(tmu_fd, tex_frontbuffer, tex_backbuffer, frd->vertices, frd->tex_wrap, ibrightness-1);
+		warp(tmu_fd, tex_frontbuffer, tex_backbuffer, frd->vertices, frd->tex_wrap, ibrightness);
 		draw(tex_backbuffer, frd);
 
 		/* Scale and send to screen */

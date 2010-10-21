@@ -23,6 +23,7 @@
 #include "sampler.h"
 #include "compiler.h"
 #include "eval.h"
+#include "raster.h"
 
 #include "renderer.h"
 
@@ -71,18 +72,7 @@ struct patch *renderer_get_patch()
 	return current_patch;
 }
 
-static void mycallback(struct frame_descriptor *frd)
-{
-	static int i;
-
-	if(i++ == 24) {
-		printf("bass:%f decay:%f\n", frd->bass, frd->decay);
-		i = 0;
-	}
-	sampler_return(frd);
-}
-
-void renderer_start(struct patch *p)
+void renderer_start(int framebuffer_fd, struct patch *p)
 {
 	assert(rtems_semaphore_create(
 		rtems_build_name('P', 'T', 'C', 'H'),
@@ -100,7 +90,8 @@ void renderer_start(struct patch *p)
 	renderer_squarew = renderer_texsize/renderer_hmeshlast;
 	renderer_squareh = renderer_texsize/renderer_vmeshlast;
 
-	eval_start(mycallback);
+	raster_start(framebuffer_fd, sampler_return);
+	eval_start(raster_input);
 	sampler_start(eval_input);
 }
 
@@ -108,6 +99,7 @@ void renderer_stop()
 {
 	sampler_stop();
 	eval_stop();
+	raster_stop();
 
 	free(current_patch);
 	current_patch = NULL;

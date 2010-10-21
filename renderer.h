@@ -32,7 +32,7 @@ void renderer_unlock_patch();
 void renderer_set_patch(struct patch *p);
 struct patch *renderer_get_patch();
 
-void renderer_start(struct patch *p);
+void renderer_start(int framebuffer_fd, struct patch *p);
 void renderer_stop();
 
 #endif /* __RENDERER_H */

@@ -79,7 +79,7 @@ static void run_callback(dope_event *e, void *arg)
 			return;
 		}
 		printf("Patch compilation OK\n");
-		renderer_start(p);
+		renderer_start(0, p); // FIXME: framebuffer fd
 		printf("Started!\n");
 		patch_free(p);
 	}
