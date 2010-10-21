@@ -66,6 +66,8 @@ static void rmc(const char *m)
 	puts(m);
 }
 
+extern int dope_rtems_framebuffer_fd;
+
 static bool test_running;
 static void run_callback(dope_event *e, void *arg)
 {
@@ -73,13 +75,31 @@ static void run_callback(dope_event *e, void *arg)
 		renderer_stop();
 	else {
 		struct patch *p;
-		p = patch_compile("per_frame=decay=0.1*bass", rmc);
+		p = patch_compile("decay=0.96\n"
+"nWaveMode=6\n"
+"rot=0.02\n"
+"cx=0.5\n"
+"cy=0.5\n"
+"warp=0.198054\n"
+"nMotionVectorsX=12\n"
+"nMotionVectorsY=9\n"
+"mv_a=1.0\n"
+"mv_r=1.0\n"
+"mv_g=1.0\n"
+"mv_b=1.0\n"
+"mv_l=2\n"
+"wave_r=0.65\n"
+"wave_g=0.65\n"
+"wave_b=0.65\n"
+"wave_x=0.5\n"
+"wave_y=0.55\n"
+"per_frame=zoom = 1.01 + 0.05*bass\n", rmc);
 		if(p == NULL) {
 			printf("Patch compilation failed\n");
 			return;
 		}
 		printf("Patch compilation OK\n");
-		renderer_start(0, p); // FIXME: framebuffer fd
+		renderer_start(dope_rtems_framebuffer_fd, p);
 		printf("Started!\n");
 		patch_free(p);
 	}

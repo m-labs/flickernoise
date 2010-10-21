@@ -208,12 +208,13 @@ static int wave_mode_23(struct frame_descriptor *frd, struct wave_vertex *vertic
 	int nvertices;
 	int i;
 	float s1, s2;
+	unsigned short int *samples = (unsigned short int *)frd->snd_buf->samples;
 
 	nvertices = 128-32;
 
 	for(i=0;i<nvertices;i++) {
-		s1 = frd->snd_buf->samples[8*i     ]/32768.0;
-		s2 = frd->snd_buf->samples[8*i+32+1]/32768.0;
+		s1 = samples[8*i     ]/32768.0;
+		s2 = samples[8*i+32+1]/32768.0;
 
 		vertices[i].x = (s1*frd->wave_scale*0.5 + frd->wave_x)*renderer_texsize;
 		vertices[i].y = (s2*frd->wave_scale*0.5 + frd->wave_x)*renderer_texsize;
@@ -230,6 +231,7 @@ static int wave_mode_4(struct frame_descriptor *frd, struct wave_vertex *vertice
 	float dy_adj;
 	float s1, s2;
 	float scale;
+	unsigned short int *samples = (unsigned short int *)frd->snd_buf->samples;
 
 	nvertices = 128;
 
@@ -238,8 +240,8 @@ static int wave_mode_4(struct frame_descriptor *frd, struct wave_vertex *vertice
 	scale = 4.0*(float)renderer_texsize/505.0;
 
 	for(i=1;i<=nvertices;i++) {
-		s1 = frd->snd_buf->samples[8*i]/32768.0;
-		s2 = frd->snd_buf->samples[8*i-2]/32768.0;
+		s1 = samples[8*i]/32768.0;
+		s2 = samples[8*i-2]/32768.0;
 
 		dy_adj = s1*20.0*frd->wave_scale-s2*20.0*frd->wave_scale;
 		// nb: x and y reversed to simulate default rotation from wave_mystery
@@ -257,6 +259,7 @@ static int wave_mode_5(struct frame_descriptor *frd, struct wave_vertex *vertice
 	float s1, s2;
 	float x0, y0;
 	float cos_rot, sin_rot;
+	unsigned short int *samples = (unsigned short int *)frd->snd_buf->samples;
 
 	nvertices = 128-64;
 
@@ -264,8 +267,8 @@ static int wave_mode_5(struct frame_descriptor *frd, struct wave_vertex *vertice
 	sin_rot = sinf(frd->time*0.3);
 
 	for(i=0;i<nvertices;i++) {
-		s1 = frd->snd_buf->samples[8*i     ]/32768.0;
-		s2 = frd->snd_buf->samples[8*i+64+1]/32768.0;
+		s1 = samples[8*i     ]/32768.0;
+		s2 = samples[8*i+64+1]/32768.0;
 		x0 = 2.0*s1*s2;
 		y0 = s1*s1 - s2*s2;
 
@@ -283,6 +286,7 @@ static int wave_mode_6(struct frame_descriptor *frd, struct wave_vertex *vertice
 	float inc;
 	float offset;
 	float s;
+	unsigned short int *samples = (unsigned short int *)frd->snd_buf->samples;
 
 	nvertices = 128;
 
@@ -291,7 +295,7 @@ static int wave_mode_6(struct frame_descriptor *frd, struct wave_vertex *vertice
 	inc = (float)renderer_texsize/(float)nvertices;
 	offset = (float)renderer_texsize*(1.0-frd->wave_x);
 	for(i=0;i<nvertices;i++) {
-		s = frd->snd_buf->samples[8*i]/32768.0;
+		s = samples[8*i]/32768.0;
 		// nb: x and y reversed to simulate default rotation from wave_mystery
 		vertices[i].y = s*20.0*frd->wave_scale+offset;
 		vertices[i].x = i*inc;
