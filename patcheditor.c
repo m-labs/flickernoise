@@ -25,7 +25,7 @@
 #include "patcheditor.h"
 #include "framedescriptor.h"
 #include "compiler.h"
-#include "renderer.h"
+#include "guirender.h"
 
 static long appid;
 static long fileopen_appid;
@@ -66,16 +66,11 @@ static void rmc(const char *m)
 	puts(m);
 }
 
-extern int dope_rtems_framebuffer_fd;
-
-static bool test_running;
 static void run_callback(dope_event *e, void *arg)
 {
-	if(test_running)
-		renderer_stop();
-	else {
-		struct patch *p;
-		p = patch_compile(
+	struct patch *p;
+
+	p = patch_compile(
 "fDecay=0.9\n"
 "fVideoEchoZoom=1\n"
 "fVideoEchoAlpha=0\n"
@@ -140,16 +135,13 @@ static void run_callback(dope_event *e, void *arg)
 "per_frame_13=monitor = tt;\n"
 "per_pixel_1=zoom = .8-.2*(1-rad);\n"
 , rmc);
-		if(p == NULL) {
-			printf("Patch compilation failed\n");
-			return;
-		}
-		printf("Patch compilation OK\n");
-		renderer_start(dope_rtems_framebuffer_fd, p);
-		printf("Started!\n");
-		patch_free(p);
+	if(p == NULL) {
+		printf("Patch compilation failed\n");
+		return;
 	}
-	test_running = !test_running;
+
+	guirender(appid, p);
+	patch_free(p);
 }
 
 void init_patcheditor()
@@ -195,7 +187,7 @@ void init_patcheditor()
 	fileopen_appid = create_filedialog("Open patch", 0, openok_callback, NULL, opencancel_callback, NULL);
 
 	dope_bind(appid, "b_open", "commit", openbtn_callback, NULL);
-	dope_bind(appid, "b_run", "commit", run_callback, NULL);
+	dope_bind(appid, "b_run", "release", run_callback, NULL);
 
 	dope_bind(appid, "w", "close", close_callback, NULL);
 }
