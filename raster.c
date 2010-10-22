@@ -578,7 +578,7 @@ void raster_start(int framebuffer_fd, frd_callback callback)
 	assert(param != NULL);
 	param->framebuffer_fd = framebuffer_fd;
 	param->callback = callback;
-	assert(rtems_task_create(rtems_build_name('R', 'A', 'S', 'T'), 10, RTEMS_MINIMUM_STACK_SIZE,
+	assert(rtems_task_create(rtems_build_name('R', 'A', 'S', 'T'), 10, 8*1024,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
 		0, &raster_task_id) == RTEMS_SUCCESSFUL);
 	assert(rtems_task_start(raster_task_id, raster_task, (rtems_task_argument)param) == RTEMS_SUCCESSFUL);
