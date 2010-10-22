@@ -49,8 +49,14 @@ void guirender(int appid, struct patch *p)
 		r = read(dope_rtems_input_fd, &input_event, 4);
 		if(r == 2) /* keyboard event */
 			break;
-		if(input_event & (MOUSE_LEFT|MOUSE_RIGHT))
+		if(input_event & (MOUSE_LEFT|MOUSE_RIGHT)) {
+			while(1) {
+				r = read(dope_rtems_input_fd, &input_event, 4);
+				if((r == 4) && !(input_event & (MOUSE_LEFT|MOUSE_RIGHT)))
+					break;
+			}
 			break;
+		}
 	}
 	ioctl(dope_rtems_input_fd, USBINPUT_SETTIMEOUT, timeout);
 
