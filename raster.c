@@ -208,7 +208,7 @@ static int wave_mode_23(struct frame_descriptor *frd, struct wave_vertex *vertic
 	int nvertices;
 	int i;
 	float s1, s2;
-	unsigned short int *samples = (unsigned short int *)frd->snd_buf->samples;
+	short int *samples = (short int *)frd->snd_buf->samples;
 
 	nvertices = 128-32;
 
@@ -231,7 +231,7 @@ static int wave_mode_4(struct frame_descriptor *frd, struct wave_vertex *vertice
 	float dy_adj;
 	float s1, s2;
 	float scale;
-	unsigned short int *samples = (unsigned short int *)frd->snd_buf->samples;
+	short int *samples = (short int *)frd->snd_buf->samples;
 
 	nvertices = 128;
 
@@ -259,7 +259,7 @@ static int wave_mode_5(struct frame_descriptor *frd, struct wave_vertex *vertice
 	float s1, s2;
 	float x0, y0;
 	float cos_rot, sin_rot;
-	unsigned short int *samples = (unsigned short int *)frd->snd_buf->samples;
+	short int *samples = (short int *)frd->snd_buf->samples;
 
 	nvertices = 128-64;
 
@@ -286,7 +286,7 @@ static int wave_mode_6(struct frame_descriptor *frd, struct wave_vertex *vertice
 	float inc;
 	float offset;
 	float s;
-	unsigned short int *samples = (unsigned short int *)frd->snd_buf->samples;
+	short int *samples = (short int *)frd->snd_buf->samples;
 
 	nvertices = 128;
 
