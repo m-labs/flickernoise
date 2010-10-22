@@ -9,6 +9,9 @@
 #include "color.h"
 #include "line.h"
 
+#define likely(x)      __builtin_expect(!!(x), 1)
+#define unlikely(x)    __builtin_expect(!!(x), 0)
+
 void line_init_context(struct line_context *ctx, unsigned short int *framebuffer, unsigned int hres, unsigned int vres)
 {
 	ctx->framebuffer = framebuffer;
@@ -29,7 +32,7 @@ static void setpixel_additive_alpha(struct line_context *ctx, unsigned int x, un
 	unsigned int cs, cd;
 	unsigned int r, g, b;
 
-	if((x < 0)||(y < 0)||(x >= ctx->hres)||(y >= ctx->vres)) return;
+	if(unlikely((x < 0)||(y < 0)||(x >= ctx->hres)||(y >= ctx->vres))) return;
 	cd = ctx->framebuffer[y*ctx->hres+x];
 	cs = ctx->color;
 	r = (GETR(cs)*ctx->alpha >> 6) + GETR(cd);
@@ -47,7 +50,7 @@ static void setpixel_additive_noalpha(struct line_context *ctx, unsigned int x, 
 	unsigned int cs, cd;
 	unsigned int r, g, b;
 
-	if((x < 0)||(y < 0)||(x >= ctx->hres)||(y >= ctx->vres)) return;
+	if(unlikely((x < 0)||(y < 0)||(x >= ctx->hres)||(y >= ctx->vres))) return;
 	cd = ctx->framebuffer[y*ctx->hres+x];
 	cs = ctx->color;
 	r = GETR(cs) + GETR(cd);
@@ -65,7 +68,7 @@ static void setpixel_alpha(struct line_context *ctx, unsigned int x, unsigned in
 	unsigned int cs, cd;
 	unsigned int r, g, b;
 
-	if((x < 0)||(y < 0)||(x >= ctx->hres)||(y >= ctx->vres)) return;
+	if(unlikely((x < 0)||(y < 0)||(x >= ctx->hres)||(y >= ctx->vres))) return;
 	cd = ctx->framebuffer[y*ctx->hres+x];
 	cs = ctx->color;
 	r = (GETR(cs)*ctx->alpha >> 6) + (GETR(cd)*(64-ctx->alpha) >> 6);
@@ -76,7 +79,7 @@ static void setpixel_alpha(struct line_context *ctx, unsigned int x, unsigned in
 
 static void setpixel_noalpha(struct line_context *ctx, unsigned int x, unsigned int y)
 {
-	if((x < 0)||(y < 0)||(x >= ctx->hres)||(y >= ctx->vres)) return;
+	if(unlikely((x < 0)||(y < 0)||(x >= ctx->hres)||(y >= ctx->vres))) return;
 	ctx->framebuffer[y*ctx->hres+x] = ctx->color;
 }
 

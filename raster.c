@@ -210,7 +210,7 @@ static int wave_mode_23(struct frame_descriptor *frd, struct wave_vertex *vertic
 	float s1, s2;
 	short int *samples = (short int *)frd->snd_buf->samples;
 
-	nvertices = 128-32;
+	nvertices = 64-32;
 
 	for(i=0;i<nvertices;i++) {
 		s1 = samples[8*i     ]/32768.0;
@@ -233,7 +233,7 @@ static int wave_mode_4(struct frame_descriptor *frd, struct wave_vertex *vertice
 	float scale;
 	short int *samples = (short int *)frd->snd_buf->samples;
 
-	nvertices = 128;
+	nvertices = 64;
 
 	// TODO: rotate using wave_mystery
 	wave_x = frd->wave_x*.75 + .125;
@@ -261,7 +261,7 @@ static int wave_mode_5(struct frame_descriptor *frd, struct wave_vertex *vertice
 	float cos_rot, sin_rot;
 	short int *samples = (short int *)frd->snd_buf->samples;
 
-	nvertices = 128-64;
+	nvertices = 64-32;
 
 	cos_rot = cosf(frd->time*0.3);
 	sin_rot = sinf(frd->time*0.3);
@@ -288,7 +288,7 @@ static int wave_mode_6(struct frame_descriptor *frd, struct wave_vertex *vertice
 	float s;
 	short int *samples = (short int *)frd->snd_buf->samples;
 
-	nvertices = 128;
+	nvertices = 64;
 
 	// TODO: rotate/scale by wave_mystery
 

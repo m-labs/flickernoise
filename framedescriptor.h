@@ -21,7 +21,7 @@
 #include <rtems.h>
 #include <bsp/milkymist_ac97.h>
 
-#define FPS			25
+#define FPS			24
 #define FRD_COUNT 		(4)
 #define FRD_AUDIO_NSAMPLES	(48000/FPS)
 
