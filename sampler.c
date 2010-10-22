@@ -65,9 +65,9 @@ static void analyze_snd(struct frame_descriptor *frd, struct snd_history *histor
 	if(treb > history->peak_treb)
 		history->peak_treb = treb;
 
-	frd->bass = bass/history->peak_bass;
-	frd->mid = mid/history->peak_mid;
-	frd->treb = treb/history->peak_treb;
+	frd->bass = 2.0*bass/history->peak_bass;
+	frd->mid = 2.0*mid/history->peak_mid;
+	frd->treb = 2.0*treb/history->peak_treb;
 
 	if(history->peak_bass > 120000.0)
 		history->peak_bass -= 100.0;
