@@ -101,7 +101,6 @@ static char *get_selection(char *list, int n)
 static void folder_selcommit_callback(dope_event *e, void *arg)
 {
 	long appid = (long)arg;
-
 	char curfolder[384];
 	char folderlist[8192];
 	char num[8];
@@ -114,16 +113,15 @@ static void folder_selcommit_callback(dope_event *e, void *arg)
 	nselection = atoi(num);
 	selection = get_selection(folderlist, nselection);
 
-	if(strcmp(selection, "../") == 0)
-	{
+	if(strcmp(selection, "../") == 0) {
 		char *c;
 		if(strcmp(curfolder, "/") == 0) return;
 		*(curfolder+strlen(curfolder)-1) = 0;
 		c = strrchr(curfolder, '/');
 		c++;
 		*c = 0;
-	}
-	else strncat(curfolder, selection, sizeof(curfolder));
+	} else
+		strncat(curfolder, selection, sizeof(curfolder));
 
 	display_folder(appid, curfolder);
 }
@@ -229,8 +227,6 @@ void close_filedialog(long appid)
 
 void get_filedialog_selection(long appid, char *buffer, int buflen)
 {
-	printf("get_filedialog_selection\n");
-
 	char file[384];
 
 	dope_req(appid, buffer, buflen, "fd_g1_l.text");

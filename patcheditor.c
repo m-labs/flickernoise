@@ -42,10 +42,33 @@ static void openbtn_callback(dope_event *e, void *arg)
 
 static void openok_callback(dope_event *e, void *arg)
 {
-	char buf[384];
-	get_filedialog_selection(fileopen_appid, buf, sizeof(buf));
-	printf("file: %s\n", buf);
+	char *buf;
+	FILE *fd;
+	int r;
+
+	buf = malloc(32768);
+	if(!buf) return;
+	get_filedialog_selection(fileopen_appid, buf, 32768);
 	close_filedialog(fileopen_appid);
+
+	fd = fopen(buf, "r");
+	if(!fd) {
+		dope_cmd(appid, "status.set(-text \"Unable to open file\")");
+		free(buf);
+		return;
+	}
+	r = fread(buf, 1, 32767, fd);
+	fclose(fd);
+	if(r < 0) {
+		dope_cmd(appid, "status.set(-text \"Unable to read file\")");
+		free(buf);
+		return;
+	}
+	buf[r] = 0;
+
+	dope_cmdf(appid, "ed.set(-text \"%s\")", buf);
+
+	free(buf);
 }
 
 static void opencancel_callback(dope_event *e, void *arg)
@@ -63,84 +86,25 @@ static void saveascancel_callback(dope_event *e, void *arg)
 
 static void rmc(const char *m)
 {
-	puts(m);
+	dope_cmdf(appid, "status.set(-text \"%s\")", m);
 }
 
 static void run_callback(dope_event *e, void *arg)
 {
 	struct patch *p;
+	char *code;
 
-	p = patch_compile(
-"fDecay=0.9\n"
-"fVideoEchoZoom=1\n"
-"fVideoEchoAlpha=0\n"
-"nVideoEchoOrientation=3\n"
-"nWaveMode=3\n"
-"bAdditiveWaves=1\n"
-"bWaveDots=0\n"
-"bWaveThick=0\n"
-"bModWaveAlphaByVolume=0\n"
-"bMaximizeWaveColor=1\n"
-"bTexWrap=1\n"
-"bDarkenCenter=0\n"
-"bBrighten=0\n"
-"bDarken=0\n"
-"bSolarize=0\n"
-"bInvert=0\n"
-"fWaveAlpha=0.001645\n"
-"fWaveScale=0.430333\n"
-"fWaveSmoothing=0.63\n"
-"fWaveParam=1\n"
-"fModWaveAlphaStart=2\n"
-"fModWaveAlphaEnd=2\n"
-"fWarpAnimSpeed=1\n"
-"fWarpScale=1\n"
-"fZoomExponent=1\n"
-"fShader=0\n"
-"zoom=1\n"
-"rot=0\n"
-"cx=0.5\n"
-"cy=0.5\n"
-"dx=0\n"
-"dy=0\n"
-"warp=0.001\n"
-"sx=1\n"
-"sy=1\n"
-"wave_r=0.65\n"
-"wave_g=0.65\n"
-"wave_b=0.65\n"
-"wave_x=-1\n"
-"wave_y=0.5\n"
-"ob_size=0\n"
-"ob_r=0\n"
-"ob_g=0\n"
-"ob_b=0.3\n"
-"ob_a=1\n"
-"ib_size=0.1\n"
-"ib_r=1\n"
-"ib_g=0.25\n"
-"ib_b=0.25\n"
-"ib_a=1\n"
-"per_frame_1=bv = bass*.01+.99*bv;\n"
-"per_frame_2=tt=tt+bass*.01;\n"
-"per_frame_3=tt = if(above(bass*bass_att,4.5),abs(32768*sin(time)),tt);\n"
-"per_frame_5=dx = .3*sin(tt*.12)+10*sin(tt*.015);\n"
-"per_frame_6=dy = .39*sin(tt*.21)+20*sin(tt*.041);\n"
-"per_frame_7=rot = 1*sin(tt*.15);\n"
-"per_frame_8=cx = sin(tt*.16)*.5+.5;\n"
-"per_frame_9=cy = cos(tt*.46)*.5+.5;\n"
-"per_frame_10=ib_r = sin(tt*.51)*.5+.5;\n"
-"per_frame_11=ib_g = sin(tt*.71)*.5+.5;\n"
-"per_frame_12=ib_b = sin(tt*.81)*.5+.5;\n"
-"per_frame_13=monitor = tt;\n"
-"per_pixel_1=zoom = .8-.2*(1-rad);\n"
-, rmc);
-	if(p == NULL) {
-		printf("Patch compilation failed\n");
+	code = malloc(32768);
+	if(code == NULL)
 		return;
-	}
+	dope_req(appid, code, 32768, "ed.text");
+	p = patch_compile(code, rmc);
+	free(code);
+	if(p == NULL)
+		return;
 
 	guirender(appid, p);
+
 	patch_free(p);
 }
 
