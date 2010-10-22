@@ -85,7 +85,7 @@ static void warp(int tmu_fd, unsigned short *src, unsigned short *dest, struct t
 	td.invalidate_before = false;
 	td.invalidate_after = true;
 
-	ioctl(tmu_fd, TMU_EXECUTE, &td);
+	ioctl(tmu_fd, TMU_EXECUTE_NONBLOCK, &td);
 }
 
 static void draw_dot(struct line_context *ctx, int x, int y, unsigned int l)
@@ -104,20 +104,20 @@ static void draw_motion_vectors(unsigned short *fb, struct frame_descriptor *frd
 	float offsety;
 	float intervaly;
 	int nx, ny;
-	int l;
+	int alpha, l;
 	int px, py;
 
-	if(frd->mv_a == 0.0) return;
+	alpha = 64.0*frd->mv_a;
+	if(alpha == 0) return;
 	if(frd->mv_x == 0.0) return;
 	if(frd->mv_y == 0.0) return;
 
+	line_init_context(&ctx, fb, renderer_texsize, renderer_texsize);
+	ctx.color = float_to_rgb565(frd->mv_r, frd->mv_g, frd->mv_b);
+	ctx.alpha = alpha;
 	l = frd->mv_l;
 	if(l < 1) l = 1;
 	if(l > 10) l = 10;
-
-	line_init_context(&ctx, fb, renderer_texsize, renderer_texsize);
-	ctx.color = float_to_rgb565(frd->mv_r, frd->mv_g, frd->mv_b);
-	ctx.alpha = 64.0*frd->mv_a;
 	ctx.thickness = l;
 
 	offsetx = frd->mv_dx*(float)renderer_texsize;
@@ -314,64 +314,58 @@ static int wave_mode_8(struct frame_descriptor *frd, struct wave_vertex *vertice
 	return 0;
 }
 
-static void draw_waves(unsigned short *fb, struct frame_descriptor *frd)
+static void compute_wave_vertices(struct frame_descriptor *frd, struct wave_params *params, struct wave_vertex *vertices, int *nvertices)
 {
-	struct wave_params params;
-	struct wave_vertex vertices[256];
-	int nvertices;
+	params->wave_mode = frd->wave_mode;
+	params->wave_additive = frd->wave_additive;
+	params->wave_dots = frd->wave_usedots;
+	params->wave_brighten = frd->wave_brighten;
+	params->wave_thick = frd->wave_thick;
 
-	params.wave_mode = frd->wave_mode;
-	params.wave_additive = frd->wave_additive;
-	params.wave_dots = frd->wave_usedots;
-	params.wave_brighten = frd->wave_brighten;
-	params.wave_thick = frd->wave_thick;
+	params->wave_r = frd->wave_r;
+	params->wave_g = frd->wave_g;
+	params->wave_b = frd->wave_b;
+	params->wave_a = frd->wave_a;
 
-	params.wave_r = frd->wave_r;
-	params.wave_g = frd->wave_g;
-	params.wave_b = frd->wave_b;
-	params.wave_a = frd->wave_a;
-
-	params.treb = frd->treb;
+	params->treb = frd->treb;
 
 	switch((int)frd->wave_mode) {
 		case 0:
-			nvertices = wave_mode_0(frd, vertices);
+			*nvertices = wave_mode_0(frd, vertices);
 			break;
 		case 1:
-			nvertices = wave_mode_1(frd, vertices);
+			*nvertices = wave_mode_1(frd, vertices);
 			break;
 		case 2:
 		case 3:
-			nvertices = wave_mode_23(frd, vertices);
+			*nvertices = wave_mode_23(frd, vertices);
 			break;
 		case 4:
-			nvertices = wave_mode_4(frd, vertices);
+			*nvertices = wave_mode_4(frd, vertices);
 			break;
 		case 5:
-			nvertices = wave_mode_5(frd, vertices);
+			*nvertices = wave_mode_5(frd, vertices);
 			break;
 		case 6:
-			nvertices = wave_mode_6(frd, vertices);
+			*nvertices = wave_mode_6(frd, vertices);
 			break;
 		case 7:
-			nvertices = wave_mode_7(frd, vertices);
+			*nvertices = wave_mode_7(frd, vertices);
 			break;
 		case 8:
-			nvertices = wave_mode_8(frd, vertices);
+			*nvertices = wave_mode_8(frd, vertices);
 			break;
 		default:
-			nvertices = 0;
+			*nvertices = 0;
 			break;
 	}
-
-	wave_draw(fb, renderer_texsize, renderer_texsize, &params, vertices, nvertices);
 }
 
-static void draw(unsigned short *fb, struct frame_descriptor *frd)
+static void draw(unsigned short *fb, struct frame_descriptor *frd, struct wave_params *params, struct wave_vertex *vertices, int nvertices)
 {
 	draw_motion_vectors(fb, frd);
 	draw_borders(fb, frd);
-	draw_waves(fb, frd);
+	wave_draw(fb, renderer_texsize, renderer_texsize, params, vertices, nvertices);
 }
 
 static unsigned short *get_screen_backbuffer(int framebuffer_fd)
@@ -477,6 +471,9 @@ static rtems_task raster_task(rtems_task_argument argument)
 	int hres, vres;
 	float brightness_error;
 	int ibrightness;
+	struct wave_params params;
+	struct wave_vertex vertices[256];
+	int nvertices;
 	int vecho_alpha;
 
 	assert(posix_memalign((void **)&tex_frontbuffer, 32,
@@ -520,7 +517,9 @@ static rtems_task raster_task(rtems_task_argument argument)
 
 		/* Compute frame */
 		warp(tmu_fd, tex_frontbuffer, tex_backbuffer, frd->vertices, frd->tex_wrap, ibrightness);
-		draw(tex_backbuffer, frd);
+		compute_wave_vertices(frd, &params, vertices, &nvertices);
+		ioctl(tmu_fd, TMU_EXECUTE_WAIT);
+		draw(tex_backbuffer, frd, &params, vertices, nvertices);
 
 		/* Scale and send to screen */
 		screen_backbuffer = get_screen_backbuffer(param->framebuffer_fd);
