@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include <dopelib.h>
 #include <vscreen.h>
@@ -53,7 +54,7 @@ static void openok_callback(dope_event *e, void *arg)
 
 	fd = fopen(buf, "r");
 	if(!fd) {
-		dope_cmd(appid, "status.set(-text \"Unable to open file\")");
+		dope_cmdf(appid, "status.set(-text \"Unable to open file (%s)\")", strerror(errno));
 		free(buf);
 		return;
 	}

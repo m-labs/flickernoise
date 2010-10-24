@@ -28,6 +28,7 @@
 #include <bsp/milkymist_ac97.h>
 #include <bsp/milkymist_pfpu.h>
 #include <bsp/milkymist_tmu.h>
+#include <bsp/milkymist_memcard.h>
 #include <rtems/stackchk.h>
 #include <rtems/shell.h>
 #include <rtems/rtems_bsdnet.h>
@@ -63,6 +64,7 @@ rtems_task Init(rtems_task_argument argument)
 {
 	rtems_status_code sc;
 
+	memcard_register();
 	/* TODO: read network configuration */
 	rtems_bsdnet_initialize_network();
 
@@ -143,6 +145,7 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 #define CONFIGURE_USE_IMFS_AS_BASE_FILESYSTEM
 // TODO: this was renamed CONFIGURE_FILESYSTEM_NFS in latest RTEMS CVS
 #define CONFIGURE_FILESYSTEM_NFSFS
+#define CONFIGURE_FILESYSTEM_DOSFS
 
 #define CONFIGURE_EXECUTIVE_RAM_SIZE (16*1024*1024)
 
