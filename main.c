@@ -114,7 +114,7 @@ static struct rtems_bsdnet_ifconfig netdriver_config = {
 struct rtems_bsdnet_config rtems_bsdnet_config = {
 	&netdriver_config,
 	NULL,
-	0,
+	11,
 	0,
 	0,
 	"milkymist",

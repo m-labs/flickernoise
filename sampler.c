@@ -30,15 +30,11 @@
 #include "sampler.h"
 
 struct snd_history {
-	float peak_bass, peak_mid, peak_treb;
 	float bass_att, mid_att, treb_att;
 };
 
 static void init_history(struct snd_history *history)
 {
-	history->peak_bass = 240000.0;
-	history->peak_mid = 200000.0;
-	history->peak_treb = 180000.0;
 	history->bass_att = 0.0;
 	history->mid_att = 0.0;
 	history->treb_att = 0.0;
@@ -49,32 +45,14 @@ static void analyze_snd(struct frame_descriptor *frd, struct snd_history *histor
 	struct analyzer_state analyzer;
 	short *analyzer_buffer = (short *)frd->snd_buf->samples;
 	int i;
-	float bass, mid, treb;
 
 	analyzer_init(&analyzer);
 	for(i=0;i<frd->snd_buf->nsamples;i++)
 		analyzer_put_sample(&analyzer, analyzer_buffer[2*i], analyzer_buffer[2*i+1]);
 
-	bass = (float)analyzer.bass_acc;
-	mid = (float)analyzer.mid_acc;
-	treb = (float)analyzer.treb_acc;
-	if(bass > history->peak_bass)
-		history->peak_bass = bass;
-	if(mid > history->peak_mid)
-		history->peak_mid = mid;
-	if(treb > history->peak_treb)
-		history->peak_treb = treb;
-
-	frd->bass = 2.0*bass/history->peak_bass;
-	frd->mid = 2.0*mid/history->peak_mid;
-	frd->treb = 2.0*treb/history->peak_treb;
-
-	if(history->peak_bass > 120000.0)
-		history->peak_bass -= 100.0;
-	if(history->peak_mid > 100000.0)
-		history->peak_mid -= 83.3;
-	if(history->peak_treb > 90000.0)
-		history->peak_treb -= 75.0;
+	frd->bass = ((float)analyzer.bass_acc)/240000.0;
+	frd->mid = ((float)analyzer.mid_acc)/200000.0;
+	frd->treb = ((float)analyzer.treb_acc)/180000.0;
 
 	history->treb_att = 0.6*history->treb_att + 0.4*frd->treb;
 	history->mid_att = 0.6*history->mid_att + 0.4*frd->mid;
