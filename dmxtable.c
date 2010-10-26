@@ -31,6 +31,21 @@
 static long appid;
 static int dmx_fd;
 static int current_chanbtn;
+static int ignore_slide_event;
+
+static void load_channels(int start)
+{
+	int i;
+	unsigned char values[8];
+
+	lseek(dmx_fd, start, SEEK_SET);
+	read(dmx_fd, values, 8);
+
+	ignore_slide_event = 1;
+	for(i=0;i<8;i++)
+		dope_cmdf(appid, "slide%d.set(-value %d)", i, 255-values[i]);
+	ignore_slide_event = 0;
+}
 
 static void chanbtn_callback(dope_event *e, void *arg)
 {
@@ -42,6 +57,7 @@ static void chanbtn_callback(dope_event *e, void *arg)
 
 	for(i=0;i<8;i++)
 		dope_cmdf(appid, "label%d.set(-text \"%d\")", i, i+current_chanbtn*8+1);
+	load_channels(current_chanbtn*8);
 }
 
 static void slide_callback(dope_event *e, void *arg)
@@ -50,11 +66,14 @@ static void slide_callback(dope_event *e, void *arg)
 	unsigned char value;
 	char control_name[32];
 
+	if(ignore_slide_event)
+		return;
+
 	channel = (int)arg;
 
 	sprintf(control_name, "slide%d.value", channel);
 	value = 255 - dope_req_l(appid, control_name);
-	lseek(dmx_fd, channel, SEEK_SET);
+	lseek(dmx_fd, 8*current_chanbtn+channel, SEEK_SET);
 	write(dmx_fd, &value, 1);
 }
 
@@ -99,6 +118,7 @@ void open_dmxtable_window()
 	dmx_fd = open("/dev/dmx_out", O_RDWR);
 	if(dmx_fd == -1)
 		perror("Unable to open DMX device");
+	load_channels(0);
 	dope_cmd(appid, "w.open()");
 }
 
