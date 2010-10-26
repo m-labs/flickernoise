@@ -6,14 +6,14 @@ OBJCOPY=lm32-rtems4.11-objcopy
 GENODEFX?=../genode-fx
 
 CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(GENODEFX)/dope-embedded/include -I$(RTEMS_MAKEFILE_PATH)/lib/include
-LDFLAGS=-L$(GENODEFX)/dope-embedded/lib/milkymist -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
+LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -L$(GENODEFX)/dope-embedded/lib/milkymist -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
 STRIPFLAGS=
 
 # base
 OBJS=main.o
 
 # GUI
-OBJS+=filedialog.o guirender.o cp.o audio.o dmxtable.o patcheditor.o monitor.o about.o flash.o shutdown.o
+OBJS+=filedialog.o guirender.o cp.o audio.o dmxtable.o dmx.o patcheditor.o monitor.o about.o flash.o shutdown.o
 
 # renderer
 OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o raster.o renderer.o

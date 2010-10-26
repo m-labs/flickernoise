@@ -205,7 +205,7 @@ void init_audio()
 		"g_btn.place(b_ok, -column 4 -row 1)",
 		"g_btn.place(b_cancel, -column 5 -row 1)",
 
-		"g_btn.columnconfig(1, -size 120)",
+		"g_btn.columnconfig(1, -size 90)",
 
 		"g.place(g_btn, -column 1 -row 2)",
 

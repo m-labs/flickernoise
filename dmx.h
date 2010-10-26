@@ -15,11 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DMXTABLE_H
-#define __DMXTABLE_H
+#ifndef __DMX_H
+#define __DMX_H
 
-void init_dmxtable();
-void open_dmxtable_window();
-void close_dmxtable_window();
+void init_dmx();
+void open_dmx_window();
 
-#endif /* __DMXTABLE_H */
+#endif /* __DMX_H */

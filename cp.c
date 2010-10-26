@@ -20,6 +20,7 @@
 #include <vscreen.h>
 
 #include "audio.h"
+#include "dmx.h"
 #include "patcheditor.h"
 #include "monitor.h"
 #include "about.h"
@@ -70,7 +71,7 @@ static void cp_callback(dope_event *e, void *arg)
 			printf("osc\n");
 			break;
 		case CP_ITEM_DMX:
-			printf("dmx\n");
+			open_dmx_window();
 			break;
 		case CP_ITEM_VIDEOIN:
 			printf("videoin\n");
