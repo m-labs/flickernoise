@@ -35,6 +35,7 @@
 
 #include "cp.h"
 #include "audio.h"
+#include "dmxtable.h"
 #include "patcheditor.h"
 #include "monitor.h"
 #include "shutdown.h"
@@ -49,6 +50,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 
 	init_cp();
         init_audio();
+        init_dmxtable();
 	init_patcheditor();
 	init_monitor();
         init_about();

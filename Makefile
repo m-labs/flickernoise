@@ -13,7 +13,7 @@ STRIPFLAGS=
 OBJS=main.o
 
 # GUI
-OBJS+=filedialog.o guirender.o cp.o audio.o patcheditor.o monitor.o about.o flash.o shutdown.o
+OBJS+=filedialog.o guirender.o cp.o audio.o dmxtable.o patcheditor.o monitor.o about.o flash.o shutdown.o
 
 # renderer
 OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o raster.o renderer.o
