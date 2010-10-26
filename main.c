@@ -15,8 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Inspired by "test.c" from Genode FX (DOpE-embedded demo application) */
-
 #include <bsp.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -17,15 +17,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <dopelib.h>
 #include <vscreen.h>
 
+#include "util.h"
 #include "dmxtable.h"
 
 static long appid;
-
+static int dmx_fd;
 static int current_chanbtn;
 
 static void chanbtn_callback(dope_event *e, void *arg)
@@ -38,6 +42,20 @@ static void chanbtn_callback(dope_event *e, void *arg)
 
 	for(i=0;i<8;i++)
 		dope_cmdf(appid, "label%d.set(-text \"%d\")", i, i+current_chanbtn*8+1);
+}
+
+static void slide_callback(dope_event *e, void *arg)
+{
+	int channel;
+	unsigned char value;
+	char control_name[32];
+
+	channel = (int)arg;
+
+	sprintf(control_name, "slide%d.value", channel);
+	value = 255 - dope_req_l(appid, control_name);
+	lseek(dmx_fd, channel, SEEK_SET);
+	write(dmx_fd, &value, 1);
 }
 
 static void close_callback(dope_event *e, void *arg)
@@ -70,15 +88,22 @@ void init_dmxtable()
 	dope_cmd(appid, "g.rowconfig(8, -size 150)");
 	dope_cmd(appid, "w = new Window(-content g -title \"DMX table\" -workx 20 -worky 35)");
 
+	for(i=0;i<8;i++)
+		dope_bindf(appid, "slide%d", "change", slide_callback, (void *)i, i);
+
 	dope_bind(appid, "w", "close", close_callback, NULL);
 }
 
 void open_dmxtable_window()
 {
+	dmx_fd = open("/dev/dmx_out", O_RDWR);
+	if(dmx_fd == -1)
+		perror("Unable to open DMX device");
 	dope_cmd(appid, "w.open()");
 }
 
 void close_dmxtable_window()
 {
+	close(dmx_fd);
 	dope_cmd(appid, "w.close()");
 }
