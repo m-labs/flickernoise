@@ -34,6 +34,7 @@
 #include <rtems/shell.h>
 #include <rtems/rtems_bsdnet.h>
 
+#include "messagebox.h"
 #include "cp.h"
 #include "audio.h"
 #include "dmxtable.h"
@@ -50,6 +51,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	if(dope_init())
 		return;
 
+	init_messagebox();
 	init_cp();
         init_audio();
         init_dmxtable();
