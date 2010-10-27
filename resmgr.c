@@ -43,7 +43,7 @@ int resmgr_acquire(const char *holder, int resource)
 	if(holders[resource][0] != 0) {
 		char msg[256];
 
-		sprintf(msg, "%s is already used by %s.\n", getresname(resource), holders[resource]);
+		sprintf(msg, "%s is already used by %s.", getresname(resource), holders[resource]);
 		messagebox("Error", msg);
 		return 0;
 	}

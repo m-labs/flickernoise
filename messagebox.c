@@ -37,7 +37,7 @@ void init_messagebox()
 		"b_ok = new Button(-text \"OK\")",
 		"g.place(l, -column 1 -row 1)",
 		"g.rowconfig(1, -size 50)",
-		"g.place(b_cancel, -column 1 -row 2)",
+		"g.place(b_ok, -column 1 -row 2)",
 		"w = new Window(-content g -title \"title\")",
 		0);
 
@@ -47,7 +47,7 @@ void init_messagebox()
 
 void messagebox(const char *title, const char *text)
 {
-	dope_cmdf(appid, "w.set(-title \"%s\")", text);
+	dope_cmdf(appid, "w.set(-title \"%s\")", title);
 	dope_cmdf(appid, "l.set(-text \"%s\")", text);
 	dope_cmd(appid, "w.open()");
 }

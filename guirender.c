@@ -24,6 +24,7 @@
 
 #include "compiler.h"
 #include "renderer.h"
+#include "resmgr.h"
 
 #include "guirender.h"
 
@@ -36,6 +37,15 @@ extern int dope_rtems_input_fd;
 void guirender(int appid, struct patch *p)
 {
 	rtems_interval timeout;
+
+	if(!resmgr_acquire_multiple("renderer",
+	  RESOURCE_AUDIO,
+	  RESOURCE_DMX_IN,
+	  RESOURCE_DMX_OUT,
+	  RESOURCE_VIDEOIN,
+	  RESOURCE_SAMPLER,
+	  INVALID_RESOURCE))
+		return;
 
 	renderer_start(dope_rtems_framebuffer_fd, p);
 
@@ -61,6 +71,12 @@ void guirender(int appid, struct patch *p)
 	ioctl(dope_rtems_input_fd, USBINPUT_SETTIMEOUT, timeout);
 
 	renderer_stop();
+
+	resmgr_release(RESOURCE_SAMPLER);
+	resmgr_release(RESOURCE_VIDEOIN);
+	resmgr_release(RESOURCE_DMX_OUT);
+	resmgr_release(RESOURCE_DMX_IN);
+	resmgr_release(RESOURCE_AUDIO);
 
 	dope_cmd(appid, "screen.refresh()");
 }

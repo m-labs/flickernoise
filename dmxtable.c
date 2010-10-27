@@ -26,6 +26,7 @@
 #include <vscreen.h>
 
 #include "util.h"
+#include "resmgr.h"
 #include "dmxtable.h"
 
 static long appid;
@@ -115,9 +116,14 @@ void init_dmxtable()
 
 void open_dmxtable_window()
 {
+	if(!resmgr_acquire("DMX table", RESOURCE_DMX_OUT))
+		return;
 	dmx_fd = open("/dev/dmx_out", O_RDWR);
-	if(dmx_fd == -1)
+	if(dmx_fd == -1) {
 		perror("Unable to open DMX device");
+		resmgr_release(RESOURCE_DMX_OUT);
+		return;
+	}
 	load_channels(0);
 	dope_cmd(appid, "w.open()");
 }
@@ -125,5 +131,6 @@ void open_dmxtable_window()
 void close_dmxtable_window()
 {
 	close(dmx_fd);
+	resmgr_release(RESOURCE_DMX_OUT);
 	dope_cmd(appid, "w.close()");
 }
