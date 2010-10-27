@@ -102,49 +102,6 @@ static void mute_callback(dope_event *e, void *arg)
 	}
 }
 
-/* TODO: spawn a task to avoid freezing GUI */
-#define TEST_NSAMPLES (0x3fffc/4)
-#define TEST_NBUFFERS 4
-static void test_callback(dope_event *e, void *arg)
-{
-	int fd;
-	int i;
-	struct snd_buffer *snd_buffers[TEST_NBUFFERS];
-	struct snd_buffer *ret_buffers[TEST_NBUFFERS];
-
-	fd = open("/dev/snd", O_RDWR);
-	if(fd == -1) {
-		perror("Unable to open audio device");
-		return;
-	}
-
-	for(i=0;i<TEST_NBUFFERS;i++) {
-		snd_buffers[i] = malloc(TEST_NSAMPLES*4+sizeof(struct snd_buffer));
-		if(snd_buffers[i] == NULL) {
-			perror("malloc");
-			return;
-		}
-		snd_buffers[i]->nsamples = TEST_NSAMPLES;
-	}
-
-	for(i=0;i<TEST_NBUFFERS;i++)
-		ioctl(fd, SOUND_SND_SUBMIT_RECORD, snd_buffers[i]);
-
-	for(i=0;i<TEST_NBUFFERS;i++)
-		ioctl(fd, SOUND_SND_COLLECT_RECORD, &ret_buffers[i]);
-
-	for(i=0;i<TEST_NBUFFERS;i++)
-		ioctl(fd, SOUND_SND_SUBMIT_PLAY, ret_buffers[i]);
-
-	for(i=0;i<TEST_NBUFFERS;i++)
-		ioctl(fd, SOUND_SND_COLLECT_PLAY, &ret_buffers[i]);
-
-	for(i=0;i<TEST_NBUFFERS;i++)
-		free(snd_buffers[i]);
-
-	close(fd);
-}
-
 static void ok_callback(dope_event *e, void *arg)
 {
 	dope_cmd(appid, "w.close()");
@@ -195,17 +152,12 @@ void init_audio()
 
 		"g_btn = new Grid()",
 
-		"b_test = new Button(-text \"Audio test\")",
-		"sep = new Separator(-vertical yes)",
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
 
-		"g_btn.place(b_test, -column 2 -row 1)",
-		"g_btn.place(sep, -column 3 -row 1)",
-		"g_btn.place(b_ok, -column 4 -row 1)",
-		"g_btn.place(b_cancel, -column 5 -row 1)",
-
 		"g_btn.columnconfig(1, -size 90)",
+		"g_btn.place(b_ok, -column 2 -row 1)",
+		"g_btn.place(b_cancel, -column 3 -row 1)",
 
 		"g.place(g_btn, -column 1 -row 2)",
 
@@ -218,7 +170,6 @@ void init_audio()
 	dope_bind(appid, "b_mutline", "press", mute_callback, (void *)0);
 	dope_bind(appid, "b_mutmic", "press", mute_callback, (void *)1);
 
-	dope_bind(appid, "b_test", "commit", test_callback, NULL);
 	dope_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	dope_bind(appid, "b_cancel", "commit", close_callback, NULL);
 
