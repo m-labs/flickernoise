@@ -30,6 +30,7 @@
 #include <bsp/milkymist_dmx.h>
 #include <bsp/milkymist_ir.h>
 #include <bsp/milkymist_midi.h>
+#include <bsp/milkymist_versions.h>
 #include <rtems/stackchk.h>
 #include <rtems/shell.h>
 #include <rtems/rtems_bsdnet.h>
@@ -147,7 +148,8 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 	TMU_DRIVER_TABLE_ENTRY, \
 	DMX_DRIVER_TABLE_ENTRY, \
 	IR_DRIVER_TABLE_ENTRY, \
-	MIDI_DRIVER_TABLE_ENTRY
+	MIDI_DRIVER_TABLE_ENTRY, \
+	VERSIONS_DRIVER_TABLE_ENTRY
 
 #define CONFIGURE_MAXIMUM_DRIVERS 16
 
