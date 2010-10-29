@@ -19,31 +19,31 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <dopelib.h>
+#include <mtklib.h>
 
 #include "dmxtable.h"
 #include "dmx.h"
 
 static long appid;
 
-static void table_callback(dope_event *e, void *arg)
+static void table_callback(mtk_event *e, void *arg)
 {
 	open_dmxtable_window();
 }
 
-static void close_callback(dope_event *e, void *arg)
+static void close_callback(mtk_event *e, void *arg)
 {
 	close_dmxtable_window();
-	dope_cmd(appid, "w.close()");
+	mtk_cmd(appid, "w.close()");
 }
 
 void init_dmx()
 {
 	int i;
 
-	appid = dope_init_app("DMX settings");
+	appid = mtk_init_app("DMX settings");
 
-	dope_cmd_seq(appid,
+	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
 		"g_inout = new Grid()",
@@ -84,23 +84,23 @@ void init_dmx()
 		0);
 
 	for(i=1;i<=4;i++) {
-		dope_cmdf(appid, "l_idmx%d = new Label(-text \"idmx%d\")", i, i);
-		dope_cmdf(appid, "e_idmx%d = new Entry()", i);
-		dope_cmdf(appid, "g_in.place(l_idmx%d, -column 1 -row %d)", i, i);
-		dope_cmdf(appid, "g_in.place(e_idmx%d, -column 2 -row %d)", i, i);
-		dope_cmdf(appid, "l_dmx%d = new Label(-text \"dmx%d\")", i, i);
-		dope_cmdf(appid, "e_dmx%d = new Entry()", i);
-		dope_cmdf(appid, "g_out.place(l_dmx%d, -column 1 -row %d)", i, i);
-		dope_cmdf(appid, "g_out.place(e_dmx%d, -column 2 -row %d)", i, i);
+		mtk_cmdf(appid, "l_idmx%d = new Label(-text \"idmx%d\")", i, i);
+		mtk_cmdf(appid, "e_idmx%d = new Entry()", i);
+		mtk_cmdf(appid, "g_in.place(l_idmx%d, -column 1 -row %d)", i, i);
+		mtk_cmdf(appid, "g_in.place(e_idmx%d, -column 2 -row %d)", i, i);
+		mtk_cmdf(appid, "l_dmx%d = new Label(-text \"dmx%d\")", i, i);
+		mtk_cmdf(appid, "e_dmx%d = new Entry()", i);
+		mtk_cmdf(appid, "g_out.place(l_dmx%d, -column 1 -row %d)", i, i);
+		mtk_cmdf(appid, "g_out.place(e_dmx%d, -column 2 -row %d)", i, i);
 	}
 
-	dope_bind(appid, "b_table", "commit", table_callback, NULL);
+	mtk_bind(appid, "b_table", "commit", table_callback, NULL);
 
-	dope_bind(appid, "b_cancel", "commit", close_callback, NULL);
-	dope_bind(appid, "w", "close", close_callback, NULL);
+	mtk_bind(appid, "b_cancel", "commit", close_callback, NULL);
+	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
 void open_dmx_window()
 {
-	dope_cmd(appid, "w.open()");
+	mtk_cmd(appid, "w.open()");
 }

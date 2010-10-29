@@ -18,18 +18,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <dopelib.h>
+#include <mtklib.h>
 
 #include "shutdown.h"
 
 static long appid;
 
-static void cancel_callback(dope_event *e, void *arg)
+static void cancel_callback(mtk_event *e, void *arg)
 {
-	dope_cmd(appid, "w.close()");
+	mtk_cmd(appid, "w.close()");
 }
 
-static void shutdown_callback(dope_event *e, void *arg)
+static void shutdown_callback(mtk_event *e, void *arg)
 {
 	int reboot = (int)arg;
 	exit(reboot);
@@ -37,8 +37,8 @@ static void shutdown_callback(dope_event *e, void *arg)
 
 void init_shutdown()
 {
-	appid = dope_init_app("Shutdown");
-	dope_cmd_seq(appid,
+	appid = mtk_init_app("Shutdown");
+	mtk_cmd_seq(appid,
 		"g = new Grid()",
 		"g2 = new Grid()",
 		"l = new Label(-text \"Do you want to power off or reboot the system?\")",
@@ -54,14 +54,14 @@ void init_shutdown()
 		"w = new Window(-content g -title \"Shutdown\")",
 		0);
 
-	dope_bind(appid, "b_shutdown", "clack", shutdown_callback, (void *)0);
-	dope_bind(appid, "b_reboot", "clack", shutdown_callback, (void *)1);
+	mtk_bind(appid, "b_shutdown", "clack", shutdown_callback, (void *)0);
+	mtk_bind(appid, "b_reboot", "clack", shutdown_callback, (void *)1);
 
-	dope_bind(appid, "b_cancel", "clack", cancel_callback, NULL);
-	dope_bind(appid, "w", "close", cancel_callback, NULL);
+	mtk_bind(appid, "b_cancel", "clack", cancel_callback, NULL);
+	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 }
 
 void open_shutdown_window()
 {
-	dope_cmd(appid, "w.open()");
+	mtk_cmd(appid, "w.open()");
 }

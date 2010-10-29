@@ -18,15 +18,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <dopelib.h>
+#include <mtklib.h>
 
 #include "monitor.h"
 
 static long appid;
 
-static void close_callback(dope_event *e, void *arg)
+static void close_callback(mtk_event *e, void *arg)
 {
-	dope_cmd(appid, "w.close()");
+	mtk_cmd(appid, "w.close()");
 }
 
 void init_monitor()
@@ -35,34 +35,34 @@ void init_monitor()
 	int column;
 	int brow;
 
-	appid = dope_init_app("Monitor");
+	appid = mtk_init_app("Monitor");
 
-	dope_cmd(appid, "g = new Grid()");
+	mtk_cmd(appid, "g = new Grid()");
 	for(i=0;i<8;i++) {
 		column = i > 3 ? 3 : 1;
 		brow = i & 3;
-		dope_cmdf(appid, "var%d = new Entry()", i);
-		dope_cmdf(appid, "val%d = new Label(-text \"N/A\")", i);
-		dope_cmdf(appid, "g.place(var%d, -column %d -row %d)", i, column, 3*brow+1);
-		dope_cmdf(appid, "g.place(val%d, -column %d -row %d)", i, column, 3*brow+2);
+		mtk_cmdf(appid, "var%d = new Entry()", i);
+		mtk_cmdf(appid, "val%d = new Label(-text \"N/A\")", i);
+		mtk_cmdf(appid, "g.place(var%d, -column %d -row %d)", i, column, 3*brow+1);
+		mtk_cmdf(appid, "g.place(val%d, -column %d -row %d)", i, column, 3*brow+2);
 		/* Put a horizontal separator everywhere except for the last row */
 		if(brow != 3)  {
-			dope_cmdf(appid, "sep%d = new Separator(-vertical no)", i);
-			dope_cmdf(appid, "g.place(sep%d, -column %d -row %d)", i, column, 3*brow+3);
+			mtk_cmdf(appid, "sep%d = new Separator(-vertical no)", i);
+			mtk_cmdf(appid, "g.place(sep%d, -column %d -row %d)", i, column, 3*brow+3);
 		}
 	}
 	for(i=0;i<11;i++) {
-		dope_cmdf(appid, "vsep%d = new Separator(-vertical yes)", i);
-		dope_cmdf(appid, "g.place(vsep%d, -column 2 -row %d)", i, i+1);
+		mtk_cmdf(appid, "vsep%d = new Separator(-vertical yes)", i);
+		mtk_cmdf(appid, "g.place(vsep%d, -column 2 -row %d)", i, i+1);
 	}
-	dope_cmd(appid, "g.columnconfig(1, -weight 1 -size 100)");
-	dope_cmd(appid, "g.columnconfig(3, -weight 1 -size 100)");
-	dope_cmd(appid, "w = new Window(-content g -title \"Variable monitor\")");
+	mtk_cmd(appid, "g.columnconfig(1, -weight 1 -size 100)");
+	mtk_cmd(appid, "g.columnconfig(3, -weight 1 -size 100)");
+	mtk_cmd(appid, "w = new Window(-content g -title \"Variable monitor\")");
 
-	dope_bind(appid, "w", "close", close_callback, NULL);
+	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
 void open_monitor_window()
 {
-	dope_cmd(appid, "w.open()");
+	mtk_cmd(appid, "w.open()");
 }

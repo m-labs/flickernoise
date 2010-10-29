@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <dopelib.h>
+#include <mtklib.h>
 
 #include "flash.h"
 #include "filedialog.h"
@@ -28,34 +28,34 @@ static long appid;
 static long file_dialog_id;
 static int current_file_to_choose;
 
-static void cancel_callback(dope_event *e, void *arg)
+static void cancel_callback(mtk_event *e, void *arg)
 {
-	dope_cmd(appid, "w.close()");
+	mtk_cmd(appid, "w.close()");
 }
 
 void flash_filedialog_ok_callback()
 {
-	char dope_cmd_str[384];
+	char mtk_cmd_str[384];
 	char filepath[384];
 
 	get_filedialog_selection(file_dialog_id, filepath, sizeof(filepath));
 
 	switch(current_file_to_choose) {
 		case 1:
-			sprintf(dope_cmd_str, "e1.set(-text \"%s\")", filepath);
+			sprintf(mtk_cmd_str, "e1.set(-text \"%s\")", filepath);
 			break;
 		case 2:
-			sprintf(dope_cmd_str, "e2.set(-text \"%s\")", filepath);
+			sprintf(mtk_cmd_str, "e2.set(-text \"%s\")", filepath);
 			break;
 		case 3:
-			sprintf(dope_cmd_str, "e3.set(-text \"%s\")", filepath);
+			sprintf(mtk_cmd_str, "e3.set(-text \"%s\")", filepath);
 			break;
 		default:
-			sprintf(dope_cmd_str, " ");
+			sprintf(mtk_cmd_str, " ");
 			break;
 	}
 
-	dope_cmd(appid, dope_cmd_str);
+	mtk_cmd(appid, mtk_cmd_str);
 	close_filedialog(file_dialog_id);
 }
 
@@ -64,7 +64,7 @@ void flash_filedialog_cancel_callback()
 	close_filedialog(file_dialog_id);
 }
 
-static void flash_callback(dope_event *e, void *arg)
+static void flash_callback(mtk_event *e, void *arg)
 {
 	char name[384];
 
@@ -88,14 +88,14 @@ static void flash_callback(dope_event *e, void *arg)
 			break;
 		case 4:
 			// TODO: verify the files and flash them
-			dope_req(appid, name, sizeof(name), "e1.text");
+			mtk_req(appid, name, sizeof(name), "e1.text");
 			printf("Bitstream :\t%s\n", name);
-			dope_req(appid, name, sizeof(name), "e2.text");
+			mtk_req(appid, name, sizeof(name), "e2.text");
 			printf("Bios :\t%s\n", name);
-			dope_req(appid, name, sizeof(name), "e3.text");
+			mtk_req(appid, name, sizeof(name), "e3.text");
 			printf("Program :\t%s\n", name);
 
-			dope_cmd(appid, "w.close()");
+			mtk_cmd(appid, "w.close()");
 			break;
 		default:
 			break;
@@ -104,9 +104,9 @@ static void flash_callback(dope_event *e, void *arg)
 
 void init_flash()
 {
-	appid = dope_init_app("Flash");
+	appid = mtk_init_app("Flash");
 
-	dope_cmd_seq(appid,
+	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
 		"l0 = new Label(-text \"Select images to flash.\nIf your board does not restart after flashing, don't panic!\nHold pushbutton #1 during power-up to enable rescue mode.\")",
@@ -161,16 +161,16 @@ void init_flash()
 		"w = new Window(-content g -title \"Flash upgrade\")",
 		0);
 
-	dope_bind(appid, "b_browse1", "commit", flash_callback, (void *)1);
-	dope_bind(appid, "b_browse2", "commit", flash_callback, (void *)2);
-	dope_bind(appid, "b_browse3", "commit", flash_callback, (void *)3);
-	dope_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
-	dope_bind(appid, "b_ok", "commit", flash_callback, (void *)4);
+	mtk_bind(appid, "b_browse1", "commit", flash_callback, (void *)1);
+	mtk_bind(appid, "b_browse2", "commit", flash_callback, (void *)2);
+	mtk_bind(appid, "b_browse3", "commit", flash_callback, (void *)3);
+	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
+	mtk_bind(appid, "b_ok", "commit", flash_callback, (void *)4);
 
-	dope_bind(appid, "w", "close", cancel_callback, NULL);
+	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 }
 
 void open_flash_window()
 {
-	dope_cmd(appid, "w.open()");
+	mtk_cmd(appid, "w.open()");
 }

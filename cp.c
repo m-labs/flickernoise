@@ -16,7 +16,7 @@
  */
 
 #include <stdio.h>
-#include <dopelib.h>
+#include <mtklib.h>
 
 #include "audio.h"
 #include "dmx.h"
@@ -51,7 +51,7 @@ enum {
 	CP_ITEM_SHUTDOWN
 };
 
-static void cp_callback(dope_event *e, void *arg)
+static void cp_callback(mtk_event *e, void *arg)
 {
 	switch((int)arg) {
 		case CP_ITEM_KEYB:
@@ -111,9 +111,9 @@ static void cp_callback(dope_event *e, void *arg)
 
 void init_cp()
 {
-	appid = dope_init_app("Control panel");
+	appid = mtk_init_app("Control panel");
 
-	dope_cmd_seq(appid,
+	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
 		"g_iosetup0 = new Grid()",
@@ -199,22 +199,22 @@ void init_cp()
 		"w.open()",
 		0);
 
-	dope_bind(appid, "b_keyb", "commit", cp_callback, (void *)CP_ITEM_KEYB);
-	dope_bind(appid, "b_ir", "commit", cp_callback, (void *)CP_ITEM_IR);
-	dope_bind(appid, "b_audio", "commit", cp_callback, (void *)CP_ITEM_AUDIO);
-	dope_bind(appid, "b_midi", "commit", cp_callback, (void *)CP_ITEM_MIDI);
-	dope_bind(appid, "b_osc", "commit", cp_callback, (void *)CP_ITEM_OSC);
-	dope_bind(appid, "b_dmx", "commit", cp_callback, (void *)CP_ITEM_DMX);
-	dope_bind(appid, "b_videoin", "commit", cp_callback, (void *)CP_ITEM_VIDEOIN);
-	dope_bind(appid, "b_editor", "commit", cp_callback, (void *)CP_ITEM_EDITOR);
-	dope_bind(appid, "b_monitor", "commit", cp_callback, (void *)CP_ITEM_MONITOR);
-	dope_bind(appid, "b_start", "commit", cp_callback, (void *)CP_ITEM_START);
-	dope_bind(appid, "b_load", "commit", cp_callback, (void *)CP_ITEM_LOAD);
-	dope_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
-	dope_bind(appid, "b_autostart", "commit", cp_callback, (void *)CP_ITEM_AUTOSTART);
-	dope_bind(appid, "b_filemanager", "commit", cp_callback, (void *)CP_ITEM_FILEMANAGER);
-	dope_bind(appid, "b_about", "commit", cp_callback, (void *)CP_ITEM_ABOUT);
-	dope_bind(appid, "b_shutdown", "commit", cp_callback, (void *)CP_ITEM_SHUTDOWN);
+	mtk_bind(appid, "b_keyb", "commit", cp_callback, (void *)CP_ITEM_KEYB);
+	mtk_bind(appid, "b_ir", "commit", cp_callback, (void *)CP_ITEM_IR);
+	mtk_bind(appid, "b_audio", "commit", cp_callback, (void *)CP_ITEM_AUDIO);
+	mtk_bind(appid, "b_midi", "commit", cp_callback, (void *)CP_ITEM_MIDI);
+	mtk_bind(appid, "b_osc", "commit", cp_callback, (void *)CP_ITEM_OSC);
+	mtk_bind(appid, "b_dmx", "commit", cp_callback, (void *)CP_ITEM_DMX);
+	mtk_bind(appid, "b_videoin", "commit", cp_callback, (void *)CP_ITEM_VIDEOIN);
+	mtk_bind(appid, "b_editor", "commit", cp_callback, (void *)CP_ITEM_EDITOR);
+	mtk_bind(appid, "b_monitor", "commit", cp_callback, (void *)CP_ITEM_MONITOR);
+	mtk_bind(appid, "b_start", "commit", cp_callback, (void *)CP_ITEM_START);
+	mtk_bind(appid, "b_load", "commit", cp_callback, (void *)CP_ITEM_LOAD);
+	mtk_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
+	mtk_bind(appid, "b_autostart", "commit", cp_callback, (void *)CP_ITEM_AUTOSTART);
+	mtk_bind(appid, "b_filemanager", "commit", cp_callback, (void *)CP_ITEM_FILEMANAGER);
+	mtk_bind(appid, "b_about", "commit", cp_callback, (void *)CP_ITEM_ABOUT);
+	mtk_bind(appid, "b_shutdown", "commit", cp_callback, (void *)CP_ITEM_SHUTDOWN);
 
-	dope_bind(appid, "w", "close", cp_callback, (void *)CP_ITEM_SHUTDOWN);
+	mtk_bind(appid, "w", "close", cp_callback, (void *)CP_ITEM_SHUTDOWN);
 }

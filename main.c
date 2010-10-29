@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include <dopelib.h>
+#include <mtklib.h>
 #include <bsp/milkymist_usbinput.h>
 #include <bsp/milkymist_ac97.h>
 #include <bsp/milkymist_pfpu.h>
@@ -48,7 +48,7 @@
 
 static rtems_task gui_task(rtems_task_argument argument)
 {
-	if(dope_init())
+	if(mtk_init())
 		return;
 
 	init_messagebox();
@@ -62,7 +62,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_flash();
         init_shutdown();
 
-	dope_eventloop(0);
+	mtk_eventloop(0);
 }
 
 static rtems_id gui_task_id;

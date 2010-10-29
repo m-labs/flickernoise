@@ -15,19 +15,19 @@
 #ifndef __UTIL_H
 #define __UTIL_H
 
-#include <dopelib.h>
+#include <mtklib.h>
 #include <stdlib.h>
 
 /**
  * Request long attribute from widget
  *
  * This is a convenience function for an often used special case of
- * calling 'dope_req'.
+ * calling 'mtk_req'.
  */
-static inline long dope_req_l(int app_id, char *cmd)
+static inline long mtk_req_l(int app_id, char *cmd)
 {
 	char buf[16];
-	dope_req(app_id, buf, 16, cmd);
+	mtk_req(app_id, buf, 16, cmd);
 	return atol(buf);
 }
 

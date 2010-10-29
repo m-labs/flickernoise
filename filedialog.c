@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <dopelib.h>
+#include <mtklib.h>
 
 #include "filedialog.h"
 
@@ -71,12 +71,12 @@ static void display_folder(long appid, const char *folder)
 	closedir(d);
 
 
-	dope_cmdf(appid, "fd_g2_folders.set(-text \"%s\" -selection 0)", fmt_folders);
-	dope_cmdf(appid, "fd_g2_files.set(-text \"%s\" -selection 0)", fmt_files);
-	dope_cmdf(appid, "fd_g1_l.set(-text \"%s\")", folder);
-	dope_cmdf(appid, "fd_selection.set(-text \"Selection: %s\")", folder);
-	dope_cmd(appid, "fd_g2_foldersf.set(-xview 0 -yview 0)");
-	dope_cmd(appid, "fd_g2_filesf.set(-xview 0 -yview 0)");
+	mtk_cmdf(appid, "fd_g2_folders.set(-text \"%s\" -selection 0)", fmt_folders);
+	mtk_cmdf(appid, "fd_g2_files.set(-text \"%s\" -selection 0)", fmt_files);
+	mtk_cmdf(appid, "fd_g1_l.set(-text \"%s\")", folder);
+	mtk_cmdf(appid, "fd_selection.set(-text \"Selection: %s\")", folder);
+	mtk_cmd(appid, "fd_g2_foldersf.set(-xview 0 -yview 0)");
+	mtk_cmd(appid, "fd_g2_filesf.set(-xview 0 -yview 0)");
 }
 
 static char *get_selection(char *list, int n)
@@ -98,7 +98,7 @@ static char *get_selection(char *list, int n)
 	return s;
 }
 
-static void folder_selcommit_callback(dope_event *e, void *arg)
+static void folder_selcommit_callback(mtk_event *e, void *arg)
 {
 	long appid = (long)arg;
 	char curfolder[384];
@@ -107,9 +107,9 @@ static void folder_selcommit_callback(dope_event *e, void *arg)
 	int nselection;
 	char *selection;
 
-	dope_req(appid, curfolder, sizeof(curfolder), "fd_g1_l.text");
-	dope_req(appid, folderlist, sizeof(folderlist), "fd_g2_folders.text");
-	dope_req(appid, num, sizeof(num), "fd_g2_folders.selection");
+	mtk_req(appid, curfolder, sizeof(curfolder), "fd_g1_l.text");
+	mtk_req(appid, folderlist, sizeof(folderlist), "fd_g2_folders.text");
+	mtk_req(appid, num, sizeof(num), "fd_g2_folders.selection");
 	nselection = atoi(num);
 	selection = get_selection(folderlist, nselection);
 
@@ -133,81 +133,81 @@ static void update_filename(long appid)
 	int nselection;
 	char *selection;
 
-	dope_req(appid, filelist, sizeof(filelist), "fd_g2_files.text");
+	mtk_req(appid, filelist, sizeof(filelist), "fd_g2_files.text");
 	if(strlen(filelist) == 0) return;
-	dope_req(appid, num, sizeof(num), "fd_g2_files.selection");
+	mtk_req(appid, num, sizeof(num), "fd_g2_files.selection");
 	nselection = atoi(num);
 	selection = get_selection(filelist, nselection);
 
-	dope_cmdf(appid, "fd_filename.set(-text \"%s\")", selection);
+	mtk_cmdf(appid, "fd_filename.set(-text \"%s\")", selection);
 }
 
-static void file_selchange_callback(dope_event *e, void *arg)
+static void file_selchange_callback(mtk_event *e, void *arg)
 {
 	long appid = (long)arg;
 
 	update_filename(appid);
 }
 
-static void file_selcommit_callback(dope_event *e, void *arg)
+static void file_selcommit_callback(mtk_event *e, void *arg)
 {
 	long appid = (long)arg;
 
 	update_filename(appid);
 }
 
-long create_filedialog(const char *name, int is_save, void (*ok_callback)(dope_event *,void *), void *ok_callback_arg, void (*cancel_callback)(dope_event *,void *), void *cancel_callback_arg)
+long create_filedialog(const char *name, int is_save, void (*ok_callback)(mtk_event *,void *), void *ok_callback_arg, void (*cancel_callback)(mtk_event *,void *), void *cancel_callback_arg)
 {
 	long appid;
 
-	appid = dope_init_app(name);
+	appid = mtk_init_app(name);
 
-	dope_cmd(appid, "fd_g = new Grid()");
+	mtk_cmd(appid, "fd_g = new Grid()");
 
-	dope_cmd(appid, "fd_g1 = new Grid()");
-	dope_cmd(appid, "fd_g1_s1 = new Separator(-vertical no)");
-	dope_cmd(appid, "fd_g1_l = new Label(-text \"/\")");
-	dope_cmd(appid, "fd_g1_s2 = new Separator(-vertical no)");
-	dope_cmd(appid, "fd_g1.place(fd_g1_s1, -column 1 -row 1)");
-	dope_cmd(appid, "fd_g1.place(fd_g1_l, -column 2 -row 1)");
-	dope_cmd(appid, "fd_g1.place(fd_g1_s2, -column 3 -row 1)");
+	mtk_cmd(appid, "fd_g1 = new Grid()");
+	mtk_cmd(appid, "fd_g1_s1 = new Separator(-vertical no)");
+	mtk_cmd(appid, "fd_g1_l = new Label(-text \"/\")");
+	mtk_cmd(appid, "fd_g1_s2 = new Separator(-vertical no)");
+	mtk_cmd(appid, "fd_g1.place(fd_g1_s1, -column 1 -row 1)");
+	mtk_cmd(appid, "fd_g1.place(fd_g1_l, -column 2 -row 1)");
+	mtk_cmd(appid, "fd_g1.place(fd_g1_s2, -column 3 -row 1)");
 
-	dope_cmd(appid, "fd_g2 = new Grid()");
-	dope_cmd(appid, "fd_g2_folders = new List()");
-	dope_cmd(appid, "fd_g2_foldersf = new Frame(-content fd_g2_folders -scrollx yes -scrolly yes)");
-	dope_cmd(appid, "fd_g2_files = new List()");
-	dope_cmd(appid, "fd_g2_filesf = new Frame(-content fd_g2_files -scrollx yes -scrolly yes)");
-	dope_cmd(appid, "fd_g2.place(fd_g2_foldersf, -column 1 -row 1)");
-	dope_cmd(appid, "fd_g2.place(fd_g2_filesf, -column 2 -row 1)");
-	dope_cmd(appid, "fd_g2.rowconfig(1, -size 200)");
+	mtk_cmd(appid, "fd_g2 = new Grid()");
+	mtk_cmd(appid, "fd_g2_folders = new List()");
+	mtk_cmd(appid, "fd_g2_foldersf = new Frame(-content fd_g2_folders -scrollx yes -scrolly yes)");
+	mtk_cmd(appid, "fd_g2_files = new List()");
+	mtk_cmd(appid, "fd_g2_filesf = new Frame(-content fd_g2_files -scrollx yes -scrolly yes)");
+	mtk_cmd(appid, "fd_g2.place(fd_g2_foldersf, -column 1 -row 1)");
+	mtk_cmd(appid, "fd_g2.place(fd_g2_filesf, -column 2 -row 1)");
+	mtk_cmd(appid, "fd_g2.rowconfig(1, -size 200)");
 
-	dope_cmd(appid, "fd_selection = new Label(-text \"Selection: /\")");
+	mtk_cmd(appid, "fd_selection = new Label(-text \"Selection: /\")");
 
-	dope_cmd(appid, "fd_filename = new Entry()");
+	mtk_cmd(appid, "fd_filename = new Entry()");
 
-	dope_cmd(appid, "fd_g3 = new Grid()");
-	dope_cmd(appid, "fd_g3_ok = new Button(-text \"OK\")");
-	dope_cmd(appid, "fd_g3_cancel = new Button(-text \"Cancel\")");
-	dope_cmd(appid, "fd_g3.columnconfig(1, -size 340)");
-	dope_cmd(appid, "fd_g3.place(fd_g3_ok, -column 2 -row 1)");
-	dope_cmd(appid, "fd_g3.place(fd_g3_cancel, -column 3 -row 1)");
+	mtk_cmd(appid, "fd_g3 = new Grid()");
+	mtk_cmd(appid, "fd_g3_ok = new Button(-text \"OK\")");
+	mtk_cmd(appid, "fd_g3_cancel = new Button(-text \"Cancel\")");
+	mtk_cmd(appid, "fd_g3.columnconfig(1, -size 340)");
+	mtk_cmd(appid, "fd_g3.place(fd_g3_ok, -column 2 -row 1)");
+	mtk_cmd(appid, "fd_g3.place(fd_g3_cancel, -column 3 -row 1)");
 
-	dope_cmd(appid, "fd_g.place(fd_g1, -column 1 -row 1)");
-	dope_cmd(appid, "fd_g.place(fd_g2, -column 1 -row 2)");
-	dope_cmd(appid, "fd_g.place(fd_selection, -column 1 -row 3 -align \"w\")");
-	dope_cmd(appid, "fd_g.place(fd_filename, -column 1 -row 4)");
-	dope_cmd(appid, "fd_g.place(fd_g3, -column 1 -row 5)");
-	dope_cmd(appid, "fd_g.rowconfig(3, -size 0)");
+	mtk_cmd(appid, "fd_g.place(fd_g1, -column 1 -row 1)");
+	mtk_cmd(appid, "fd_g.place(fd_g2, -column 1 -row 2)");
+	mtk_cmd(appid, "fd_g.place(fd_selection, -column 1 -row 3 -align \"w\")");
+	mtk_cmd(appid, "fd_g.place(fd_filename, -column 1 -row 4)");
+	mtk_cmd(appid, "fd_g.place(fd_g3, -column 1 -row 5)");
+	mtk_cmd(appid, "fd_g.rowconfig(3, -size 0)");
 
-	dope_cmdf(appid, "fd = new Window(-content fd_g -title \"%s\")", is_save ? "Save As" : "Open");
+	mtk_cmdf(appid, "fd = new Window(-content fd_g -title \"%s\")", is_save ? "Save As" : "Open");
 
-	dope_bind(appid, "fd_g2_folders", "selcommit", folder_selcommit_callback, (void *)appid);
-	dope_bind(appid, "fd_g2_files", "selchange", file_selchange_callback, (void *)appid);
-	dope_bind(appid, "fd_g2_files", "selcommit", file_selcommit_callback, (void *)appid);
+	mtk_bind(appid, "fd_g2_folders", "selcommit", folder_selcommit_callback, (void *)appid);
+	mtk_bind(appid, "fd_g2_files", "selchange", file_selchange_callback, (void *)appid);
+	mtk_bind(appid, "fd_g2_files", "selcommit", file_selcommit_callback, (void *)appid);
 
-	dope_bind(appid, "fd_g3_ok", "commit", ok_callback, ok_callback_arg);
-	dope_bind(appid, "fd_g3_cancel", "commit", cancel_callback, cancel_callback_arg);
-	dope_bind(appid, "fd", "close", cancel_callback, cancel_callback_arg);
+	mtk_bind(appid, "fd_g3_ok", "commit", ok_callback, ok_callback_arg);
+	mtk_bind(appid, "fd_g3_cancel", "commit", cancel_callback, cancel_callback_arg);
+	mtk_bind(appid, "fd", "close", cancel_callback, cancel_callback_arg);
 
 	return appid;
 }
@@ -216,20 +216,20 @@ void open_filedialog(long appid, const char *folder)
 {
 	display_folder(appid, folder);
 
-	dope_cmd(appid, "fd_filename.set(-text \"\")");
-	dope_cmd(appid, "fd.open()");
+	mtk_cmd(appid, "fd_filename.set(-text \"\")");
+	mtk_cmd(appid, "fd.open()");
 }
 
 void close_filedialog(long appid)
 {
-	dope_cmd(appid, "fd.close()");
+	mtk_cmd(appid, "fd.close()");
 }
 
 void get_filedialog_selection(long appid, char *buffer, int buflen)
 {
 	char file[384];
 
-	dope_req(appid, buffer, buflen, "fd_g1_l.text");
-	dope_req(appid, file, sizeof(file), "fd_filename.text");
+	mtk_req(appid, buffer, buflen, "fd_g1_l.text");
+	mtk_req(appid, file, sizeof(file), "fd_filename.text");
 	strncat(buffer, file, buflen);
 }

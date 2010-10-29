@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include <rtems.h>
 #include <bsp/milkymist_usbinput.h>
-#include <dopelib.h>
+#include <mtklib.h>
 
 #include "compiler.h"
 #include "renderer.h"
@@ -28,8 +28,8 @@
 
 #include "guirender.h"
 
-extern int dope_rtems_framebuffer_fd;
-extern int dope_rtems_input_fd;
+extern int mtk_rtems_framebuffer_fd;
+extern int mtk_rtems_input_fd;
 
 #define MOUSE_LEFT       0x01000000
 #define MOUSE_RIGHT      0x02000000
@@ -47,28 +47,28 @@ void guirender(int appid, struct patch *p)
 	  INVALID_RESOURCE))
 		return;
 
-	renderer_start(dope_rtems_framebuffer_fd, p);
+	renderer_start(mtk_rtems_framebuffer_fd, p);
 
 	/* take over USB input events */
-	ioctl(dope_rtems_input_fd, USBINPUT_GETTIMEOUT, &timeout);
-	ioctl(dope_rtems_input_fd, USBINPUT_SETTIMEOUT, RTEMS_NO_TIMEOUT);
+	ioctl(mtk_rtems_input_fd, USBINPUT_GETTIMEOUT, &timeout);
+	ioctl(mtk_rtems_input_fd, USBINPUT_SETTIMEOUT, RTEMS_NO_TIMEOUT);
 	while(1) {
 		int r;
 		unsigned int input_event;
 
-		r = read(dope_rtems_input_fd, &input_event, 4);
+		r = read(mtk_rtems_input_fd, &input_event, 4);
 		if(r == 2) /* keyboard event */
 			break;
 		if(input_event & (MOUSE_LEFT|MOUSE_RIGHT)) {
 			while(1) {
-				r = read(dope_rtems_input_fd, &input_event, 4);
+				r = read(mtk_rtems_input_fd, &input_event, 4);
 				if((r == 4) && !(input_event & (MOUSE_LEFT|MOUSE_RIGHT)))
 					break;
 			}
 			break;
 		}
 	}
-	ioctl(dope_rtems_input_fd, USBINPUT_SETTIMEOUT, timeout);
+	ioctl(mtk_rtems_input_fd, USBINPUT_SETTIMEOUT, timeout);
 
 	renderer_stop();
 
@@ -78,5 +78,5 @@ void guirender(int appid, struct patch *p)
 	resmgr_release(RESOURCE_DMX_IN);
 	resmgr_release(RESOURCE_AUDIO);
 
-	dope_cmd(appid, "screen.refresh()");
+	mtk_cmd(appid, "screen.refresh()");
 }

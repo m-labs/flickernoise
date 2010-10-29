@@ -23,7 +23,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <dopelib.h>
+#include <mtklib.h>
 #include <bsp/milkymist_ac97.h>
 
 #include "util.h"
@@ -66,12 +66,12 @@ static void load_levels()
 		set_level(1, mic_vol);
 }
 
-static void slide_callback(dope_event *e, void *arg)
+static void slide_callback(mtk_event *e, void *arg)
 {
 	unsigned int channel = (unsigned int)arg;
 	unsigned int val;
 
-	val = 100 - dope_req_l(appid, channel ? "s_micvol.value" : "s_linevol.value");
+	val = 100 - mtk_req_l(appid, channel ? "s_micvol.value" : "s_linevol.value");
 	if(channel)
 		mic_vol = val;
 	else
@@ -80,7 +80,7 @@ static void slide_callback(dope_event *e, void *arg)
 		set_level(channel, val);
 }
 
-static void mute_callback(dope_event *e, void *arg)
+static void mute_callback(mtk_event *e, void *arg)
 {
 	unsigned int channel = (unsigned int)arg;
 
@@ -90,25 +90,25 @@ static void mute_callback(dope_event *e, void *arg)
 			set_level(1, 0);
 		else
 			set_level(1, mic_vol);
-		dope_cmdf(appid, "b_mutmic.set(-state %s)", mic_mute ? "on" : "off");
+		mtk_cmdf(appid, "b_mutmic.set(-state %s)", mic_mute ? "on" : "off");
 	} else {
 		line_mute = !line_mute;
 		if(line_mute)
 			set_level(0, 0);
 		else
 			set_level(0, line_vol);
-		dope_cmdf(appid, "b_mutline.set(-state %s)", line_mute ? "on" : "off");
+		mtk_cmdf(appid, "b_mutline.set(-state %s)", line_mute ? "on" : "off");
 	}
 }
 
-static void ok_callback(dope_event *e, void *arg)
+static void ok_callback(mtk_event *e, void *arg)
 {
-	dope_cmd(appid, "w.close()");
+	mtk_cmd(appid, "w.close()");
 }
 
-static void close_callback(dope_event *e, void *arg)
+static void close_callback(mtk_event *e, void *arg)
 {
-	dope_cmd(appid, "w.close()");
+	mtk_cmd(appid, "w.close()");
 
 	line_vol = prev_line_vol;
 	line_mute = prev_line_mute;
@@ -116,17 +116,17 @@ static void close_callback(dope_event *e, void *arg)
 	mic_mute = prev_mic_mute;
 
 	load_levels();
-	dope_cmdf(appid, "s_linevol.set(-value %d)", 100-line_vol);
-	dope_cmdf(appid, "b_mutline.set(-state %s)", line_mute ? "on" : "off");
-	dope_cmdf(appid, "s_micvol.set(-value %d)", 100-mic_vol);
-	dope_cmdf(appid, "b_mutmic.set(-state %s)", mic_mute ? "on" : "off");
+	mtk_cmdf(appid, "s_linevol.set(-value %d)", 100-line_vol);
+	mtk_cmdf(appid, "b_mutline.set(-state %s)", line_mute ? "on" : "off");
+	mtk_cmdf(appid, "s_micvol.set(-value %d)", 100-mic_vol);
+	mtk_cmdf(appid, "b_mutmic.set(-state %s)", mic_mute ? "on" : "off");
 }
 
 void init_audio()
 {
-	appid = dope_init_app("Audio");
+	appid = mtk_init_app("Audio");
 
-	dope_cmd_seq(appid,
+	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
 		"gv = new Grid()",
@@ -163,16 +163,16 @@ void init_audio()
 		"w = new Window(-content g -title \"Audio settings\")",
 		0);
 
-	dope_bind(appid, "s_linevol", "change", slide_callback, (void *)0);
-	dope_bind(appid, "s_micvol", "change", slide_callback, (void *)1);
+	mtk_bind(appid, "s_linevol", "change", slide_callback, (void *)0);
+	mtk_bind(appid, "s_micvol", "change", slide_callback, (void *)1);
 
-	dope_bind(appid, "b_mutline", "press", mute_callback, (void *)0);
-	dope_bind(appid, "b_mutmic", "press", mute_callback, (void *)1);
+	mtk_bind(appid, "b_mutline", "press", mute_callback, (void *)0);
+	mtk_bind(appid, "b_mutmic", "press", mute_callback, (void *)1);
 
-	dope_bind(appid, "b_ok", "commit", ok_callback, NULL);
-	dope_bind(appid, "b_cancel", "commit", close_callback, NULL);
+	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
+	mtk_bind(appid, "b_cancel", "commit", close_callback, NULL);
 
-	dope_bind(appid, "w", "close", close_callback, NULL);
+	mtk_bind(appid, "w", "close", close_callback, NULL);
 
 	mixer_fd = open("/dev/mixer", O_RDWR);
 	if(mixer_fd == -1)
@@ -191,5 +191,5 @@ void open_audio_window()
 	prev_line_mute = line_mute;
 	prev_mic_vol = mic_vol;
 	prev_mic_mute = mic_mute;
-	dope_cmd(appid, "w.open()");
+	mtk_cmd(appid, "w.open()");
 }

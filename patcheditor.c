@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <dopelib.h>
+#include <mtklib.h>
 
 #include "filedialog.h"
 #include "patcheditor.h"
@@ -30,17 +30,17 @@
 static long appid;
 static long fileopen_appid;
 
-static void close_callback(dope_event *e, void *arg)
+static void close_callback(mtk_event *e, void *arg)
 {
-	dope_cmd(appid, "w.close()");
+	mtk_cmd(appid, "w.close()");
 }
 
-static void openbtn_callback(dope_event *e, void *arg)
+static void openbtn_callback(mtk_event *e, void *arg)
 {
 	open_filedialog(fileopen_appid, "/");
 }
 
-static void openok_callback(dope_event *e, void *arg)
+static void openok_callback(mtk_event *e, void *arg)
 {
 	char *buf;
 	FILE *fd;
@@ -53,43 +53,43 @@ static void openok_callback(dope_event *e, void *arg)
 
 	fd = fopen(buf, "r");
 	if(!fd) {
-		dope_cmdf(appid, "status.set(-text \"Unable to open file (%s)\")", strerror(errno));
+		mtk_cmdf(appid, "status.set(-text \"Unable to open file (%s)\")", strerror(errno));
 		free(buf);
 		return;
 	}
 	r = fread(buf, 1, 32767, fd);
 	fclose(fd);
 	if(r < 0) {
-		dope_cmd(appid, "status.set(-text \"Unable to read file\")");
+		mtk_cmd(appid, "status.set(-text \"Unable to read file\")");
 		free(buf);
 		return;
 	}
 	buf[r] = 0;
 
-	dope_cmdf(appid, "ed.set(-text \"%s\")", buf);
+	mtk_cmdf(appid, "ed.set(-text \"%s\")", buf);
 
 	free(buf);
 }
 
-static void opencancel_callback(dope_event *e, void *arg)
+static void opencancel_callback(mtk_event *e, void *arg)
 {
 	close_filedialog(fileopen_appid);
 }
 
-static void saveasok_callback(dope_event *e, void *arg)
+static void saveasok_callback(mtk_event *e, void *arg)
 {
 }
 
-static void saveascancel_callback(dope_event *e, void *arg)
+static void saveascancel_callback(mtk_event *e, void *arg)
 {
 }
 
 static void rmc(const char *m)
 {
-	dope_cmdf(appid, "status.set(-text \"%s\")", m);
+	mtk_cmdf(appid, "status.set(-text \"%s\")", m);
 }
 
-static void run_callback(dope_event *e, void *arg)
+static void run_callback(mtk_event *e, void *arg)
 {
 	struct patch *p;
 	char *code;
@@ -97,7 +97,7 @@ static void run_callback(dope_event *e, void *arg)
 	code = malloc(32768);
 	if(code == NULL)
 		return;
-	dope_req(appid, code, 32768, "ed.text");
+	mtk_req(appid, code, 32768, "ed.text");
 	p = patch_compile(code, rmc);
 	free(code);
 	if(p == NULL)
@@ -110,8 +110,8 @@ static void run_callback(dope_event *e, void *arg)
 
 void init_patcheditor()
 {
-	appid = dope_init_app("Patch editor");
-	dope_cmd_seq(appid,
+	appid = mtk_init_app("Patch editor");
+	mtk_cmd_seq(appid,
 		"g = new Grid()",
 		"g_btn = new Grid()",
 		"b_new = new Button(-text \"New\")",
@@ -150,13 +150,13 @@ void init_patcheditor()
 
 	fileopen_appid = create_filedialog("Open patch", 0, openok_callback, NULL, opencancel_callback, NULL);
 
-	dope_bind(appid, "b_open", "commit", openbtn_callback, NULL);
-	dope_bind(appid, "b_run", "release", run_callback, NULL);
+	mtk_bind(appid, "b_open", "commit", openbtn_callback, NULL);
+	mtk_bind(appid, "b_run", "release", run_callback, NULL);
 
-	dope_bind(appid, "w", "close", close_callback, NULL);
+	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
 void open_patcheditor_window()
 {
-	dope_cmd(appid, "w.open()");
+	mtk_cmd(appid, "w.open()");
 }

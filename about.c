@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <dopelib.h>
+#include <mtklib.h>
 
 #include "version.h"
 #include "flash.h"
@@ -29,12 +29,12 @@
 
 static long appid;
 
-static void close_callback(dope_event *e, void *arg)
+static void close_callback(mtk_event *e, void *arg)
 {
-	dope_cmd(appid, "w.close()");
+	mtk_cmd(appid, "w.close()");
 }
 
-static void flash_callback(dope_event *e, void *arg)
+static void flash_callback(mtk_event *e, void *arg)
 {
 	open_flash_window();
 }
@@ -67,25 +67,25 @@ void init_about()
 	char pcb_rev[2];
 	unsigned char *macadr = (unsigned char *)FLASH_OFFSET_MAC_ADDRESS;
 
-	appid = dope_init_app("About");
+	appid = mtk_init_app("About");
 
 	read_dev("/dev/soc", soc, sizeof(soc));
 	read_dev("/dev/pcb", pcb, sizeof(pcb));
 	read_dev("/dev/pcb_rev", pcb_rev, sizeof(pcb_rev));
 
-	dope_cmd_seq(appid,
+	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
 		"flickernoise = new Label(-text \"Flickernoise "VERSION" (built on "__DATE__")\")",
 		"rtems = new Label(-text \"OS: RTEMS "RTEMS_VERSION"\")",
 		0);
 
-	dope_cmdf(appid, "platform = new Label(-text \"Platform: Milkymist SoC %s\")", soc);
-	dope_cmd(appid, "cpu = new Label(-text \"CPU: LatticeMico32\")");
-	dope_cmdf(appid, "board = new Label(-text \"Board: %s (PCB rev. %s)\")", pcb, pcb_rev);
-	dope_cmd(appid, "sep1 = new Separator(-vertical no)");
-	dope_cmdf(appid, "mac = new Label(-text \"Ethernet MAC: %02x:%02x:%02x:%02x:%02x:%02x\")", macadr[0], macadr[1], macadr[2], macadr[3], macadr[4], macadr[5]);
-	dope_cmd_seq(appid, "sep2 = new Separator(-vertical no)",
+	mtk_cmdf(appid, "platform = new Label(-text \"Platform: Milkymist SoC %s\")", soc);
+	mtk_cmd(appid, "cpu = new Label(-text \"CPU: LatticeMico32\")");
+	mtk_cmdf(appid, "board = new Label(-text \"Board: %s (PCB rev. %s)\")", pcb, pcb_rev);
+	mtk_cmd(appid, "sep1 = new Separator(-vertical no)");
+	mtk_cmdf(appid, "mac = new Label(-text \"Ethernet MAC: %02x:%02x:%02x:%02x:%02x:%02x\")", macadr[0], macadr[1], macadr[2], macadr[3], macadr[4], macadr[5]);
+	mtk_cmd_seq(appid, "sep2 = new Separator(-vertical no)",
 
 		"g.place(flickernoise, -column 1 -row 1)",
 		"g.place(rtems, -column 1 -row 2)",
@@ -110,13 +110,13 @@ void init_about()
 		0);
 
 
-	dope_bind(appid, "b_flash", "commit", flash_callback, NULL);
-	dope_bind(appid, "b_close", "commit", close_callback, NULL);
+	mtk_bind(appid, "b_flash", "commit", flash_callback, NULL);
+	mtk_bind(appid, "b_close", "commit", close_callback, NULL);
 
-	dope_bind(appid, "w", "close", close_callback, NULL);
+	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
 void open_about_window()
 {
-	dope_cmd(appid, "w.open()");
+	mtk_cmd(appid, "w.open()");
 }

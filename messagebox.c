@@ -17,21 +17,21 @@
 
 #include <stdlib.h>
 
-#include <dopelib.h>
+#include <mtklib.h>
 
 #include "messagebox.h"
 
 static long appid;
 
-static void close_callback(dope_event *e, void *arg)
+static void close_callback(mtk_event *e, void *arg)
 {
-	dope_cmd(appid, "w.close()");
+	mtk_cmd(appid, "w.close()");
 }
 
 void init_messagebox()
 {
-	appid = dope_init_app("Messagebox");
-	dope_cmd_seq(appid,
+	appid = mtk_init_app("Messagebox");
+	mtk_cmd_seq(appid,
 		"g = new Grid()",
 		"l = new Label(-text \"text\")",
 		"b_ok = new Button(-text \"OK\")",
@@ -41,13 +41,13 @@ void init_messagebox()
 		"w = new Window(-content g -title \"title\")",
 		0);
 
-	dope_bind(appid, "b_ok", "commit", close_callback, NULL);
-	dope_bind(appid, "w", "close", close_callback, NULL);
+	mtk_bind(appid, "b_ok", "commit", close_callback, NULL);
+	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
 void messagebox(const char *title, const char *text)
 {
-	dope_cmdf(appid, "w.set(-title \"%s\")", title);
-	dope_cmdf(appid, "l.set(-text \"%s\")", text);
-	dope_cmd(appid, "w.open()");
+	mtk_cmdf(appid, "w.set(-title \"%s\")", title);
+	mtk_cmdf(appid, "l.set(-text \"%s\")", text);
+	mtk_cmd(appid, "w.open()");
 }
