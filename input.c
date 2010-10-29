@@ -213,12 +213,15 @@ void init_input()
 
 void input_eventloop()
 {
-	mtk_event e;
+	mtk_event e[MAX_EVENTS];
+	int i;
 
 	while(1) {
-		if(get_event(&e))
-			mtk_input(&e);
-		else
-			mtk_input(NULL);
+		i = 0;
+		while(i < MAX_EVENTS) {
+			if(!get_event(&e[i])) break;
+			i++;
+		}
+		mtk_input(e, i);
 	}
 }
