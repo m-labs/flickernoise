@@ -25,11 +25,11 @@
 #include "compiler.h"
 #include "renderer.h"
 #include "resmgr.h"
+#include "fb.h"
 
 #include "guirender.h"
 
-extern int mtk_rtems_framebuffer_fd;
-extern int mtk_rtems_input_fd;
+extern int input_fd;
 
 #define MOUSE_LEFT       0x01000000
 #define MOUSE_RIGHT      0x02000000
@@ -47,28 +47,28 @@ void guirender(int appid, struct patch *p)
 	  INVALID_RESOURCE))
 		return;
 
-	renderer_start(mtk_rtems_framebuffer_fd, p);
+	renderer_start(framebuffer_fd, p);
 
 	/* take over USB input events */
-	ioctl(mtk_rtems_input_fd, USBINPUT_GETTIMEOUT, &timeout);
-	ioctl(mtk_rtems_input_fd, USBINPUT_SETTIMEOUT, RTEMS_NO_TIMEOUT);
+	ioctl(input_fd, USBINPUT_GETTIMEOUT, &timeout);
+	ioctl(input_fd, USBINPUT_SETTIMEOUT, RTEMS_NO_TIMEOUT);
 	while(1) {
 		int r;
 		unsigned int input_event;
 
-		r = read(mtk_rtems_input_fd, &input_event, 4);
+		r = read(input_fd, &input_event, 4);
 		if(r == 2) /* keyboard event */
 			break;
 		if(input_event & (MOUSE_LEFT|MOUSE_RIGHT)) {
 			while(1) {
-				r = read(mtk_rtems_input_fd, &input_event, 4);
+				r = read(input_fd, &input_event, 4);
 				if((r == 4) && !(input_event & (MOUSE_LEFT|MOUSE_RIGHT)))
 					break;
 			}
 			break;
 		}
 	}
-	ioctl(mtk_rtems_input_fd, USBINPUT_SETTIMEOUT, timeout);
+	ioctl(input_fd, USBINPUT_SETTIMEOUT, timeout);
 
 	renderer_stop();
 

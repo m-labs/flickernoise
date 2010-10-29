@@ -10,7 +10,7 @@ LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend
 STRIPFLAGS=
 
 # base
-OBJS=main.o config.o
+OBJS=config.o fb.o input.o main.o
 
 # GUI
 OBJS+=messagebox.o filedialog.o resmgr.o guirender.o cp.o audio.o dmxtable.o dmx.o patcheditor.o monitor.o about.o flash.o shutdown.o

@@ -34,6 +34,8 @@
 #include <rtems/shell.h>
 #include <rtems/rtems_bsdnet.h>
 
+#include "fb.h"
+#include "input.h"
 #include "messagebox.h"
 #include "cp.h"
 #include "audio.h"
@@ -48,9 +50,8 @@
 
 static rtems_task gui_task(rtems_task_argument argument)
 {
-	if(mtk_init())
-		return;
-
+	init_fb_mtk();
+	init_input();
 	init_messagebox();
 	init_cp();
         init_audio();
@@ -62,7 +63,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_flash();
         init_shutdown();
 
-	mtk_eventloop(0);
+	input_eventloop();
 }
 
 static rtems_id gui_task_id;
