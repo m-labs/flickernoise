@@ -23,7 +23,6 @@
 #include <unistd.h>
 
 #include <dopelib.h>
-#include <vscreen.h>
 
 #include "util.h"
 #include "resmgr.h"

@@ -22,7 +22,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <dopelib.h>
-#include <vscreen.h>
 
 #include "version.h"
 #include "flash.h"

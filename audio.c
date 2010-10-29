@@ -24,7 +24,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <dopelib.h>
-#include <vscreen.h>
 #include <bsp/milkymist_ac97.h>
 
 #include "util.h"

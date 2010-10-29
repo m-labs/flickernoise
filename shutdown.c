@@ -19,7 +19,6 @@
 #include <stdlib.h>
 
 #include <dopelib.h>
-#include <vscreen.h>
 
 #include "shutdown.h"
 

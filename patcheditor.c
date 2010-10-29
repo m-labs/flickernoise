@@ -20,7 +20,6 @@
 #include <errno.h>
 
 #include <dopelib.h>
-#include <vscreen.h>
 
 #include "filedialog.h"
 #include "patcheditor.h"

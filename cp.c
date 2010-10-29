@@ -17,7 +17,6 @@
 
 #include <stdio.h>
 #include <dopelib.h>
-#include <vscreen.h>
 
 #include "audio.h"
 #include "dmx.h"

@@ -20,7 +20,6 @@
 #include <string.h>
 
 #include <dopelib.h>
-#include <vscreen.h>
 
 #include "flash.h"
 #include "filedialog.h"

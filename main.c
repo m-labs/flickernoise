@@ -21,7 +21,6 @@
 #include <assert.h>
 
 #include <dopelib.h>
-#include <vscreen.h>
 #include <bsp/milkymist_usbinput.h>
 #include <bsp/milkymist_ac97.h>
 #include <bsp/milkymist_pfpu.h>
