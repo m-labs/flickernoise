@@ -17,16 +17,94 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <rtems.h>
 #include <mtklib.h>
+
+#include "input.h"
+#include "resmgr.h"
+#include "framedescriptor.h"
+#include "sampler.h"
 
 #include "monitor.h"
 
 static long appid;
 
+static float time2;
+static float bass, mid, treb;
+static float bass_att, mid_att, treb_att;
+static float idmx1, idmx2, idmx3, idmx4;
+
+static void sampler_callback(struct frame_descriptor *frd)
+{
+	time2 = frd->time;
+
+	bass = frd->bass;
+	mid = frd->mid;
+	treb = frd->treb;
+
+	bass_att = frd->bass_att;
+	mid_att = frd->mid_att;
+	treb_att = frd->treb_att;
+
+	idmx1 = frd->idmx1;
+	idmx2 = frd->idmx2;
+	idmx3 = frd->idmx3;
+	idmx4 = frd->idmx4;
+	sampler_return(frd);
+}
+
+static float *get_variable(const char *name)
+{
+	if(strcmp(name, "time") == 0) return &time2;
+
+	else if(strcmp(name, "bass") == 0) return &bass;
+	else if(strcmp(name, "mid") == 0) return &mid;
+	else if(strcmp(name, "treb") == 0) return &treb;
+
+	else if(strcmp(name, "bass_att") == 0) return &bass_att;
+	else if(strcmp(name, "mid_att") == 0) return &mid_att;
+	else if(strcmp(name, "treb_att") == 0) return &treb_att;
+
+	else if(strcmp(name, "idmx1") == 0) return &idmx1;
+	else if(strcmp(name, "idmx2") == 0) return &idmx2;
+	else if(strcmp(name, "idmx3") == 0) return &idmx3;
+	else if(strcmp(name, "idmx4") == 0) return &idmx4;
+
+	else return NULL;
+}
+
+#define UPDATE_PERIOD 10
+static rtems_interval next_update;
+
+static void monitor_update(mtk_event *e, int count)
+{
+	int i;
+	float *var;
+	char str[16];
+	rtems_interval t;
+
+	t = rtems_clock_get_ticks_since_boot();
+	if(t >= next_update) {
+		for(i=0;i<8;i++) {
+			mtk_reqf(appid, str, sizeof(str), "var%d.text", i);
+			var = get_variable(str);
+			if(var == NULL)
+				mtk_cmdf(appid, "val%d.set(-text \"N/A\")", i);
+			else
+				mtk_cmdf(appid, "val%d.set(-text \"%f\")", i, *var);
+		}
+		next_update = t + UPDATE_PERIOD;
+	}
+}
+
 static void close_callback(mtk_event *e, void *arg)
 {
 	mtk_cmd(appid, "w.close()");
+	sampler_stop();
+	input_delete_callback(monitor_update);
+	resmgr_release(RESOURCE_AUDIO);
+	resmgr_release(RESOURCE_DMX_IN);
+	resmgr_release(RESOURCE_SAMPLER);
 }
 
 void init_monitor()
@@ -64,5 +142,15 @@ void init_monitor()
 
 void open_monitor_window()
 {
+	if(!resmgr_acquire_multiple("monitor",
+	  RESOURCE_AUDIO,
+	  RESOURCE_DMX_IN,
+	  RESOURCE_SAMPLER,
+	  INVALID_RESOURCE))
+		return;
+
 	mtk_cmd(appid, "w.open()");
+	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
+	input_add_callback(monitor_update);
+	sampler_start(sampler_callback);
 }

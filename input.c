@@ -273,11 +273,14 @@ static void start_event_task(const char *dev, rtems_name name, int *fd)
 	assert(sc == RTEMS_SUCCESSFUL);
 }
 
-static input_callback callback;
+#define MAX_CALLBACKS 4
+
+static input_callback callbacks[MAX_CALLBACKS];
 
 void init_input(input_callback cb)
 {
 	rtems_status_code sc;
+	int i;
 
 	sc = rtems_message_queue_create(
 		rtems_build_name('I', 'N', 'P', 'T'),
@@ -290,12 +293,30 @@ void init_input(input_callback cb)
 	start_event_task("/dev/midi", rtems_build_name('I', 'N', 'P', 'M'), &midi_fd);
 	start_event_task("/dev/ir", rtems_build_name('I', 'N', 'P', 'I'), &ir_fd);
 
-	callback = cb;
+	for(i=0;i<MAX_CALLBACKS;i++)
+		callbacks[i] = NULL;
 }
 
-void input_set_callback(input_callback cb)
+void input_add_callback(input_callback cb)
 {
-	callback = cb;
+	int i;
+
+	for(i=0;i<MAX_CALLBACKS;i++) {
+		if(callbacks[i] == NULL) {
+			callbacks[i] = cb;
+			return;
+		}
+	}
+}
+
+void input_delete_callback(input_callback cb)
+{
+	int i;
+
+	for(i=0;i<MAX_CALLBACKS;i++) {
+		if(callbacks[i] == cb)
+			callbacks[i] = NULL;
+	}
 }
 
 /* The maximum number of mtk_events that can be generated out of a single message on input_q */
@@ -308,6 +329,7 @@ void input_eventloop()
 	rtems_status_code sc;
 	struct input_message m;
 	size_t s;
+	int i;
 
 	while(1) {
 		total = 0;
@@ -336,6 +358,9 @@ void input_eventloop()
 			}
 			total += n;
 		}
-		callback(e, total);
+		for(i=0;i<MAX_CALLBACKS;i++) {
+			if(callbacks[i] != NULL)
+				callbacks[i](e, total);
+		}
 	}
 }

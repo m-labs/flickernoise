@@ -25,8 +25,9 @@
 
 typedef void (*input_callback)(mtk_event *e, int count);
 
-void init_input(input_callback cb);
-void input_set_callback(input_callback cb);
+void init_input();
+void input_add_callback(input_callback cb);
+void input_delete_callback(input_callback cb);
 void input_eventloop();
 
 #endif

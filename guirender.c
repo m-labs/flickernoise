@@ -31,6 +31,8 @@
 
 static int stop_appid;
 
+static void input_cb(mtk_event *e, int count);
+
 static void stop()
 {
 	renderer_stop();
@@ -43,7 +45,8 @@ static void stop()
 
 	mtk_cmd(stop_appid, "screen.refresh()");
 
-	input_set_callback(mtk_input);
+	input_delete_callback(input_cb);
+	input_add_callback(mtk_input);
 }
 
 static int wait_release;
@@ -83,5 +86,6 @@ void guirender(int appid, struct patch *p)
 
 	wait_release = -1;
 	stop_appid = appid;
-	input_set_callback(input_cb);
+	input_delete_callback(mtk_input);
+	input_add_callback(input_cb);
 }

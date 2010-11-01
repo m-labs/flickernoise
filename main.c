@@ -51,7 +51,8 @@
 static rtems_task gui_task(rtems_task_argument argument)
 {
 	init_fb_mtk();
-	init_input(mtk_input);
+	init_input();
+	input_add_callback(mtk_input);
 	init_messagebox();
 	init_cp();
         init_audio();
