@@ -131,6 +131,18 @@ static int keyb_translation_table[256] = {
 static unsigned char old_modifiers;
 static unsigned char old_keys[5];
 
+static void check_modifier(mtk_event *e, int *n, unsigned char modifiers, unsigned char mask, int keycode)
+{
+	if((modifiers & mask) && !(old_modifiers & mask)) {
+		write_press_event(e+(*n), keycode);
+		(*n)++;
+	}
+	if(!(modifiers & mask) && (old_modifiers & mask)) {
+		write_release_event(e+(*n), keycode);
+		(*n)++;
+	}
+}
+
 static int handle_keybd_event(mtk_event *e, unsigned char *msg)
 {
 	int i, j;
@@ -142,11 +154,20 @@ static int handle_keybd_event(mtk_event *e, unsigned char *msg)
 
 	n = 0;
 
-	/* handle modifier presses */
+#ifdef DUMP_KEYBOARD
 	if(msg[0] != 0x00)
 		printf("modifiers: %02x\n", msg[0]);
+#endif
 
-	/* handle modifier releases */
+	/* handle modifiers */
+	check_modifier(e, &n, msg[0], 0x02, MTK_KEY_LEFTSHIFT);
+	check_modifier(e, &n, msg[0], 0x01, MTK_KEY_LEFTCTRL);
+	check_modifier(e, &n, msg[0], 0x08, MTK_KEY_LEFTMETA);
+	check_modifier(e, &n, msg[0], 0x04, MTK_KEY_LEFTALT);
+	check_modifier(e, &n, msg[0], 0x40, MTK_KEY_RIGHTALT);
+	check_modifier(e, &n, msg[0], 0x80, MTK_KEY_RIGHTMETA);
+	check_modifier(e, &n, msg[0], 0x10, MTK_KEY_RIGHTCTRL);
+	check_modifier(e, &n, msg[0], 0x20, MTK_KEY_RIGHTSHIFT);
 
 	/* handle normal key presses */
 	for(i=0;i<5;i++) {
@@ -248,7 +269,7 @@ void init_input(input_callback cb)
 
 	sc = rtems_message_queue_create(
 		rtems_build_name('I', 'N', 'P', 'T'),
-		16,
+		48,
 		sizeof(struct input_message),
 		0,
 		&input_q);
@@ -266,7 +287,7 @@ void input_set_callback(input_callback cb)
 }
 
 /* The maximum number of mtk_events that can be generated out of a single message on input_q */
-#define WORST_CASE_EVENTS 10
+#define WORST_CASE_EVENTS 18
 
 void input_eventloop()
 {
