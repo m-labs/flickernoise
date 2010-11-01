@@ -91,7 +91,7 @@ static void monitor_update(mtk_event *e, int count)
 			if(var == NULL)
 				mtk_cmdf(appid, "val%d.set(-text \"N/A\")", i);
 			else
-				mtk_cmdf(appid, "val%d.set(-text \"%f\")", i, *var);
+				mtk_cmdf(appid, "val%d.set(-text \"%.2f\")", i, *var);
 		}
 		next_update = t + UPDATE_PERIOD;
 	}

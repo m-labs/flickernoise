@@ -50,9 +50,9 @@ static void analyze_snd(struct frame_descriptor *frd, struct snd_history *histor
 	for(i=0;i<frd->snd_buf->nsamples;i++)
 		analyzer_put_sample(&analyzer, analyzer_buffer[2*i], analyzer_buffer[2*i+1]);
 
-	frd->bass = ((float)analyzer.bass_acc)/240000.0;
-	frd->mid = ((float)analyzer.mid_acc)/200000.0;
-	frd->treb = ((float)analyzer.treb_acc)/180000.0;
+	frd->bass = ((float)analyzer.bass_acc)/1200000.0;
+	frd->mid = ((float)analyzer.mid_acc)/400000.0;
+	frd->treb = ((float)analyzer.treb_acc)/252000.0;
 
 	history->treb_att = 0.6*history->treb_att + 0.4*frd->treb;
 	history->mid_att = 0.6*history->mid_att + 0.4*frd->mid;
