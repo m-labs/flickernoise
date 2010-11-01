@@ -51,7 +51,7 @@
 static rtems_task gui_task(rtems_task_argument argument)
 {
 	init_fb_mtk();
-	init_input();
+	init_input(mtk_input);
 	init_messagebox();
 	init_cp();
         init_audio();
@@ -76,10 +76,12 @@ rtems_task Init(rtems_task_argument argument)
 	/* TODO: read network configuration */
 	rtems_bsdnet_initialize_network();
 
-	assert(rtems_task_create(rtems_build_name('G','U','I',' '), 110, 1024*1024,
+	sc = rtems_task_create(rtems_build_name('G', 'U', 'I', ' '), 9, 1024*1024,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
-		0, &gui_task_id) == RTEMS_SUCCESSFUL);
-	assert(rtems_task_start(gui_task_id, gui_task, 0) == RTEMS_SUCCESSFUL);
+		0, &gui_task_id);
+	assert(sc == RTEMS_SUCCESSFUL);
+	sc = rtems_task_start(gui_task_id, gui_task, 0);
+	assert(sc == RTEMS_SUCCESSFUL);
 
 	sc = rtems_shell_init(
 		"SHLL",
@@ -122,7 +124,7 @@ static struct rtems_bsdnet_ifconfig netdriver_config = {
 struct rtems_bsdnet_config rtems_bsdnet_config = {
 	&netdriver_config,
 	NULL,
-	11,
+	5,
 	0,
 	0,
 	"milkymist",

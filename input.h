@@ -18,7 +18,15 @@
 #ifndef __INPUT_H
 #define __INPUT_H
 
-void init_input();
+#include <mtklib.h>
+
+#define EVENT_TYPE_MIDI   (EVENT_TYPE_USER_BASE)
+#define EVENT_TYPE_IR     (EVENT_TYPE_USER_BASE+1)
+
+typedef void (*input_callback)(mtk_event *e, int count);
+
+void init_input(input_callback cb);
+void input_set_callback(input_callback cb);
 void input_eventloop();
 
 #endif

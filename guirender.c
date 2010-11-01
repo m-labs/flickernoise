@@ -46,12 +46,10 @@ void guirender(int appid, struct patch *p)
 	  RESOURCE_SAMPLER,
 	  INVALID_RESOURCE))
 		return;
-
+#if 0
 	renderer_start(framebuffer_fd, p);
 
 	/* take over USB input events */
-	ioctl(input_fd, USBINPUT_GETTIMEOUT, &timeout);
-	ioctl(input_fd, USBINPUT_SETTIMEOUT, RTEMS_NO_TIMEOUT);
 	while(1) {
 		int r;
 		unsigned int input_event;
@@ -68,9 +66,9 @@ void guirender(int appid, struct patch *p)
 			break;
 		}
 	}
-	ioctl(input_fd, USBINPUT_SETTIMEOUT, timeout);
 
 	renderer_stop();
+#endif
 
 	resmgr_release(RESOURCE_SAMPLER);
 	resmgr_release(RESOURCE_VIDEOIN);
