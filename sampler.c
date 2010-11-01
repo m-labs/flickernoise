@@ -225,24 +225,30 @@ static rtems_id sampler_task_id;
 
 void sampler_start(frd_callback callback)
 {
-	assert(rtems_message_queue_create(
+	rtems_status_code sc;
+
+	sc = rtems_message_queue_create(
 		rtems_build_name('S', 'M', 'P', 'L'),
 		FRD_COUNT,
 		sizeof(void *),
 		0,
-		&returned_q) == RTEMS_SUCCESSFUL);
+		&returned_q);
+	assert(sc == RTEMS_SUCCESSFUL);
 
-	assert(rtems_semaphore_create(
+	sc = rtems_semaphore_create(
 		rtems_build_name('S', 'M', 'P', 'L'),
 		0,
 		RTEMS_SIMPLE_BINARY_SEMAPHORE,
 		0,
-		&sampler_terminated) == RTEMS_SUCCESSFUL);
+		&sampler_terminated);
+	assert(sc == RTEMS_SUCCESSFUL);
 
-	assert(rtems_task_create(rtems_build_name('S', 'M', 'P', 'L'), 10, RTEMS_MINIMUM_STACK_SIZE,
+	sc = rtems_task_create(rtems_build_name('S', 'M', 'P', 'L'), 10, RTEMS_MINIMUM_STACK_SIZE,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
-		0, &sampler_task_id) == RTEMS_SUCCESSFUL);
-	assert(rtems_task_start(sampler_task_id, sampler_task, (rtems_task_argument)callback) == RTEMS_SUCCESSFUL);
+		0, &sampler_task_id);
+	assert(sc == RTEMS_SUCCESSFUL);
+	sc = rtems_task_start(sampler_task_id, sampler_task, (rtems_task_argument)callback);
+	assert(sc == RTEMS_SUCCESSFUL);
 }
 
 void sampler_return(struct frame_descriptor *frd)

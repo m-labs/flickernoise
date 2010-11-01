@@ -74,13 +74,16 @@ struct patch *renderer_get_patch()
 
 void renderer_start(int framebuffer_fd, struct patch *p)
 {
-	assert(rtems_semaphore_create(
+	rtems_status_code sc;
+
+	sc = rtems_semaphore_create(
 		rtems_build_name('P', 'T', 'C', 'H'),
 		1,
 		RTEMS_SIMPLE_BINARY_SEMAPHORE,
 		0,
 		&patch_lock
-	) == RTEMS_SUCCESSFUL);
+	);
+	assert(sc == RTEMS_SUCCESSFUL);
 
 	renderer_set_patch(p);
 

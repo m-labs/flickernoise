@@ -275,24 +275,30 @@ static rtems_id eval_task_id;
 
 void eval_start(frd_callback callback)
 {
-	assert(rtems_message_queue_create(
+	rtems_status_code sc;
+
+	sc = rtems_message_queue_create(
 		rtems_build_name('E', 'V', 'A', 'L'),
 		FRD_COUNT,
 		sizeof(void *),
 		0,
-		&eval_q) == RTEMS_SUCCESSFUL);
+		&eval_q);
+	assert(sc == RTEMS_SUCCESSFUL);
 
-	assert(rtems_semaphore_create(
+	sc = rtems_semaphore_create(
 		rtems_build_name('E', 'V', 'A', 'L'),
 		0,
 		RTEMS_SIMPLE_BINARY_SEMAPHORE,
 		0,
-		&eval_terminated) == RTEMS_SUCCESSFUL);
+		&eval_terminated);
+	assert(sc == RTEMS_SUCCESSFUL);
 
-	assert(rtems_task_create(rtems_build_name('E', 'V', 'A', 'L'), 10, RTEMS_MINIMUM_STACK_SIZE,
+	sc = rtems_task_create(rtems_build_name('E', 'V', 'A', 'L'), 10, RTEMS_MINIMUM_STACK_SIZE,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
-		0, &eval_task_id) == RTEMS_SUCCESSFUL);
-	assert(rtems_task_start(eval_task_id, eval_task, (rtems_task_argument)callback) == RTEMS_SUCCESSFUL);
+		0, &eval_task_id);
+	assert(sc == RTEMS_SUCCESSFUL);
+	sc = rtems_task_start(eval_task_id, eval_task, (rtems_task_argument)callback);
+	assert(sc == RTEMS_SUCCESSFUL);
 }
 
 void eval_input(struct frame_descriptor *frd)

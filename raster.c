@@ -461,6 +461,7 @@ static rtems_id raster_terminated;
 static rtems_task raster_task(rtems_task_argument argument)
 {
 	struct raster_task_param *param = (struct raster_task_param *)argument;
+	int status;
 	struct frame_descriptor *frd;
 	size_t s;
 	unsigned short *tex_frontbuffer, *tex_backbuffer;
@@ -476,15 +477,18 @@ static rtems_task raster_task(rtems_task_argument argument)
 	int nvertices;
 	int vecho_alpha;
 
-	assert(posix_memalign((void **)&tex_frontbuffer, 32,
-		2*renderer_texsize*renderer_texsize) == 0);
-	assert(posix_memalign((void **)&tex_backbuffer, 32,
-		2*renderer_texsize*renderer_texsize) == 0);
+	status = posix_memalign((void **)&tex_frontbuffer, 32,
+		2*renderer_texsize*renderer_texsize);
+	assert(status == 0);
+	status = posix_memalign((void **)&tex_backbuffer, 32,
+		2*renderer_texsize*renderer_texsize);
+	assert(status == 0);
 	memset(tex_frontbuffer, 0, 2*renderer_texsize*renderer_texsize);
 	memset(tex_backbuffer, 0, 2*renderer_texsize*renderer_texsize);
 
-	assert(posix_memalign((void **)&scale_vertices, sizeof(struct tmu_vertex),
-		sizeof(struct tmu_vertex)*TMU_MESH_MAXSIZE*TMU_MESH_MAXSIZE) == 0);
+	status = posix_memalign((void **)&scale_vertices, sizeof(struct tmu_vertex),
+		sizeof(struct tmu_vertex)*TMU_MESH_MAXSIZE*TMU_MESH_MAXSIZE);
+	assert(status == 0);
 
 	tmu_fd = open("/dev/tmu", O_RDWR);
 	assert(tmu_fd != -1);
@@ -558,29 +562,34 @@ static rtems_id raster_task_id;
 void raster_start(int framebuffer_fd, frd_callback callback)
 {
 	struct raster_task_param *param;
+	rtems_status_code sc;
 
-	assert(rtems_message_queue_create(
+	sc = rtems_message_queue_create(
 		rtems_build_name('R', 'A', 'S', 'T'),
 		FRD_COUNT,
 		sizeof(void *),
 		0,
-		&raster_q) == RTEMS_SUCCESSFUL);
+		&raster_q);
+	assert(sc == RTEMS_SUCCESSFUL);
 
-	assert(rtems_semaphore_create(
+	sc = rtems_semaphore_create(
 		rtems_build_name('R', 'A', 'S', 'T'),
 		0,
 		RTEMS_SIMPLE_BINARY_SEMAPHORE,
 		0,
-		&raster_terminated) == RTEMS_SUCCESSFUL);
+		&raster_terminated);
+	assert(sc == RTEMS_SUCCESSFUL);
 
 	param = malloc(sizeof(struct raster_task_param));
 	assert(param != NULL);
 	param->framebuffer_fd = framebuffer_fd;
 	param->callback = callback;
-	assert(rtems_task_create(rtems_build_name('R', 'A', 'S', 'T'), 10, 8*1024,
+	sc = rtems_task_create(rtems_build_name('R', 'A', 'S', 'T'), 10, 8*1024,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
-		0, &raster_task_id) == RTEMS_SUCCESSFUL);
-	assert(rtems_task_start(raster_task_id, raster_task, (rtems_task_argument)param) == RTEMS_SUCCESSFUL);
+		0, &raster_task_id);
+	assert(sc == RTEMS_SUCCESSFUL);
+	sc = rtems_task_start(raster_task_id, raster_task, (rtems_task_argument)param);
+	assert(sc == RTEMS_SUCCESSFUL);
 }
 
 void raster_input(struct frame_descriptor *frd)
