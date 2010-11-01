@@ -16,28 +16,60 @@
  */
 
 #include <stdio.h>
-#include <sys/ioctl.h>
 #include <unistd.h>
 #include <rtems.h>
-#include <bsp/milkymist_usbinput.h>
 #include <mtklib.h>
+#include <keycodes.h>
 
 #include "compiler.h"
 #include "renderer.h"
 #include "resmgr.h"
 #include "fb.h"
+#include "input.h"
 
 #include "guirender.h"
 
-extern int input_fd;
+static int stop_appid;
 
-#define MOUSE_LEFT       0x01000000
-#define MOUSE_RIGHT      0x02000000
+static void stop()
+{
+	renderer_stop();
+
+	resmgr_release(RESOURCE_SAMPLER);
+	resmgr_release(RESOURCE_VIDEOIN);
+	resmgr_release(RESOURCE_DMX_OUT);
+	resmgr_release(RESOURCE_DMX_IN);
+	resmgr_release(RESOURCE_AUDIO);
+
+	mtk_cmd(stop_appid, "screen.refresh()");
+
+	input_set_callback(mtk_input);
+}
+
+static int wait_release;
+
+static void input_cb(mtk_event *e, int count)
+{
+	int i;
+
+	for(i=0;i<count;i++) {
+		if(wait_release != -1) {
+			if((e[i].type == EVENT_TYPE_RELEASE) && (e[i].press.code == wait_release)) {
+				stop();
+				mtk_input(&e[i+1], count-i-1);
+				return;
+			}
+		} else {
+			if(e[i].type == EVENT_TYPE_PRESS) {
+				if((e[i].press.code == MTK_KEY_ENTER) || (e[i].press.code == MTK_BTN_LEFT) || (e[i].press.code == MTK_BTN_RIGHT))
+					wait_release = e[i].press.code;
+			}
+		}
+	}
+}
 
 void guirender(int appid, struct patch *p)
 {
-	rtems_interval timeout;
-
 	if(!resmgr_acquire_multiple("renderer",
 	  RESOURCE_AUDIO,
 	  RESOURCE_DMX_IN,
@@ -46,35 +78,10 @@ void guirender(int appid, struct patch *p)
 	  RESOURCE_SAMPLER,
 	  INVALID_RESOURCE))
 		return;
-#if 0
+
 	renderer_start(framebuffer_fd, p);
 
-	/* take over USB input events */
-	while(1) {
-		int r;
-		unsigned int input_event;
-
-		r = read(input_fd, &input_event, 4);
-		if(r == 2) /* keyboard event */
-			break;
-		if(input_event & (MOUSE_LEFT|MOUSE_RIGHT)) {
-			while(1) {
-				r = read(input_fd, &input_event, 4);
-				if((r == 4) && !(input_event & (MOUSE_LEFT|MOUSE_RIGHT)))
-					break;
-			}
-			break;
-		}
-	}
-
-	renderer_stop();
-#endif
-
-	resmgr_release(RESOURCE_SAMPLER);
-	resmgr_release(RESOURCE_VIDEOIN);
-	resmgr_release(RESOURCE_DMX_OUT);
-	resmgr_release(RESOURCE_DMX_IN);
-	resmgr_release(RESOURCE_AUDIO);
-
-	mtk_cmd(appid, "screen.refresh()");
+	wait_release = -1;
+	stop_appid = appid;
+	input_set_callback(input_cb);
 }

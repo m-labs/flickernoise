@@ -223,6 +223,18 @@ static int handle_keybd_event(mtk_event *e, unsigned char *msg)
 	return n;
 }
 
+static int handle_ir_event(mtk_event *e, unsigned char *msg)
+{
+	printf("TODO: IR is not implemented\n");
+	return 0;
+}
+
+static int handle_midi_event(mtk_event *e, unsigned char *msg)
+{
+	printf("TODO: MIDI is not implemented\n");
+	return 0;
+}
+
 static int input_fd;
 static int midi_fd;
 static int ir_fd;
@@ -314,8 +326,14 @@ void input_eventloop()
 					n = handle_mouse_event(&e[total], m.data);
 				else
 					n = handle_keybd_event(&e[total], m.data);
-			} else
-				n = 0; /* XXX */
+			} else if(m.fd == ir_fd) {
+				n = handle_ir_event(&e[total], m.data);
+			} else if(m.fd == midi_fd) {
+				n = handle_midi_event(&e[total], m.data);
+			} else {
+				printf("BUG: unexpected input fd\n");
+				n = 0;
+			}
 			total += n;
 		}
 		callback(e, total);
