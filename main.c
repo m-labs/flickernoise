@@ -36,6 +36,7 @@
 
 #include "fb.h"
 #include "input.h"
+#include "reboot.h"
 #include "messagebox.h"
 #include "cp.h"
 #include "audio.h"
@@ -53,6 +54,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_fb_mtk();
 	init_input();
 	input_add_callback(mtk_input);
+	init_reboot();
 	init_messagebox();
 	init_cp();
         init_audio();
