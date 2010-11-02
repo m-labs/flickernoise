@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <rtems.h>
 
 #include <mtklib.h>
 
@@ -31,8 +32,8 @@ static void cancel_callback(mtk_event *e, void *arg)
 
 static void shutdown_callback(mtk_event *e, void *arg)
 {
-	int reboot = (int)arg;
-	exit(reboot);
+	int turnoff = (int)arg;
+	rtems_shutdown_executive(turnoff);
 }
 
 void init_shutdown()
@@ -54,8 +55,8 @@ void init_shutdown()
 		"w = new Window(-content g -title \"Shutdown\")",
 		0);
 
-	mtk_bind(appid, "b_shutdown", "clack", shutdown_callback, (void *)0);
-	mtk_bind(appid, "b_reboot", "clack", shutdown_callback, (void *)1);
+	mtk_bind(appid, "b_shutdown", "clack", shutdown_callback, (void *)1);
+	mtk_bind(appid, "b_reboot", "clack", shutdown_callback, (void *)0);
 
 	mtk_bind(appid, "b_cancel", "clack", cancel_callback, NULL);
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
