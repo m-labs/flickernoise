@@ -26,6 +26,8 @@
 #include <mtklib.h>
 #include <bsp/milkymist_ac97.h>
 
+#include "config.h"
+#include "cp.h"
 #include "util.h"
 #include "version.h"
 #include "flash.h"
@@ -101,13 +103,36 @@ static void mute_callback(mtk_event *e, void *arg)
 	}
 }
 
+static void load_config()
+{
+	line_vol = config_read_int("line_vol", 100);
+	line_mute = config_read_int("line_mute", 0);
+	mic_vol = config_read_int("mic_vol", 100);
+	mic_mute = config_read_int("mic_mute", 0);
+}
+
+static void set_config()
+{
+	config_write_int("line_vol", line_vol);
+	config_write_int("line_mute", line_mute);
+	config_write_int("mic_vol", mic_vol);
+	config_write_int("mic_mute", mic_mute);
+	cp_notify_changed();
+}
+
+static int w_open;
+
 static void ok_callback(mtk_event *e, void *arg)
 {
+	w_open = 0;
 	mtk_cmd(appid, "w.close()");
+	set_config();
 }
 
 static void close_callback(mtk_event *e, void *arg)
 {
+	w_open = 0;
+
 	mtk_cmd(appid, "w.close()");
 
 	line_vol = prev_line_vol;
@@ -178,15 +203,14 @@ void init_audio()
 	if(mixer_fd == -1)
 		perror("Unable to open audio mixer");
 
-	line_vol = 100;
-	line_mute = 0;
-	mic_vol = 100;
-	mic_mute = 0;
+	load_config();
 	load_levels();
 }
 
 void open_audio_window()
 {
+	if(w_open) return;
+	w_open = 1;
 	prev_line_vol = line_vol;
 	prev_line_mute = line_mute;
 	prev_mic_vol = mic_vol;

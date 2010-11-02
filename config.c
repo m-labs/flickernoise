@@ -79,13 +79,13 @@ static struct element *config_find(const char *key)
 	return NULL;
 }
 
-int config_read_int(const char *key)
+int config_read_int(const char *key, int default_value)
 {
 	struct element *e;
 
 	e = config_find(key);
-	if(e == NULL) return 0;
-	if(e->is_string) return 0;
+	if(e == NULL) return default_value;
+	if(e->is_string) return default_value;
 
 	return e->payload.i;
 }
@@ -214,7 +214,7 @@ int config_save(const char *filename)
 	FILE *fd;
 	struct element *e;
 
-	fd = fopen(filename, "r");
+	fd = fopen(filename, "w");
 	if(fd == NULL) return 0;
 
 	e = head;
@@ -222,7 +222,7 @@ int config_save(const char *filename)
 		if(e->is_string)
 			fprintf(fd, "%s=s%s\n", e->key, e->payload.string);
 		else
-			fprintf(fd, "%s=s%i\n", e->key, e->payload.i);
+			fprintf(fd, "%s=i%d\n", e->key, e->payload.i);
 		e = e->next;
 	}
 

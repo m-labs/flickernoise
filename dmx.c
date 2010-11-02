@@ -21,18 +21,69 @@
 
 #include <mtklib.h>
 
+#include "config.h"
+#include "cp.h"
+#include "util.h"
 #include "dmxtable.h"
 #include "dmx.h"
 
 static long appid;
+
+static void load_config()
+{
+	int i, value;
+	char confname[12];
+
+	for(i=0;i<4;i++) {
+		sprintf(confname, "idmx%d", i+1);
+		value = config_read_int(confname, i+1);
+		mtk_cmdf(appid, "e_idmx%d.set(-text \"%d\")", i, value);
+		sprintf(confname, "dmx%d", i+1);
+		value = config_read_int(confname, i+1);
+		mtk_cmdf(appid, "e_dmx%d.set(-text \"%d\")", i, value);
+	}
+}
+
+static void set_config()
+{
+	int i, value;
+	char confname[16];
+
+	for(i=0;i<4;i++) {
+		sprintf(confname, "e_idmx%d.text", i);
+		value = mtk_req_l(appid, confname);
+		if((value < 1) || (value > 512))
+			value = i;
+		sprintf(confname, "idmx%d", i+1);
+		config_write_int(confname, value);
+		sprintf(confname, "e_dmx%d.text", i);
+		value = mtk_req_l(appid, confname);
+		if((value < 1) || (value > 512))
+			value = i;
+		sprintf(confname, "dmx%d", i+1);
+		config_write_int(confname, value);
+	}
+	cp_notify_changed();
+}
 
 static void table_callback(mtk_event *e, void *arg)
 {
 	open_dmxtable_window();
 }
 
+static int w_open;
+
+static void ok_callback(mtk_event *e, void *arg)
+{
+	w_open = 0;
+	close_dmxtable_window();
+	mtk_cmd(appid, "w.close()");
+	set_config();
+}
+
 static void close_callback(mtk_event *e, void *arg)
 {
+	w_open = 0;
 	close_dmxtable_window();
 	mtk_cmd(appid, "w.close()");
 }
@@ -83,12 +134,12 @@ void init_dmx()
 		"w = new Window(-content g -title \"DMX settings\")",
 		0);
 
-	for(i=1;i<=4;i++) {
-		mtk_cmdf(appid, "l_idmx%d = new Label(-text \"idmx%d\")", i, i);
+	for(i=0;i<4;i++) {
+		mtk_cmdf(appid, "l_idmx%d = new Label(-text \"idmx%d\")", i, i+1);
 		mtk_cmdf(appid, "e_idmx%d = new Entry()", i);
 		mtk_cmdf(appid, "g_in.place(l_idmx%d, -column 1 -row %d)", i, i);
 		mtk_cmdf(appid, "g_in.place(e_idmx%d, -column 2 -row %d)", i, i);
-		mtk_cmdf(appid, "l_dmx%d = new Label(-text \"dmx%d\")", i, i);
+		mtk_cmdf(appid, "l_dmx%d = new Label(-text \"dmx%d\")", i, i+1);
 		mtk_cmdf(appid, "e_dmx%d = new Entry()", i);
 		mtk_cmdf(appid, "g_out.place(l_dmx%d, -column 1 -row %d)", i, i);
 		mtk_cmdf(appid, "g_out.place(e_dmx%d, -column 2 -row %d)", i, i);
@@ -96,11 +147,15 @@ void init_dmx()
 
 	mtk_bind(appid, "b_table", "commit", table_callback, NULL);
 
+	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", close_callback, NULL);
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
 void open_dmx_window()
 {
+	if(w_open) return;
+	w_open = 1;
+	load_config();
 	mtk_cmd(appid, "w.open()");
 }

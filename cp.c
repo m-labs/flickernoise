@@ -25,9 +25,59 @@
 #include "about.h"
 #include "shutdown.h"
 
+#include "config.h"
+#include "filedialog.h"
+
 #include "cp.h"
 
 static long appid;
+static long load_appid;
+static long save_appid;
+
+static int changed;
+
+void cp_notify_changed()
+{
+	if(changed) return;
+	changed = 1;
+	mtk_cmd(appid, "w.set(-title \"Control panel [modified]\")");
+}
+
+static void clear_changed()
+{
+	mtk_cmd(appid, "w.set(-title \"Control panel\")");
+	changed = 0;
+}
+
+static void loadok_callback(mtk_event *e, void *arg)
+{
+	char buf[32768];
+
+	get_filedialog_selection(load_appid, buf, 32768);
+	config_load(buf);
+	clear_changed();
+	close_filedialog(load_appid);
+}
+
+static void loadcancel_callback(mtk_event *e, void *arg)
+{
+	close_filedialog(load_appid);
+}
+
+static void saveok_callback(mtk_event *e, void *arg)
+{
+	char buf[32768];
+
+	get_filedialog_selection(save_appid, buf, 32768);
+	config_save(buf);
+	clear_changed();
+	close_filedialog(save_appid);
+}
+
+static void savecancel_callback(mtk_event *e, void *arg)
+{
+	close_filedialog(save_appid);
+}
 
 enum {
 	CP_ITEM_KEYB,
@@ -45,7 +95,7 @@ enum {
 	CP_ITEM_LOAD,
 	CP_ITEM_SAVE,
 
-	CP_ITEM_AUTOSTART,
+	CP_ITEM_SYSETTINGS,
 	CP_ITEM_FILEMANAGER,
 	CP_ITEM_ABOUT,
 	CP_ITEM_SHUTDOWN
@@ -87,13 +137,13 @@ static void cp_callback(mtk_event *e, void *arg)
 			printf("start\n");
 			break;
 		case CP_ITEM_LOAD:
-			printf("load\n");
+			open_filedialog(load_appid, "/");
 			break;
 		case CP_ITEM_SAVE:
-			printf("save\n");
+			open_filedialog(save_appid, "/");
 			break;
-		case CP_ITEM_AUTOSTART:
-			printf("autostart\n");
+		case CP_ITEM_SYSETTINGS:
+			printf("system settings\n");
 			break;
 		case CP_ITEM_FILEMANAGER:
 			break;
@@ -104,7 +154,6 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_shutdown_window();
 			break;
 		default:
-			// TODO
 			break;
 	}
 }
@@ -183,11 +232,11 @@ void init_cp()
 		"g_system0.place(l_system, -column 2 -row 1)",
 		"g_system0.place(s_system2, -column 3 -row 1)",
 		"g_system = new Grid()",
-		"b_autostart = new Button(-text \"Autostart\")",
+		"b_sysettings = new Button(-text \"Settings\")",
 		"b_filemanager = new Button(-text \"File manager\")",
 		"b_shutdown = new Button(-text \"Shutdown\")",
 		"b_about = new Button(-text \"About\")",
-		"g_system.place(b_autostart, -column 1 -row 1)",
+		"g_system.place(b_sysettings, -column 1 -row 1)",
 		"g_system.place(b_filemanager, -column 2 -row 1)",
 		"g_system.place(b_shutdown, -column 2 -row 2)",
 		"g_system.place(b_about, -column 1 -row 2)",
@@ -211,10 +260,13 @@ void init_cp()
 	mtk_bind(appid, "b_start", "commit", cp_callback, (void *)CP_ITEM_START);
 	mtk_bind(appid, "b_load", "commit", cp_callback, (void *)CP_ITEM_LOAD);
 	mtk_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
-	mtk_bind(appid, "b_autostart", "commit", cp_callback, (void *)CP_ITEM_AUTOSTART);
+	mtk_bind(appid, "b_sysettings", "commit", cp_callback, (void *)CP_ITEM_SYSETTINGS);
 	mtk_bind(appid, "b_filemanager", "commit", cp_callback, (void *)CP_ITEM_FILEMANAGER);
 	mtk_bind(appid, "b_about", "commit", cp_callback, (void *)CP_ITEM_ABOUT);
 	mtk_bind(appid, "b_shutdown", "commit", cp_callback, (void *)CP_ITEM_SHUTDOWN);
 
 	mtk_bind(appid, "w", "close", cp_callback, (void *)CP_ITEM_SHUTDOWN);
+
+	load_appid = create_filedialog("Load performance", 0, loadok_callback, NULL, loadcancel_callback, NULL);
+	save_appid = create_filedialog("Save performance", 1, saveok_callback, NULL, savecancel_callback, NULL);
 }

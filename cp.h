@@ -19,5 +19,6 @@
 #define __CP_H
 
 void init_cp();
+void cp_notify_changed();
 
 #endif /* __CP_H */

@@ -42,33 +42,27 @@ static void openbtn_callback(mtk_event *e, void *arg)
 
 static void openok_callback(mtk_event *e, void *arg)
 {
-	char *buf;
+	char buf[32768];
 	FILE *fd;
 	int r;
 
-	buf = malloc(32768);
-	if(!buf) return;
 	get_filedialog_selection(fileopen_appid, buf, 32768);
 	close_filedialog(fileopen_appid);
 
 	fd = fopen(buf, "r");
 	if(!fd) {
 		mtk_cmdf(appid, "status.set(-text \"Unable to open file (%s)\")", strerror(errno));
-		free(buf);
 		return;
 	}
 	r = fread(buf, 1, 32767, fd);
 	fclose(fd);
 	if(r < 0) {
 		mtk_cmd(appid, "status.set(-text \"Unable to read file\")");
-		free(buf);
 		return;
 	}
 	buf[r] = 0;
 
 	mtk_cmdf(appid, "ed.set(-text \"%s\")", buf);
-
-	free(buf);
 }
 
 static void opencancel_callback(mtk_event *e, void *arg)

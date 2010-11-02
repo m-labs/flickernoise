@@ -20,7 +20,7 @@
 
 #define MAX_KEY_LEN 32
 
-int config_read_int(const char *key);
+int config_read_int(const char *key, int default_value);
 void config_write_int(const char *key, int value);
 
 const char *config_read_string(const char *key);

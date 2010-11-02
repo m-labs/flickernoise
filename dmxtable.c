@@ -113,8 +113,12 @@ void init_dmxtable()
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
+static int w_open;
+
 void open_dmxtable_window()
 {
+	if(w_open) return;
+	w_open = 1;
 	if(!resmgr_acquire("DMX table", RESOURCE_DMX_OUT))
 		return;
 	dmx_fd = open("/dev/dmx_out", O_RDWR);
@@ -129,6 +133,8 @@ void open_dmxtable_window()
 
 void close_dmxtable_window()
 {
+	if(!w_open) return;
+	w_open = 0;
 	close(dmx_fd);
 	resmgr_release(RESOURCE_DMX_OUT);
 	mtk_cmd(appid, "w.close()");
