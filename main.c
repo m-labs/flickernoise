@@ -62,6 +62,7 @@ static rtems_task gui_task(rtems_task_argument argument)
         init_dmx();
 	init_patcheditor();
 	init_monitor();
+	init_sysettings();
         init_about();
 	init_flash();
         init_shutdown();

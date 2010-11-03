@@ -22,6 +22,7 @@
 #include "dmx.h"
 #include "patcheditor.h"
 #include "monitor.h"
+#include "sysettings.h"
 #include "about.h"
 #include "shutdown.h"
 
@@ -143,7 +144,7 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_filedialog(save_appid, "/");
 			break;
 		case CP_ITEM_SYSETTINGS:
-			printf("system settings\n");
+			open_sysettings_window();
 			break;
 		case CP_ITEM_FILEMANAGER:
 			break;
