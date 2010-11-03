@@ -30,6 +30,7 @@
 #include <bsp/milkymist_ir.h>
 #include <bsp/milkymist_midi.h>
 #include <bsp/milkymist_versions.h>
+#include <bsp/milkymist_gpio.h>
 #include <rtems/stackchk.h>
 #include <rtems/shell.h>
 #include <rtems/rtems_bsdnet.h>
@@ -155,7 +156,8 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 	DMX_DRIVER_TABLE_ENTRY, \
 	IR_DRIVER_TABLE_ENTRY, \
 	MIDI_DRIVER_TABLE_ENTRY, \
-	VERSIONS_DRIVER_TABLE_ENTRY
+	VERSIONS_DRIVER_TABLE_ENTRY, \
+	GPIO_DRIVER_TABLE_ENTRY
 
 #define CONFIGURE_MAXIMUM_DRIVERS 16
 

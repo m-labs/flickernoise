@@ -17,6 +17,9 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <rtems.h>
 #include <mtklib.h>
 #include <keycodes.h>
@@ -28,6 +31,16 @@
 #include "input.h"
 
 #include "guirender.h"
+
+static void set_led(char c)
+{
+	int fd;
+
+	fd = open("/dev/led2", O_RDWR);
+	if(fd == -1) return;
+	write(fd, &c, 1);
+	close(fd);
+}
 
 static int stop_appid;
 
@@ -47,6 +60,7 @@ static void stop()
 
 	input_delete_callback(input_cb);
 	input_add_callback(mtk_input);
+	set_led('0');
 }
 
 static int wait_release;
@@ -88,4 +102,5 @@ void guirender(int appid, struct patch *p)
 	stop_appid = appid;
 	input_delete_callback(mtk_input);
 	input_add_callback(input_cb);
+	set_led('1');
 }
