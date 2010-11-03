@@ -28,7 +28,7 @@
 #include "resmgr.h"
 #include "dmxtable.h"
 
-static long appid;
+static int appid;
 static int dmx_fd;
 static int current_chanbtn;
 static int ignore_slide_event;

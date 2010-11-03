@@ -33,7 +33,7 @@
 #include "flash.h"
 #include "about.h"
 
-static long appid;
+static int appid;
 
 static int mixer_fd;
 

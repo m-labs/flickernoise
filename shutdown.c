@@ -23,7 +23,7 @@
 
 #include "shutdown.h"
 
-static long appid;
+static int appid;
 
 static void cancel_callback(mtk_event *e, void *arg)
 {

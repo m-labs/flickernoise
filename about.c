@@ -27,7 +27,7 @@
 #include "flash.h"
 #include "about.h"
 
-static long appid;
+static int appid;
 
 static void close_callback(mtk_event *e, void *arg)
 {

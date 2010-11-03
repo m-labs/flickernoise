@@ -19,12 +19,12 @@
 #include <stdlib.h>
 
 /**
- * Request long attribute from widget
+ * Request int attribute from widget
  *
  * This is a convenience function for an often used special case of
  * calling 'mtk_req'.
  */
-static inline long mtk_req_l(int app_id, char *cmd)
+static inline int mtk_req_l(int app_id, char *cmd)
 {
 	char buf[16];
 	mtk_req(app_id, buf, 16, cmd);

@@ -27,8 +27,8 @@
 #include "compiler.h"
 #include "guirender.h"
 
-static long appid;
-static long fileopen_appid;
+static int appid;
+static int fileopen_appid;
 
 static void close_callback(mtk_event *e, void *arg)
 {

@@ -27,7 +27,7 @@
 #include "dmxtable.h"
 #include "dmx.h"
 
-static long appid;
+static int appid;
 
 static void load_config()
 {

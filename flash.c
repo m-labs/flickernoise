@@ -24,8 +24,8 @@
 #include "flash.h"
 #include "filedialog.h"
 
-static long appid;
-static long file_dialog_id;
+static int appid;
+static int file_dialog_id;
 static int current_file_to_choose;
 
 static void cancel_callback(mtk_event *e, void *arg)

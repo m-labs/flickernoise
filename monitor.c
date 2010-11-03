@@ -27,7 +27,7 @@
 
 #include "monitor.h"
 
-static long appid;
+static int appid;
 
 static float time2;
 static float bass, mid, treb;

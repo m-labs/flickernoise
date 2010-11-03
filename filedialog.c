@@ -27,7 +27,7 @@
 
 #include "filedialog.h"
 
-static void display_folder(long appid, const char *folder)
+static void display_folder(int appid, const char *folder)
 {
 	char fmt_folders[8192];
 	char *c_folders;
@@ -100,7 +100,7 @@ static char *get_selection(char *list, int n)
 
 static void folder_selcommit_callback(mtk_event *e, void *arg)
 {
-	long appid = (long)arg;
+	int appid = (int)arg;
 	char curfolder[384];
 	char folderlist[8192];
 	char num[8];
@@ -126,7 +126,7 @@ static void folder_selcommit_callback(mtk_event *e, void *arg)
 	display_folder(appid, curfolder);
 }
 
-static void update_filename(long appid)
+static void update_filename(int appid)
 {
 	char filelist[8192];
 	char num[8];
@@ -144,21 +144,21 @@ static void update_filename(long appid)
 
 static void file_selchange_callback(mtk_event *e, void *arg)
 {
-	long appid = (long)arg;
+	int appid = (int)arg;
 
 	update_filename(appid);
 }
 
 static void file_selcommit_callback(mtk_event *e, void *arg)
 {
-	long appid = (long)arg;
+	int appid = (int)arg;
 
 	update_filename(appid);
 }
 
-long create_filedialog(const char *name, int is_save, void (*ok_callback)(mtk_event *,void *), void *ok_callback_arg, void (*cancel_callback)(mtk_event *,void *), void *cancel_callback_arg)
+int create_filedialog(const char *name, int is_save, void (*ok_callback)(mtk_event *,void *), void *ok_callback_arg, void (*cancel_callback)(mtk_event *,void *), void *cancel_callback_arg)
 {
-	long appid;
+	int appid;
 
 	appid = mtk_init_app(name);
 
@@ -212,7 +212,7 @@ long create_filedialog(const char *name, int is_save, void (*ok_callback)(mtk_ev
 	return appid;
 }
 
-void open_filedialog(long appid, const char *folder)
+void open_filedialog(int appid, const char *folder)
 {
 	display_folder(appid, folder);
 
@@ -220,12 +220,12 @@ void open_filedialog(long appid, const char *folder)
 	mtk_cmd(appid, "fd.open()");
 }
 
-void close_filedialog(long appid)
+void close_filedialog(int appid)
 {
 	mtk_cmd(appid, "fd.close()");
 }
 
-void get_filedialog_selection(long appid, char *buffer, int buflen)
+void get_filedialog_selection(int appid, char *buffer, int buflen)
 {
 	char file[384];
 

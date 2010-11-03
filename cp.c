@@ -30,9 +30,9 @@
 
 #include "cp.h"
 
-static long appid;
-static long load_appid;
-static long save_appid;
+static int appid;
+static int load_appid;
+static int save_appid;
 
 static int changed;
 
