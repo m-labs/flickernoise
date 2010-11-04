@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <mtklib.h>
 #include <bsp/milkymist_usbinput.h>
@@ -33,6 +35,7 @@
 #include <bsp/milkymist_gpio.h>
 #include <rtems/stackchk.h>
 #include <rtems/shell.h>
+#include <rtems/bdpart.h>
 #include <rtems/rtems_bsdnet.h>
 
 #include "fb.h"
@@ -79,11 +82,31 @@ static rtems_task gui_task(rtems_task_argument argument)
 
 static rtems_id gui_task_id;
 
+static void start_memcard()
+{
+	rtems_status_code sc;
+	rtems_bdpart_format format;
+	rtems_bdpart_partition pt[RTEMS_BDPART_PARTITION_NUMBER_HINT];
+	size_t count;
+
+	memcard_register(); /* < can this be moved into the initialization table? */
+	count = RTEMS_BDPART_PARTITION_NUMBER_HINT;
+	sc = rtems_bdpart_read("/dev/memcard", &format, pt, &count);
+	if(sc != RTEMS_SUCCESSFUL)
+		return;
+	sc = rtems_bdpart_register("/dev/memcard", pt, count);
+	if(sc != RTEMS_SUCCESSFUL)
+		return;
+
+	mkdir("/memcard", 0777);
+	mount("/dev/memcard1", "/memcard", "dosfs", 0, "");
+}
+
 rtems_task Init(rtems_task_argument argument)
 {
 	rtems_status_code sc;
 
-	memcard_register();
+	start_memcard();
 	/* TODO: read network configuration */
 	rtems_bsdnet_initialize_network();
 
