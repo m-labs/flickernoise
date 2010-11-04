@@ -19,9 +19,7 @@
 #include <stdio.h>
 #include <mtklib.h>
 
-#include "version.h"
-#include "flash.h"
-#include "about.h"
+#include "sysettings.h"
 
 static int appid;
 
@@ -71,7 +69,7 @@ void init_sysettings()
 		"g_network0.place(l_network, -column 2 -row 1)",
 		"g_network0.place(s_network2, -column 3 -row 1)",
 		"g_network1 = new Grid()",
-		"l_dhcp = new Label(-text \"DHCP:\")",
+		"l_dhcp = new Label(-text \"DHCP client:\")",
 		"b_dhcp = new Button(-text \"Enable\")",
 		"l_ip = new Label(-text \"IP address:\")",
 		"e_ip = new Entry()",
@@ -157,6 +155,9 @@ void init_sysettings()
 
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
+
+	/* TODO: only german layout for now */
+	mtk_cmd(appid, "b_german.set(-state on)");
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 }

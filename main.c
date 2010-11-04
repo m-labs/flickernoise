@@ -44,7 +44,9 @@
 #include "dmxtable.h"
 #include "dmx.h"
 #include "patcheditor.h"
+#include "firstpatch.h"
 #include "monitor.h"
+#include "sysettings.h"
 #include "shutdown.h"
 #include "about.h"
 #include "flash.h"
@@ -63,10 +65,14 @@ static rtems_task gui_task(rtems_task_argument argument)
         init_dmx();
 	init_patcheditor();
 	init_monitor();
+	init_firstpatch();
 	init_sysettings();
         init_about();
 	init_flash();
         init_shutdown();
+
+	/* FIXME: work around "black screen" bug in MTK */
+        mtk_cmd(1, "screen.refresh()");
 
 	input_eventloop();
 }

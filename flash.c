@@ -24,6 +24,9 @@
 #include "flash.h"
 #include "filedialog.h"
 
+// FIXME: create file dialog only once!
+// This code needs big cleanup/rewrite
+
 static int appid;
 static int file_dialog_id;
 static int current_file_to_choose;
@@ -33,7 +36,7 @@ static void cancel_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "w.close()");
 }
 
-void flash_filedialog_ok_callback()
+static void flash_filedialog_ok_callback()
 {
 	char mtk_cmd_str[384];
 	char filepath[384];
@@ -59,7 +62,7 @@ void flash_filedialog_ok_callback()
 	close_filedialog(file_dialog_id);
 }
 
-void flash_filedialog_cancel_callback()
+static void flash_filedialog_cancel_callback()
 {
 	close_filedialog(file_dialog_id);
 }

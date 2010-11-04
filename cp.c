@@ -22,6 +22,7 @@
 #include "dmx.h"
 #include "patcheditor.h"
 #include "monitor.h"
+#include "firstpatch.h"
 #include "sysettings.h"
 #include "about.h"
 #include "shutdown.h"
@@ -93,6 +94,7 @@ enum {
 	CP_ITEM_MONITOR,
 
 	CP_ITEM_START,
+	CP_ITEM_FIRSTPATCH,
 	CP_ITEM_LOAD,
 	CP_ITEM_SAVE,
 
@@ -137,12 +139,16 @@ static void cp_callback(mtk_event *e, void *arg)
 		case CP_ITEM_START:
 			printf("start\n");
 			break;
+		case CP_ITEM_FIRSTPATCH:
+			open_firstpatch_window();
+			break;
 		case CP_ITEM_LOAD:
 			open_filedialog(load_appid, "/");
 			break;
 		case CP_ITEM_SAVE:
 			open_filedialog(save_appid, "/");
 			break;
+
 		case CP_ITEM_SYSETTINGS:
 			open_sysettings_window();
 			break;
@@ -154,6 +160,7 @@ static void cp_callback(mtk_event *e, void *arg)
 		case CP_ITEM_SHUTDOWN:
 			open_shutdown_window();
 			break;
+
 		default:
 			break;
 	}
@@ -217,10 +224,12 @@ void init_cp()
 		"g_performance0.place(s_performance2, -column 3 -row 1)",
 		"g_performance = new Grid()",
 		"b_start = new Button(-text \"Start!\")",
+		"b_firstpatch = new Button(-text \"First patch\")",
 		"b_load = new Button(-text \"Load\")",
 		"b_save = new Button(-text \"Save\")",
-		"g_performance.place(b_load, -column 1 -row 1)",
-		"g_performance.place(b_save, -column 2 -row 1)",
+		"g_performance.place(b_firstpatch, -column 1 -row 1)",
+		"g_performance.place(b_load, -column 2 -row 1)",
+		"g_performance.place(b_save, -column 3 -row 1)",
 		"g.place(g_performance0, -column 1 -row 6)",
 		"g.place(b_start, -column 1 -row 7)",
 		"g.place(g_performance, -column 1 -row 8)",
@@ -259,6 +268,7 @@ void init_cp()
 	mtk_bind(appid, "b_editor", "commit", cp_callback, (void *)CP_ITEM_EDITOR);
 	mtk_bind(appid, "b_monitor", "commit", cp_callback, (void *)CP_ITEM_MONITOR);
 	mtk_bind(appid, "b_start", "commit", cp_callback, (void *)CP_ITEM_START);
+	mtk_bind(appid, "b_firstpatch", "commit", cp_callback, (void *)CP_ITEM_FIRSTPATCH);
 	mtk_bind(appid, "b_load", "commit", cp_callback, (void *)CP_ITEM_LOAD);
 	mtk_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
 	mtk_bind(appid, "b_sysettings", "commit", cp_callback, (void *)CP_ITEM_SYSETTINGS);
