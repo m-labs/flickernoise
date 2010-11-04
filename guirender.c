@@ -46,6 +46,8 @@ static int stop_appid;
 
 static void input_cb(mtk_event *e, int count);
 
+static guirender_stop_callback callback;
+
 static void stop()
 {
 	renderer_stop();
@@ -61,6 +63,9 @@ static void stop()
 	input_delete_callback(input_cb);
 	input_add_callback(mtk_input);
 	set_led('0');
+
+	if(callback != NULL)
+		callback();
 }
 
 static int wait_release;
@@ -85,7 +90,7 @@ static void input_cb(mtk_event *e, int count)
 	}
 }
 
-void guirender(int appid, struct patch *p)
+int guirender(int appid, struct patch *p, guirender_stop_callback cb)
 {
 	if(!resmgr_acquire_multiple("renderer",
 	  RESOURCE_AUDIO,
@@ -94,7 +99,7 @@ void guirender(int appid, struct patch *p)
 	  RESOURCE_VIDEOIN,
 	  RESOURCE_SAMPLER,
 	  INVALID_RESOURCE))
-		return;
+		return 0;
 
 	renderer_start(framebuffer_fd, p);
 
@@ -103,4 +108,8 @@ void guirender(int appid, struct patch *p)
 	input_delete_callback(mtk_input);
 	input_add_callback(input_cb);
 	set_led('1');
+
+	callback = cb;
+
+	return 1;
 }
