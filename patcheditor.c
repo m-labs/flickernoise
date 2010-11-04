@@ -21,11 +21,13 @@
 #include <errno.h>
 
 #include <mtklib.h>
+#include <keycodes.h>
 
 #include "filedialog.h"
 #include "patcheditor.h"
 #include "framedescriptor.h"
 #include "compiler.h"
+#include "input.h"
 #include "guirender.h"
 
 static int appid;
@@ -51,11 +53,6 @@ static void update_wintitle()
 	mtk_cmdf(appid, "w.set(-title \"Patch editor [%s]%s\")",
 		short_filename,
 		modified ? " [modified]" : "");
-}
-
-static void close_callback(mtk_event *e, void *arg)
-{
-	mtk_cmd(appid, "w.close()");
 }
 
 static void new_callback(mtk_event *e, void *arg)
@@ -182,6 +179,22 @@ static void change_callback(mtk_event *e, void *arg)
 	}
 }
 
+static void accel_callback(mtk_event *e, void *arg)
+{
+	if((e->type == EVENT_TYPE_PRESS) && (e->press.code == MTK_KEY_F8)) {
+		mtk_event evt;
+
+		/* hack to prevent "stuck key" bug */
+		evt.type = EVENT_TYPE_RELEASE;
+		evt.release.code = MTK_KEY_F8;
+		mtk_input(&evt, 1);
+
+		run_callback(e, arg);
+	}
+}
+
+static void close_callback(mtk_event *e, void *arg);
+
 void init_patcheditor()
 {
 	appid = mtk_init_app("Patch editor");
@@ -193,7 +206,7 @@ void init_patcheditor()
 		"b_save = new Button(-text \"Save\")",
 		"b_saveas = new Button(-text \"Save As\")",
 		"sep1 = new Separator(-vertical yes)",
-		"b_run = new Button(-text \"Run!\")",
+		"b_run = new Button(-text \"Run (F8)\")",
 		"g_btn.place(b_new, -column 1 -row 1)",
 		"g_btn.place(b_open, -column 2 -row 1)",
 		"g_btn.place(b_save, -column 3 -row 1)",
@@ -220,10 +233,22 @@ void init_patcheditor()
 
 	mtk_bind(appid, "ed", "change", change_callback, NULL);
 
+	mtk_bind(appid, "w", "press", accel_callback, NULL);
+
 	mtk_bind(appid, "w", "close", close_callback, NULL);
+}
+
+static int w_open;
+
+static void close_callback(mtk_event *e, void *arg)
+{
+	w_open = 0;
+	mtk_cmd(appid, "w.close()");
 }
 
 void open_patcheditor_window()
 {
+	if(w_open) return;
+	w_open = 1;
 	mtk_cmd(appid, "w.open()");
 }
