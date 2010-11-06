@@ -27,8 +27,6 @@ flickernoise: $(OBJS)
 bandfilters.h: bandfilters.sce
 	scilab -nw -nwni -nogui -nb -f bandfilters.sce
 
-analyzer.c: bandfilters.h
-
 # boot images for Milkymist
 flickernoise.ralf: flickernoise
 	$(OBJCOPY) -O binary flickernoise flickernoise.ralf
@@ -47,6 +45,6 @@ load: flickernoise.ralf
 	sudo cp flickernoise.ralf /milkymist/boot.bin
 
 clean:
-	rm -f bandfilters.h flickernoise flickernoise.ralf flickernoise.fbi flickernoise-rescue.mcs flickernoise.mcs $(OBJS)
+	rm -f flickernoise flickernoise.ralf flickernoise.fbi flickernoise-rescue.mcs flickernoise.mcs $(OBJS)
 
 .PHONY: clean load
