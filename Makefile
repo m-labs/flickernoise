@@ -42,7 +42,7 @@ flickernoise.mcs: flickernoise.fbi
 
 # convenience target for loading to MM board
 load: flickernoise.ralf
-	sudo cp flickernoise.ralf /milkymist/boot.bin
+	cp flickernoise.ralf /var/lib/tftpboot/boot.bin
 
 clean:
 	rm -f flickernoise flickernoise.ralf flickernoise.fbi flickernoise-rescue.mcs flickernoise.mcs $(OBJS)
