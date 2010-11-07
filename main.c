@@ -43,6 +43,7 @@
 #include "reboot.h"
 #include "messagebox.h"
 #include "cp.h"
+#include "keyboard.h"
 #include "audio.h"
 #include "dmxtable.h"
 #include "dmx.h"
@@ -63,19 +64,20 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_reboot();
 	init_messagebox();
 	init_cp();
-        init_audio();
-        init_dmxtable();
-        init_dmx();
+	init_keyboard();
+	init_audio();
+	init_dmxtable();
+	init_dmx();
 	init_patcheditor();
 	init_monitor();
 	init_firstpatch();
 	init_sysettings();
-        init_about();
+	init_about();
 	init_flash();
-        init_shutdown();
+	init_shutdown();
 
 	/* FIXME: work around "black screen" bug in MTK */
-        mtk_cmd(1, "screen.refresh()");
+	mtk_cmd(1, "screen.refresh()");
 
 	input_eventloop();
 }

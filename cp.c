@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <mtklib.h>
 
+#include "keyboard.h"
 #include "audio.h"
 #include "dmx.h"
 #include "patcheditor.h"
@@ -108,7 +109,7 @@ static void cp_callback(mtk_event *e, void *arg)
 {
 	switch((int)arg) {
 		case CP_ITEM_KEYB:
-			printf("keyboard\n");
+			open_keyboard_window();
 			break;
 		case CP_ITEM_IR:
 			printf("ir\n");
