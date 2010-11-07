@@ -51,13 +51,13 @@ static void set_config()
 
 	for(i=0;i<4;i++) {
 		sprintf(confname, "e_idmx%d.text", i);
-		value = mtk_req_l(appid, confname);
+		value = mtk_req_i(appid, confname);
 		if((value < 1) || (value > 512))
 			value = i;
 		sprintf(confname, "idmx%d", i+1);
 		config_write_int(confname, value);
 		sprintf(confname, "e_dmx%d.text", i);
-		value = mtk_req_l(appid, confname);
+		value = mtk_req_i(appid, confname);
 		if((value < 1) || (value > 512))
 			value = i;
 		sprintf(confname, "dmx%d", i+1);

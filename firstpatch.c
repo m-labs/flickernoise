@@ -39,12 +39,14 @@ static void ok_callback(mtk_event *e, void *arg)
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
 	config_write_string("firstpatch", filename);
 	cp_notify_changed();
+	close_filedialog(browse_appid);
 }
 
 static void cancel_callback(mtk_event *e, void *arg)
 {
 	mtk_cmd(appid, "w.close()");
 	w_open = 0;
+	close_filedialog(browse_appid);
 }
 
 static void browse_callback(mtk_event *e, void *arg)
@@ -82,6 +84,7 @@ void init_firstpatch()
 		"g_filename.place(l_filename, -column 1 -row 1)",
 		"g_filename.place(e_filename, -column 2 -row 1)",
 		"g_filename.place(b_filename, -column 3 -row 1)",
+		"g_filename.columnconfig(3, -size 0)",
 
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",

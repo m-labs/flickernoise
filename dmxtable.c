@@ -72,7 +72,7 @@ static void slide_callback(mtk_event *e, void *arg)
 	channel = (int)arg;
 
 	sprintf(control_name, "slide%d.value", channel);
-	value = 255 - mtk_req_l(appid, control_name);
+	value = 255 - mtk_req_i(appid, control_name);
 	lseek(dmx_fd, 8*current_chanbtn+channel, SEEK_SET);
 	write(dmx_fd, &value, 1);
 }

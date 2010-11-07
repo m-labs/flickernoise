@@ -73,7 +73,7 @@ static void slide_callback(mtk_event *e, void *arg)
 	unsigned int channel = (unsigned int)arg;
 	unsigned int val;
 
-	val = 100 - mtk_req_l(appid, channel ? "s_micvol.value" : "s_linevol.value");
+	val = 100 - mtk_req_i(appid, channel ? "s_micvol.value" : "s_linevol.value");
 	if(channel)
 		mic_vol = val;
 	else
