@@ -20,11 +20,13 @@
 #include <string.h>
 #include <rtems.h>
 #include <mtklib.h>
+#include <keycodes.h>
 
 #include "input.h"
 #include "messagebox.h"
 #include "config.h"
 #include "compiler.h"
+#include "renderer.h"
 #include "guirender.h"
 #include "performance.h"
 
@@ -165,8 +167,55 @@ static void free_patches()
 	}
 }
 
+static int keycode_to_index(int keycode)
+{
+	switch(keycode) {
+		case MTK_KEY_A: return 0;
+		case MTK_KEY_B: return 1;
+		case MTK_KEY_C: return 2;
+		case MTK_KEY_D: return 3;
+		case MTK_KEY_E: return 4;
+		case MTK_KEY_F: return 5;
+		case MTK_KEY_G: return 6;
+		case MTK_KEY_H: return 7;
+		case MTK_KEY_I: return 8;
+		case MTK_KEY_J: return 9;
+		case MTK_KEY_K: return 10;
+		case MTK_KEY_L: return 11;
+		case MTK_KEY_M: return 12;
+		case MTK_KEY_N: return 13;
+		case MTK_KEY_O: return 14;
+		case MTK_KEY_P: return 15;
+		case MTK_KEY_Q: return 16;
+		case MTK_KEY_R: return 17;
+		case MTK_KEY_S: return 18;
+		case MTK_KEY_T: return 19;
+		case MTK_KEY_U: return 20;
+		case MTK_KEY_V: return 21;
+		case MTK_KEY_W: return 22;
+		case MTK_KEY_X: return 23;
+		case MTK_KEY_Y: return 24;
+		case MTK_KEY_Z: return 25;
+		default:
+			return -1;
+	}
+}
+
 static void event_callback(mtk_event *e, int count)
 {
+	int i;
+
+	for(i=0;i<count;i++) {
+		if(e[i].type == EVENT_TYPE_PRESS) {
+			int index;
+
+			index = keycode_to_index(e[i].press.code);
+			if(index != -1)
+				index = keyboard_patches[index];
+			if(index != -1)
+				renderer_set_patch(patches[index].p);
+		}
+	}
 }
 
 static void stop_callback()
