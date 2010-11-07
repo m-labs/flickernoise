@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <mtklib.h>
 
+#include "performance.h"
 #include "keyboard.h"
 #include "audio.h"
 #include "dmx.h"
@@ -138,7 +139,7 @@ static void cp_callback(mtk_event *e, void *arg)
 			break;
 
 		case CP_ITEM_START:
-			printf("start\n");
+			start_performance();
 			break;
 		case CP_ITEM_FIRSTPATCH:
 			open_firstpatch_window();
