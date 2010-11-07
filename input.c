@@ -228,8 +228,9 @@ static int handle_keybd_event(mtk_event *e, unsigned char *msg)
 
 static int handle_ir_event(mtk_event *e, unsigned char *msg)
 {
-	printf("TODO: IR is not implemented\n");
-	return 0;
+	e->type = EVENT_TYPE_IR;
+	e->press.code = ((unsigned int)msg[0] << 8) | (unsigned int)msg[1];
+	return 1;
 }
 
 static int handle_midi_event(mtk_event *e, unsigned char *msg)

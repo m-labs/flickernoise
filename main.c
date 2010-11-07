@@ -45,6 +45,7 @@
 #include "performance.h"
 #include "cp.h"
 #include "keyboard.h"
+#include "ir.h"
 #include "audio.h"
 #include "dmxtable.h"
 #include "dmx.h"
@@ -67,6 +68,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_performance();
 	init_cp();
 	init_keyboard();
+	init_ir();
 	init_audio();
 	init_dmxtable();
 	init_dmx();

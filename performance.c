@@ -238,7 +238,8 @@ static void refresh_callback(mtk_event *e, int count)
 				input_delete_callback(refresh_callback);
 				input_add_callback(event_callback);
 				mtk_cmd(appid, "l_text.set(-text \"Done.\")");
-				guirender(appid, patches[firstpatch].p, stop_callback);
+				if(!guirender(appid, patches[firstpatch].p, stop_callback))
+					stop_callback();
 				return;
 			}
 		} else {

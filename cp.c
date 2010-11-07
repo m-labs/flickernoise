@@ -20,6 +20,7 @@
 
 #include "performance.h"
 #include "keyboard.h"
+#include "ir.h"
 #include "audio.h"
 #include "dmx.h"
 #include "patcheditor.h"
@@ -113,7 +114,7 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_keyboard_window();
 			break;
 		case CP_ITEM_IR:
-			printf("ir\n");
+			open_ir_window();
 			break;
 		case CP_ITEM_AUDIO:
 			open_audio_window();
