@@ -3,7 +3,7 @@ LD=lm32-rtems4.11-gcc
 STRIP=lm32-rtems4.11-strip
 OBJCOPY=lm32-rtems4.11-objcopy
 
-MTK?=../mtk
+MTK?=../../mtk
 
 CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(MTK)/include -I$(RTEMS_MAKEFILE_PATH)/lib/include
 LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -L$(MTK)/lib/milkymist -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
