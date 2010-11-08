@@ -58,6 +58,7 @@ static int add_patch(const char *filename)
 
 static int firstpatch;
 static int keyboard_patches[26];
+static int ir_patches[64];
 
 static void add_firstpatch()
 {
@@ -84,6 +85,22 @@ static void add_keyboard_patches()
 			keyboard_patches[i] = add_patch(filename);
 		else
 			keyboard_patches[i] = -1;
+	}
+}
+
+static void add_ir_patches()
+{
+	int i;
+	char config_key[6];
+	const char *filename;
+
+	for(i=0;i<64;i++) {
+		sprintf(config_key, "ir_%02x", i);
+		filename = config_read_string(config_key);
+		if(filename != NULL)
+			ir_patches[i] = add_patch(filename);
+		else
+			ir_patches[i] = -1;
 	}
 }
 
@@ -204,14 +221,19 @@ static int keycode_to_index(int keycode)
 static void event_callback(mtk_event *e, int count)
 {
 	int i;
+	int index;
 
 	for(i=0;i<count;i++) {
 		if(e[i].type == EVENT_TYPE_PRESS) {
-			int index;
-
 			index = keycode_to_index(e[i].press.code);
 			if(index != -1)
 				index = keyboard_patches[index];
+			if(index != -1)
+				renderer_set_patch(patches[index].p);
+		} else if(e[i].type == EVENT_TYPE_IR) {
+			index = e[i].press.code;
+			if(index != -1)
+				index = ir_patches[index];
 			if(index != -1)
 				renderer_set_patch(patches[index].p);
 		}
@@ -274,6 +296,7 @@ void start_performance()
 		return;
 	}
 	add_keyboard_patches();
+	add_ir_patches();
 
 	/* start patch compilation task */
 	compiled_patches = 0;

@@ -226,11 +226,20 @@ static int handle_keybd_event(mtk_event *e, unsigned char *msg)
 	return n;
 }
 
+static int last_ir_toggle = 2;
+
 static int handle_ir_event(mtk_event *e, unsigned char *msg)
 {
-	e->type = EVENT_TYPE_IR;
-	e->press.code = ((unsigned int)msg[0] << 8) | (unsigned int)msg[1];
-	return 1;
+	int toggle;
+
+	toggle = (msg[0] & 0x08) >> 3;
+	if(last_ir_toggle != toggle) {
+		e->type = EVENT_TYPE_IR;
+		e->press.code = msg[1] & 0x3f;
+		last_ir_toggle = toggle;
+		return 1;
+	} else
+		return 0;
 }
 
 static int handle_midi_event(mtk_event *e, unsigned char *msg)

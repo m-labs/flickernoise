@@ -111,7 +111,7 @@ static void ir_event(mtk_event *e, int count)
 
 	for(i=0;i<count;i++) {
 		if(e[i].type == EVENT_TYPE_IR) {
-			mtk_cmdf(appid, "e_key.set(-text \"0x%02x\")", e[i].press.code & 0x3f);
+			mtk_cmdf(appid, "e_key.set(-text \"0x%02x\")", e[i].press.code);
 			mtk_cmd(appid, "b_key.set(-state off)");
 			capturing = 0;
 			input_delete_callback(ir_event);
@@ -257,7 +257,7 @@ void init_ir()
 		"g.rowconfig(6, -size 10)",
 		"g.place(g_btn, -column 1 -row 7)",
 
-		"w = new Window(-content g -title \"IR remote settings\")",
+		"w = new Window(-content g -title \"IR remote control settings\")",
 		0);
 
 	mtk_bind(appid, "lst_existing", "selchange", selchange_callback, NULL);
