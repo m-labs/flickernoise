@@ -81,6 +81,11 @@ static void update_list()
 		if(key_bindings[i][0] != 0)
 			p += sprintf(p, "0x%02x: %s\n", i, key_bindings[i]);
 	}
+	/* remove last \n */
+	if(p != str) {
+		p--;
+		*p = 0;
+	}
 	mtk_cmdf(appid, "lst_existing.set(-text \"%s\" -selection 0)", str);
 }
 
