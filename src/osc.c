@@ -30,6 +30,32 @@
 
 #include "osc.h"
 
+static int test_method(const char *path, const char *types,
+	lop_arg **argv, int argc, lop_message msg,
+	void *user_data)
+{
+	int i;
+
+	printf("path: <%s>\n", path);
+	for (i=0; i<argc; i++) {
+		printf("arg %d '%c' ", i, types[i]);
+		lop_arg_pp(types[i], argv[i]);
+		printf("\n");
+	}
+	printf("\n");
+	return 0;
+}
+
+static void error_handler(int num, const char *msg, const char *where)
+{
+	printf("liboscparse error in %s: %s\n", where, msg);
+}
+
+static void send_handler(const char *msg, size_t len, void *arg)
+{
+	printf("TODO: send_handler\n");
+}
+
 static rtems_task osc_task(rtems_task_argument argument)
 {
 	struct sockaddr_in local;
@@ -38,7 +64,12 @@ static rtems_task osc_task(rtems_task_argument argument)
 	int s;
 	socklen_t slen;
 	char buf[1024];
+	lop_server server;
 
+	server = lop_server_new(error_handler, send_handler, NULL);
+	assert(server != NULL);
+	lop_server_add_method(server, NULL, NULL, test_method, NULL);
+	
 	s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if(s == -1) {
 		printf("Unable to create socket for OSC server\n");
@@ -60,8 +91,7 @@ static rtems_task osc_task(rtems_task_argument argument)
 		slen = sizeof(struct sockaddr_in);
 		r = recvfrom(s, buf, 1024, 0, (struct sockaddr *)&remote, &slen);
 		if(r > 0)
-			printf("Received packet from %s:%d\n",
-			       inet_ntoa(remote.sin_addr), ntohs(remote.sin_port));
+			lop_server_dispatch_data(server, buf, r);
 	}
 }
 
