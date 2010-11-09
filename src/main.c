@@ -97,7 +97,7 @@ static void start_memcard()
 	rtems_bdpart_partition pt[RTEMS_BDPART_PARTITION_NUMBER_HINT];
 	size_t count;
 
-	memcard_register(); /* < can this be moved into the initialization table? */
+	memcard_register(); /* < FIXME: can this be moved into the initialization table? */
 	count = RTEMS_BDPART_PARTITION_NUMBER_HINT;
 	sc = rtems_bdpart_read("/dev/memcard", &format, pt, &count);
 	if(sc != RTEMS_SUCCESSFUL)
