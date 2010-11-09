@@ -10,7 +10,7 @@ LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend
 STRIPFLAGS=
 
 # base
-OBJS=config.o fb.o input.o reboot.o main.o
+OBJS=config.o fb.o input.o reboot.o osc.o main.o
 
 # GUI
 OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o dmxtable.o dmx.o patcheditor.o monitor.o firstpatch.o sysettings.o about.o flash.o shutdown.o
@@ -21,7 +21,7 @@ OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o ras
 all: flickernoise
 
 flickernoise: $(OBJS)
-	$(LD) -o $@ $(OBJS) $(LDFLAGS) -lnfs -lmtk -lfpvm -lm
+	$(LD) -o $@ $(OBJS) $(LDFLAGS) -lnfs -lmtk -llop -lfpvm -lm
 	$(STRIP) $(STRIPFLAGS) $@
 
 bandfilters.h: bandfilters.sce

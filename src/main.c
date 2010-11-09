@@ -41,6 +41,7 @@
 #include "fb.h"
 #include "input.h"
 #include "reboot.h"
+#include "osc.h"
 #include "messagebox.h"
 #include "performance.h"
 #include "cp.h"
@@ -64,6 +65,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_input();
 	input_add_callback(mtk_input);
 	init_reboot();
+	init_osc();
 	init_messagebox();
 	init_performance();
 	init_cp();
