@@ -33,6 +33,10 @@ enum {
 	FRD_STATUS_USED
 };
 
+#define IDMX_COUNT 4
+#define OSC_COUNT 4
+#define DMX_COUNT 4
+
 struct frame_descriptor {
 	int status;
 
@@ -40,7 +44,8 @@ struct frame_descriptor {
 	struct snd_buffer *snd_buf;
 	float bass, mid, treb;
 	float bass_att, mid_att, treb_att;
-	float idmx1, idmx2, idmx3, idmx4;
+	float idmx[IDMX_COUNT];
+	float osc[OSC_COUNT];
 
 	float decay;
 	float wave_mode;
@@ -63,7 +68,7 @@ struct frame_descriptor {
 	float vecho_alpha;
 	float vecho_zoom;
 	float vecho_orientation;
-	float dmx1, dmx2, dmx3, dmx4;
+	float dmx[DMX_COUNT];
 	struct tmu_vertex *vertices;
 };
 

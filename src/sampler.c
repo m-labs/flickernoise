@@ -154,11 +154,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		analyze_snd(recorded_descriptor, &history);
 		recorded_descriptor->time = time;
 		time += 1.0/FPS;
-		/* TODO: collect DMX and MIDI info */
-		recorded_descriptor->idmx1 = 0.0;
-		recorded_descriptor->idmx2 = 0.0;
-		recorded_descriptor->idmx3 = 0.0;
-		recorded_descriptor->idmx4 = 0.0;
+		/* TODO: collect DMX and OSC info */
 		/* Update status and send downstream */
 		recorded_descriptor->status = FRD_STATUS_SAMPLED;
 		callback(recorded_descriptor);

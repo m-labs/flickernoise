@@ -121,10 +121,10 @@ static void set_pfv_from_frd(struct patch *p, struct frame_descriptor *frd)
 	write_pfv(p, pfv_mid_att, frd->mid_att);
 	write_pfv(p, pfv_treb_att, frd->treb_att);
 
-	write_pfv(p, pfv_idmx1, frd->idmx1);
-	write_pfv(p, pfv_idmx2, frd->idmx2);
-	write_pfv(p, pfv_idmx3, frd->idmx3);
-	write_pfv(p, pfv_idmx4, frd->idmx4);
+	write_pfv(p, pfv_idmx1, frd->idmx[0]);
+	write_pfv(p, pfv_idmx2, frd->idmx[1]);
+	write_pfv(p, pfv_idmx3, frd->idmx[2]);
+	write_pfv(p, pfv_idmx4, frd->idmx[3]);
 }
 
 static void set_frd_from_pfv(struct patch *p, struct frame_descriptor *frd)
@@ -173,10 +173,10 @@ static void set_frd_from_pfv(struct patch *p, struct frame_descriptor *frd)
 	frd->vecho_zoom = read_pfv(p, pfv_video_echo_zoom);
 	frd->vecho_orientation = read_pfv(p, pfv_video_echo_orientation);
 
-	frd->dmx1 = read_pfv(p, pfv_dmx1);
-	frd->dmx2 = read_pfv(p, pfv_dmx2);
-	frd->dmx3 = read_pfv(p, pfv_dmx3);
-	frd->dmx4 = read_pfv(p, pfv_dmx4);
+	frd->dmx[0] = read_pfv(p, pfv_dmx1);
+	frd->dmx[1] = read_pfv(p, pfv_dmx2);
+	frd->dmx[2] = read_pfv(p, pfv_dmx3);
+	frd->dmx[3] = read_pfv(p, pfv_dmx4);
 }
 
 static unsigned int pfpudummy[2] __attribute__((aligned(sizeof(struct tmu_vertex))));

@@ -32,10 +32,12 @@ static int appid;
 static float time2;
 static float bass, mid, treb;
 static float bass_att, mid_att, treb_att;
-static float idmx1, idmx2, idmx3, idmx4;
+static float idmx[IDMX_COUNT];
 
 static void sampler_callback(struct frame_descriptor *frd)
 {
+	int i;
+	
 	time2 = frd->time;
 
 	bass = frd->bass;
@@ -46,10 +48,8 @@ static void sampler_callback(struct frame_descriptor *frd)
 	mid_att = frd->mid_att;
 	treb_att = frd->treb_att;
 
-	idmx1 = frd->idmx1;
-	idmx2 = frd->idmx2;
-	idmx3 = frd->idmx3;
-	idmx4 = frd->idmx4;
+	for(i=0;i<IDMX_COUNT;i++)
+		idmx[i] = frd->idmx[i];
 	sampler_return(frd);
 }
 
@@ -65,10 +65,10 @@ static float *get_variable(const char *name)
 	else if(strcmp(name, "mid_att") == 0) return &mid_att;
 	else if(strcmp(name, "treb_att") == 0) return &treb_att;
 
-	else if(strcmp(name, "idmx1") == 0) return &idmx1;
-	else if(strcmp(name, "idmx2") == 0) return &idmx2;
-	else if(strcmp(name, "idmx3") == 0) return &idmx3;
-	else if(strcmp(name, "idmx4") == 0) return &idmx4;
+	else if(strcmp(name, "idmx1") == 0) return &idmx[0];
+	else if(strcmp(name, "idmx2") == 0) return &idmx[1];
+	else if(strcmp(name, "idmx3") == 0) return &idmx[2];
+	else if(strcmp(name, "idmx4") == 0) return &idmx[3];
 
 	else return NULL;
 }
