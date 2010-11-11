@@ -19,5 +19,6 @@
 #define __OSC_H
 
 void init_osc();
+void get_osc_variables(float *out);
 
 #endif /* __OSC_H */

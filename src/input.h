@@ -20,8 +20,9 @@
 
 #include <mtklib.h>
 
-#define EVENT_TYPE_MIDI   (EVENT_TYPE_USER_BASE)
-#define EVENT_TYPE_IR     (EVENT_TYPE_USER_BASE+1)
+#define EVENT_TYPE_IR     (EVENT_TYPE_USER_BASE)
+#define EVENT_TYPE_MIDI   (EVENT_TYPE_USER_BASE+1)
+#define EVENT_TYPE_OSC    (EVENT_TYPE_USER_BASE+2)
 
 typedef void (*input_callback)(mtk_event *e, int count);
 
@@ -29,5 +30,8 @@ void init_input();
 void input_add_callback(input_callback cb);
 void input_delete_callback(input_callback cb);
 void input_eventloop();
+
+void input_inject_midi(const unsigned char *msg);
+void input_inject_osc(unsigned char msg);
 
 #endif

@@ -248,6 +248,12 @@ static int handle_midi_event(mtk_event *e, unsigned char *msg)
 	return 0;
 }
 
+static int handle_injected_midi_event(mtk_event *e, unsigned char *msg)
+{
+	printf("TODO: MIDI (injected) is not implemented\n");
+	return 0;
+}
+
 static int input_fd;
 static int midi_fd;
 static int ir_fd;
@@ -365,6 +371,13 @@ void input_eventloop()
 				n = handle_ir_event(&e[total], m.data);
 			} else if(m.fd == midi_fd) {
 				n = handle_midi_event(&e[total], m.data);
+			} else if(m.fd == -1) {
+				n = handle_injected_midi_event(&e[total], m.data);
+			} else if(m.fd == -2) {
+				/* injected OSC */
+				e[total].type = EVENT_TYPE_OSC;
+				e[total].press.code = m.data[0];
+				n = 1;
 			} else {
 				printf("BUG: unexpected input fd\n");
 				n = 0;
@@ -376,4 +389,26 @@ void input_eventloop()
 				callbacks[i](e, total);
 		}
 	}
+}
+
+void input_inject_midi(const unsigned char *msg)
+{
+	struct input_message m;
+	int i;
+
+	m.fd = -1;
+	m.len = 3;
+	for(i=0;i<3;i++)
+		m.data[i] = msg[i];
+	rtems_message_queue_send(input_q, &m, sizeof(struct input_message));
+}
+
+void input_inject_osc(unsigned char msg)
+{
+	struct input_message m;
+
+	m.fd = -2;
+	m.len = 1;
+	m.data[0] = msg;
+	rtems_message_queue_send(input_q, &m, sizeof(struct input_message));
 }

@@ -27,23 +27,55 @@
 #include <lop/lop_lowlevel.h>
 
 #include "input.h"
+#include "framedescriptor.h"
 
 #include "osc.h"
 
-static int test_method(const char *path, const char *types,
+static int midi_method(const char *path, const char *types,
 	lop_arg **argv, int argc, lop_message msg,
 	void *user_data)
 {
+	unsigned char *midimsg;
+
+	midimsg = (unsigned char *)argv[0];
+	input_inject_midi(&midimsg[1]);
+	return 0;
+}
+
+static int patch_method(const char *path, const char *types,
+	lop_arg **argv, int argc, lop_message msg,
+	void *user_data)
+{
+	unsigned int patchnr;
+
+	patchnr = *((unsigned int *)argv[0]);
+	input_inject_osc(patchnr);
+	return 0;
+}
+
+float osc_variables[OSC_COUNT];
+
+static int variable_method(const char *path, const char *types,
+	lop_arg **argv, int argc, lop_message msg,
+	void *user_data)
+{
+	unsigned int varnr;
+	float value;
+
+	varnr = *((unsigned int *)argv[0]);
+	value = *((float *)argv[1]);
+
+	if(varnr < OSC_COUNT)
+		osc_variables[varnr] = value;
+	return 0;
+}
+
+void get_osc_variables(float *out)
+{
 	int i;
 
-	printf("path: <%s>\n", path);
-	for (i=0; i<argc; i++) {
-		printf("arg %d '%c' ", i, types[i]);
-		lop_arg_pp(types[i], argv[i]);
-		printf("\n");
-	}
-	printf("\n");
-	return 0;
+	for(i=0;i<OSC_COUNT;i++)
+		out[i] = osc_variables[i];
 }
 
 static void error_handler(int num, const char *msg, const char *where)
@@ -60,7 +92,7 @@ static void send_handler(const char *msg, size_t len, void *arg)
 	socklen_t slen;
 
 	slen = sizeof(struct sockaddr_in);
-	sendto(udpsocket, msg, len, 0, &remote, slen);
+	sendto(udpsocket, msg, len, 0, (struct sockaddr *)&remote, slen);
 }
 
 static void set_socket_timeout(int s, unsigned int microseconds)
@@ -82,7 +114,10 @@ static rtems_task osc_task(rtems_task_argument argument)
 
 	server = lop_server_new(error_handler, send_handler, NULL);
 	assert(server != NULL);
-	lop_server_add_method(server, NULL, NULL, test_method, NULL);
+
+	lop_server_add_method(server, "/midi", "m", midi_method, NULL);
+	lop_server_add_method(server, "/patch", "i", patch_method, NULL);
+	lop_server_add_method(server, "/variable", "if", variable_method, NULL);
 	
 	udpsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if(udpsocket == -1) {
