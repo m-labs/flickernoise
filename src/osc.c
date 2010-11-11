@@ -51,17 +51,31 @@ static void error_handler(int num, const char *msg, const char *where)
 	printf("liboscparse error in %s: %s\n", where, msg);
 }
 
+static int udpsocket;
+static struct sockaddr_in local;
+static struct sockaddr_in remote;
+
 static void send_handler(const char *msg, size_t len, void *arg)
 {
-	printf("TODO: send_handler\n");
+	socklen_t slen;
+
+	slen = sizeof(struct sockaddr_in);
+	sendto(udpsocket, msg, len, 0, &remote, slen);
+}
+
+static void set_socket_timeout(int s, unsigned int microseconds)
+{
+	struct timeval tv;
+
+	tv.tv_sec = microseconds / 1000000;
+	tv.tv_usec = microseconds % 1000000;
+
+	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(tv));
 }
 
 static rtems_task osc_task(rtems_task_argument argument)
 {
-	struct sockaddr_in local;
-	struct sockaddr_in remote;
 	int r;
-	int s;
 	socklen_t slen;
 	char buf[1024];
 	lop_server server;
@@ -70,28 +84,31 @@ static rtems_task osc_task(rtems_task_argument argument)
 	assert(server != NULL);
 	lop_server_add_method(server, NULL, NULL, test_method, NULL);
 	
-	s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if(s == -1) {
+	udpsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if(udpsocket == -1) {
 		printf("Unable to create socket for OSC server\n");
 		return;
 	}
 
-	memset((char *) &local, 0, sizeof(struct sockaddr_in));
+	memset((char *)&local, 0, sizeof(struct sockaddr_in));
 	local.sin_family = AF_INET;
 	local.sin_port = htons(7777);
 	local.sin_addr.s_addr = htonl(INADDR_ANY);
-	r = bind(s, (struct sockaddr *)&local, sizeof(struct sockaddr_in));
+	r = bind(udpsocket, (struct sockaddr *)&local, sizeof(struct sockaddr_in));
 	if(r == -1) {
 		printf("Unable to bind socket for OSC server\n");
-		close(s);
+		close(udpsocket);
 		return;
 	}
 
 	while(1) {
+		set_socket_timeout(udpsocket, ((double)1000000.0)*lop_server_next_event_delay(server));
 		slen = sizeof(struct sockaddr_in);
-		r = recvfrom(s, buf, 1024, 0, (struct sockaddr *)&remote, &slen);
+		r = recvfrom(udpsocket, buf, 1024, 0, (struct sockaddr *)&remote, &slen);
 		if(r > 0)
 			lop_server_dispatch_data(server, buf, r);
+		else
+			lop_server_dispatch_data(server, NULL, 0);
 	}
 }
 
