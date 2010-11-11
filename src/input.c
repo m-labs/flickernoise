@@ -247,7 +247,7 @@ static void handle_note_on(mtk_event *e, unsigned char *msg)
 	if((msg[0] & 0xf0) == 0x90) {
 		/* Note On */
 		e->type = EVENT_TYPE_MIDI;
-		e->press.code = (((unsigned int)(msg[0]) & 0x0f) << 16)
+		e->press.code = (((unsigned int)(msg[0]) & 0x0f) << 8)
 			|(unsigned int)msg[1];
 	}
 }
@@ -274,6 +274,7 @@ static int handle_midi_event(mtk_event *e, unsigned char *msg)
 		/* received a complete MIDI message */
 		handle_note_on(e, midi_msg);
 		midi_p = 0;
+		return 1;
 	}
 	
 	return 0;
@@ -281,9 +282,8 @@ static int handle_midi_event(mtk_event *e, unsigned char *msg)
 
 static int handle_injected_midi_event(mtk_event *e, unsigned char *msg)
 {
-
 	handle_note_on(e, msg);
-	return 0;
+	return 1;
 }
 
 static int input_fd;

@@ -104,8 +104,10 @@ static void selchange_callback(mtk_event *e, void *arg)
 			count++;
 		}
 	}
-	mtk_cmdf(appid, "e_key.set(-text \"%c\")", 'a'+i);
-	mtk_cmdf(appid, "e_filename.set(-text \"%s\")", key_bindings[i]);
+	if(count != 0) {
+		mtk_cmdf(appid, "e_key.set(-text \"%c\")", 'a'+i);
+		mtk_cmdf(appid, "e_filename.set(-text \"%s\")", key_bindings[i]);
+	}
 }
 
 static void ok_callback(mtk_event *e, void *arg)

@@ -13,7 +13,7 @@ STRIPFLAGS=
 OBJS=config.o fb.o input.o reboot.o osc.o main.o
 
 # GUI
-OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o dmxtable.o dmx.o patcheditor.o monitor.o firstpatch.o sysettings.o about.o flash.o shutdown.o
+OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxtable.o dmx.o patcheditor.o monitor.o firstpatch.o sysettings.o about.o flash.o shutdown.o
 
 # renderer
 OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o raster.o renderer.o

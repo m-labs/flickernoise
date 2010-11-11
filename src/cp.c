@@ -22,6 +22,8 @@
 #include "keyboard.h"
 #include "ir.h"
 #include "audio.h"
+#include "midi.h"
+#include "oscsettings.h"
 #include "dmx.h"
 #include "patcheditor.h"
 #include "monitor.h"
@@ -120,10 +122,10 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_audio_window();
 			break;
 		case CP_ITEM_MIDI:
-			printf("midi\n");
+			open_midi_window();
 			break;
 		case CP_ITEM_OSC:
-			printf("osc\n");
+			open_oscsettings_window();
 			break;
 		case CP_ITEM_DMX:
 			open_dmx_window();

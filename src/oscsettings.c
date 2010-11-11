@@ -22,20 +22,19 @@
 #include <mtklib.h>
 
 #include "util.h"
-#include "input.h"
 #include "config.h"
 #include "cp.h"
 #include "messagebox.h"
 #include "filedialog.h"
 
-#include "ir.h"
+#include "oscsettings.h"
 
 static int appid;
 static int browse_appid;
 
 static int w_open;
 
-static char key_bindings[64][384];
+static char osc_bindings[16][384];
 
 static void load_config()
 {
@@ -43,14 +42,13 @@ static void load_config()
 	int i;
 	const char *val;
 
-	strcpy(config_key, "ir_");
-	for(i=0;i<64;i++) {
-		sprintf(&config_key[3], "%02x", i);
+	for(i=0;i<16;i++) {
+		sprintf(config_key, "osc_%x", i);
 		val = config_read_string(config_key);
 		if(val != NULL)
-			strcpy(key_bindings[i], val);
+			strcpy(osc_bindings[i], val);
 		else
-			key_bindings[i][0] = 0;
+			osc_bindings[i][0] = 0;
 	}
 }
 
@@ -59,11 +57,10 @@ static void set_config()
 	char config_key[6];
 	int i;
 
-	strcpy(config_key, "ir_");
-	for(i=0;i<64;i++) {
-		sprintf(&config_key[3], "%02x", i);
-		if(key_bindings[i][0] != 0)
-			config_write_string(config_key, key_bindings[i]);
+	for(i=0;i<16;i++) {
+		sprintf(config_key, "osc_%x", i);
+		if(osc_bindings[i][0] != 0)
+			config_write_string(config_key, osc_bindings[i]);
 		else
 			config_delete(config_key);
 	}
@@ -77,9 +74,9 @@ static void update_list()
 
 	str[0] = 0;
 	p = str;
-	for(i=0;i<64;i++) {
-		if(key_bindings[i][0] != 0)
-			p += sprintf(p, "0x%02x: %s\n", i, key_bindings[i]);
+	for(i=0;i<16;i++) {
+		if(osc_bindings[i][0] != 0)
+			p += sprintf(p, "%d: %s\n", i, osc_bindings[i]);
 	}
 	/* remove last \n */
 	if(p != str) {
@@ -97,53 +94,22 @@ static void selchange_callback(mtk_event *e, void *arg)
 
 	sel = mtk_req_i(appid, "lst_existing.selection");
 	count = 0;
-	for(i=0;i<64;i++) {
-		if(key_bindings[i][0] != 0) {
+	for(i=0;i<16;i++) {
+		if(osc_bindings[i][0] != 0) {
 			if(count == sel)
 				break;
 			count++;
 		}
 	}
 	if(count != 0) {
-		mtk_cmdf(appid, "e_key.set(-text \"0x%02x\")", i);
-		mtk_cmdf(appid, "e_filename.set(-text \"%s\")", key_bindings[i]);
+		mtk_cmdf(appid, "e_number.set(-text \"%d\")", i);
+		mtk_cmdf(appid, "e_filename.set(-text \"%s\")", osc_bindings[i]);
 	}
-}
-
-static int capturing;
-
-static void ir_event(mtk_event *e, int count)
-{
-	int i;
-
-	for(i=0;i<count;i++) {
-		if(e[i].type == EVENT_TYPE_IR) {
-			mtk_cmdf(appid, "e_key.set(-text \"0x%02x\")", e[i].press.code);
-			mtk_cmd(appid, "b_key.set(-state off)");
-			capturing = 0;
-			input_delete_callback(ir_event);
-			break;
-		}
-	}
-}
-
-static void capture_callback(mtk_event *e, void *arg)
-{
-	if(capturing) {
-		input_delete_callback(ir_event);
-		mtk_cmd(appid, "b_key.set(-state off)");
-	} else {
-		input_add_callback(ir_event);
-		mtk_cmd(appid, "b_key.set(-state on)");
-	}
-	capturing = !capturing;
 }
 
 static void close_window()
 {
 	mtk_cmd(appid, "w.close()");
-	if(capturing)
-		capture_callback(NULL, NULL);
 	w_open = 0;
 	close_filedialog(browse_appid);
 }
@@ -191,20 +157,20 @@ static void addupdate_callback(mtk_event *e, void *arg)
 	char *c;
 	char filename[384];
 
-	mtk_req(appid, key, sizeof(key), "e_key.text");
+	mtk_req(appid, key, sizeof(key), "e_number.text");
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
 	index = strtol(key, &c, 0);
-	if((*c != 0x00) || (index < 0) || (index > 63)) {
-		messagebox("Error", "Invalid key code.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
+	if((*c != 0x00) || (index < 0) || (index > 15)) {
+		messagebox("Error", "Invalid number.\nUse a decimal or hexadecimal (0x...) number between 0 and 15.");
 		return;
 	}
-	strcpy(key_bindings[index], filename);
+	strcpy(osc_bindings[index], filename);
 	update_list();
-	mtk_cmd(appid, "e_key.set(-text \"\")");
+	mtk_cmd(appid, "e_number.set(-text \"\")");
 	mtk_cmd(appid, "e_filename.set(-text \"\")");
 }
 
-void init_ir()
+void init_oscsettings()
 {
 	appid = mtk_init_app("IR");
 
@@ -230,12 +196,10 @@ void init_ir()
 		"g_addedit0.place(s_addedit2, -column 3 -row 1)",
 		
 		"g_addedit1 = new Grid()",
-		"l_key = new Label(-text \"Key code:\")",
-		"e_key = new Entry()",
-		"b_key = new Button(-text \"Capture\")",
-		"g_addedit1.place(l_key, -column 1 -row 1)",
-		"g_addedit1.place(e_key, -column 2 -row 1)",
-		"g_addedit1.place(b_key, -column 3 -row 1)",
+		"l_number = new Label(-text \"Number:\")",
+		"e_number = new Entry()",
+		"g_addedit1.place(l_number, -column 1 -row 1)",
+		"g_addedit1.place(e_number, -column 2 -row 1)",
 		"l_filename = new Label(-text \"Filename:\")",
 		"e_filename = new Entry()",
 		"b_filename = new Button(-text \"Browse\")",
@@ -264,12 +228,11 @@ void init_ir()
 		"g.rowconfig(6, -size 10)",
 		"g.place(g_btn, -column 1 -row 7)",
 
-		"w = new Window(-content g -title \"IR remote control settings\")",
+		"w = new Window(-content g -title \"OSC settings\")",
 		0);
 
 	mtk_bind(appid, "lst_existing", "selchange", selchange_callback, NULL);
 	mtk_bind(appid, "lst_existing", "selcommit", selchange_callback, NULL);
-	mtk_bind(appid, "b_key", "press", capture_callback, NULL);
 	mtk_bind(appid, "b_filename", "commit", browse_callback, NULL);
 	mtk_bind(appid, "b_filenameclear", "commit", clear_callback, NULL);
 	mtk_bind(appid, "b_addupdate", "commit", addupdate_callback, NULL);
@@ -279,10 +242,10 @@ void init_ir()
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 
-	browse_appid = create_filedialog("IR patch select", 0, browse_ok_callback, NULL, browse_cancel_callback, NULL);
+	browse_appid = create_filedialog("OSC patch select", 0, browse_ok_callback, NULL, browse_cancel_callback, NULL);
 }
 
-void open_ir_window()
+void open_oscsettings_window()
 {
 	if(w_open) return;
 	w_open = 1;

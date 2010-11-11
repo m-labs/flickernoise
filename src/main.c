@@ -48,6 +48,8 @@
 #include "keyboard.h"
 #include "ir.h"
 #include "audio.h"
+#include "midi.h"
+#include "oscsettings.h"
 #include "dmxtable.h"
 #include "dmx.h"
 #include "patcheditor.h"
@@ -72,6 +74,8 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_keyboard();
 	init_ir();
 	init_audio();
+	init_midi();
+	init_oscsettings();
 	init_dmxtable();
 	init_dmx();
 	init_patcheditor();
