@@ -27,6 +27,7 @@
 
 #include "framedescriptor.h"
 #include "analyzer.h"
+#include "osc.h"
 #include "sampler.h"
 
 struct snd_history {
@@ -60,6 +61,11 @@ static void analyze_snd(struct frame_descriptor *frd, struct snd_history *histor
 	frd->treb_att = history->treb_att;
 	frd->mid_att = history->mid_att;
 	frd->bass_att = history->bass_att;
+}
+
+static void get_dmx_variables(float *out)
+{
+	/* TODO */
 }
 
 static rtems_id returned_q;
@@ -154,7 +160,9 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		analyze_snd(recorded_descriptor, &history);
 		recorded_descriptor->time = time;
 		time += 1.0/FPS;
-		/* TODO: collect DMX and OSC info */
+		/* Get DMX/OSC */
+		get_dmx_variables(recorded_descriptor->idmx);
+		get_osc_variables(recorded_descriptor->osc);
 		/* Update status and send downstream */
 		recorded_descriptor->status = FRD_STATUS_SAMPLED;
 		callback(recorded_descriptor);

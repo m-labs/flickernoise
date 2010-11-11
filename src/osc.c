@@ -65,6 +65,7 @@ static int variable_method(const char *path, const char *types,
 	varnr = *((unsigned int *)argv[0]);
 	value = *((float *)argv[1]);
 
+	varnr--;
 	if(varnr < OSC_COUNT)
 		osc_variables[varnr] = value;
 	return 0;

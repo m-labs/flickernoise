@@ -33,6 +33,7 @@ static float time2;
 static float bass, mid, treb;
 static float bass_att, mid_att, treb_att;
 static float idmx[IDMX_COUNT];
+static float osc[OSC_COUNT];
 
 static void sampler_callback(struct frame_descriptor *frd)
 {
@@ -50,6 +51,8 @@ static void sampler_callback(struct frame_descriptor *frd)
 
 	for(i=0;i<IDMX_COUNT;i++)
 		idmx[i] = frd->idmx[i];
+	for(i=0;i<OSC_COUNT;i++)
+		osc[i] = frd->osc[i];
 	sampler_return(frd);
 }
 
@@ -69,6 +72,11 @@ static float *get_variable(const char *name)
 	else if(strcmp(name, "idmx2") == 0) return &idmx[1];
 	else if(strcmp(name, "idmx3") == 0) return &idmx[2];
 	else if(strcmp(name, "idmx4") == 0) return &idmx[3];
+
+	else if(strcmp(name, "osc1") == 0) return &osc[0];
+	else if(strcmp(name, "osc2") == 0) return &osc[1];
+	else if(strcmp(name, "osc3") == 0) return &osc[2];
+	else if(strcmp(name, "osc4") == 0) return &osc[3];
 
 	else return NULL;
 }
