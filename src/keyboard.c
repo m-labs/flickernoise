@@ -99,8 +99,10 @@ static void selchange_callback(mtk_event *e, void *arg)
 	count = 0;
 	for(i=0;i<26;i++) {
 		if(key_bindings[i][0] != 0) {
-			if(count == sel)
+			if(count == sel) {
+				count++;
 				break;
+			}
 			count++;
 		}
 	}

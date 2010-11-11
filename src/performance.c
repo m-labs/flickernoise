@@ -59,6 +59,9 @@ static int add_patch(const char *filename)
 static int firstpatch;
 static int keyboard_patches[26];
 static int ir_patches[64];
+static int midi_channel;
+static int midi_patches[128];
+static int osc_patches[64];
 
 static void add_firstpatch()
 {
@@ -101,6 +104,39 @@ static void add_ir_patches()
 			ir_patches[i] = add_patch(filename);
 		else
 			ir_patches[i] = -1;
+	}
+}
+
+static void add_midi_patches()
+{
+	int i;
+	char config_key[8];
+	const char *filename;
+
+	midi_channel = config_read_int("midi_channel", 0);
+	for(i=0;i<128;i++) {
+		sprintf(config_key, "midi_%02x", i);
+		filename = config_read_string(config_key);
+		if(filename != NULL)
+			midi_patches[i] = add_patch(filename);
+		else
+			midi_patches[i] = -1;
+	}
+}
+
+static void add_osc_patches()
+{
+	int i;
+	char config_key[7];
+	const char *filename;
+
+	for(i=0;i<64;i++) {
+		sprintf(config_key, "osc_%02x", i);
+		filename = config_read_string(config_key);
+		if(filename != NULL)
+			osc_patches[i] = add_patch(filename);
+		else
+			osc_patches[i] = -1;
 	}
 }
 
@@ -224,19 +260,25 @@ static void event_callback(mtk_event *e, int count)
 	int index;
 
 	for(i=0;i<count;i++) {
+		index = -1;
 		if(e[i].type == EVENT_TYPE_PRESS) {
 			index = keycode_to_index(e[i].press.code);
 			if(index != -1)
 				index = keyboard_patches[index];
-			if(index != -1)
-				renderer_set_patch(patches[index].p);
 		} else if(e[i].type == EVENT_TYPE_IR) {
 			index = e[i].press.code;
-			if(index != -1)
-				index = ir_patches[index];
-			if(index != -1)
-				renderer_set_patch(patches[index].p);
+			index = ir_patches[index];
+		} else if(e[i].type == EVENT_TYPE_MIDI) {
+			if(((e[i].press.code & 0x0f00) >> 8) == midi_channel) {
+				index = e[i].press.code & 0x7f;
+				index = midi_patches[index];
+			}
+		} else if(e[i].type == EVENT_TYPE_OSC) {
+			index = e[i].press.code & 0x3f;
+			index = osc_patches[index];
 		}
+		if(index != -1)
+			renderer_set_patch(patches[index].p);
 	}
 }
 
@@ -297,6 +339,8 @@ void start_performance()
 	}
 	add_keyboard_patches();
 	add_ir_patches();
+	add_midi_patches();
+	add_osc_patches();
 
 	/* start patch compilation task */
 	compiled_patches = 0;

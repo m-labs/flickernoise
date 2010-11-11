@@ -34,16 +34,16 @@ static int browse_appid;
 
 static int w_open;
 
-static char osc_bindings[16][384];
+static char osc_bindings[64][384];
 
 static void load_config()
 {
-	char config_key[6];
+	char config_key[7];
 	int i;
 	const char *val;
 
-	for(i=0;i<16;i++) {
-		sprintf(config_key, "osc_%x", i);
+	for(i=0;i<64;i++) {
+		sprintf(config_key, "osc_%02x", i);
 		val = config_read_string(config_key);
 		if(val != NULL)
 			strcpy(osc_bindings[i], val);
@@ -54,11 +54,11 @@ static void load_config()
 
 static void set_config()
 {
-	char config_key[6];
+	char config_key[7];
 	int i;
 
-	for(i=0;i<16;i++) {
-		sprintf(config_key, "osc_%x", i);
+	for(i=0;i<64;i++) {
+		sprintf(config_key, "osc_%02x", i);
 		if(osc_bindings[i][0] != 0)
 			config_write_string(config_key, osc_bindings[i]);
 		else
@@ -74,7 +74,7 @@ static void update_list()
 
 	str[0] = 0;
 	p = str;
-	for(i=0;i<16;i++) {
+	for(i=0;i<64;i++) {
 		if(osc_bindings[i][0] != 0)
 			p += sprintf(p, "%d: %s\n", i, osc_bindings[i]);
 	}
@@ -94,10 +94,12 @@ static void selchange_callback(mtk_event *e, void *arg)
 
 	sel = mtk_req_i(appid, "lst_existing.selection");
 	count = 0;
-	for(i=0;i<16;i++) {
+	for(i=0;i<64;i++) {
 		if(osc_bindings[i][0] != 0) {
-			if(count == sel)
+			if(count == sel) {
+				count++;
 				break;
+			}
 			count++;
 		}
 	}
@@ -160,8 +162,8 @@ static void addupdate_callback(mtk_event *e, void *arg)
 	mtk_req(appid, key, sizeof(key), "e_number.text");
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
 	index = strtol(key, &c, 0);
-	if((*c != 0x00) || (index < 0) || (index > 15)) {
-		messagebox("Error", "Invalid number.\nUse a decimal or hexadecimal (0x...) number between 0 and 15.");
+	if((*c != 0x00) || (index < 0) || (index > 63)) {
+		messagebox("Error", "Invalid number.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
 		return;
 	}
 	strcpy(osc_bindings[index], filename);
@@ -172,7 +174,7 @@ static void addupdate_callback(mtk_event *e, void *arg)
 
 void init_oscsettings()
 {
-	appid = mtk_init_app("IR");
+	appid = mtk_init_app("OSC");
 
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
