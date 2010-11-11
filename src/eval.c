@@ -45,6 +45,8 @@ static void write_pfv(struct patch *p, int pfv, float x)
 {
 	if(p->pfv_allocation[pfv] >= 0)
 		p->perframe_regs[p->pfv_allocation[pfv]] = x;
+	else
+		p->pfv_initial[pfv] = x;
 }
 
 static void write_pvv(struct patch *p, int pvv, float x)
@@ -93,6 +95,11 @@ static void transfer_pvv_regs(struct patch *p)
 	write_pvv(p, pvv_idmx2, read_pfv(p, pfv_idmx2));
 	write_pvv(p, pvv_idmx3, read_pfv(p, pfv_idmx3));
 	write_pvv(p, pvv_idmx4, read_pfv(p, pfv_idmx4));
+
+	write_pvv(p, pvv_osc1, read_pfv(p, pfv_osc1));
+	write_pvv(p, pvv_osc2, read_pfv(p, pfv_osc2));
+	write_pvv(p, pvv_osc3, read_pfv(p, pfv_osc3));
+	write_pvv(p, pvv_osc4, read_pfv(p, pfv_osc4));
 }
 
 static void reinit_pfv(struct patch *p, int pfv)
@@ -125,6 +132,11 @@ static void set_pfv_from_frd(struct patch *p, struct frame_descriptor *frd)
 	write_pfv(p, pfv_idmx2, frd->idmx[1]);
 	write_pfv(p, pfv_idmx3, frd->idmx[2]);
 	write_pfv(p, pfv_idmx4, frd->idmx[3]);
+
+	write_pfv(p, pfv_osc1, frd->osc[0]);
+	write_pfv(p, pfv_osc2, frd->osc[1]);
+	write_pfv(p, pfv_osc3, frd->osc[2]);
+	write_pfv(p, pfv_osc4, frd->osc[3]);
 }
 
 static void set_frd_from_pfv(struct patch *p, struct frame_descriptor *frd)

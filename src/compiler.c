@@ -134,7 +134,12 @@ static const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
 	"idmx1",
 	"idmx2",
 	"idmx3",
-	"idmx4"
+	"idmx4",
+
+	"osc1",
+	"osc2",
+	"osc3",
+	"osc4"
 };
 
 static int pfv_from_name(const char *name)
@@ -316,7 +321,12 @@ static const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN] = {
 	"idmx1",
 	"idmx2",
 	"idmx3",
-	"idmx4"
+	"idmx4",
+	
+	"osc1",
+	"osc2",
+	"osc3",
+	"osc4"
 };
 
 static bool init_pvv(struct compiler_sc *sc)

@@ -102,6 +102,11 @@ enum {
 	pfv_idmx3,
 	pfv_idmx4,
 
+	pfv_osc1,
+	pfv_osc2,
+	pfv_osc3,
+	pfv_osc4,
+
 	COMP_PFV_COUNT /* must be last */
 };
 
@@ -146,6 +151,11 @@ enum {
 	pvv_idmx2,
 	pvv_idmx3,
 	pvv_idmx4,
+
+	pvv_osc1,
+	pvv_osc2,
+	pvv_osc3,
+	pvv_osc4,
 
 	COMP_PVV_COUNT /* must be last */
 };
