@@ -23,14 +23,14 @@
 #include "color.h"
 #include "pngload.h"
 
-unsigned short *png_load(const char *filename, int *w, int *h)
+unsigned short *png_load(const char *filename, unsigned int *w, unsigned int *h)
 {
 	unsigned short *ret;
 	FILE *fd;
 	unsigned char header[8];
 	png_structp png_ptr;
 	png_infop info_ptr;
-	int width, height;
+	unsigned int width, height;
 	png_byte color_type;
 	png_byte bit_depth;
 	png_bytep *row_pointers;

@@ -38,6 +38,7 @@
 #include <rtems/bdpart.h>
 #include <rtems/rtems_bsdnet.h>
 
+#include "pngload.h"
 #include "fb.h"
 #include "input.h"
 #include "reboot.h"
@@ -63,6 +64,7 @@
 
 static rtems_task gui_task(rtems_task_argument argument)
 {
+	config_wallpaper_bitmap = png_load("/memcard/wallpaper.png", &config_wallpaper_w, &config_wallpaper_h);
 	init_fb_mtk();
 	init_input();
 	input_add_callback(mtk_input);

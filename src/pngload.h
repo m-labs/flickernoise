@@ -18,6 +18,6 @@
 #ifndef __PNGLOAD_H
 #define __PNGLOAD_H
 
-unsigned short *png_load(const char *filename, int *w, int *h);
+unsigned short *png_load(const char *filename, unsigned int *w, unsigned int *h);
 
 #endif /* __PNGLOAD_H */
