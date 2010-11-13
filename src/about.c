@@ -86,6 +86,9 @@ void init_about()
 	mtk_cmd(appid, "sep1 = new Separator(-vertical no)");
 	mtk_cmdf(appid, "mac = new Label(-text \"Ethernet MAC: %02x:%02x:%02x:%02x:%02x:%02x\")", macadr[0], macadr[1], macadr[2], macadr[3], macadr[4], macadr[5]);
 	mtk_cmd_seq(appid, "sep2 = new Separator(-vertical no)",
+		"info = new Label(-text \"Copyright (C) 2010 Sebastien Bourdeauducq and contributors.\n"
+		"Flickernoise is free software, released under GNU GPL version 3.\n"
+		"Web: www.milkymist.org\" -font \"monospaced\")",
 
 		"g.place(flickernoise, -column 1 -row 1)",
 		"g.place(rtems, -column 1 -row 2)",
@@ -95,6 +98,7 @@ void init_about()
 		"g.place(sep1, -column 1 -row 6)",
 		"g.place(mac, -column 1 -row 7)",
 		"g.place(sep2, -column 1 -row 8)",
+		"g.place(info, -column 1 -row 9)",
 
 		"g_btn = new Grid()",
 
@@ -104,7 +108,7 @@ void init_about()
 		"g_btn.place(b_flash, -column 1 -row 1)",
 		"g_btn.place(b_close, -column 2 -row 1)",
 
-		"g.place(g_btn, -column 1 -row 10)",
+		"g.place(g_btn, -column 1 -row 12)",
 
 		"w = new Window(-content g -title \"About\")",
 		0);
