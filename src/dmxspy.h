@@ -20,5 +20,6 @@
 
 void init_dmxspy();
 void open_dmxspy_window();
+void close_dmxspy_window();
 
 #endif /* __DMXSPY_H */

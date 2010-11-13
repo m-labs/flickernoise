@@ -20,5 +20,6 @@
 
 void init_dmx();
 void open_dmx_window();
+void load_dmx_config();
 
 #endif /* __DMX_H */

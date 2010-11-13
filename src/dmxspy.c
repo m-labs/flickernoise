@@ -73,11 +73,7 @@ static void dmxspy_update(mtk_event *e, int count)
 
 static void close_callback(mtk_event *e, void *arg)
 {
-	mtk_cmd(appid, "w.close()");
-	input_delete_callback(dmxspy_update);
-	close(dmx_fd);
-	resmgr_release(RESOURCE_DMX_IN);
-	w_open = 0;
+	close_dmxspy_window();
 }
 
 void init_dmxspy()
@@ -119,4 +115,13 @@ void open_dmxspy_window()
 	mtk_cmd(appid, "w.open()");
 	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
 	input_add_callback(dmxspy_update);
+}
+
+void close_dmxspy_window()
+{
+	mtk_cmd(appid, "w.close()");
+	input_delete_callback(dmxspy_update);
+	close(dmx_fd);
+	resmgr_release(RESOURCE_DMX_IN);
+	w_open = 0;
 }

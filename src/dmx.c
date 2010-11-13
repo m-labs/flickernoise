@@ -17,20 +17,51 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
+#include <rtems.h>
+#include <bsp/milkymist_dmx.h>
 
 #include <mtklib.h>
 
 #include "config.h"
 #include "cp.h"
 #include "util.h"
+#include "resmgr.h"
 #include "dmxspy.h"
 #include "dmxtable.h"
 #include "dmx.h"
 
 static int appid;
 
-static void load_config()
+static int chain_mode;
+
+static void set_chain_mode(int chain)
+{
+	int fd;
+	
+	chain_mode = chain;
+	if(chain)
+		mtk_cmd(appid, "b_chain.set(-state on)");
+	else
+		mtk_cmd(appid, "b_chain.set(-state off)");
+
+	if(!resmgr_acquire("DMX settings", RESOURCE_DMX_OUT)) return;
+	fd = open("/dev/dmx_out", O_RDWR);
+	if(fd == -1) {
+		resmgr_release(RESOURCE_DMX_OUT);
+		return;
+	}
+	ioctl(fd, DMX_SET_THRU, chain);
+	close(fd);
+	resmgr_release(RESOURCE_DMX_OUT);
+}
+
+void load_dmx_config()
 {
 	int i, value;
 	char confname[12];
@@ -43,6 +74,7 @@ static void load_config()
 		value = config_read_int(confname, i+1);
 		mtk_cmdf(appid, "e_dmx%d.set(-text \"%d\")", i, value);
 	}
+	set_chain_mode(config_read_int("dmx_chain", 0));
 }
 
 static void set_config()
@@ -64,7 +96,13 @@ static void set_config()
 		sprintf(confname, "dmx%d", i+1);
 		config_write_int(confname, value);
 	}
+	config_write_int("dmx_chain", chain_mode);
 	cp_notify_changed();
+}
+
+static void chain_callback(mtk_event *e, void *arg)
+{
+	set_chain_mode(!chain_mode);
 }
 
 static void spy_callback(mtk_event *e, void *arg)
@@ -82,6 +120,7 @@ static int w_open;
 static void ok_callback(mtk_event *e, void *arg)
 {
 	w_open = 0;
+	close_dmxspy_window();
 	close_dmxtable_window();
 	mtk_cmd(appid, "w.close()");
 	set_config();
@@ -90,8 +129,10 @@ static void ok_callback(mtk_event *e, void *arg)
 static void close_callback(mtk_event *e, void *arg)
 {
 	w_open = 0;
+	close_dmxspy_window();
 	close_dmxtable_window();
 	mtk_cmd(appid, "w.close()");
+	load_dmx_config();
 }
 
 void init_dmx()
@@ -151,18 +192,20 @@ void init_dmx()
 		mtk_cmdf(appid, "g_out.place(e_dmx%d, -column 2 -row %d)", i, i);
 	}
 
+	mtk_bind(appid, "b_chain", "press", chain_callback, NULL);
 	mtk_bind(appid, "b_spy", "commit", spy_callback, NULL);
 	mtk_bind(appid, "b_table", "commit", table_callback, NULL);
 
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", close_callback, NULL);
 	mtk_bind(appid, "w", "close", close_callback, NULL);
+
+	load_dmx_config();
 }
 
 void open_dmx_window()
 {
 	if(w_open) return;
 	w_open = 1;
-	load_config();
 	mtk_cmd(appid, "w.open()");
 }
