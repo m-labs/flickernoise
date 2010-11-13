@@ -60,7 +60,6 @@ per_frame=dmx4 = ob_b
 per_frame=ib_g = wave_g;
 per_frame=ib_r = sin(time);
 per_frame=kick = if(above(bass_att,kick), 2, kick*0.96);
-(1-above(bass_att,kick))*((kick-1.3)*0.96+1.3);
 per_frame=dx_r = equal(kick,2)*0.018*sin(6*time) + (1-equal(kick,2))*dx_r;
 per_frame=dy_r = equal(kick,2)*0.015*sin(7*time) + (1-equal(kick,2))*dy_r;
 per_frame=dy = dy + 2*dy_r * 0.5*sin(0.8*time);
