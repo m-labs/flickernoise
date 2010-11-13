@@ -28,6 +28,7 @@
 #include <rtems/fb.h>
 #include <bsp/milkymist_tmu.h>
 
+#include "config.h"
 #include "framedescriptor.h"
 #include "renderer.h"
 #include "color.h"
@@ -452,6 +453,7 @@ static void scale(int tmu_fd, struct tmu_vertex *vertices,
 
 struct raster_task_param {
 	int framebuffer_fd;
+	int dmx_map[DMX_COUNT];
 	frd_callback callback;
 };
 
@@ -467,7 +469,7 @@ static rtems_task raster_task(rtems_task_argument argument)
 	unsigned short *tex_frontbuffer, *tex_backbuffer;
 	unsigned short *p;
 	struct tmu_vertex *scale_vertices;
-	int tmu_fd;
+	int tmu_fd, dmx_fd;
 	unsigned short *screen_backbuffer;
 	int hres, vres;
 	float brightness_error;
@@ -476,6 +478,8 @@ static rtems_task raster_task(rtems_task_argument argument)
 	struct wave_vertex vertices[256];
 	int nvertices;
 	int vecho_alpha;
+	int i;
+	unsigned char dmx_val;
 
 	status = posix_memalign((void **)&tex_frontbuffer, 32,
 		2*renderer_texsize*renderer_texsize);
@@ -492,6 +496,8 @@ static rtems_task raster_task(rtems_task_argument argument)
 
 	tmu_fd = open("/dev/tmu", O_RDWR);
 	assert(tmu_fd != -1);
+	dmx_fd = open("/dev/dmx_out", O_RDWR);
+	assert(dmx_fd != -1);
 
 	get_screen_res(param->framebuffer_fd, &hres, &vres);
 	ioctl(param->framebuffer_fd, FBIOSETBUFFERMODE, FB_TRIPLE_BUFFERED);
@@ -539,6 +545,18 @@ static rtems_task raster_task(rtems_task_argument argument)
 		}
 		ioctl(param->framebuffer_fd, FBIOSWAPBUFFERS);
 
+		/* Update DMX outputs */
+		for(i=0;i<DMX_COUNT;i++) {
+			lseek(dmx_fd, param->dmx_map[i], SEEK_SET);
+			if(frd->dmx[i] > 1.0)
+				dmx_val = 255;
+			else if(frd->dmx[i] < 0.0)
+				dmx_val = 0;
+			else
+				dmx_val = frd->dmx[i]*255.0;
+			write(dmx_fd, &dmx_val, 1);
+		}
+
 		/* Swap texture buffers */
 		p = tex_frontbuffer;
 		tex_frontbuffer = tex_backbuffer;
@@ -549,6 +567,7 @@ static rtems_task raster_task(rtems_task_argument argument)
 	}
 
 	ioctl(param->framebuffer_fd, FBIOSETBUFFERMODE, FB_SINGLE_BUFFERED);
+	close(dmx_fd);
 	close(tmu_fd);
 	free(tex_backbuffer);
 	free(tex_frontbuffer);
@@ -563,6 +582,8 @@ void raster_start(int framebuffer_fd, frd_callback callback)
 {
 	struct raster_task_param *param;
 	rtems_status_code sc;
+	int i;
+	char confname[12];
 
 	sc = rtems_message_queue_create(
 		rtems_build_name('R', 'A', 'S', 'T'),
@@ -583,7 +604,12 @@ void raster_start(int framebuffer_fd, frd_callback callback)
 	param = malloc(sizeof(struct raster_task_param));
 	assert(param != NULL);
 	param->framebuffer_fd = framebuffer_fd;
+	for(i=0;i<DMX_COUNT;i++) {
+		sprintf(confname, "dmx%d", i+1);
+		param->dmx_map[i] = config_read_int(confname, i+1)-1;
+	}
 	param->callback = callback;
+
 	sc = rtems_task_create(rtems_build_name('R', 'A', 'S', 'T'), 10, 8*1024,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
 		0, &raster_task_id);

@@ -232,6 +232,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 	}
 
 end1:
+	close(dmx_fd);
 	for(i=0;i<FRD_COUNT;i++)
 		free_frame_descriptor(frame_descriptors[i]);
 
