@@ -29,6 +29,8 @@
 
 static int appid;
 
+static int w_open;
+
 static float time2;
 static float bass, mid, treb;
 static float bass_att, mid_att, treb_att;
@@ -113,6 +115,7 @@ static void close_callback(mtk_event *e, void *arg)
 	resmgr_release(RESOURCE_AUDIO);
 	resmgr_release(RESOURCE_DMX_IN);
 	resmgr_release(RESOURCE_SAMPLER);
+	w_open = 0;
 }
 
 void init_monitor()
@@ -150,12 +153,16 @@ void init_monitor()
 
 void open_monitor_window()
 {
+	if(w_open) return;
+
 	if(!resmgr_acquire_multiple("monitor",
 	  RESOURCE_AUDIO,
 	  RESOURCE_DMX_IN,
 	  RESOURCE_SAMPLER,
 	  INVALID_RESOURCE))
 		return;
+
+	w_open = 1;
 
 	mtk_cmd(appid, "w.open()");
 	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;

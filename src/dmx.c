@@ -24,6 +24,7 @@
 #include "config.h"
 #include "cp.h"
 #include "util.h"
+#include "dmxspy.h"
 #include "dmxtable.h"
 #include "dmx.h"
 
@@ -64,6 +65,11 @@ static void set_config()
 		config_write_int(confname, value);
 	}
 	cp_notify_changed();
+}
+
+static void spy_callback(mtk_event *e, void *arg)
+{
+	open_dmxspy_window();
 }
 
 static void table_callback(mtk_event *e, void *arg)
@@ -145,6 +151,7 @@ void init_dmx()
 		mtk_cmdf(appid, "g_out.place(e_dmx%d, -column 2 -row %d)", i, i);
 	}
 
+	mtk_bind(appid, "b_spy", "commit", spy_callback, NULL);
 	mtk_bind(appid, "b_table", "commit", table_callback, NULL);
 
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
