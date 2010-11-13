@@ -28,6 +28,7 @@
 #include "framedescriptor.h"
 #include "analyzer.h"
 #include "osc.h"
+#include "config.h"
 #include "sampler.h"
 
 struct snd_history {
@@ -63,9 +64,18 @@ static void analyze_snd(struct frame_descriptor *frd, struct snd_history *histor
 	frd->bass_att = history->bass_att;
 }
 
-static void get_dmx_variables(float *out)
+static int idmx_map[IDMX_COUNT];
+
+static void get_dmx_variables(int fd, float *out)
 {
-	/* TODO */
+	int i;
+	unsigned char val;
+
+	for(i=0;i<IDMX_COUNT;i++) {
+		lseek(fd, idmx_map[i], SEEK_SET);
+		read(fd, &val, 1);
+		out[i] = ((float)val)/255.0;
+	}
 }
 
 static rtems_id returned_q;
@@ -75,7 +85,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 {
 	struct frame_descriptor *frame_descriptors[FRD_COUNT];
 	int i;
-	int snd_fd;
+	int snd_fd, dmx_fd;
 	struct snd_history history;
 	frd_callback callback = (frd_callback)argument;
 	rtems_event_set dummy;
@@ -86,15 +96,21 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		perror("Unable to open audio device");
 		goto end;
 	}
+	dmx_fd = open("/dev/dmx_in", O_RDONLY);
+	if(dmx_fd == -1) {
+		perror("Unable to open DMX input device");
+		goto end0;
+	}
 
 	init_history(&history);
 
+	for(i=0;i<FRD_COUNT;i++)
+		frame_descriptors[i] = NULL;
 	for(i=0;i<FRD_COUNT;i++) {
 		frame_descriptors[i] = new_frame_descriptor();
 		if(frame_descriptors[i] == NULL) {
 			perror("new_frame_descriptor");
-			close(snd_fd);
-			goto end;
+			goto end1;
 		}
 	}
 
@@ -161,7 +177,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		recorded_descriptor->time = time;
 		time += 1.0/FPS;
 		/* Get DMX/OSC */
-		get_dmx_variables(recorded_descriptor->idmx);
+		get_dmx_variables(dmx_fd, recorded_descriptor->idmx);
 		get_osc_variables(recorded_descriptor->osc);
 		/* Update status and send downstream */
 		recorded_descriptor->status = FRD_STATUS_SAMPLED;
@@ -215,11 +231,12 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		returned_descriptor->status = FRD_STATUS_NEW;
 	}
 
+end1:
 	for(i=0;i<FRD_COUNT;i++)
 		free_frame_descriptor(frame_descriptors[i]);
 
+end0:
 	close(snd_fd);
-
 end:
 	rtems_semaphore_release(sampler_terminated);
 	rtems_task_delete(RTEMS_SELF);
@@ -230,6 +247,13 @@ static rtems_id sampler_task_id;
 void sampler_start(frd_callback callback)
 {
 	rtems_status_code sc;
+	int i;
+	char confname[12];
+
+	for(i=0;i<IDMX_COUNT;i++) {
+		sprintf(confname, "idmx%d", i+1);
+		idmx_map[i] = config_read_int(confname, i+1)-1;
+	}
 
 	sc = rtems_message_queue_create(
 		rtems_build_name('S', 'M', 'P', 'L'),

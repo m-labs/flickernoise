@@ -169,3 +169,10 @@ void open_monitor_window()
 	input_add_callback(monitor_update);
 	sampler_start(sampler_callback);
 }
+
+void monitor_notify_changed()
+{
+	if(!w_open) return;
+	sampler_stop();
+	sampler_start(sampler_callback);
+}

@@ -32,6 +32,7 @@
 #include "cp.h"
 #include "util.h"
 #include "resmgr.h"
+#include "monitor.h"
 #include "dmxspy.h"
 #include "dmxtable.h"
 #include "dmx.h"
@@ -98,6 +99,7 @@ static void set_config()
 	}
 	config_write_int("dmx_chain", chain_mode);
 	cp_notify_changed();
+	monitor_notify_changed();
 }
 
 static void chain_callback(mtk_event *e, void *arg)

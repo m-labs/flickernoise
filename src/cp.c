@@ -56,17 +56,20 @@ static void clear_changed()
 	changed = 0;
 }
 
+static void on_config_change()
+{
+	/* reload config for controls that need modification of some state */
+	load_audio_config();
+	load_dmx_config();
+}
+
 static void loadok_callback(mtk_event *e, void *arg)
 {
 	char buf[32768];
 
 	get_filedialog_selection(load_appid, buf, 32768);
 	config_load(buf);
-	
-	/* reload config for controls that need modification of some state */
-	load_audio_config();
-	load_dmx_config();
-	
+	on_config_change();
 	clear_changed();
 	close_filedialog(load_appid);
 }
@@ -152,6 +155,7 @@ static void cp_callback(mtk_event *e, void *arg)
 			break;
 		case CP_ITEM_NEW:
 			config_free();
+			on_config_change();
 			clear_changed();
 			break;
 		case CP_ITEM_FIRSTPATCH:

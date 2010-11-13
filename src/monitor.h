@@ -20,5 +20,6 @@
 
 void init_monitor();
 void open_monitor_window();
+void monitor_notify_changed();
 
 #endif /* __MONITOR_H */
