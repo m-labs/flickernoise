@@ -63,8 +63,8 @@ static void loadok_callback(mtk_event *e, void *arg)
 	get_filedialog_selection(load_appid, buf, 32768);
 	config_load(buf);
 	
-	/* load config for controls that need modification of the state */
-	// TODO: load_audio_config();
+	/* reload config for controls that need modification of some state */
+	load_audio_config();
 	load_dmx_config();
 	
 	clear_changed();

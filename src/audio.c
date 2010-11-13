@@ -37,11 +37,6 @@ static int appid;
 
 static int mixer_fd;
 
-static int prev_line_vol;
-static int prev_line_mute;
-static int prev_mic_vol;
-static int prev_mic_mute;
-
 static int line_vol;
 static int line_mute;
 static int mic_vol;
@@ -54,18 +49,6 @@ static void set_level(int channel, unsigned int val)
 	val = val | (val << 8);
 	request = channel ? SOUND_MIXER_WRITE(SOUND_MIXER_MIC) : SOUND_MIXER_WRITE(SOUND_MIXER_LINE);
 	ioctl(mixer_fd, request, &val);
-}
-
-static void load_levels()
-{
-	if(line_mute)
-		set_level(0, 0);
-	else
-		set_level(0, line_vol);
-	if(mic_mute)
-		set_level(1, 0);
-	else
-		set_level(1, mic_vol);
 }
 
 static void slide_callback(mtk_event *e, void *arg)
@@ -103,12 +86,26 @@ static void mute_callback(mtk_event *e, void *arg)
 	}
 }
 
-static void load_config()
+void load_audio_config()
 {
 	line_vol = config_read_int("line_vol", 100);
 	line_mute = config_read_int("line_mute", 0);
 	mic_vol = config_read_int("mic_vol", 100);
 	mic_mute = config_read_int("mic_mute", 0);
+	
+	mtk_cmdf(appid, "s_linevol.set(-value %d)", 100-line_vol);
+	mtk_cmdf(appid, "b_mutline.set(-state %s)", line_mute ? "on" : "off");
+	mtk_cmdf(appid, "s_micvol.set(-value %d)", 100-mic_vol);
+	mtk_cmdf(appid, "b_mutmic.set(-state %s)", mic_mute ? "on" : "off");
+
+	if(line_mute)
+		set_level(0, 0);
+	else
+		set_level(0, line_vol);
+	if(mic_mute)
+		set_level(1, 0);
+	else
+		set_level(1, mic_vol);
 }
 
 static void set_config()
@@ -132,19 +129,8 @@ static void ok_callback(mtk_event *e, void *arg)
 static void close_callback(mtk_event *e, void *arg)
 {
 	w_open = 0;
-
 	mtk_cmd(appid, "w.close()");
-
-	line_vol = prev_line_vol;
-	line_mute = prev_line_mute;
-	mic_vol = prev_mic_vol;
-	mic_mute = prev_mic_mute;
-
-	load_levels();
-	mtk_cmdf(appid, "s_linevol.set(-value %d)", 100-line_vol);
-	mtk_cmdf(appid, "b_mutline.set(-state %s)", line_mute ? "on" : "off");
-	mtk_cmdf(appid, "s_micvol.set(-value %d)", 100-mic_vol);
-	mtk_cmdf(appid, "b_mutmic.set(-state %s)", mic_mute ? "on" : "off");
+	load_audio_config();
 }
 
 void init_audio()
@@ -203,17 +189,12 @@ void init_audio()
 	if(mixer_fd == -1)
 		perror("Unable to open audio mixer");
 
-	load_config();
-	load_levels();
+	load_audio_config();
 }
 
 void open_audio_window()
 {
 	if(w_open) return;
 	w_open = 1;
-	prev_line_vol = line_vol;
-	prev_line_mute = line_mute;
-	prev_mic_vol = mic_vol;
-	prev_mic_mute = mic_mute;
 	mtk_cmd(appid, "w.open()");
 }

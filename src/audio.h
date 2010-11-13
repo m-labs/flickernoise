@@ -20,5 +20,6 @@
 
 void init_audio();
 void open_audio_window();
+void load_audio_config();
 
 #endif /* __AUDIO_H */
