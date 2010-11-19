@@ -28,6 +28,7 @@
 #include <bsp/milkymist_pfpu.h>
 #include <bsp/milkymist_tmu.h>
 #include <bsp/milkymist_memcard.h>
+#include <bsp/milkymist_flash.h>
 #include <bsp/milkymist_dmx.h>
 #include <bsp/milkymist_ir.h>
 #include <bsp/milkymist_midi.h>
@@ -66,6 +67,8 @@
 static rtems_task gui_task(rtems_task_argument argument)
 {
 	config_wallpaper_bitmap = png_load("/memcard/wallpaper.png", &config_wallpaper_w, &config_wallpaper_h);
+	if(config_wallpaper_bitmap == NULL)
+		config_wallpaper_bitmap = png_load("/flash/wallpaper.png", &config_wallpaper_w, &config_wallpaper_h);
 	init_fb_mtk();
 	init_input();
 	input_add_callback(mtk_input);
@@ -104,8 +107,7 @@ static void start_memcard()
 	rtems_bdpart_format format;
 	rtems_bdpart_partition pt[RTEMS_BDPART_PARTITION_NUMBER_HINT];
 	size_t count;
-
-	memcard_register(); /* < FIXME: can this be moved into the initialization table? */
+	
 	count = RTEMS_BDPART_PARTITION_NUMBER_HINT;
 	sc = rtems_bdpart_read("/dev/memcard", &format, pt, &count);
 	if(sc != RTEMS_SUCCESSFUL)
@@ -122,7 +124,14 @@ rtems_task Init(rtems_task_argument argument)
 {
 	rtems_status_code sc;
 
+	 /* FIXME: can this be moved into the initialization table? */
+	memcard_register();
+	flash_register();
+	
 	start_memcard();
+	mkdir("/flash", 0777);
+	mount("/dev/flash5", "/flash", "dosfs", 0, "");
+
 	/* TODO: read network configuration */
 	rtems_bsdnet_initialize_network();
 
