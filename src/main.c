@@ -38,6 +38,7 @@
 #include <rtems/shell.h>
 #include <rtems/bdpart.h>
 #include <rtems/rtems_bsdnet.h>
+#include <yaffs.h>
 
 #include "pngload.h"
 #include "fb.h"
@@ -130,7 +131,7 @@ rtems_task Init(rtems_task_argument argument)
 	
 	start_memcard();
 	mkdir("/flash", 0777);
-	mount("/dev/flash5", "/flash", "dosfs", 0, "");
+	//mount("/dev/flash5", "/flash", "dosfs", 0, "");
 
 	/* TODO: read network configuration */
 	rtems_bsdnet_initialize_network();
@@ -217,9 +218,17 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 
 #define CONFIGURE_APPLICATION_NEEDS_LIBBLOCK
 #define CONFIGURE_USE_IMFS_AS_BASE_FILESYSTEM
-// TODO: this was renamed CONFIGURE_FILESYSTEM_NFS in latest RTEMS CVS
-#define CONFIGURE_FILESYSTEM_NFSFS
-#define CONFIGURE_FILESYSTEM_DOSFS
+#define CONFIGURE_HAS_OWN_FILESYSTEM_TABLE
+#include <rtems/imfs.h>
+#include <rtems/dosfs.h>
+#include <librtemsNfs.h>
+const rtems_filesystem_table_t rtems_filesystem_table[] = {
+	{ RTEMS_FILESYSTEM_TYPE_IMFS, IMFS_initialize },
+	{ RTEMS_FILESYSTEM_TYPE_DOSFS, rtems_dosfs_initialize },
+	{ RTEMS_FILESYSTEM_TYPE_NFS, rtems_nfsfs_initialize },
+	{ "yaffs", yaffs_initialize },
+	{ NULL, NULL }
+};
 
 #define CONFIGURE_EXECUTIVE_RAM_SIZE (16*1024*1024)
 
