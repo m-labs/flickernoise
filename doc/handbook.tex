@@ -2,10 +2,13 @@
 \title{Flickernoise handbook}
 \usepackage{palatino}
 \usepackage{color}
+\usepackage{url}
 \definecolor{mygray}{gray}{0.92}
+\setlength{\parindent}{0in}
+\setlength{\parskip}{8pt}
 \begin{document}
 
-\newcommand{\mybox}[1] {\fcolorbox{black}{mygray}{\parbox{\textwidth}{#1}}}
+\newcommand{\mybox}[1] {\fcolorbox{black}{mygray}{\parbox{\textwidth}{#1}}\hspace{2pt}}
 
 \maketitle
 
@@ -20,6 +23,65 @@
 \section{Using OpenSoundControl}
 
 \chapter{Authoring patches}
+\textit{This chapter is inspired by the MilkDrop guides from Geiss, Rovastar and Krash.}
+\section{About patches}
+A ``patch'' is a collection of parameters that tell Flickernoise how to draw the wave, how to warp the image around, and so on. Flickernoise ships with dozens of patches, each one having a distinct look and feel to it.
+
+Each patch is saved as a file with the ``.fnp'' extension, so you can easily send them to your friends or post them on the web. You can also go to \url{http://www.milkymist.org} to see what other people have come up with, or post your own cool, new patches.
+
+The Flickernoise rendering engine largely copies the ideas from MilkDrop (an audio visualization plug-in for the Winamp music player). In fact, many MilkDrop effects (called ``presets'') can be made to work with Flickernoise, sometimes with only minor modifications.
+
+Four things are useful for writing patches: Mathematics knowledge, artistic flare, persistence and luck. If you have any of these you will be able to create a decent preset and the more of each of these you have the better presets will become. 
+
+Maybe a mathematics textbook will be handy. If you are thinking about maths ``Arrrah, let me out!!'' then don't worry you can create decent presets with very little mathematics knowledge. You will need to know basic operations and what the sine (sin) and cosine (cos) equations roughly do. These are used loads in the Flickernoise patches.
+
+But to be fair the more you know the greater your potential of writing a better patch. You can just randomly put things in and possibly get a decent result, but if you actually understand what you're doing with the mathematics, you'll be able to get specific effects with relative ease. A background in programming doesn't go astray either.
+
+\section{Drawing a wave}
+One of the basic elements in a patch is the \textit{wave}, which is a graphical representation of the audio signal much like that of an oscilloscope.
+
+To draw a wave, all that one has to do is select one of the eight possible wave modes, numbered from 0 to 7. This is done by setting the value of the wave\_mode parameter.
+
+Open the patch editor, and enter the text:
+
+\begin{verbatim}
+wave_mode=6
+\end{verbatim}
+
+\mybox{Flickernoise also recognizes nWaveMode instead of wave\_mode in order to make the porting of MilkDrop presets easier.}
+
+Then, run the rendering by clicking the Run button or pressing the F8 key of the keyboard. Put on some music in order to get a signal to trace other than a straight line.
+
+\section{Decay}
+
+\begin{verbatim}
+wave_mode=6
+decay=0.99
+\end{verbatim}
+
+\mybox{Flickernoise also groks fDecay from MilkDrop.}
+
+\section{Motion}
+\subsection{Zoom}
+
+\mybox{To ensure compatibility with MilkDrop, Flickernoise also accepts per\_frame\_xx where xx can be any number.}
+
+\subsection{Rotation}
+
+\subsection{Scaling}
+
+\subsection{Warping}
+
+\section{Interacting: per-frame equations}
+
+\section{Fine-tuned motion: per-vertex equations}
+
+\mybox{To ensure compatibility with MilkDrop, Flickernoise also accepts per\_vertex\_xx and per\_pixel\_xx where xx can be any number.}
+
+\section{Variable index}
+Here is the complete list and description of the variables that can be used in patches. Some only make sense in the context of per-frame or per-vertex equations.
+
+\section{Operators and functions index}
 
 \chapter{Community}
 
