@@ -131,7 +131,7 @@ rtems_task Init(rtems_task_argument argument)
 	
 	start_memcard();
 	mkdir("/flash", 0777);
-	//mount("/dev/flash5", "/flash", "dosfs", 0, "");
+	mount("/dev/flash5", "/flash", "yaffs", 0, "");
 
 	/* TODO: read network configuration */
 	rtems_bsdnet_initialize_network();
