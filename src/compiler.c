@@ -176,6 +176,8 @@ static void load_defaults(struct compiler_sc *sc)
 	sc->p->pfv_initial[pfv_wave_g] = 1.0;
 	sc->p->pfv_initial[pfv_wave_b] = 1.0;
 	sc->p->pfv_initial[pfv_wave_a] = 1.0;
+	sc->p->pfv_initial[pfv_wave_x] = 0.5;
+	sc->p->pfv_initial[pfv_wave_y] = 0.5;
 
 	sc->p->pfv_initial[pfv_mv_x] = 16.0;
 	sc->p->pfv_initial[pfv_mv_y] = 12.0;
