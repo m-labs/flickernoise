@@ -33,9 +33,9 @@ A ``patch'' is a collection of parameters that tell Flickernoise how to draw the
 
 Each patch is saved as a file with the ``.fnp'' extension, so you can easily send them to your friends or post them on the web. You can also go to \url{http://www.milkymist.org} to see what other people have come up with, or post your own cool, new patches.
 
-The Flickernoise rendering engine largely draws ideas from MilkDrop, an audio visualization plug-in for the Winamp music player. In fact, many MilkDrop effects (called ``presets'') can be made to work with Flickernoise, sometimes with only minor modifications.
+The Flickernoise rendering engine largely draws ideas from MilkDrop, an audio visualization plug-in for the Winamp music player. In fact, many MilkDrop effects (called ``presets'') can be made to work with Flickernoise, sometimes with minor modifications only.
 
-Four things are useful for writing patches: Mathematics knowledge, artistic flare, persistence and luck. If you have any of these you will be able to create a decent preset and the more of each of these you have the better presets will become. 
+Four things are useful for writing patches: mathematics knowledge, artistic flare, persistence and luck. If you have any of these you will be able to create a decent patch and the more of each of these you have the better the patches will become. 
 
 Maybe a mathematics textbook will be handy. If you are thinking about maths ``Arrrah, let me out!!'' then don't worry you can create decent patches with very little mathematics knowledge. You will need to know basic operations and what the sine (sin) and cosine (cos) equations roughly do. These are used loads in the Flickernoise patches.
 
@@ -54,7 +54,7 @@ wave_mode=6
 
 \mybox{Flickernoise also recognizes nWaveMode instead of wave\_mode in order to make the porting of MilkDrop presets easier.}
 
-Then, start the rendering by clicking the Run button or pressing the F8 key of the keyboard. Put on some music in order to get a signal to trace other than a straight line. Feel free to experiment with the other wave modes.
+Then, start the rendering by clicking the Run button or pressing the F8 key of the keyboard. Put on some music in order to get a signal to trace other than a straight line. Feel free to experiment with the other wave modes. Use the Enter key or a left mouse click to terminate the renderer and get back to the patch editor.
 
 \section{Decay}
 In the previous example, the wave is repeatedly drawn over itself at each frame, without the screen being cleared. This does not look very nice, and after a while nothing happens anymore as the whole wave drawing area becomes all white.
@@ -74,11 +74,15 @@ Even though the decay variable is theoretically in the range 0 to 1 it realistic
 
 \section{Motion}
 \subsection{Zoom}
-A popular effect is to make the picture zooming. This is achieved using a variable adequately named ``zoom''.
+A popular effect is to make the picture zooming. This is achieved using a variable adequately named ``zoom'', which you can access like any other variable by adding a line such as:
+
+\begin{verbatim}
+zoom=1.05
+\end{verbatim}
 
 If this value is 1.0 (default), there is no zoom. If the value is 1.01, the image zooms in 1\% every frame. If the value is 1.10, the image zooms in 10\% every frame. If the value is 0.9, the image zooms out 10\% every frame; and so on.
 
-Increase and decrease the value of the zoom variable to see what the effects are like. As you can see, small changes in the zoom equate to quite noticeable effects. The zooms default normal value is 1 and small amounts of zoom are say 0.9 to 1.1 these look reasonable -- not too drastic. If you make the zoom 20 it makes little or no difference as making it say 5 as it is out of a sensible range. So it important to realise what the ``sensible'' ranges for the variables are. Change the zoom yourself to find a nice range and revert to zoom value back to 1.
+Increase and decrease the value of the zoom variable to see what the effects are like. As you can see, small changes in the zoom equate to quite noticeable effects. The zooms default normal value is 1 and small amounts of zoom are say 0.9 to 1.1 these look reasonable -- not too drastic. If you make the zoom 20 it makes little or no difference as making it say 5 as it is out of a sensible range. So it important to realise what the ``sensible'' ranges for the variables are. Change the zoom yourself to find a nice range and revert to zoom value back to 1 (you can simply delete the line that affects a value to the ``zoom'' variable).
 
 \subsection{Displacement}
 It is also possible to translate the image at every frame. This is done with the dx and dy variables, which affect horizontal and vertical motion respectively.
@@ -93,10 +97,21 @@ wave_x=0.9
 \end{verbatim}
 
 \subsection{Rotation}
+Similarly, you can make the picture rotate using a variable called ``rot''. It is expressed in radians per frame (1 radian $\approx$ 57.3 degrees). The value can be positive or negative, and the sign defines the direction of rotation. Since the rotation is applied at each frame, any non-zero value in ``rot'' will make the picture continuously rotate.
+
+The center of rotation is defined by the ``cx'' and ``cy'' variables, whose values are 0.5 by default which corresponds to the center of the screen.
 
 \subsection{Scaling}
+Scaling works like the zoom effect, but can be controlled independently in horizontal and vertical directions. This is acheived with the ``sx'' and ``sy'' variables (respectively). The meaning of their values is the same as for the zoom effect.
+
+Another difference between scaling and zoom is that the zoom effect will always zoom the center of the picture, while scaling will do the same using the point defined by the ``cx'' and ``cy'' variables.
+
+Scaling and zoom (as well as the other effects) can be used in the same patch.
 
 \subsection{Warping}
+Warping is a complex built-in effect that produces a moving distortion of the picture. You activate it by setting a non-zero positive value to the ``warp'' variable. The higher the value, the more intense the effect. A value of 2 already produces a major modification of the image.
+
+Now, you have quite a few parameter to play with already. Experiment with them in order to get a feeling of what the sensible values for them are and how the system reacts. You can of course combine all the effects in the same patch.
 
 \section{Other objects}
 \subsection{Motion vectors}
@@ -152,6 +167,8 @@ It's nice to stagger the frequencies (1.13, 1.23, and 1.33) of the sine function
 \section{Variable index}
 Here is the complete list and description of the variables that can be used in patches. Some are read-only, and some only make sense in the context of per-frame or per-vertex equations.
 
+\mybox{The sometimes inconsistent naming of the variables is legacy from MilkDrop.}
+
 \subsection{zoom}
 Range: $\geq 0$
 
@@ -176,9 +193,6 @@ Controls the frequency of the warp effect oscillation.
 Range: $\geq 0$
 
 Controls the amplitude of the warp effect oscillation.
-
-\subsection{fWarpScale}
-Range: $\geq 0$
 
 \subsection{cx, cy}
 Range: $0..1$
@@ -313,6 +327,27 @@ Range: $0..5$
 
 Size of the dots used for the motion vectors.
 
+\subsection{fVideoEchoAlpha}
+Range: $0..5$
+
+Opacity (alpha channel) of the second graphics layer. 0=transparent, 1=opaque.
+
+\subsection{fVideoEchoZoom}
+Range: $\geq 0$
+
+Zooming of the second graphics layer. 0.9=zoom out 10\%, 1.0=no zoom, 1.1=zoom in 10\%.
+
+\subsection{nVideoEchoOrientation}
+Range: $0..3$ (integer)
+
+Orientation of the second graphics layer:
+\begin{itemize}
+\item 0: Do not flip the second layer
+\item 1: Flip the second layer on X axis
+\item 2: Flip the second layer on Y axis
+\item 3: Flip the second layer on both axes
+\end{itemize}
+
 \subsection{time}
 Range: $\geq 0$
 
@@ -370,7 +405,12 @@ Range: $\geq 0$
 
 In per-vertex equations, retrieves the distance of the current point to the center of the screen.
 
-\section{Operators and functions index}
+\subsection{q1..q8}
+Range: N/A
+
+Carry values from the per-frame to the per-vertex equations.
+
+\section{Operator and function index}
 
 \section{Tips and tricks}
 
