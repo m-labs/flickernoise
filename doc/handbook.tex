@@ -1,8 +1,10 @@
 \documentclass[11pt, a5paper, pagesize]{scrbook}
-\title{Flickernoise handbook}
+\title{VJing with Milkymist}
+\subject{A Flickernoise handbook}
 \usepackage{palatino}
 \usepackage{color}
 \usepackage{url}
+\usepackage{tabularx}
 \definecolor{mygray}{gray}{0.92}
 \setlength{\parindent}{0in}
 \setlength{\parskip}{8pt}
@@ -411,9 +413,52 @@ Range: N/A
 Carry values from the per-frame to the per-vertex equations.
 
 \section{Operator and function index}
+Here is the list of the operators and functions that you can use to operate on variables in per-frame or per-vertex equations.
+
+\begin{tabularx}{\textwidth}{|c|X|}
+\hline
+\textbf{Function} & \textbf{Description} \\
+\hline
+$+$ & Addition \\
+\hline
+$-$ & Subtraction \\
+\hline
+$*$ & Multiplication \\
+\hline
+$/$ & Division \\
+\hline
+\% & Convert to integer and take remainder\\
+\hline
+$int(x)$ & Return the integer value of $x$ (floored) \\
+\hline
+$abs(x)$ & Return the absolute value of $x$ \\
+\hline
+$sign(x)$ & Return the sign of $x$ (-1, 0 or 1) \\
+\hline
+$min(x,y)$ & Return the smallest value \\
+\hline
+$max(x,y)$ & Return the greatest value \\
+\hline
+$sqr(x)$ & Return the square of $x$ (i.e.\ $x \cdot x$) \\
+\hline
+$sqrt(x)$ & Return the square root of $x$ (i.e.\ $\sqrt{x}$) \\
+\hline
+$sin(x)$ & Return the sine of $x$ (expressed in radians) \\
+\hline
+$cos(x)$ & Return the cosine of $x$ (expressed in radians) \\
+\hline
+$if(c,x,y)$ & If $c$ is different than 0, return $x$, otherwise return $y$ \\
+\hline
+$equal(x,y)$ & Return 1 if $x = y$ and 0 otherwise \\
+\hline
+$above(x,y)$ & Return 1 if $x > y$ and 0 otherwise \\
+\hline
+$below(x,y)$ & Return 1 if $x < y$ and 0 otherwise \\
+\hline
+\end{tabularx}
 
 \section{Tips and tricks}
 
-\chapter{Community}
+\chapter{Open source vision}
 
 \end{document}
