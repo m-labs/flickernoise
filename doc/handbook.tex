@@ -138,21 +138,39 @@ per_frame=zoom = zoom + 0.1*sin(time)
 
 \mybox{To ensure compatibility with MilkDrop, Flickernoise also accepts per\_frame\_xx where xx can be any number.}
 
-...then the zoom amount would oscillate between 0.9 and 1.1 over time. (Recall from your geometry classes that sin() returns a value between -1 and 1). The equation says: "take the static value of ``zoom'', then replace it with that value, plus some variation". This particular equation would oscillate (cycle) every 6.28 seconds, since the sin() function's period is approximately 6.28 ($\approx 2 \cdot \pi$) seconds. If you wanted it to make it cycle every 2 seconds, you could use:
+...then the zoom amount would oscillate between 0.9 and 1.1 over time.\footnote{Recall from your geometry classes that sin() returns a value between -1 and 1} The equation says: ``take the static value of zoom, then replace it with that value, plus some variation''. This particular equation would oscillate (cycle) every 6.28 seconds, since the sin() function's period is approximately 6.28 ($\approx 2 \cdot \pi$) seconds.
+
+The ``time'' parameter is a read-only variable that retrieves the amount of time, in seconds, since Flickernoise started generating the video effects.
+
+If you wanted it to make the zoom cycle every 2 seconds, you could use:
 
 \begin{verbatim}
 per_frame=zoom = zoom + 0.1*sin(time*3.14)
 \end{verbatim}
 
-Now, let's say you wanted to make the colour of the waveform (sound wave) that gets plotted on the screen vary through time. The colour is defined by three values, one for each of the main colour components (red, green, and blue), each in the range 0 to 1 (0 is dark, 1 is full intensity). You could use something like this:
+Now, let's say you wanted to make the color of the waveform (sound wave) that gets plotted on the screen vary through time. The color is defined by three values, one for each of the main color components (red, green, and blue), each in the range 0 to 1 (0 is dark, 1 is full intensity). You could use something like this:
 
 \begin{verbatim}
-per_frame=wave_r = wave_r + 0.5*sin(time*1.13)
-per_frame=wave_g = wave_g + 0.5*sin(time*1.23)
-per_frame=wave_b = wave_b + 0.5*sin(time*1.33)
+per_frame=wave_r = 0.5 + 0.5*sin(time*1.13)
+per_frame=wave_g = 0.5 + 0.5*sin(time*1.23)
+per_frame=wave_b = 0.5 + 0.5*sin(time*1.33)
 \end{verbatim}
 
-It's nice to stagger the frequencies (1.13, 1.23, and 1.33) of the sine functions for the red, green, and blue colour components of the wave so that they cycle at different rates, to avoid them always being all the same (which would create a greyscale wave).
+It's nice to stagger the frequencies (1.13, 1.23, and 1.33) of the sine functions for the red, green, and blue color components of the wave so that they cycle at different rates, to avoid them always being all the same (which would create a greyscale wave).
+
+Remember that the sine (and cosine) waves have a range of -1 to 1, and the wave\_\{r,g,b\} parameters take values between 0 and 1.
+
+\begin{math}
+0.5 + 0.5 \cdot sin(time) \equiv 0.5 + (-0.5\textrm{ to }0.5) \equiv 0\textrm{ to }1
+\end{math}
+
+This will generate the range 0 to 1 (and then back again from 1 to 0, etc.) over a period of 6.28 seconds (the approximate value of $2 \cdot \pi$) for a complete cycle. If you want to speed up the time period (i.e. make the color changes quicker) then multiple the time variable, e.g.\ 0.5*sin(2*time). The time period is now 6.28/2 = 3.14 seconds. And to slow it down, multiply with a number between 0 and 1. 
+
+If you want the color variable to be focused on a stricter range than you should alter the equation. For example, to generate a ``redder'' image you may want to have the range 0.5 to 1 for the wave\_r. Which would require the following equation:
+
+\begin{math}
+0.75 + 0.25 \cdot sin(time) \equiv 0.75 + (-0.25\textrm{ to }0.25) \equiv 0.5\textrm{ to }1
+\end{math}
 
 \subsection{Reacting to sound}
 
@@ -161,6 +179,9 @@ It's nice to stagger the frequencies (1.13, 1.23, and 1.33) of the sine function
 \subsection{The variable monitor}
 
 \section{Fine-tuned motion: per-vertex equations}
+
+\subsection{About per-vertex equations}
+If the built-in motion effects configured by variables such as ``zoom'', ``rot'' and ``warp'' are not enough for you, you can define your own motion equations.
 
 \subsection{Q variables}
 
@@ -177,7 +198,7 @@ Range: $\geq 0$
 Controls inward/outward motion; 0.9=zoom out 10\% per frame, 1.0=no zoom, 1.1=zoom in 10\%.
 
 \subsection{rot}
-Range: $\geq 0$
+Range: N/A
 
 Controls the amount of rotation; 0=none, 0.1=slightly counter-clockwise, -0.1=slightly clockwise.
 
