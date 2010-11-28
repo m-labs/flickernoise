@@ -38,6 +38,7 @@
 #include <rtems/shell.h>
 #include <rtems/bdpart.h>
 #include <rtems/rtems_bsdnet.h>
+#include <rtems/ftpd.h>
 #include <yaffs.h>
 
 #include "pngload.h"
@@ -135,6 +136,7 @@ rtems_task Init(rtems_task_argument argument)
 
 	/* TODO: read network configuration */
 	rtems_bsdnet_initialize_network();
+	rtems_initialize_ftpd();
 
 	sc = rtems_task_create(rtems_build_name('G', 'U', 'I', ' '), 9, 1024*1024,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
@@ -157,6 +159,21 @@ rtems_task Init(rtems_task_argument argument)
 
 	rtems_task_delete(RTEMS_SELF);
 }
+
+static struct rtems_ftpd_hook ftp_hooks[] = {
+	{NULL, NULL}
+};
+
+struct rtems_ftpd_configuration rtems_ftpd_configuration = {
+	40,		/* FTPD task priority */
+	512*1024,	/* Maximum hook 'file' size */
+	0,		/* Use default port */
+	ftp_hooks,	/* Local ftp hooks */
+	NULL,           /* Root */
+	3,		/* Task count */
+	3600,		/* Idle timeout */
+	0		/* Access */
+};
 
 #define CONFIGURE_SHELL_COMMANDS_INIT
 #define CONFIGURE_SHELL_COMMANDS_ALL
@@ -233,7 +250,7 @@ const rtems_filesystem_table_t rtems_filesystem_table[] = {
 #define CONFIGURE_EXECUTIVE_RAM_SIZE (16*1024*1024)
 
 #define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 32
-#define CONFIGURE_MAXIMUM_TASKS 16
+#define CONFIGURE_MAXIMUM_TASKS 32
 #define CONFIGURE_MAXIMUM_MESSAGE_QUEUES 16
 #define CONFIGURE_MAXIMUM_SEMAPHORES 32
 
