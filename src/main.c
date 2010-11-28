@@ -39,6 +39,7 @@
 #include <rtems/bdpart.h>
 #include <rtems/rtems_bsdnet.h>
 #include <rtems/ftpd.h>
+#include <rtems/telnetd.h>
 #include <yaffs.h>
 
 #include "pngload.h"
@@ -137,6 +138,7 @@ rtems_task Init(rtems_task_argument argument)
 	/* TODO: read network configuration */
 	rtems_bsdnet_initialize_network();
 	rtems_initialize_ftpd();
+	rtems_telnetd_initialize();
 
 	sc = rtems_task_create(rtems_build_name('G', 'U', 'I', ' '), 9, 1024*1024,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
@@ -165,7 +167,7 @@ static struct rtems_ftpd_hook ftp_hooks[] = {
 };
 
 struct rtems_ftpd_configuration rtems_ftpd_configuration = {
-	40,		/* FTPD task priority */
+	20,		/* FTPD task priority */
 	512*1024,	/* Maximum hook 'file' size */
 	0,		/* Use default port */
 	ftp_hooks,	/* Local ftp hooks */
@@ -173,6 +175,49 @@ struct rtems_ftpd_configuration rtems_ftpd_configuration = {
 	3,		/* Task count */
 	3600,		/* Idle timeout */
 	0		/* Access */
+};
+
+// FIXME: those functions should be exported by RTEMS
+extern rtems_shell_env_t *rtems_shell_init_env(
+  rtems_shell_env_t *shell_env_p
+);
+extern void rtems_shell_env_free(
+  void *ptr
+);
+
+static void rtems_telnet_shell(char *pty_name, void *cmd_arg)
+{
+	rtems_shell_env_t *shell_env;
+
+	shell_env = rtems_shell_init_env(NULL);
+	if(shell_env == NULL) {
+		printf("Unable to allocate shell environment");
+		return;
+	}
+	shell_env->devname       = pty_name;
+	shell_env->taskname      = pty_name;
+	shell_env->exit_shell    = false;
+	shell_env->forever       = false;
+	shell_env->echo          = true;
+	shell_env->input         = strdup("stdin");
+	shell_env->output        = strdup("stdout");
+	shell_env->output_append = false;
+	shell_env->wake_on_end   = RTEMS_INVALID_ID;
+	shell_env->login_check   = NULL;
+
+	rtems_shell_main_loop(shell_env);
+	
+	// shell_env is freed by rtems_shell_main_loop
+	// (using the "task variable" mechanism)
+}
+
+rtems_telnetd_config_table rtems_telnetd_config = {
+	.command = rtems_telnet_shell,
+	.arg = NULL,
+	.priority = 9,
+	.stack_size = 20 * RTEMS_MINIMUM_STACK_SIZE,
+	.login_check = NULL,
+	.keep_stdio = false
 };
 
 #define CONFIGURE_SHELL_COMMANDS_INIT
@@ -250,6 +295,7 @@ const rtems_filesystem_table_t rtems_filesystem_table[] = {
 #define CONFIGURE_EXECUTIVE_RAM_SIZE (16*1024*1024)
 
 #define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 32
+#define CONFIGURE_MAXIMUM_PTYS 4
 #define CONFIGURE_MAXIMUM_TASKS 32
 #define CONFIGURE_MAXIMUM_MESSAGE_QUEUES 16
 #define CONFIGURE_MAXIMUM_SEMAPHORES 32

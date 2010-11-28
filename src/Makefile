@@ -21,7 +21,7 @@ OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o ras
 all: flickernoise
 
 flickernoise: $(OBJS)
-	$(LD) -o $@ $(OBJS) $(LDFLAGS) -lnfs -lftpd -lyaffs2 -lmtk -llop -lfpvm -lpng -lz -lm
+	$(LD) -o $@ $(OBJS) $(LDFLAGS) -lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lz -lm
 	$(STRIP) $(STRIPFLAGS) $@
 
 bandfilters.h: bandfilters.sce
