@@ -129,7 +129,6 @@ rtems_task Init(rtems_task_argument argument)
 
 	 /* FIXME: can this be moved into the initialization table? */
 	memcard_register();
-	flash_register();
 	
 	start_memcard();
 	mkdir("/flash", 0777);
@@ -266,6 +265,7 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_FRAME_BUFFER_DRIVER
 #define CONFIGURE_APPLICATION_EXTRA_DRIVERS \
+	FLASH_DRIVER_TABLE_ENTRY, \
 	USBINPUT_DRIVER_TABLE_ENTRY, \
 	AC97_DRIVER_TABLE_ENTRY, \
 	PFPU_DRIVER_TABLE_ENTRY, \
