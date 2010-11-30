@@ -18,47 +18,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <rtems.h>
+#include <bsp/milkymist_flash.h>
 
 #include <mtklib.h>
 
 #include "flash.h"
 #include "filedialog.h"
 
-// FIXME: create file dialog only once!
-// This code needs big cleanup/rewrite
-
 static int appid;
 static int file_dialog_id;
 static int current_file_to_choose;
 
-static void cancel_callback(mtk_event *e, void *arg)
-{
-	mtk_cmd(appid, "w.close()");
-}
-
 static void flash_filedialog_ok_callback()
 {
-	char mtk_cmd_str[384];
 	char filepath[384];
 
 	get_filedialog_selection(file_dialog_id, filepath, sizeof(filepath));
-
-	switch(current_file_to_choose) {
-		case 1:
-			sprintf(mtk_cmd_str, "e1.set(-text \"%s\")", filepath);
-			break;
-		case 2:
-			sprintf(mtk_cmd_str, "e2.set(-text \"%s\")", filepath);
-			break;
-		case 3:
-			sprintf(mtk_cmd_str, "e3.set(-text \"%s\")", filepath);
-			break;
-		default:
-			sprintf(mtk_cmd_str, " ");
-			break;
-	}
-
-	mtk_cmd(appid, mtk_cmd_str);
+	mtk_cmdf(appid, "e%d.set(-text \"%s\")", current_file_to_choose, filepath);
 	close_filedialog(file_dialog_id);
 }
 
@@ -67,42 +49,142 @@ static void flash_filedialog_cancel_callback()
 	close_filedialog(file_dialog_id);
 }
 
-static void flash_callback(mtk_event *e, void *arg)
+static void opendialog_callback(mtk_event *e, void *arg)
 {
-	char name[384];
+	current_file_to_choose = (int)arg;
+	open_filedialog(file_dialog_id, "/");
+}
 
-	switch((int) arg) {
-		case 0:
-			break;
-		case 1:
-			current_file_to_choose = 1;
-			file_dialog_id = create_filedialog("Bitstream path", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
-			open_filedialog(file_dialog_id, "/");
-			break;
-		case 2:
-			current_file_to_choose = 2;
-			file_dialog_id = create_filedialog("Bios path", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
-			open_filedialog(file_dialog_id, "/");
-			break;
-		case 3:
-			current_file_to_choose = 3;
-			file_dialog_id = create_filedialog("Program path", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
-			open_filedialog(file_dialog_id, "/");
-			break;
-		case 4:
-			// TODO: verify the files and flash them
-			mtk_req(appid, name, sizeof(name), "e1.text");
-			printf("Bitstream :\t%s\n", name);
-			mtk_req(appid, name, sizeof(name), "e2.text");
-			printf("Bios :\t%s\n", name);
-			mtk_req(appid, name, sizeof(name), "e3.text");
-			printf("Program :\t%s\n", name);
+static char bitstream_name[384];
+static char bios_name[384];
+static char application_name[384];
 
-			mtk_cmd(appid, "w.close()");
-			break;
-		default:
-			break;
+static int flash_erase(int fd, unsigned int len)
+{
+	int r;
+	unsigned int size;
+	unsigned int blocksize;
+	unsigned int nblocks;
+	unsigned int i;
+
+	r = ioctl(fd, FLASH_GET_SIZE, &size);
+	if(r == -1) return 0;
+	r = ioctl(fd, FLASH_GET_BLOCKSIZE, &blocksize);
+	if(r == -1) return 0;
+	nblocks = (len + blocksize - 1)/blocksize;
+	if(nblocks*blocksize > size) return 0;
+	for(i=0;i<nblocks;i++) {
+		printf("Erasing block %d\n", i);
+		r = ioctl(fd, FLASH_ERASE_BLOCK, i*blocksize);
+		if(r == -1) return 0;
 	}
+	printf("Erasure done\n");
+	return 1;
+}
+
+static int flash_program(int flashfd, int srcfd, unsigned int len)
+{
+	int r;
+	unsigned char buf[1024];
+	unsigned char buf2[1024];
+	unsigned int p;
+
+	p = 0;
+	while(1) {
+		r = read(srcfd, buf, sizeof(buf));
+		if(r < 0) return 0;
+		if(r == 0) break;
+		if(r < sizeof(buf)) {
+			/* Length must be a multiple of 2 */
+			if(r & 1) r++;
+		}
+		write(flashfd, buf, r);
+		if(p++ == 10) {
+			p = 0;
+			printf(".");
+		}
+	}
+
+	printf("\nVerifying\n");
+
+	lseek(flashfd, 0, SEEK_SET);
+	lseek(srcfd, 0, SEEK_SET);
+
+	while(1) {
+		r = read(srcfd, buf, sizeof(buf));
+		if(r < 0) return 0;
+		if(r == 0) break;
+		read(flashfd, buf2, sizeof(buf2));
+		if(memcmp(buf, buf2, r) != 0) {
+			printf("Verify failed!\n");
+			break;
+		}
+	}
+	printf("Verify passed\n");
+
+	return 1;
+}
+
+static int flash_file(const char *target, const char *file)
+{
+	int srcfd;
+	int flashfd;
+	off_t o;
+	unsigned int len;
+
+	srcfd = open(file, O_RDONLY);
+	if(srcfd == -1) return 0;
+	
+	o = lseek(srcfd, 0, SEEK_END);
+	if(o < 0) {
+		close(srcfd);
+		return 0;
+	}
+	len = o;
+	o = lseek(srcfd, 0, SEEK_SET);
+	if(o < 0) {
+		close(srcfd);
+		return 0;
+	}
+
+	flashfd = open(target, O_RDWR);
+	if(flashfd == -1) {
+		close(srcfd);
+		return 0;
+	}
+
+	printf("Length = %d\n", len);
+
+	if(!flash_erase(flashfd, len)) {
+		close(flashfd);
+		close(srcfd);
+		return 0;
+	}
+	if(!flash_program(flashfd, srcfd, len)) {
+		close(flashfd);
+		close(srcfd);
+		return 0;
+	}
+
+	close(flashfd);
+	close(srcfd);
+
+	return 1;
+}
+
+static void ok_callback(mtk_event *e, void *arg)
+{
+	mtk_req(appid, bitstream_name, sizeof(bitstream_name), "e1.text");
+	mtk_req(appid, bios_name, sizeof(bios_name), "e2.text");
+	mtk_req(appid, application_name, sizeof(application_name), "e3.text");
+
+	flash_file("/dev/flash4", application_name);
+}
+
+static void cancel_callback(mtk_event *e, void *arg)
+{
+	close_filedialog(file_dialog_id);
+	mtk_cmd(appid, "w.close()");
 }
 
 void init_flash()
@@ -164,13 +246,15 @@ void init_flash()
 		"w = new Window(-content g -title \"Flash upgrade\")",
 		0);
 
-	mtk_bind(appid, "b_browse1", "commit", flash_callback, (void *)1);
-	mtk_bind(appid, "b_browse2", "commit", flash_callback, (void *)2);
-	mtk_bind(appid, "b_browse3", "commit", flash_callback, (void *)3);
+	mtk_bind(appid, "b_browse1", "commit", opendialog_callback, (void *)1);
+	mtk_bind(appid, "b_browse2", "commit", opendialog_callback, (void *)2);
+	mtk_bind(appid, "b_browse3", "commit", opendialog_callback, (void *)3);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
-	mtk_bind(appid, "b_ok", "commit", flash_callback, (void *)4);
+	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
+
+	file_dialog_id = create_filedialog("Flashimg selection", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
 }
 
 void open_flash_window()
