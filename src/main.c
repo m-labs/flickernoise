@@ -127,9 +127,10 @@ rtems_task Init(rtems_task_argument argument)
 {
 	rtems_status_code sc;
 
-	 /* FIXME: can this be moved into the initialization table? */
+	/* FIXME: can this be moved into the initialization table? */
 	memcard_register();
-	
+
+	mkdir("/ramdisk", 0777);
 	start_memcard();
 	mkdir("/flash", 0777);
 	mount("/dev/flash5", "/flash", "yaffs", 0, "");
