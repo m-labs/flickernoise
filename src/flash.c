@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,8 +29,10 @@
 
 #include <mtklib.h>
 
-#include "flash.h"
 #include "filedialog.h"
+#include "input.h"
+
+#include "flash.h"
 
 static int appid;
 static int file_dialog_id;
@@ -55,6 +58,24 @@ static void opendialog_callback(mtk_event *e, void *arg)
 	open_filedialog(file_dialog_id, "/");
 }
 
+enum {
+	FLASH_STATE_READY = 0,
+	FLASH_STATE_STARTING,
+	FLASH_STATE_ERASE_BITSTREAM,
+	FLASH_STATE_PROGRAM_BITSTREAM,
+	FLASH_STATE_ERROR_BITSTREAM,
+	FLASH_STATE_ERASE_BIOS,
+	FLASH_STATE_PROGRAM_BIOS,
+	FLASH_STATE_ERROR_BIOS,
+	FLASH_STATE_ERASE_APP,
+	FLASH_STATE_PROGRAM_APP,
+	FLASH_STATE_ERROR_APP,
+	FLASH_STATE_SUCCESS
+};
+
+static int flash_state;
+static int flash_progress;
+
 static char bitstream_name[384];
 static char bios_name[384];
 static char application_name[384];
@@ -73,59 +94,56 @@ static int flash_erase(int fd, unsigned int len)
 	if(r == -1) return 0;
 	nblocks = (len + blocksize - 1)/blocksize;
 	if(nblocks*blocksize > size) return 0;
+	if(nblocks == 0) return 1;
 	for(i=0;i<nblocks;i++) {
-		printf("Erasing block %d\n", i);
 		r = ioctl(fd, FLASH_ERASE_BLOCK, i*blocksize);
 		if(r == -1) return 0;
+		flash_progress = 100*i/nblocks;
 	}
-	printf("Erasure done\n");
 	return 1;
 }
 
 static int flash_program(int flashfd, int srcfd, unsigned int len)
 {
+	int written;
 	int r;
 	unsigned char buf[1024];
 	unsigned char buf2[1024];
-	unsigned int p;
 
-	p = 0;
+	if(len == 0) return 1;
+
+	written = 0;
 	while(1) {
 		r = read(srcfd, buf, sizeof(buf));
 		if(r < 0) return 0;
 		if(r == 0) break;
+		written += r;
 		if(r < sizeof(buf)) {
 			/* Length must be a multiple of 2 */
 			if(r & 1) r++;
 		}
 		write(flashfd, buf, r);
-		if(p++ == 10) {
-			p = 0;
-			printf(".");
-		}
+		flash_progress = 100*written/len;
 	}
+	if(written < len)
+		return 0;
 
-	printf("\nVerifying\n");
-
+	/* Verify */
 	lseek(flashfd, 0, SEEK_SET);
 	lseek(srcfd, 0, SEEK_SET);
-
 	while(1) {
 		r = read(srcfd, buf, sizeof(buf));
 		if(r < 0) return 0;
 		if(r == 0) break;
 		read(flashfd, buf2, sizeof(buf2));
-		if(memcmp(buf, buf2, r) != 0) {
-			printf("Verify failed!\n");
-			break;
-		}
+		if(memcmp(buf, buf2, r) != 0)
+			return 0; /* Verification failed */
 	}
-	printf("Verify passed\n");
 
 	return 1;
 }
 
-static int flash_file(const char *target, const char *file)
+static int flash_file(const char *target, const char *file, int estate, int pstate)
 {
 	int srcfd;
 	int flashfd;
@@ -153,13 +171,13 @@ static int flash_file(const char *target, const char *file)
 		return 0;
 	}
 
-	printf("Length = %d\n", len);
-
+	flash_state = estate;
 	if(!flash_erase(flashfd, len)) {
 		close(flashfd);
 		close(srcfd);
 		return 0;
 	}
+	flash_state = pstate;
 	if(!flash_program(flashfd, srcfd, len)) {
 		close(flashfd);
 		close(srcfd);
@@ -172,19 +190,138 @@ static int flash_file(const char *target, const char *file)
 	return 1;
 }
 
+static void flash_terminate(int state)
+{
+	flash_state = state;
+	rtems_task_delete(RTEMS_SELF);
+}
+
+static rtems_task flash_task(rtems_task_argument argument)
+{
+	if(application_name[0] != 0) {
+		if(!flash_file("/dev/flash4", application_name, FLASH_STATE_ERASE_APP, FLASH_STATE_PROGRAM_APP))
+			flash_terminate(FLASH_STATE_ERROR_APP);
+	}
+	flash_terminate(FLASH_STATE_SUCCESS);
+}
+
+static int flash_busy()
+{
+	switch(flash_state) {
+		case FLASH_STATE_READY:
+		case FLASH_STATE_ERROR_BITSTREAM:
+		case FLASH_STATE_ERROR_BIOS:
+		case FLASH_STATE_ERROR_APP:
+		case FLASH_STATE_SUCCESS:
+			return 0;
+		default:
+			return 1;
+	}
+}
+
+static void update_progress();
+
+#define UPDATE_PERIOD 40
+static rtems_interval next_update;
+
+static void refresh_callback(mtk_event *e, int count)
+{
+	rtems_interval t;
+
+	t = rtems_clock_get_ticks_since_boot();
+	if(t >= next_update) {
+		update_progress();
+		next_update = t + UPDATE_PERIOD;
+	}
+}
+
+static void update_progress()
+{
+	switch(flash_state) {
+		case FLASH_STATE_READY:
+			mtk_cmd(appid, "l_stat.set(-text \"Ready.\")");
+			break;
+		case FLASH_STATE_STARTING:
+			mtk_cmd(appid, "l_stat.set(-text \"Starting...\")");
+			break;
+		case FLASH_STATE_ERASE_BITSTREAM:
+			mtk_cmd(appid, "l_stat.set(-text \"Erasing bitstream...\")");
+			break;
+		case FLASH_STATE_PROGRAM_BITSTREAM:
+			mtk_cmd(appid, "l_stat.set(-text \"Programming bitstream...\")");
+			break;
+		case FLASH_STATE_ERROR_BITSTREAM:
+			mtk_cmd(appid, "l_stat.set(-text \"Failed to program bitstream.\")");
+			input_delete_callback(refresh_callback);
+			break;
+		case FLASH_STATE_ERASE_BIOS:
+			mtk_cmd(appid, "l_stat.set(-text \"Erasing BIOS...\")");
+			break;
+		case FLASH_STATE_PROGRAM_BIOS:
+			mtk_cmd(appid, "l_stat.set(-text \"Programming BIOS...\")");
+			break;
+		case FLASH_STATE_ERROR_BIOS:
+			mtk_cmd(appid, "l_stat.set(-text \"Failed to program BIOS.\")");
+			input_delete_callback(refresh_callback);
+			break;
+		case FLASH_STATE_ERASE_APP:
+			mtk_cmd(appid, "l_stat.set(-text \"Erasing application...\")");
+			break;
+		case FLASH_STATE_PROGRAM_APP:
+			mtk_cmd(appid, "l_stat.set(-text \"Programming application...\")");
+			break;
+		case FLASH_STATE_ERROR_APP:
+			mtk_cmd(appid, "l_stat.set(-text \"Failed to program application.\")");
+			input_delete_callback(refresh_callback);
+			break;
+		case FLASH_STATE_SUCCESS:
+			mtk_cmd(appid, "l_stat.set(-text \"Completed successfully.\")");
+			input_delete_callback(refresh_callback);
+ 			break;
+	}
+	mtk_cmdf(appid, "p_stat.barconfig(load, -value %d)", flash_progress);
+}
+
+static rtems_id flash_task_id;
+
 static void ok_callback(mtk_event *e, void *arg)
 {
+	rtems_status_code sc;
+	
+	if(flash_busy()) return;
+
 	mtk_req(appid, bitstream_name, sizeof(bitstream_name), "e1.text");
 	mtk_req(appid, bios_name, sizeof(bios_name), "e2.text");
 	mtk_req(appid, application_name, sizeof(application_name), "e3.text");
 
-	flash_file("/dev/flash4", application_name);
+	// TODO: validate file content
+
+	/* prevent a race condition that could cause two flash tasks to start
+	 * if this function is called twice quickly.
+	 */
+	flash_state = FLASH_STATE_STARTING;
+	
+	/* start flashing in the background */
+	sc = rtems_task_create(rtems_build_name('F', 'L', 'S', 'H'), 100, 24*1024,
+		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
+		0, &flash_task_id);
+	assert(sc == RTEMS_SUCCESSFUL);
+	sc = rtems_task_start(flash_task_id, flash_task, 0);
+	assert(sc == RTEMS_SUCCESSFUL);
+
+	/* display update */
+	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
+	input_add_callback(refresh_callback);
 }
+
+static int w_open;
 
 static void cancel_callback(mtk_event *e, void *arg)
 {
+	if(flash_busy()) return;
 	close_filedialog(file_dialog_id);
 	mtk_cmd(appid, "w.close()");
+	w_open = 0;
 }
 
 void init_flash()
@@ -229,6 +366,15 @@ void init_flash()
 
 		"g.place(g2, -column 1 -row 2)",
 
+		"sep1 = new Separator(-vertical no)",
+		"l_stat = new Label()",
+		"p_stat = new LoadDisplay()",
+		"sep2 = new Separator(-vertical no)",
+		"g.place(sep1, -column 1 -row 3)",
+		"g.place(l_stat, -column 1 -row 4)",
+		"g.place(p_stat, -column 1 -row 5)",
+		"g.place(sep2, -column 1 -row 6)",
+
 		"g3 = new Grid()",
 
 		"b_ok = new Button(-text \"OK\")",
@@ -237,7 +383,8 @@ void init_flash()
 		"g3.place(b_ok, -column 1 -row 1)",
 		"g3.place(b_cancel, -column 2 -row 1)",
 
-		"g.place(g3, -column 1 -row 3)",
+		"g.rowconfig(7, -size 10)",
+		"g.place(g3, -column 1 -row 8)",
 
 		"g.rowconfig(1, -size 0)",
 		"g.rowconfig(2, -size 0)",
@@ -259,5 +406,10 @@ void init_flash()
 
 void open_flash_window()
 {
+	if(w_open) return;
+	w_open = 1;
+	flash_state = FLASH_STATE_READY;
+	flash_progress = 0;
+	update_progress();
 	mtk_cmd(appid, "w.open()");
 }

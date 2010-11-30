@@ -324,7 +324,7 @@ static void start_event_task(const char *dev, rtems_name name, int *fd)
 	assert(sc == RTEMS_SUCCESSFUL);
 }
 
-#define MAX_CALLBACKS 4
+#define MAX_CALLBACKS 8
 
 static input_callback callbacks[MAX_CALLBACKS];
 
