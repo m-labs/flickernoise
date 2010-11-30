@@ -30,7 +30,9 @@
 #include <mtklib.h>
 
 #include "filedialog.h"
+#include "messagebox.h"
 #include "input.h"
+#include "flashvalid.h"
 
 #include "flash.h"
 
@@ -198,6 +200,14 @@ static void flash_terminate(int state)
 
 static rtems_task flash_task(rtems_task_argument argument)
 {
+	if(bitstream_name[0] != 0) {
+		if(!flash_file("/dev/flash1", bitstream_name, FLASH_STATE_ERASE_BITSTREAM, FLASH_STATE_PROGRAM_BITSTREAM))
+			flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
+	}
+	if(bios_name[0] != 0) {
+		if(!flash_file("/dev/flash2", bios_name, FLASH_STATE_ERASE_BIOS, FLASH_STATE_PROGRAM_BIOS))
+			flash_terminate(FLASH_STATE_ERROR_BIOS);
+	}
 	if(application_name[0] != 0) {
 		if(!flash_file("/dev/flash4", application_name, FLASH_STATE_ERASE_APP, FLASH_STATE_PROGRAM_APP))
 			flash_terminate(FLASH_STATE_ERROR_APP);
@@ -284,9 +294,24 @@ static void update_progress()
 
 static rtems_id flash_task_id;
 
+static void display_flashvalid_message(int val, const char *n)
+{
+	char buf[256];
+	
+	if(val == FLASHVALID_ERROR_IO) {
+		sprintf(buf, "Unable to read the %s image.\nCheck that the file exists. Operation aborted.", n);
+		messagebox("I/O error", buf);
+	} else if(val == FLASHVALID_ERROR_FORMAT) {
+		sprintf(buf, "The format of the %s image is not recognized.\nHave you selected the correct file? Operation aborted.", n);
+		messagebox("Format error", buf);
+	}
+}
+
 static void ok_callback(mtk_event *e, void *arg)
 {
 	rtems_status_code sc;
+	int nothing;
+	int val;
 	
 	if(flash_busy()) return;
 
@@ -294,12 +319,36 @@ static void ok_callback(mtk_event *e, void *arg)
 	mtk_req(appid, bios_name, sizeof(bios_name), "e2.text");
 	mtk_req(appid, application_name, sizeof(application_name), "e3.text");
 
-	// TODO: validate file content
+	/* Sanity checks */
+	nothing = 1;
+	if(bitstream_name[0] != 0) {
+		nothing = 0;
+		val = flashvalid_bitstream(bitstream_name);
+		display_flashvalid_message(val, "bitstream");
+		if(val != FLASHVALID_PASSED) return;
+	}
+	if(bios_name[0] != 0) {
+		nothing = 0;
+		val = flashvalid_bios(bios_name);
+		display_flashvalid_message(val, "BIOS");
+		if(val != FLASHVALID_PASSED) return;
+	}
+	if(application_name[0] != 0) {
+		nothing = 0;
+		val = flashvalid_application(application_name);
+		display_flashvalid_message(val, "application");
+		if(val != FLASHVALID_PASSED) return;
+	}
+	if(nothing) {
+		messagebox("Nothing to do!", "No flash images are specified.");
+		return;
+	}
 
 	/* prevent a race condition that could cause two flash tasks to start
 	 * if this function is called twice quickly.
 	 */
 	flash_state = FLASH_STATE_STARTING;
+	flash_progress = 0;
 	
 	/* start flashing in the background */
 	sc = rtems_task_create(rtems_build_name('F', 'L', 'S', 'H'), 100, 24*1024,
@@ -340,7 +389,7 @@ void init_flash()
 		"g2.columnconfig(2, -size 250)",
 		"g2.columnconfig(3, -size 0)",
 
-		"l1 = new Label(-text \"Bitstream image (.BIT):\")",
+		"l1 = new Label(-text \"Bitstream image (.FPG):\")",
 		"l2 = new Label(-text \"BIOS image (.BIN):\")",
 		"l3 = new Label(-text \"Application image (.FBI):\")",
 
@@ -377,11 +426,12 @@ void init_flash()
 
 		"g3 = new Grid()",
 
-		"b_ok = new Button(-text \"OK\")",
+		"b_ok = new Button(-text \"Program flash\")",
 		"b_cancel = new Button(-text \"Cancel\")",
 
-		"g3.place(b_ok, -column 1 -row 1)",
-		"g3.place(b_cancel, -column 2 -row 1)",
+		"g3.columnconfig(1, -size 100)",
+		"g3.place(b_ok, -column 2 -row 1)",
+		"g3.place(b_cancel, -column 3 -row 1)",
 
 		"g.rowconfig(7, -size 10)",
 		"g.place(g3, -column 1 -row 8)",
