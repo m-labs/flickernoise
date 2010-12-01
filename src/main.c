@@ -42,6 +42,7 @@
 #include <rtems/telnetd.h>
 #include <yaffs.h>
 
+#include "shellext.h"
 #include "pngload.h"
 #include "fb.h"
 #include "input.h"
@@ -223,6 +224,7 @@ rtems_telnetd_config_table rtems_telnetd_config = {
 #define CONFIGURE_SHELL_COMMANDS_INIT
 #define CONFIGURE_SHELL_COMMANDS_ALL
 #define CONFIGURE_SHELL_COMMANDS_ALL_NETWORKING
+#define CONFIGURE_SHELL_USER_COMMANDS &shell_usercmd
 #include <rtems/shellconfig.h>
 
 static struct rtems_bsdnet_ifconfig netdriver_config = {
