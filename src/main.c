@@ -23,6 +23,7 @@
 #include <sys/types.h>
 
 #include <mtklib.h>
+#include <rtems.h>
 #include <bsp/milkymist_usbinput.h>
 #include <bsp/milkymist_ac97.h>
 #include <bsp/milkymist_pfpu.h>
@@ -43,6 +44,7 @@
 #include <yaffs.h>
 
 #include "shellext.h"
+#include "sysconfig.h"
 #include "pngload.h"
 #include "fb.h"
 #include "input.h"
@@ -136,7 +138,7 @@ rtems_task Init(rtems_task_argument argument)
 	mkdir("/flash", 0777);
 	mount("/dev/flash5", "/flash", "yaffs", 0, "");
 
-	/* TODO: read network configuration */
+	sysconfig_load();
 	rtems_bsdnet_initialize_network();
 	rtems_initialize_ftpd();
 	rtems_telnetd_initialize();
@@ -226,43 +228,6 @@ rtems_telnetd_config_table rtems_telnetd_config = {
 #define CONFIGURE_SHELL_COMMANDS_ALL_NETWORKING
 #define CONFIGURE_SHELL_USER_COMMANDS &shell_usercmd
 #include <rtems/shellconfig.h>
-
-static struct rtems_bsdnet_ifconfig netdriver_config = {
-	RTEMS_BSP_NETWORK_DRIVER_NAME,
-	RTEMS_BSP_NETWORK_DRIVER_ATTACH,
-	NULL,
-	"192.168.0.42",
-	"255.255.255.0",
-	NULL,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	NULL
-};
-
-
-struct rtems_bsdnet_config rtems_bsdnet_config = {
-	&netdriver_config,
-	NULL,
-	5,
-	0,
-	0,
-	"milkymist",
-	"local.domain",
-	"192.168.0.42",
-	NULL,
-	{"192.168.0.14" },
-	{"192.168.0.14" },
-	0,
-	0,
-	0,
-	0,
-	0
-};
 
 #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
