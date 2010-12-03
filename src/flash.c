@@ -365,7 +365,7 @@ static void ok_callback(mtk_event *e, void *arg)
 
 static int w_open;
 
-static void cancel_callback(mtk_event *e, void *arg)
+static void close_callback(mtk_event *e, void *arg)
 {
 	if(flash_busy()) return;
 	close_filedialog(file_dialog_id);
@@ -427,11 +427,11 @@ void init_flash()
 		"g3 = new Grid()",
 
 		"b_ok = new Button(-text \"Program flash\")",
-		"b_cancel = new Button(-text \"Cancel\")",
+		"b_close = new Button(-text \"Close\")",
 
 		"g3.columnconfig(1, -size 100)",
 		"g3.place(b_ok, -column 2 -row 1)",
-		"g3.place(b_cancel, -column 3 -row 1)",
+		"g3.place(b_close, -column 3 -row 1)",
 
 		"g.rowconfig(7, -size 10)",
 		"g.place(g3, -column 1 -row 8)",
@@ -446,10 +446,10 @@ void init_flash()
 	mtk_bind(appid, "b_browse1", "commit", opendialog_callback, (void *)1);
 	mtk_bind(appid, "b_browse2", "commit", opendialog_callback, (void *)2);
 	mtk_bind(appid, "b_browse3", "commit", opendialog_callback, (void *)3);
-	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
+	mtk_bind(appid, "b_close", "commit", close_callback, NULL);
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 
-	mtk_bind(appid, "w", "close", cancel_callback, NULL);
+	mtk_bind(appid, "w", "close", close_callback, NULL);
 
 	file_dialog_id = create_filedialog("Flashimg selection", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
 }
