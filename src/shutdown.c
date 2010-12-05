@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <rtems.h>
+#include <rtems/libio.h>
 
 #include <mtklib.h>
 
@@ -33,6 +34,8 @@ static void cancel_callback(mtk_event *e, void *arg)
 static void shutdown_callback(mtk_event *e, void *arg)
 {
 	int turnoff = (int)arg;
+	unmount("/memcard");
+	unmount("/flash");
 	rtems_shutdown_executive(turnoff);
 }
 
