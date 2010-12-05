@@ -16,6 +16,13 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/sockio.h>
+#include <arpa/inet.h>
+#include <net/if.h>
 #include <rtems.h>
 #include <rtems/rtems_bsdnet.h>
 #include <rtems/dhcp.h>
@@ -47,8 +54,8 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 	5,
 	0,
 	0,
-	NULL, /* hostname */
-	NULL, /* domainname */
+	"milkymist", /* hostname */
+	"local", /* domainname */
 	NULL, /* gateway */
 	NULL, /* log_host */
 	{ NULL }, /* name_server[3] */
@@ -72,9 +79,6 @@ struct sysconfig {
 	unsigned char dhcp_enable;
 	unsigned int ip;
 	unsigned int netmask;
-	unsigned int dns1, dns2;
-	char hostname[32];
-	char domain[32];
 	
 	char login[32];
 	char password[32];
@@ -86,7 +90,7 @@ static int readconfig(const char *filename, struct sysconfig *out)
 {
 	FILE *fd;
 
-	fd = fopen(filename, "rb");
+	fd = fopen(filename, "r");
 	if(fd == NULL)
 		return 0;
 	if(fread(out, sizeof(struct sysconfig), 1, fd) != 1) {
@@ -101,8 +105,6 @@ static int readconfig(const char *filename, struct sysconfig *out)
 		return 0;
 
 	/* make sure strings are terminated */
-	out->hostname[31] = 0;
-	out->domain[31] = 0;
 	out->login[31] = 0;
 	out->password[31] = 0;
 	out->autostart[255] = 0;
@@ -121,8 +123,6 @@ static struct sysconfig sysconfig = {
 
 static char ip_fmt[FMT_IP_LEN];
 static char netmask_fmt[FMT_IP_LEN];
-static char dns1_fmt[FMT_IP_LEN];
-static char dns2_fmt[FMT_IP_LEN];
 
 static void format_ip(unsigned int ip, char *out)
 {
@@ -133,11 +133,13 @@ static void format_ip(unsigned int ip, char *out)
 		ip & 0x000000ff);
 }
 
+#define SYSCONFIG_FILE "/flash/sysconfig.bin"
+
 void sysconfig_load()
 {
 	struct sysconfig conf;
 
-	if(readconfig("/flash/sysconfig", &conf))
+	if(readconfig(SYSCONFIG_FILE, &conf))
 		memcpy(&sysconfig, &conf, sizeof(struct sysconfig));
 
 	if(sysconfig.dhcp_enable)
@@ -154,27 +156,112 @@ void sysconfig_load()
 		netdriver_config.ip_netmask = netmask_fmt;
 	} else
 		netdriver_config.ip_netmask = NULL;
-	if(sysconfig.dns1) {
-		format_ip(sysconfig.dns1, dns1_fmt);
-		rtems_bsdnet_config.name_server[0] = dns1_fmt;
-	} else
-		rtems_bsdnet_config.name_server[0] = NULL;
-	if(sysconfig.dns2) {
-		format_ip(sysconfig.dns2, dns2_fmt);
-		rtems_bsdnet_config.name_server[1] = dns2_fmt;
-	} else
-		rtems_bsdnet_config.name_server[1] = NULL;
-	if(sysconfig.hostname[0])
-		rtems_bsdnet_config.hostname = sysconfig.hostname;
-	else
-		rtems_bsdnet_config.hostname = NULL;
-	if(sysconfig.domain[0])
-		rtems_bsdnet_config.domainname = sysconfig.domain;
-	else
-		rtems_bsdnet_config.domainname = NULL;
-	
 }
 
 void sysconfig_save()
 {
+	FILE *fd;
+
+	fd = fopen(SYSCONFIG_FILE, "w");
+	if(fd == NULL) return;
+	fwrite(&sysconfig, sizeof(struct sysconfig), 1, fd);
+	fclose(fd);
 }
+
+#define NETWORK_INTERFACE "minimac0"
+
+static unsigned int ifconfig_get_ip(uint32_t cmd)
+{
+	struct sockaddr_in ipaddr;
+
+	memset(&ipaddr, 0, sizeof(ipaddr));
+	ipaddr.sin_len = sizeof(ipaddr);
+	ipaddr.sin_family = AF_INET;
+	rtems_bsdnet_ifconfig(NETWORK_INTERFACE, cmd, &ipaddr);
+	return ipaddr.sin_addr.s_addr;
+}
+
+static void ifconfig_set_ip(uint32_t cmd, unsigned int ip)
+{
+	struct sockaddr_in ipaddr;
+
+	memset(&ipaddr, 0, sizeof(ipaddr));
+	ipaddr.sin_len = sizeof(ipaddr);
+	ipaddr.sin_family = AF_INET;
+	ipaddr.sin_addr.s_addr = ip;
+	rtems_bsdnet_ifconfig(NETWORK_INTERFACE, cmd, &ipaddr);
+}
+
+/* get */
+
+int sysconfig_get_keyboard_layout()
+{
+	return sysconfig.keyboard_layout;
+}
+
+void sysconfig_get_ipconfig(int *dhcp_enable, unsigned int *ip, unsigned int *netmask)
+{
+	*dhcp_enable = sysconfig.dhcp_enable;
+
+	if(ip != NULL)
+		*ip = ifconfig_get_ip(SIOCGIFADDR);
+	if(netmask != NULL)
+		*netmask = ifconfig_get_ip(SIOCGIFNETMASK);
+}
+
+void sysconfig_get_credentials(char *login, char *password)
+{
+	strcpy(login, sysconfig.login);
+	strcpy(password, sysconfig.password);
+}
+
+void sysconfig_get_autostart(char *autostart)
+{
+	strcpy(autostart, sysconfig.autostart);
+}
+
+/* set */
+
+void sysconfig_set_keyboard_layout(int layout)
+{
+	sysconfig.keyboard_layout = layout;
+	/* TODO: notify MTK about the changed layout */
+}
+
+void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netmask)
+{
+	if(dhcp_enable == -1)
+		dhcp_enable = sysconfig.dhcp_enable;
+
+	if(!dhcp_enable) {
+		if((ip != 0) && (sysconfig.ip != ip))
+			ifconfig_set_ip(SIOCSIFADDR, ip);
+		if((netmask != 0) && (sysconfig.netmask != netmask))
+			ifconfig_set_ip(SIOCSIFNETMASK, netmask);
+		if(sysconfig.dhcp_enable)
+			rtems_bsdnet_dhcp_down();
+	} else if(!sysconfig.dhcp_enable) {
+		ifconfig_set_ip(SIOCSIFADDR, 0);
+		ifconfig_set_ip(SIOCSIFNETMASK, 0);
+		rtems_bsdnet_do_dhcp();
+	}
+
+	sysconfig.dhcp_enable = dhcp_enable;
+	if(ip != 0)
+		sysconfig.ip = ip;
+	if(netmask != 0)
+		sysconfig.netmask = netmask;
+}
+
+void sysconfig_set_credentials(char *login, char *password)
+{
+	strcpy(sysconfig.login, login);
+	strcpy(sysconfig.password, password);
+}
+
+void sysconfig_set_autostart(char *autostart)
+{
+	strcpy(sysconfig.autostart, autostart);
+}
+
+/* login callbacks */

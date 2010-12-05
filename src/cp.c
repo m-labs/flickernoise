@@ -179,7 +179,6 @@ static void cp_callback(mtk_event *e, void *arg)
 
 		case CP_ITEM_SYSETTINGS:
 			open_sysettings_window();
-			unsupported();
 			break;
 		case CP_ITEM_FILEMANAGER:
 			unsupported();
