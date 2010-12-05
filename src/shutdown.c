@@ -26,6 +26,13 @@
 
 static int appid;
 
+void clean_shutdown(int turnoff)
+{
+	unmount("/memcard");
+	unmount("/flash");
+	rtems_shutdown_executive(turnoff);
+}
+
 static void cancel_callback(mtk_event *e, void *arg)
 {
 	mtk_cmd(appid, "w.close()");
@@ -34,9 +41,7 @@ static void cancel_callback(mtk_event *e, void *arg)
 static void shutdown_callback(mtk_event *e, void *arg)
 {
 	int turnoff = (int)arg;
-	unmount("/memcard");
-	unmount("/flash");
-	rtems_shutdown_executive(turnoff);
+	clean_shutdown(turnoff);
 }
 
 void init_shutdown()

@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <rtems.h>
 #include <mtklib.h>
 #include <keycodes.h>
 
 #include "input.h"
 
+#include "shutdown.h"
 #include "reboot.h"
 
 static int ctrl, alt;
@@ -36,7 +36,7 @@ static void callback(mtk_event *e, int count)
 			else if(e[i].press.code == MTK_KEY_LEFTALT)
 				alt = 1;
 			else if(ctrl && alt && (e[i].press.code == MTK_KEY_DELETE))
-				rtems_shutdown_executive(0);
+				clean_shutdown(0);
 		} else if (e[i].type == EVENT_TYPE_RELEASE) {
 			if(e[i].release.code == MTK_KEY_LEFTCTRL)
 				ctrl = 0;

@@ -135,6 +135,11 @@ static void format_ip(unsigned int ip, char *out)
 
 #define SYSCONFIG_FILE "/flash/sysconfig.bin"
 
+static void my_dhcp()
+{
+	rtems_bsdnet_do_dhcp_timeout();
+}
+
 void sysconfig_load()
 {
 	struct sysconfig conf;
@@ -143,7 +148,7 @@ void sysconfig_load()
 		memcpy(&sysconfig, &conf, sizeof(struct sysconfig));
 
 	if(sysconfig.dhcp_enable)
-		rtems_bsdnet_config.bootp = rtems_bsdnet_do_dhcp;
+		rtems_bsdnet_config.bootp = my_dhcp;
 	else
 		rtems_bsdnet_config.bootp = NULL;
 	if(sysconfig.ip) {
@@ -243,7 +248,7 @@ void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netma
 	} else if(!sysconfig.dhcp_enable) {
 		ifconfig_set_ip(SIOCSIFADDR, 0);
 		ifconfig_set_ip(SIOCSIFNETMASK, 0);
-		rtems_bsdnet_do_dhcp();
+		rtems_bsdnet_do_dhcp_timeout(); // TODO: spawn task
 	}
 
 	sysconfig.dhcp_enable = dhcp_enable;

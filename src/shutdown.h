@@ -21,4 +21,6 @@
 void init_shutdown();
 void open_shutdown_window();
 
+void clean_shutdown(int turnoff);
+
 #endif /* __SHUTDOWN_H */
