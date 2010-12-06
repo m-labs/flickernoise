@@ -53,7 +53,7 @@ static int patch_method(const char *path, const char *types,
 	return 0;
 }
 
-float osc_variables[OSC_COUNT];
+static float osc_variables[OSC_COUNT];
 
 static int variable_method(const char *path, const char *types,
 	lop_arg **argv, int argc, lop_message msg,
