@@ -37,4 +37,6 @@ void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netma
 void sysconfig_set_credentials(char *login, char *password);
 void sysconfig_set_autostart(char *autostart);
 
+bool sysconfig_login_check(const char *user, const char *passphrase);
+
 #endif /* __SYSCONFIG_H */

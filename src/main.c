@@ -208,7 +208,7 @@ static void rtems_telnet_shell(char *pty_name, void *cmd_arg)
 	shell_env->output        = strdup("stdout");
 	shell_env->output_append = false;
 	shell_env->wake_on_end   = RTEMS_INVALID_ID;
-	shell_env->login_check   = NULL;
+	shell_env->login_check   = sysconfig_login_check;
 
 	rtems_shell_main_loop(shell_env);
 	

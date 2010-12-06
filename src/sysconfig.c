@@ -142,10 +142,16 @@ static void my_dhcp()
 	rtems_bsdnet_do_dhcp_timeout();
 }
 
+static void sysconfig_credentials_lock_init();
+static void sysconfig_credentials_lock();
+static void sysconfig_credentials_unlock();
+
 void sysconfig_load()
 {
 	struct sysconfig conf;
 
+	sysconfig_credentials_lock_init();
+	
 	if(readconfig(SYSCONFIG_FILE, &conf))
 		memcpy(&sysconfig, &conf, sizeof(struct sysconfig));
 
@@ -290,8 +296,10 @@ void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netma
 
 void sysconfig_set_credentials(char *login, char *password)
 {
+	sysconfig_credentials_lock();
 	strcpy(sysconfig.login, login);
 	strcpy(sysconfig.password, password);
+	sysconfig_credentials_unlock();
 }
 
 void sysconfig_set_autostart(char *autostart)
@@ -300,3 +308,36 @@ void sysconfig_set_autostart(char *autostart)
 }
 
 /* login callbacks */
+
+bool sysconfig_login_check(const char *user, const char *passphrase)
+{
+	bool r;
+
+	sysconfig_credentials_lock();
+	r = ((sysconfig.login[0] != 0) || (sysconfig.password[0] != 0))
+	&& (strcmp(user, sysconfig.login) == 0) && (strcmp(passphrase, sysconfig.password) == 0);
+	sysconfig_credentials_unlock();
+	return r;
+}
+
+static rtems_id credentials_lock;
+
+static void sysconfig_credentials_lock_init()
+{
+	rtems_semaphore_create(
+		rtems_build_name('C', 'R', 'E', 'D'),
+		1,
+		RTEMS_SIMPLE_BINARY_SEMAPHORE,
+		0,
+		&credentials_lock);
+}
+
+static void sysconfig_credentials_lock()
+{
+	rtems_semaphore_obtain(credentials_lock, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
+}
+
+static void sysconfig_credentials_unlock()
+{
+	rtems_semaphore_release(credentials_lock);
+}
