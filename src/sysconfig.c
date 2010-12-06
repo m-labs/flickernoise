@@ -116,7 +116,9 @@ static int readconfig(const char *filename, struct sysconfig *out)
 static struct sysconfig sysconfig = {
 	.magic = SYSCONFIG_MAGIC,
 	.version = SYSCONFIG_VERSION,
-	.dhcp_enable = 1
+	.dhcp_enable = 0,
+	.ip = 0xc0a8002a,
+	.netmask = 0xffffff00
 };
 
 #define FMT_IP_LEN (4*3+3*1+1)
@@ -233,22 +235,50 @@ void sysconfig_set_keyboard_layout(int layout)
 	/* TODO: notify MTK about the changed layout */
 }
 
+static int dhcp_task_running;
+
+static rtems_task dhcp_task(rtems_task_argument argument)
+{
+	rtems_bsdnet_do_dhcp_timeout();
+	dhcp_task_running = 0;
+	rtems_task_delete(RTEMS_SELF);
+}
+
+static void start_dhcp_task()
+{
+	rtems_id task_id;
+	rtems_status_code sc;
+	
+	sc = rtems_task_create(rtems_build_name('A', 'D', 'H', 'C'), 150, 64*1024,
+		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
+		0, &task_id);
+	if(sc != RTEMS_SUCCESSFUL) return;
+	sc = rtems_task_start(task_id, dhcp_task, 0);
+	if(sc != RTEMS_SUCCESSFUL) {
+		rtems_task_delete(task_id);
+		return;
+	}
+	dhcp_task_running = 1;
+}
+
 void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netmask)
 {
 	if(dhcp_enable == -1)
 		dhcp_enable = sysconfig.dhcp_enable;
 
-	if(!dhcp_enable) {
-		if(sysconfig.dhcp_enable)
-			rtems_bsdnet_dhcp_down();
-		if(ip != 0)
-			ifconfig_set_ip(SIOCSIFADDR, ip);
-		if(netmask != 0)
-			ifconfig_set_ip(SIOCSIFNETMASK, netmask);
-	} else if(!sysconfig.dhcp_enable) {
-		ifconfig_set_ip(SIOCSIFADDR, 0);
-		ifconfig_set_ip(SIOCSIFNETMASK, 0);
-		rtems_bsdnet_do_dhcp_timeout(); // TODO: spawn task
+	if(!dhcp_task_running) {
+		if(!dhcp_enable) {
+			if(sysconfig.dhcp_enable)
+				rtems_bsdnet_dhcp_down();
+			if(ip != 0)
+				ifconfig_set_ip(SIOCSIFADDR, ip);
+			if(netmask != 0)
+				ifconfig_set_ip(SIOCSIFNETMASK, netmask);
+		} else if(!sysconfig.dhcp_enable) {
+			ifconfig_set_ip(SIOCSIFADDR, 0);
+			ifconfig_set_ip(SIOCSIFNETMASK, 0);
+			start_dhcp_task();
+		}
 	}
 
 	sysconfig.dhcp_enable = dhcp_enable;
