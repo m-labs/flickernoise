@@ -239,12 +239,12 @@ void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netma
 		dhcp_enable = sysconfig.dhcp_enable;
 
 	if(!dhcp_enable) {
-		if((ip != 0) && (sysconfig.ip != ip))
-			ifconfig_set_ip(SIOCSIFADDR, ip);
-		if((netmask != 0) && (sysconfig.netmask != netmask))
-			ifconfig_set_ip(SIOCSIFNETMASK, netmask);
 		if(sysconfig.dhcp_enable)
 			rtems_bsdnet_dhcp_down();
+		if(ip != 0)
+			ifconfig_set_ip(SIOCSIFADDR, ip);
+		if(netmask != 0)
+			ifconfig_set_ip(SIOCSIFNETMASK, netmask);
 	} else if(!sysconfig.dhcp_enable) {
 		ifconfig_set_ip(SIOCSIFADDR, 0);
 		ifconfig_set_ip(SIOCSIFNETMASK, 0);

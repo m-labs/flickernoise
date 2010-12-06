@@ -208,8 +208,6 @@ static void update_network()
 	int dhcp_enable;
 	unsigned int ip;
 	unsigned int netmask;
-
-	// TODO: enable/disable text entries with DHCP
 	
 	sysconfig_get_ipconfig(&dhcp_enable, &ip, &netmask);
 	mtk_cmdf(appid, "b_dhcp.set(-state %s)", dhcp_enable ? "on" : "off");
@@ -223,6 +221,8 @@ static void update_network()
 		(netmask & 0x00ff0000) >> 16,
 		(netmask & 0x0000ff00) >> 8,
 		netmask & 0x000000ff);
+	mtk_cmdf(appid, "e_ip.set(-readonly %s)", dhcp_enable ? "yes" : "no");
+	mtk_cmdf(appid, "e_netmask.set(-readonly %s)", dhcp_enable ? "yes" : "no");
 }
 
 static void update_credentials()
