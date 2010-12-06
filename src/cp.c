@@ -35,6 +35,7 @@
 #include "config.h"
 #include "filedialog.h"
 #include "messagebox.h"
+#include "sysconfig.h"
 
 #include "cp.h"
 
@@ -66,10 +67,13 @@ static void on_config_change()
 
 static void loadok_callback(mtk_event *e, void *arg)
 {
-	char buf[32768];
+	char buf[8192];
 
-	get_filedialog_selection(load_appid, buf, 32768);
-	config_load(buf);
+	get_filedialog_selection(load_appid, buf, 8192);
+	if(!config_load(buf)) {
+		messagebox("Performance load", "Unable to load the performance file");
+		return;
+	}
 	on_config_change();
 	clear_changed();
 	close_filedialog(load_appid);
@@ -312,4 +316,18 @@ void init_cp()
 
 	load_appid = create_filedialog("Load performance", 0, loadok_callback, NULL, loadcancel_callback, NULL);
 	save_appid = create_filedialog("Save performance", 1, saveok_callback, NULL, savecancel_callback, NULL);
+}
+
+void cp_autostart()
+{
+	char autostart[256];
+
+	sysconfig_get_autostart(autostart);
+	if(autostart[0] == 0) return;
+	if(!config_load(autostart)) {
+		messagebox("Autostart failed", "Unable to load the specified performance file.\nCheck the 'Autostart' section in the 'System settings' dialog box.");
+		return;
+	}
+	on_config_change();
+	start_performance();
 }

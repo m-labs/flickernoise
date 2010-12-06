@@ -77,6 +77,11 @@ static void browse_callback(mtk_event *e, void *arg)
 	open_filedialog(browse_appid, "/");
 }
 
+static void clear_callback(mtk_event *e, void *arg)
+{
+	mtk_cmd(appid, "e_autostart.set(-text \"\")");
+}
+
 void init_sysettings()
 {
 	appid = mtk_init_app("System settings");
@@ -150,15 +155,18 @@ void init_sysettings()
 		"l_autostart = new Label(-text \"File:\")",
 		"e_autostart = new Entry()",
 		"b_autostart = new Button(-text \"Browse\")",
+		"b_autostart_clr = new Button(-text \"Clear\")",
 		"g_autostart1.place(l_autostart, -column 1 -row 1)",
 		"g_autostart1.place(e_autostart, -column 2 -row 1)",
 		"g_autostart1.place(b_autostart, -column 3 -row 1)",
+		"g_autostart1.place(b_autostart_clr, -column 4 -row 1)",
 		"g_autostart1.columnconfig(3, -size 0)",
+		"g_autostart1.columnconfig(4, -size 0)",
 
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
-		"g_btn.columnconfig(1, -size 200)",
+		"g_btn.columnconfig(1, -size 280)",
 		"g_btn.place(b_ok, -column 2 -row 1)",
 		"g_btn.place(b_cancel, -column 3 -row 1)",
 
@@ -183,6 +191,7 @@ void init_sysettings()
 	mtk_bind(appid, "b_dhcp", "press", dhcp_callback, NULL);
 
 	mtk_bind(appid, "b_autostart", "commit", browse_callback, NULL);
+	mtk_bind(appid, "b_autostart_clr", "commit", clear_callback, NULL);
 	
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);

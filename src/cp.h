@@ -20,5 +20,6 @@
 
 void init_cp();
 void cp_notify_changed();
+void cp_autostart();
 
 #endif /* __CP_H */

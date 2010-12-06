@@ -99,9 +99,11 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_flash();
 	init_shutdown();
 
+	cp_autostart();
+
 	/* FIXME: work around "black screen" bug in MTK */
 	mtk_cmd(1, "screen.refresh()");
-
+	
 	input_eventloop();
 }
 
