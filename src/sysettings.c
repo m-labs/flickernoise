@@ -21,9 +21,11 @@
 
 #include "input.h"
 #include "sysconfig.h"
+#include "filedialog.h"
 #include "sysettings.h"
 
 static int appid;
+static int browse_appid;
 
 static void close_sysettings_window(int save);
 static void update_layout();
@@ -54,6 +56,25 @@ static void ok_callback(mtk_event *e, void *arg)
 static void cancel_callback(mtk_event *e, void *arg)
 {
 	close_sysettings_window(0);
+}
+
+static void browse_ok_callback()
+{
+	char filename[384];
+
+	get_filedialog_selection(browse_appid, filename, sizeof(filename));
+	close_filedialog(browse_appid);
+	mtk_cmdf(appid, "e_autostart.set(-text \"%s\")", filename);
+}
+
+static void browse_cancel_callback()
+{
+	close_filedialog(browse_appid);
+}
+
+static void browse_callback(mtk_event *e, void *arg)
+{
+	open_filedialog(browse_appid, "/");
 }
 
 void init_sysettings()
@@ -160,11 +181,15 @@ void init_sysettings()
 	mtk_bind(appid, "b_us", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_US);
 
 	mtk_bind(appid, "b_dhcp", "press", dhcp_callback, NULL);
+
+	mtk_bind(appid, "b_autostart", "commit", browse_callback, NULL);
 	
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
+
+	browse_appid = create_filedialog("Autostart select", 0, browse_ok_callback, NULL, browse_cancel_callback, NULL);
 }
 
 static void update_layout()
@@ -275,6 +300,7 @@ static void close_sysettings_window(int save)
 	w_open = 0;
 
 	input_delete_callback(ip_update);
+	close_filedialog(browse_appid);
 	
 	if(save) {
 		char ip_txt[16];
