@@ -172,14 +172,15 @@ static struct rtems_ftpd_hook ftp_hooks[] = {
 };
 
 struct rtems_ftpd_configuration rtems_ftpd_configuration = {
-	20,		/* FTPD task priority */
-	512*1024,	/* Maximum hook 'file' size */
-	0,		/* Use default port */
-	ftp_hooks,	/* Local ftp hooks */
-	NULL,           /* Root */
-	3,		/* Task count */
-	3600,		/* Idle timeout */
-	0		/* Access */
+	20,			/* FTPD task priority */
+	512*1024,		/* Maximum hook 'file' size */
+	0,			/* Use default port */
+	ftp_hooks,		/* Local ftp hooks */
+	NULL,			/* Root */
+	3,			/* Task count */
+	3600,			/* Idle timeout */
+	0,			/* Access */
+	sysconfig_login_check	/* Login */
 };
 
 // FIXME: those functions should be exported by RTEMS

@@ -313,10 +313,14 @@ bool sysconfig_login_check(const char *user, const char *passphrase)
 {
 	bool r;
 
+	if(user == NULL) user = "";
+	if(passphrase == NULL) passphrase = "";
+
 	sysconfig_credentials_lock();
 	r = ((sysconfig.login[0] != 0) || (sysconfig.password[0] != 0))
 	&& (strcmp(user, sysconfig.login) == 0) && (strcmp(passphrase, sysconfig.password) == 0);
 	sysconfig_credentials_unlock();
+
 	return r;
 }
 

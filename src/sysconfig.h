@@ -18,6 +18,8 @@
 #ifndef __SYSCONFIG_H
 #define __SYSCONFIG_H
 
+#include <stdbool.h>
+
 enum {
 	SC_KEYBOARD_LAYOUT_GERMAN,
 	SC_KEYBOARD_LAYOUT_FRENCH,
