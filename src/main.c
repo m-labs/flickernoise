@@ -32,6 +32,7 @@
 #include <bsp/milkymist_flash.h>
 #include <bsp/milkymist_dmx.h>
 #include <bsp/milkymist_ir.h>
+#include <bsp/milkymist_video.h>
 #include <bsp/milkymist_midi.h>
 #include <bsp/milkymist_versions.h>
 #include <bsp/milkymist_gpio.h>
@@ -243,6 +244,7 @@ rtems_telnetd_config_table rtems_telnetd_config = {
 	TMU_DRIVER_TABLE_ENTRY, \
 	DMX_DRIVER_TABLE_ENTRY, \
 	IR_DRIVER_TABLE_ENTRY, \
+	VIDEO_DRIVER_TABLE_ENTRY, \
 	MIDI_DRIVER_TABLE_ENTRY, \
 	VERSIONS_DRIVER_TABLE_ENTRY, \
 	GPIO_DRIVER_TABLE_ENTRY
