@@ -189,6 +189,8 @@ static void set_frd_from_pfv(struct patch *p, struct frame_descriptor *frd)
 	frd->dmx[1] = read_pfv(p, pfv_dmx2);
 	frd->dmx[2] = read_pfv(p, pfv_dmx3);
 	frd->dmx[3] = read_pfv(p, pfv_dmx4);
+
+	frd->video_a = read_pfv(p, pfv_video_a);
 }
 
 static unsigned int pfpudummy[2] __attribute__((aligned(sizeof(struct tmu_vertex))));

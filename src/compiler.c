@@ -139,7 +139,9 @@ static const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
 	"osc1",
 	"osc2",
 	"osc3",
-	"osc4"
+	"osc4",
+
+	"video_a"
 };
 
 static int pfv_from_name(const char *name)

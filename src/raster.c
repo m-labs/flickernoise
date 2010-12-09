@@ -27,6 +27,7 @@
 #include <rtems.h>
 #include <rtems/fb.h>
 #include <bsp/milkymist_tmu.h>
+#include <bsp/milkymist_video.h>
 
 #include "config.h"
 #include "framedescriptor.h"
@@ -91,7 +92,6 @@ static void warp(int tmu_fd, unsigned short *src, unsigned short *dest, struct t
 
 static void draw_dot(struct line_context *ctx, int x, int y, unsigned int l)
 {
-	// TODO: make them round and good looking
 	l >>= 1;
 	hline(ctx, y, x-l, x+l);
 }
@@ -422,7 +422,7 @@ static void init_vecho_vertices(struct tmu_vertex *vertices, struct frame_descri
 
 static void scale(int tmu_fd, struct tmu_vertex *vertices,
 	unsigned short *src, unsigned short *dest,
-	int hres, int vres, int alpha, bool invalidate)
+	int src_hres, int src_vres, int hres, int vres, int alpha, bool invalidate)
 {
 	struct tmu_td td;
 
@@ -433,8 +433,8 @@ static void scale(int tmu_fd, struct tmu_vertex *vertices,
 	td.chromakey = 0;
 	td.vertices = vertices;
 	td.texfbuf = src;
-	td.texhres = renderer_texsize;
-	td.texvres = renderer_texsize;
+	td.texhres = src_hres;
+	td.texvres = src_vres;
 	td.texhmask = TMU_MASK_FULL;
 	td.texvmask = TMU_MASK_FULL;
 	td.dstfbuf = dest;
@@ -449,6 +449,38 @@ static void scale(int tmu_fd, struct tmu_vertex *vertices,
 	td.invalidate_after = false;
 
 	ioctl(tmu_fd, TMU_EXECUTE, &td);
+}
+
+#define VIDEO_W 720
+#define VIDEO_H 288
+
+static void video(unsigned short *tex_backbuffer, struct frame_descriptor *frd, int tmu_fd, int video_fd, struct tmu_vertex *scale_vertices)
+{
+	int alpha;
+	unsigned short *videoframe;
+	
+	alpha = 64.0*frd->video_a;
+	alpha--;
+	if(alpha > TMU_ALPHA_MAX)
+		alpha = TMU_ALPHA_MAX;
+	if(alpha <= 0)
+		return;
+
+	scale_vertices[0].x = 0;
+	scale_vertices[0].y = 0;
+	scale_vertices[1].x = VIDEO_W << TMU_FIXEDPOINT_SHIFT;
+	scale_vertices[1].y = 0;
+	scale_vertices[TMU_MESH_MAXSIZE].x = 0;
+	scale_vertices[TMU_MESH_MAXSIZE].y = VIDEO_H << TMU_FIXEDPOINT_SHIFT;
+	scale_vertices[TMU_MESH_MAXSIZE+1].x = VIDEO_W << TMU_FIXEDPOINT_SHIFT;
+	scale_vertices[TMU_MESH_MAXSIZE+1].y = VIDEO_H << TMU_FIXEDPOINT_SHIFT;
+
+	videoframe = NULL;
+	ioctl(video_fd, VIDEO_BUFFER_LOCK, &videoframe);
+	if(videoframe == NULL)
+		return;
+	scale(tmu_fd, scale_vertices, videoframe, tex_backbuffer, VIDEO_W, VIDEO_H, renderer_texsize, renderer_texsize, alpha, true);
+	ioctl(video_fd, VIDEO_BUFFER_UNLOCK, videoframe);
 }
 
 struct raster_task_param {
@@ -469,7 +501,7 @@ static rtems_task raster_task(rtems_task_argument argument)
 	unsigned short *tex_frontbuffer, *tex_backbuffer;
 	unsigned short *p;
 	struct tmu_vertex *scale_vertices;
-	int tmu_fd, dmx_fd;
+	int tmu_fd, dmx_fd, video_fd;
 	unsigned short *screen_backbuffer;
 	int hres, vres;
 	float brightness_error;
@@ -498,6 +530,8 @@ static rtems_task raster_task(rtems_task_argument argument)
 	assert(tmu_fd != -1);
 	dmx_fd = open("/dev/dmx_out", O_RDWR);
 	assert(dmx_fd != -1);
+	video_fd = open("/dev/video", O_RDWR);
+	assert(video_fd != -1);
 
 	get_screen_res(param->framebuffer_fd, &hres, &vres);
 	ioctl(param->framebuffer_fd, FBIOSETBUFFERMODE, FB_TRIPLE_BUFFERED);
@@ -530,18 +564,19 @@ static rtems_task raster_task(rtems_task_argument argument)
 		compute_wave_vertices(frd, &params, vertices, &nvertices);
 		ioctl(tmu_fd, TMU_EXECUTE_WAIT);
 		draw(tex_backbuffer, frd, &params, vertices, nvertices);
+		video(tex_backbuffer, frd, tmu_fd, video_fd, scale_vertices);
 
 		/* Scale and send to screen */
 		screen_backbuffer = get_screen_backbuffer(param->framebuffer_fd);
 		init_scale_vertices(scale_vertices);
-		scale(tmu_fd, scale_vertices, tex_backbuffer, screen_backbuffer, hres, vres, TMU_ALPHA_MAX, true);
+		scale(tmu_fd, scale_vertices, tex_backbuffer, screen_backbuffer, renderer_texsize, renderer_texsize, hres, vres, TMU_ALPHA_MAX, true);
 		vecho_alpha = 64.0*frd->vecho_alpha;
 		vecho_alpha--;
 		if(vecho_alpha > TMU_ALPHA_MAX)
 			vecho_alpha = TMU_ALPHA_MAX;
 		if(vecho_alpha > 0) {
 			init_vecho_vertices(scale_vertices, frd);
-			scale(tmu_fd, scale_vertices, tex_backbuffer, screen_backbuffer, hres, vres, vecho_alpha, false);
+			scale(tmu_fd, scale_vertices, tex_backbuffer, screen_backbuffer, renderer_texsize, renderer_texsize, hres, vres, vecho_alpha, false);
 		}
 		ioctl(param->framebuffer_fd, FBIOSWAPBUFFERS);
 
@@ -567,6 +602,7 @@ static rtems_task raster_task(rtems_task_argument argument)
 	}
 
 	ioctl(param->framebuffer_fd, FBIOSETBUFFERMODE, FB_SINGLE_BUFFERED);
+	close(video_fd);
 	close(dmx_fd);
 	close(tmu_fd);
 	free(tex_backbuffer);

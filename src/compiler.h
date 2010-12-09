@@ -107,6 +107,8 @@ enum {
 	pfv_osc3,
 	pfv_osc4,
 
+	pfv_video_a,
+
 	COMP_PFV_COUNT /* must be last */
 };
 

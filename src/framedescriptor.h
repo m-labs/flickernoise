@@ -69,6 +69,7 @@ struct frame_descriptor {
 	float vecho_zoom;
 	float vecho_orientation;
 	float dmx[DMX_COUNT];
+	float video_a;
 	struct tmu_vertex *vertices;
 };
 
