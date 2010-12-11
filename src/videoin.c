@@ -27,8 +27,10 @@
 #include <bsp/milkymist_video.h>
 
 #include "config.h"
+#include "resmgr.h"
 #include "util.h"
 #include "cp.h"
+#include "input.h"
 #include "videoin.h"
 
 static int appid;
@@ -38,6 +40,8 @@ static int video_fd;
 static int brightness;
 static int contrast;
 static int hue;
+
+static unsigned short preview_fb[180*144];
 
 enum {
 	CONTROL_BRIGHTNESS,
@@ -114,11 +118,38 @@ static void set_config()
 
 static int w_open;
 
+#define UPDATE_PERIOD 10
+static rtems_interval next_update;
+
+static void preview_update(mtk_event *e, int count)
+{
+	rtems_interval t;
+	unsigned short *videoframe;
+	int x, y;
+
+	t = rtems_clock_get_ticks_since_boot();
+	if(t >= next_update) {
+		videoframe = (unsigned short *)1; /* invalidate */
+		ioctl(video_fd, VIDEO_BUFFER_LOCK, &videoframe);
+		if(videoframe != NULL) {
+			for(y=0;y<144;y++)
+				for(x=0;x<180;x++)
+					preview_fb[180*y+x] = videoframe[720*2*y+4*x];
+			ioctl(video_fd, VIDEO_BUFFER_UNLOCK, videoframe);
+			mtk_cmd(appid, "p_preview.refresh()");
+		}
+		
+		next_update = t + UPDATE_PERIOD;
+	}
+}
+
 static void close_videoin_window()
 {
+	mtk_cmd(appid, "w.close()");
 	close(video_fd);
 	w_open = 0;
-	mtk_cmd(appid, "w.close()");
+	resmgr_release(RESOURCE_VIDEOIN);
+	input_delete_callback(preview_update);
 }
 
 static void ok_callback(mtk_event *e, void *arg)
@@ -170,21 +201,25 @@ void init_videoin()
 		"g_preview.place(s_preview2, -column 3 -row 1)",
 
 		"g.place(g_preview, -column 1 -row 2)",
-		
-		"g_btn = new Grid()",
 
+		"p_preview = new Pixmap(-w 180 -h 144)",
+		"g.place(p_preview, -column 1 -row 3)",
+
+		"g.rowconfig(4, -size 10)",
+
+		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
-
 		"g_btn.columnconfig(1, -size 190)",
 		"g_btn.place(b_ok, -column 2 -row 1)",
 		"g_btn.place(b_cancel, -column 3 -row 1)",
-
-		"g.place(g_btn, -column 1 -row 4)",
+		"g.place(g_btn, -column 1 -row 5)",
 
 		"w = new Window(-content g -title \"Video input settings\")",
 		0);
 
+	mtk_cmdf(appid, "p_preview.set(-fb %d)", preview_fb);
+	
 	mtk_bind(appid, "s_brightness", "change", slide_callback, (void *)CONTROL_BRIGHTNESS);
 	mtk_bind(appid, "s_contrast", "change", slide_callback, (void *)CONTROL_CONTRAST);
 	mtk_bind(appid, "s_hue", "change", slide_callback, (void *)CONTROL_HUE);
@@ -199,13 +234,19 @@ void open_videoin_window()
 {
 	if(w_open) return;
 
+	if(!resmgr_acquire("Video in settings", RESOURCE_VIDEOIN))
+		return;
+
 	video_fd = open("/dev/video", O_RDWR);
 	if(video_fd == -1) {
 		perror("Unable to open video device");
+		resmgr_release(RESOURCE_VIDEOIN);
 		return;
 	}
 	
 	w_open = 1;
 	load_config();
+	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
+	input_add_callback(preview_update);
 	mtk_cmd(appid, "w.open()");
 }
