@@ -32,6 +32,7 @@
 #include "version.h"
 #include "flash.h"
 #include "about.h"
+#include "audio.h"
 
 static int appid;
 

@@ -25,6 +25,7 @@
 #include "midi.h"
 #include "oscsettings.h"
 #include "dmx.h"
+#include "videoin.h"
 #include "patcheditor.h"
 #include "monitor.h"
 #include "firstpatch.h"
@@ -123,14 +124,6 @@ enum {
 	CP_ITEM_SHUTDOWN
 };
 
-static void unsupported()
-{
-	messagebox("Feature not implemented", "This feature is not supported in this experimental release.\n"
-			"If it is not in the latest version and you need it, implement it\n"
-			"and send a patch to devel\x40milkymist.org.\n"
-			"This is GPL licensed software. Contributions are very appreciated.");
-}
-
 static void cp_callback(mtk_event *e, void *arg)
 {
 	switch((int)arg) {
@@ -153,7 +146,7 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_dmx_window();
 			break;
 		case CP_ITEM_VIDEOIN:
-			unsupported();
+			open_videoin_window();
 			break;
 
 		case CP_ITEM_EDITOR:
@@ -185,7 +178,6 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_sysettings_window();
 			break;
 		case CP_ITEM_FILEMANAGER:
-			unsupported();
 			break;
 		case CP_ITEM_ABOUT:
 			open_about_window();

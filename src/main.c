@@ -62,6 +62,7 @@
 #include "dmxspy.h"
 #include "dmxtable.h"
 #include "dmx.h"
+#include "videoin.h"
 #include "patcheditor.h"
 #include "firstpatch.h"
 #include "monitor.h"
@@ -92,6 +93,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_dmxspy();
 	init_dmxtable();
 	init_dmx();
+	init_videoin();
 	init_patcheditor();
 	init_monitor();
 	init_firstpatch();
