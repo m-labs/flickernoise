@@ -56,20 +56,20 @@ static void set_value(int channel, unsigned int val)
 	switch(channel) {
 		case CONTROL_BRIGHTNESS:
 			brightness = val;
-			cmd = 1; // TODO
+			cmd = VIDEO_SET_BRIGHTNESS;
 			break;
 		case CONTROL_CONTRAST:
 			contrast = val;
-			cmd = 1; // TODO
+			cmd = VIDEO_SET_CONTRAST;
 			break;
 		case CONTROL_HUE:
 			hue = val;
-			cmd = 2; // TODO
+			cmd = VIDEO_SET_HUE;
 			break;
 		default:
 			return;
 	}
-	// TODO ioctl(video_fd, cmd, val);
+	ioctl(video_fd, cmd, val);
 }
 
 static void slide_callback(mtk_event *e, void *arg)
@@ -99,9 +99,9 @@ static void slide_callback(mtk_event *e, void *arg)
 
 static void load_config()
 {
-	set_value(CONTROL_BRIGHTNESS, config_read_int("vin_brightness", 50));
-	set_value(CONTROL_CONTRAST, config_read_int("vin_contrast", 50));
-	set_value(CONTROL_HUE, config_read_int("vin_hue", 50));
+	set_value(CONTROL_BRIGHTNESS, config_read_int("vin_brightness", 0));
+	set_value(CONTROL_CONTRAST, config_read_int("vin_contrast", 0x80));
+	set_value(CONTROL_HUE, config_read_int("vin_hue", 0));
 
 	mtk_cmdf(appid, "s_brightness.set(-value %d)", brightness);
 	mtk_cmdf(appid, "s_contrast.set(-value %d)", contrast);
@@ -121,11 +121,28 @@ static int w_open;
 #define UPDATE_PERIOD 10
 static rtems_interval next_update;
 
+static char *fmt_video_signal(unsigned int status)
+{
+	if(!(status & 0x01)) return "None";
+	switch((status & 0x70) >> 4) {
+		case 0: return "NTSM-MJ";
+		case 1: return "NTSC-443";
+		case 2: return "PAL-M";
+		case 3: return "PAL-60";
+		case 4: return "PAL-B/G/H/I/D";
+		case 5: return "SECAM";
+		case 6: return "PAL-Combination N";
+		case 7: return "SECAM 525";
+		default: return "Unknown";
+	}
+}
+
 static void preview_update(mtk_event *e, int count)
 {
 	rtems_interval t;
 	unsigned short *videoframe;
 	int x, y;
+	unsigned int status;
 
 	t = rtems_clock_get_ticks_since_boot();
 	if(t >= next_update) {
@@ -138,6 +155,9 @@ static void preview_update(mtk_event *e, int count)
 			ioctl(video_fd, VIDEO_BUFFER_UNLOCK, videoframe);
 			mtk_cmd(appid, "p_preview.refresh()");
 		}
+
+		ioctl(video_fd, VIDEO_GET_SIGNAL, &status);
+		mtk_cmdf(appid, "l_detected.set(-text \"%s\")", fmt_video_signal(status));
 		
 		next_update = t + UPDATE_PERIOD;
 	}
@@ -172,11 +192,11 @@ void init_videoin()
 
 		"gc = new Grid()",
 		"l_brightness = new Label(-text \"Brightness:\")",
-		"s_brightness = new Scale(-from 0 -to 100 -value 0 -orient horizontal)",
+		"s_brightness = new Scale(-from -128 -to 127 -value 0 -orient horizontal)",
 		"l_contrast = new Label(-text \"Contrast:\")",
-		"s_contrast = new Scale(-from 0 -to 100 -value 0 -orient horizontal)",
+		"s_contrast = new Scale(-from 0 -to 255 -value 128 -orient horizontal)",
 		"l_hue = new Label(-text \"Hue:\")",
-		"s_hue = new Scale(-from 0 -to 100 -value 0 -orient horizontal)",
+		"s_hue = new Scale(-from -128 -to 127 -value 0 -orient horizontal)",
 		"l0_detected = new Label(-text \"Detected signal:\")",
 		"l_detected = new Label(-text \"None\")",
 

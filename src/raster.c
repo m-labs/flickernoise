@@ -487,6 +487,9 @@ struct raster_task_param {
 	int framebuffer_fd;
 	int dmx_map[DMX_COUNT];
 	frd_callback callback;
+	int video_brightness;
+	int video_contrast;
+	int video_hue;
 };
 
 static rtems_id raster_q;
@@ -533,6 +536,10 @@ static rtems_task raster_task(rtems_task_argument argument)
 	video_fd = open("/dev/video", O_RDWR);
 	assert(video_fd != -1);
 
+	ioctl(video_fd, VIDEO_SET_BRIGHTNESS, param->video_brightness);
+	ioctl(video_fd, VIDEO_SET_CONTRAST, param->video_contrast);
+	ioctl(video_fd, VIDEO_SET_HUE, param->video_hue);
+	
 	get_screen_res(param->framebuffer_fd, &hres, &vres);
 	ioctl(param->framebuffer_fd, FBIOSETBUFFERMODE, FB_TRIPLE_BUFFERED);
 
@@ -640,6 +647,9 @@ void raster_start(int framebuffer_fd, frd_callback callback)
 	param = malloc(sizeof(struct raster_task_param));
 	assert(param != NULL);
 	param->framebuffer_fd = framebuffer_fd;
+	param->video_brightness = config_read_int("vin_brightness", 0);
+	param->video_contrast = config_read_int("vin_contrast", 0x80);
+	param->video_hue = config_read_int("vin_hue", 0);
 	for(i=0;i<DMX_COUNT;i++) {
 		sprintf(confname, "dmx%d", i+1);
 		param->dmx_map[i] = config_read_int(confname, i+1)-1;
