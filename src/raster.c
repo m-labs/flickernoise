@@ -422,11 +422,11 @@ static void init_vecho_vertices(struct tmu_vertex *vertices, struct frame_descri
 
 static void scale(int tmu_fd, struct tmu_vertex *vertices,
 	unsigned short *src, unsigned short *dest,
-	int src_hres, int src_vres, int hres, int vres, int alpha, bool invalidate)
+	int src_hres, int src_vres, int hres, int vres, int alpha, bool additive, bool invalidate)
 {
 	struct tmu_td td;
 
-	td.flags = 0;
+	td.flags = additive ? TMU_FLAG_ADDITIVE : 0;
 	td.hmeshlast = 1;
 	td.vmeshlast = 1;
 	td.brightness = TMU_BRIGHTNESS_MAX;
@@ -479,7 +479,7 @@ static void video(unsigned short *tex_backbuffer, struct frame_descriptor *frd, 
 	ioctl(video_fd, VIDEO_BUFFER_LOCK, &videoframe);
 	if(videoframe == NULL)
 		return;
-	scale(tmu_fd, scale_vertices, videoframe, tex_backbuffer, VIDEO_W, VIDEO_H, renderer_texsize, renderer_texsize, alpha, true);
+	scale(tmu_fd, scale_vertices, videoframe, tex_backbuffer, VIDEO_W, VIDEO_H, renderer_texsize, renderer_texsize, alpha, true, true);
 	ioctl(video_fd, VIDEO_BUFFER_UNLOCK, videoframe);
 }
 
@@ -576,14 +576,14 @@ static rtems_task raster_task(rtems_task_argument argument)
 		/* Scale and send to screen */
 		screen_backbuffer = get_screen_backbuffer(param->framebuffer_fd);
 		init_scale_vertices(scale_vertices);
-		scale(tmu_fd, scale_vertices, tex_backbuffer, screen_backbuffer, renderer_texsize, renderer_texsize, hres, vres, TMU_ALPHA_MAX, true);
+		scale(tmu_fd, scale_vertices, tex_backbuffer, screen_backbuffer, renderer_texsize, renderer_texsize, hres, vres, TMU_ALPHA_MAX, false, true);
 		vecho_alpha = 64.0*frd->vecho_alpha;
 		vecho_alpha--;
 		if(vecho_alpha > TMU_ALPHA_MAX)
 			vecho_alpha = TMU_ALPHA_MAX;
 		if(vecho_alpha > 0) {
 			init_vecho_vertices(scale_vertices, frd);
-			scale(tmu_fd, scale_vertices, tex_backbuffer, screen_backbuffer, renderer_texsize, renderer_texsize, hres, vres, vecho_alpha, false);
+			scale(tmu_fd, scale_vertices, tex_backbuffer, screen_backbuffer, renderer_texsize, renderer_texsize, hres, vres, vecho_alpha, false, false);
 		}
 		ioctl(param->framebuffer_fd, FBIOSWAPBUFFERS);
 
