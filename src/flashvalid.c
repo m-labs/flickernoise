@@ -70,7 +70,7 @@ int flashvalid_bios(const char *filename)
 	if(op != 0x98000000)
 		return FLASHVALID_ERROR_FORMAT;
 	
-	return FLASHVALID_ERROR_FORMAT;
+	return FLASHVALID_PASSED;
 }
 
 int flashvalid_application(const char *filename)
