@@ -84,7 +84,7 @@ static int osd_method(const char *path, const char *types,
 	lop_arg **argv, int argc, lop_message msg,
 	void *user_data)
 {
-	osd_event(argv[0]);
+	osd_event((const char *)argv[0]);
 	return 0;
 }
 
