@@ -35,6 +35,7 @@
 #include "color.h"
 #include "wave.h"
 #include "line.h"
+#include "osd.h"
 
 #include "raster.h"
 
@@ -585,6 +586,7 @@ static rtems_task raster_task(rtems_task_argument argument)
 			init_vecho_vertices(scale_vertices, frd);
 			scale(tmu_fd, scale_vertices, tex_backbuffer, screen_backbuffer, renderer_texsize, renderer_texsize, hres, vres, vecho_alpha, false, false);
 		}
+		osd_per_frame(tmu_fd, screen_backbuffer, hres, vres);
 		ioctl(param->framebuffer_fd, FBIOSWAPBUFFERS);
 
 		/* Update DMX outputs */

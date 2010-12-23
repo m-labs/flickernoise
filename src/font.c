@@ -54,9 +54,9 @@ int font_get_height(struct font_context *ctx)
 
 static void draw_pixel(struct font_context *ctx, int x, int y, int r, unsigned char i)
 {
-	/*if(x < 0) return;
+	if(x < 0) return;
 	if(x >= ctx->fb_w) return;
-	if(y < 0) return;
+	/*if(y < 0) return;
 	if(y >= ctx->fb_h) return;*/
 	if(r)
 		i = 255-i;
@@ -83,11 +83,12 @@ int font_draw_char(struct font_context *ctx, int x, int y, int r, unsigned char 
 	return w;
 }
 
-void font_draw_string(struct font_context *ctx, int x, int y, int r, char *str)
+void font_draw_string(struct font_context *ctx, int x, int y, int r, const char *str, int maxlen)
 {
-	while(*str) {
+	while((maxlen > 0) && (*str)) {
 		x += font_draw_char(ctx, x, y, r, (unsigned char)(*str));
 		str++;
+		maxlen--;
 	}
 }
 

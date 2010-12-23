@@ -24,6 +24,7 @@
 #include "compiler.h"
 #include "eval.h"
 #include "raster.h"
+#include "osd.h"
 
 #include "renderer.h"
 
@@ -93,6 +94,7 @@ void renderer_start(int framebuffer_fd, struct patch *p)
 	renderer_squarew = renderer_texsize/renderer_hmeshlast;
 	renderer_squareh = renderer_texsize/renderer_vmeshlast;
 
+	osd_init();
 	raster_start(framebuffer_fd, sampler_return);
 	eval_start(raster_input);
 	sampler_start(eval_input);

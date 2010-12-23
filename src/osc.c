@@ -28,6 +28,7 @@
 
 #include "input.h"
 #include "framedescriptor.h"
+#include "osd.h"
 
 #include "osc.h"
 
@@ -79,6 +80,14 @@ void get_osc_variables(float *out)
 		out[i] = osc_variables[i];
 }
 
+static int osd_method(const char *path, const char *types,
+	lop_arg **argv, int argc, lop_message msg,
+	void *user_data)
+{
+	osd_event(argv[0]);
+	return 0;
+}
+
 static void error_handler(int num, const char *msg, const char *where)
 {
 	printf("liboscparse error in %s: %s\n", where, msg);
@@ -119,6 +128,7 @@ static rtems_task osc_task(rtems_task_argument argument)
 	lop_server_add_method(server, "/midi", "m", midi_method, NULL);
 	lop_server_add_method(server, "/patch", "i", patch_method, NULL);
 	lop_server_add_method(server, "/variable", "if", variable_method, NULL);
+	lop_server_add_method(server, "/osd", "s", osd_method, NULL);
 	
 	udpsocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if(udpsocket == -1) {
