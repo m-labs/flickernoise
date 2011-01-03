@@ -11,7 +11,7 @@ STRIPFLAGS=
 OBJS=shellext.o sysconfig.o config.o fb.o input.o reboot.o osc.o pngload.o flashvalid.o main.o
 
 # GUI
-OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxtable.o dmx.o videoin.o patcheditor.o monitor.o firstpatch.o sysettings.o about.o flash.o shutdown.o
+OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxtable.o dmx.o videoin.o patcheditor.o monitor.o firstpatch.o pdfreader.o sysettings.o about.o flash.o shutdown.o
 
 # renderer
 OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o
@@ -19,7 +19,7 @@ OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o fon
 all: flickernoise
 
 flickernoise: $(OBJS)
-	$(LD) -o $@ $(OBJS) $(LDFLAGS) -lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lz -lm
+	$(LD) -o $@ $(OBJS) $(LDFLAGS) -lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lmupdf -lfreetype -ljbig2dec -lopenjpeg -ljpeg -lz -lm
 	$(STRIP) $(STRIPFLAGS) $@
 
 bandfilters.h: bandfilters.sce

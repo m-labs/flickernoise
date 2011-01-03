@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ void init_about()
 	mtk_cmd(appid, "sep1 = new Separator(-vertical no)");
 	mtk_cmdf(appid, "mac = new Label(-text \"Ethernet MAC: %02x:%02x:%02x:%02x:%02x:%02x\")", macadr[0], macadr[1], macadr[2], macadr[3], macadr[4], macadr[5]);
 	mtk_cmd_seq(appid, "sep2 = new Separator(-vertical no)",
-		"info = new Label(-text \"Copyright (C) 2010 Sebastien Bourdeauducq and contributors.\n"
+		"info = new Label(-text \"Copyright (C) 2010, 2011 Sebastien Bourdeauducq and contributors.\n"
 		"Flickernoise is free software, released under GNU GPL version 3.\n"
 		"Web: www.milkymist.org\" -font \"monospaced\")",
 

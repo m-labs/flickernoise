@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "patcheditor.h"
 #include "monitor.h"
 #include "firstpatch.h"
+#include "pdfreader.h"
 #include "sysettings.h"
 #include "about.h"
 #include "shutdown.h"
@@ -118,8 +119,10 @@ enum {
 	CP_ITEM_LOAD,
 	CP_ITEM_SAVE,
 
-	CP_ITEM_SYSETTINGS,
 	CP_ITEM_FILEMANAGER,
+	CP_ITEM_PDFREADER,
+
+	CP_ITEM_SYSETTINGS,
 	CP_ITEM_ABOUT,
 	CP_ITEM_SHUTDOWN
 };
@@ -173,11 +176,15 @@ static void cp_callback(mtk_event *e, void *arg)
 		case CP_ITEM_SAVE:
 			open_filedialog(save_appid, "/");
 			break;
+		
+		case CP_ITEM_FILEMANAGER:
+			break;
+		case CP_ITEM_PDFREADER:
+			open_pdfreader_window();
+			break;
 
 		case CP_ITEM_SYSETTINGS:
 			open_sysettings_window();
-			break;
-		case CP_ITEM_FILEMANAGER:
 			break;
 		case CP_ITEM_ABOUT:
 			open_about_window();
@@ -261,6 +268,21 @@ void init_cp()
 		"g.place(b_start, -column 1 -row 8)",
 		"g.place(g_performance, -column 1 -row 9)",
 
+		"g_tools0 = new Grid()",
+		"l_tools = new Label(-text \"Tools\" -font \"title\")",
+		"s_tools1 = new Separator(-vertical no)",
+		"s_tools2 = new Separator(-vertical no)",
+		"g_tools0.place(s_tools1, -column 1 -row 1)",
+		"g_tools0.place(l_tools, -column 2 -row 1)",
+		"g_tools0.place(s_tools2, -column 3 -row 1)",
+		"g_tools = new Grid()",
+		"b_filemanager = new Button(-text \"File manager\")",
+		"b_pdfreader = new Button(-text \"PDF reader\")",
+		"g_tools.place(b_filemanager, -column 1 -row 1)",
+		"g_tools.place(b_pdfreader, -column 2 -row 1)",
+		"g.place(g_tools0, -column 1 -row 10)",
+		"g.place(g_tools, -column 1 -row 11)",
+
 		"g_system0 = new Grid()",
 		"l_system = new Label(-text \"System\" -font \"title\")",
 		"s_system1 = new Separator(-vertical no)",
@@ -270,15 +292,13 @@ void init_cp()
 		"g_system0.place(s_system2, -column 3 -row 1)",
 		"g_system = new Grid()",
 		"b_sysettings = new Button(-text \"Settings\")",
-		"b_filemanager = new Button(-text \"File manager\")",
-		"b_shutdown = new Button(-text \"Shutdown\")",
 		"b_about = new Button(-text \"About\")",
-		"g_system.place(b_sysettings, -column 1 -row 1)",
-		"g_system.place(b_filemanager, -column 2 -row 1)",
-		"g_system.place(b_shutdown, -column 2 -row 2)",
-		"g_system.place(b_about, -column 1 -row 2)",
-		"g.place(g_system0, -column 1 -row 10)",
-		"g.place(g_system, -column 1 -row 11)",
+		"b_shutdown = new Button(-text \"Shutdown\")",
+		"g_system.place(b_about, -column 1 -row 1)",
+		"g_system.place(b_shutdown, -column 2 -row 1)",
+		"g.place(g_system0, -column 1 -row 12)",
+		"g.place(b_sysettings, -column 1 -row 13)",
+		"g.place(g_system, -column 1 -row 14)",
 
 		"w = new Window(-content g -title \"Control panel\" -workx 150 -worky 120)",
 
@@ -299,8 +319,9 @@ void init_cp()
 	mtk_bind(appid, "b_new", "commit", cp_callback, (void *)CP_ITEM_NEW);
 	mtk_bind(appid, "b_load", "commit", cp_callback, (void *)CP_ITEM_LOAD);
 	mtk_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
-	mtk_bind(appid, "b_sysettings", "commit", cp_callback, (void *)CP_ITEM_SYSETTINGS);
 	mtk_bind(appid, "b_filemanager", "commit", cp_callback, (void *)CP_ITEM_FILEMANAGER);
+	mtk_bind(appid, "b_pdfreader", "commit", cp_callback, (void *)CP_ITEM_PDFREADER);
+	mtk_bind(appid, "b_sysettings", "commit", cp_callback, (void *)CP_ITEM_SYSETTINGS);
 	mtk_bind(appid, "b_about", "commit", cp_callback, (void *)CP_ITEM_ABOUT);
 	mtk_bind(appid, "b_shutdown", "commit", cp_callback, (void *)CP_ITEM_SHUTDOWN);
 

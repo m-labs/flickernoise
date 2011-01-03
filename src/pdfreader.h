@@ -15,9 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H
-#define __VERSION_H
+#ifndef __PDFREADER_H
+#define __PDFREADER_H
 
-#define VERSION "0.3"
+void init_pdfreader();
+void open_pdfreader_window();
 
-#endif /* __VERSION_H */
+#endif /* __PDFREADER_H */
