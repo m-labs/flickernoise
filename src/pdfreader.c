@@ -33,8 +33,10 @@ static fz_glyphcache *glyphcache;
 static pdf_xref *xref;
 static int page_count;
 static int page_n;
-static float zoom = 1.0;
 static unsigned short *view_fb;
+
+static unsigned int zooms[] = {50, 70, 85, 100, 125, 150, 175, 200, 300, 400};
+static int zoom_index = 3;
 
 static void display_page()
 {
@@ -49,7 +51,10 @@ static void display_page()
 	int x, y;
 	unsigned char *pixels;
 	int offset;
+	float zoom;
 
+	zoom = (float)zooms[zoom_index]/100.0;
+	
 	pageobj = pdf_getpageobject(xref, page_n);
 	error = pdf_loadpage(&page, xref, pageobj);
 	if(error) {
@@ -90,6 +95,7 @@ static void display_page()
 		mtk_cmdf(appid, "view.set(-fb %d -w %d -h %d)", view_fb, pix->w, pix->h);
 		mtk_cmd(appid, "viewf.set(-xview 0 -yview 0)");
 		mtk_cmdf(appid, "e_page.set(-text \"%d\")", page_n);
+		mtk_cmdf(appid, "l_zoom.set(-text \"%d%%\")", zooms[zoom_index]);
 	}
 
 	fz_droppixmap(pix);
@@ -180,6 +186,24 @@ static void next_callback(mtk_event *e, void *arg)
 	}
 }
 
+static void zoomout_callback(mtk_event *e, void *arg)
+{
+	if(xref == NULL) return;
+	if(zoom_index > 0) {
+		zoom_index--;
+		display_page();
+	}
+}
+
+static void zoomin_callback(mtk_event *e, void *arg)
+{
+	if(xref == NULL) return;
+	if(zoom_index < (sizeof(zooms)/sizeof(zooms[0]-1))) {
+		zoom_index++;
+		display_page();
+	}
+}
+
 static void open_callback(mtk_event *e, void *arg)
 {
 	open_filedialog(file_dialog_id, "/");
@@ -204,17 +228,29 @@ void init_pdfreader()
 		"g_ctl = new Grid()",
 
 		"b_open = new Button(-text \"Open\")",
+		"sep1 = new Separator(-vertical yes)",
 		"b_prev = new Button(-text \"Prev\")",
 		"e_page = new Entry()",
 		"l_of = new Label(-text \"of --\")",
 		"b_next = new Button(-text \"Next\")",
+		"sep2 = new Separator(-vertical yes)",
+		"b_zoomout = new Button(-text \"Zoom out\")",
+		"l_zoom = new Label(-text \"100%\")",
+		"b_zoomin = new Button(-text \"Zoom in\")",
+		"sep3 = new Separator(-vertical yes)",
 		"b_close = new Button(-text \"Close\")",
 		"g_ctl.place(b_open, -column 1 -row 1)",
-		"g_ctl.place(b_prev, -column 2 -row 1)",
-		"g_ctl.place(e_page, -column 3 -row 1)",
-		"g_ctl.place(l_of, -column 4 -row 1)",
-		"g_ctl.place(b_next, -column 5 -row 1)",
-		"g_ctl.place(b_close, -column 6 -row 1)",
+		"g_ctl.place(sep1, -column 2 -row 1)",
+		"g_ctl.place(b_prev, -column 3 -row 1)",
+		"g_ctl.place(e_page, -column 4 -row 1)",
+		"g_ctl.place(l_of, -column 5 -row 1)",
+		"g_ctl.place(b_next, -column 6 -row 1)",
+		"g_ctl.place(sep2, -column 7 -row 1)",
+		"g_ctl.place(b_zoomout, -column 8 -row 1)",
+		"g_ctl.place(l_zoom, -column 9 -row 1)",
+		"g_ctl.place(b_zoomin, -column 10 -row 1)",
+		"g_ctl.place(sep3, -column 11 -row 1)",
+		"g_ctl.place(b_close, -column 12 -row 1)",
 	
 		"view = new Pixmap(-w 600 -h 440)",
 		"viewf = new Frame(-content view -scrollx yes -scrolly yes)",
@@ -229,6 +265,8 @@ void init_pdfreader()
 	mtk_bind(appid, "b_prev", "commit", prev_callback, NULL);
 	mtk_bind(appid, "e_page", "commit", page_callback, NULL);
 	mtk_bind(appid, "b_next", "commit", next_callback, NULL);
+	mtk_bind(appid, "b_zoomout", "commit", zoomout_callback, NULL);
+	mtk_bind(appid, "b_zoomin", "commit", zoomin_callback, NULL);
 	mtk_bind(appid, "b_close", "commit", close_callback, NULL);
 
 	mtk_bind(appid, "w", "close", close_callback, NULL);
