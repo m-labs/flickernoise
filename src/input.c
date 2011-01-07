@@ -52,10 +52,12 @@ static inline void write_release_event(mtk_event *e, int code)
 #define MOUSE_RIGHT      0x02000000
 #define MOUSE_HOR_MASK   0x00ff0000
 #define MOUSE_VER_MASK   0x0000ff00
+#define MOUSE_WHEEL_MASK 0x000000ff
 #define MOUSE_HOR_SHIFT  16
 #define MOUSE_VER_SHIFT  8
 #define MOUSE_HOR_NEG    0x00800000
 #define MOUSE_VER_NEG    0x00008000
+#define MOUSE_WHEEL_NEG  0x00000080
 
 static unsigned int old_mstate;
 
@@ -99,6 +101,20 @@ static int handle_mouse_event(mtk_event *e, unsigned char *msg)
 		write_motion_event(e+n,
 		      (mstate & MOUSE_HOR_NEG) ? (((mstate & MOUSE_HOR_MASK) >> MOUSE_HOR_SHIFT) | 0xFFFFFF00) : (mstate & MOUSE_HOR_MASK) >> MOUSE_HOR_SHIFT,
 		      (mstate & MOUSE_VER_NEG) ?  (int)((mstate & MOUSE_VER_MASK) >> MOUSE_VER_SHIFT | 0xFFFFFF00) : (int)((mstate & MOUSE_VER_MASK) >> MOUSE_VER_SHIFT) );
+		n++;
+	}
+	
+	/* check for mouse wheel */
+	if((mstate & MOUSE_WHEEL_MASK) != 0) {
+		int kcode;
+		
+		if(mstate & MOUSE_WHEEL_NEG)
+			kcode = MTK_BTN_GEAR_DOWN;
+		else
+			kcode = MTK_BTN_GEAR_UP;
+		write_press_event(e+n, kcode);
+		n++;
+		write_release_event(e+n, kcode);
 		n++;
 	}
 
