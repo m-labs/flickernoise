@@ -387,7 +387,7 @@ void input_delete_callback(input_callback cb)
 }
 
 /* The maximum number of mtk_events that can be generated out of a single message on input_q */
-#define WORST_CASE_EVENTS 18
+#define WORST_CASE_EVENTS 20
 
 void input_eventloop()
 {
