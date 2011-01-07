@@ -60,6 +60,7 @@ static void new_callback(mtk_event *e, void *arg)
 	modified = 0;
 	current_filename[0] = 0;
 	mtk_cmd(appid, "ed.set(-text \"\")");
+	mtk_cmd(appid, "edf.set(-xview 0 -yview 0)");
 	update_wintitle();
 }
 
@@ -91,8 +92,8 @@ static void openok_callback(mtk_event *e, void *arg)
 		return;
 	}
 	buf[r] = 0;
-
 	mtk_cmdf(appid, "ed.set(-text \"%s\")", buf);
+	mtk_cmd(appid, "edf.set(-xview 0 -yview 0)");
 }
 
 static void opencancel_callback(mtk_event *e, void *arg)
@@ -215,7 +216,8 @@ void init_patcheditor()
 		"g_btn.place(b_run, -column 6 -row 1)",
 		"g.place(g_btn, -column 1 -row 1)",
 		"ed = new Edit()",
-		"g.place(ed, -column 1 -row 2)",
+		"edf = new Frame(-content ed -scrollx yes -scrolly yes)",
+		"g.place(edf, -column 1 -row 2)",
 		"status = new Label(-text \"Ready.\" -font \"title\")",
 		"g.place(status, -column 1 -row 3 -align \"nw\")",
 		"g.rowconfig(3, -size 0)",
