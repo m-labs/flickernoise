@@ -221,7 +221,7 @@ void init_patcheditor()
 		"status = new Label(-text \"Ready.\" -font \"title\")",
 		"g.place(status, -column 1 -row 3 -align \"nw\")",
 		"g.rowconfig(3, -size 0)",
-		"w = new Window(-content g -title \"Patch editor [untitled]\")",
+		"w = new Window(-content g -title \"Patch editor [untitled]\" -workw 400 -workh 300)",
 		0);
 
 	fileopen_appid = create_filedialog("Open patch", 0, openok_callback, NULL, opencancel_callback, NULL);
