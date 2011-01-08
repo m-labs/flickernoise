@@ -93,7 +93,7 @@ static void display_page()
 				view_fb[pix->w*y+x] = MAKERGB565N(pixels[offset], pixels[offset+1], pixels[offset+2]);
 			}
 		mtk_cmdf(appid, "view.set(-fb %d -w %d -h %d)", view_fb, pix->w, pix->h);
-		mtk_cmd(appid, "viewf.set(-xview 0 -yview 0)");
+		mtk_cmd(appid, "viewf.expose(0, 0)");
 		mtk_cmdf(appid, "e_page.set(-text \"%d\")", page_n);
 		mtk_cmdf(appid, "l_zoom.set(-text \"%d%%\")", zooms[zoom_index]);
 	}

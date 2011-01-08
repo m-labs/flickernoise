@@ -60,7 +60,7 @@ static void new_callback(mtk_event *e, void *arg)
 	modified = 0;
 	current_filename[0] = 0;
 	mtk_cmd(appid, "ed.set(-text \"\")");
-	mtk_cmd(appid, "edf.set(-xview 0 -yview 0)");
+	mtk_cmd(appid, "edf.expose(0, 0)");
 	update_wintitle();
 }
 
@@ -93,7 +93,7 @@ static void openok_callback(mtk_event *e, void *arg)
 	}
 	buf[r] = 0;
 	mtk_cmdf(appid, "ed.set(-text \"%s\")", buf);
-	mtk_cmd(appid, "edf.set(-xview 0 -yview 0)");
+	mtk_cmd(appid, "edf.expose(0, 0)");
 }
 
 static void opencancel_callback(mtk_event *e, void *arg)

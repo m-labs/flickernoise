@@ -75,8 +75,8 @@ static void display_folder(int appid, const char *folder)
 	mtk_cmdf(appid, "fd_g2_files.set(-text \"%s\" -selection 0)", fmt_files);
 	mtk_cmdf(appid, "fd_g1_l.set(-text \"%s\")", folder);
 	mtk_cmdf(appid, "fd_selection.set(-text \"Selection: %s\")", folder);
-	mtk_cmd(appid, "fd_g2_foldersf.set(-xview 0 -yview 0)");
-	mtk_cmd(appid, "fd_g2_filesf.set(-xview 0 -yview 0)");
+	mtk_cmd(appid, "fd_g2_foldersf.expose(0, 0)");
+	mtk_cmd(appid, "fd_g2_filesf.expose(0, 0)");
 }
 
 static char *get_selection(char *list, int n)
