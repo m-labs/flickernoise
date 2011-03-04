@@ -43,6 +43,6 @@ load: flickernoise.ralf
 	cp flickernoise.ralf /var/lib/tftpboot/boot.bin
 
 clean:
-	rm -f flickernoise flickernoise.ralf flickernoise.lzma flickernoise.fbi flickernoise.fbiz flickernoise-rescue.mcs flickernoise.mcs $(OBJS)
+	rm -f flickernoise flickernoise.ralf flickernoise.lzma flickernoise.fbi flickernoise.fbiz $(OBJS)
 
 .PHONY: clean load
