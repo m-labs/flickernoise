@@ -29,14 +29,14 @@ bandfilters.h: bandfilters.sce
 flickernoise.ralf: flickernoise
 	$(OBJCOPY) -O binary flickernoise flickernoise.ralf
 
-flickernoise.fbi: flickernoise.ralf
-	mkmmimg flickernoise.ralf write flickernoise.fbi
+flickernoise.fbi: flickernoise.lzma
+	mkmmimg flickernoise.lzma write flickernoise.fbi
 
-flickernoise-rescue.mcs: flickernoise.fbi
-	srec_cat -Output flickernoise-rescue.mcs -Intel flickernoise.fbi -Binary -offset 0x002E0000 --byte-swap 2
+flickernoise.lzma: flickernoise.ralf
+	cat flickernoise.ralf | lzma > flickernoise.lzma
 
-flickernoise.mcs: flickernoise.fbi
-	srec_cat -Output flickernoise.mcs -Intel flickernoise.fbi -Binary -offset 0x00920000 --byte-swap 2
+flickernoise.fbiz: flickernoise.lzma
+	mkmmimg flickernoise.lzma writelzma flickernoise.fbiz
 
 # convenience target for loading to MM board
 load: flickernoise.ralf
