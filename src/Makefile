@@ -1,7 +1,11 @@
-CC=lm32-rtems4.11-gcc
-LD=lm32-rtems4.11-gcc
-STRIP=lm32-rtems4.11-strip
-OBJCOPY=lm32-rtems4.11-objcopy
+RTEMS_VERSION=4.11
+
+CC=lm32-rtems$(RTEMS_VERSION)-gcc
+LD=lm32-rtems$(RTEMS_VERSION)-gcc
+STRIP=lm32-rtems$(RTEMS_VERSION)-strip
+OBJCOPY=lm32-rtems$(RTEMS_VERSION)-objcopy
+
+RTEMS_MAKEFILE_PATH?=/opt/rtems-$(RTEMS_VERSION)/lm32-rtems$(RTEMS_VERSION)/milkymist/
 
 CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(RTEMS_MAKEFILE_PATH)/lib/include
 LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
