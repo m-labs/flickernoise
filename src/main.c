@@ -66,7 +66,9 @@
 #include "patcheditor.h"
 #include "firstpatch.h"
 #include "monitor.h"
+#ifdef WITH_PDF
 #include "pdfreader.h"
+#endif
 #include "sysettings.h"
 #include "shutdown.h"
 #include "about.h"
@@ -98,7 +100,9 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_patcheditor();
 	init_monitor();
 	init_firstpatch();
+#ifdef WITH_PDF
 	init_pdfreader();
+#endif
 	init_sysettings();
 	init_about();
 	init_flash();

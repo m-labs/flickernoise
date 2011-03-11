@@ -1,21 +1,29 @@
-RTEMS_VERSION=4.11
+RTEMS_VERSION?=4.11
+RTEMS_MAKEFILE_PATH?=/opt/rtems-$(RTEMS_VERSION)/lm32-rtems$(RTEMS_VERSION)/milkymist/
+WITH_PDF?=0
 
 CC=lm32-rtems$(RTEMS_VERSION)-gcc
 LD=lm32-rtems$(RTEMS_VERSION)-gcc
 STRIP=lm32-rtems$(RTEMS_VERSION)-strip
 OBJCOPY=lm32-rtems$(RTEMS_VERSION)-objcopy
 
-RTEMS_MAKEFILE_PATH?=/opt/rtems-$(RTEMS_VERSION)/lm32-rtems$(RTEMS_VERSION)/milkymist/
-
 CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(RTEMS_MAKEFILE_PATH)/lib/include
 LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
 STRIPFLAGS=
+LIBS=-lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lz -lm
 
 # base
 OBJS=shellext.o sysconfig.o config.o fb.o input.o reboot.o osc.o pngload.o flashvalid.o main.o
 
 # GUI
-OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxtable.o dmx.o videoin.o patcheditor.o monitor.o firstpatch.o pdfreader.o sysettings.o about.o flash.o shutdown.o
+OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxtable.o dmx.o videoin.o patcheditor.o monitor.o firstpatch.o sysettings.o about.o flash.o shutdown.o
+
+# PDF
+ifeq ($(WITH_PDF),1)
+	OBJS+=pdfreader.o
+	CFLAGS+=-DWITH_PDF
+	LIBS+=-lmupdf -lfreetype -ljbig2dec -lopenjpeg -ljpeg
+endif
 
 # renderer
 OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o
@@ -23,7 +31,7 @@ OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o fon
 all: flickernoise
 
 flickernoise: $(OBJS)
-	$(LD) -o $@ $(OBJS) $(LDFLAGS) -lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lmupdf -lfreetype -ljbig2dec -lopenjpeg -ljpeg -lz -lm
+	$(LD) -o $@ $(OBJS) $(LDFLAGS) $(LIBS)
 	$(STRIP) $(STRIPFLAGS) $@
 
 bandfilters.h: bandfilters.sce
@@ -33,8 +41,8 @@ bandfilters.h: bandfilters.sce
 flickernoise.ralf: flickernoise
 	$(OBJCOPY) -O binary flickernoise flickernoise.ralf
 
-flickernoise.fbi: flickernoise.lzma
-	mkmmimg flickernoise.lzma write flickernoise.fbi
+flickernoise.fbi: flickernoise.ralf
+	mkmmimg flickernoise.ralf write flickernoise.fbi
 
 flickernoise.lzma: flickernoise.ralf
 	cat flickernoise.ralf | lzma > flickernoise.lzma

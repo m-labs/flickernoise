@@ -29,7 +29,9 @@
 #include "patcheditor.h"
 #include "monitor.h"
 #include "firstpatch.h"
+#ifdef WITH_PDF
 #include "pdfreader.h"
+#endif
 #include "sysettings.h"
 #include "about.h"
 #include "shutdown.h"
@@ -179,9 +181,11 @@ static void cp_callback(mtk_event *e, void *arg)
 		
 		case CP_ITEM_FILEMANAGER:
 			break;
+#ifdef WITH_PDF
 		case CP_ITEM_PDFREADER:
 			open_pdfreader_window();
 			break;
+#endif
 
 		case CP_ITEM_SYSETTINGS:
 			open_sysettings_window();
@@ -277,9 +281,13 @@ void init_cp()
 		"g_tools0.place(s_tools2, -column 3 -row 1)",
 		"g_tools = new Grid()",
 		"b_filemanager = new Button(-text \"File manager\")",
+#ifdef WITH_PDF
 		"b_pdfreader = new Button(-text \"PDF reader\")",
+#endif
 		"g_tools.place(b_filemanager, -column 1 -row 1)",
+#ifdef WITH_PDF
 		"g_tools.place(b_pdfreader, -column 2 -row 1)",
+#endif
 		"g.place(g_tools0, -column 1 -row 10)",
 		"g.place(g_tools, -column 1 -row 11)",
 
@@ -320,7 +328,9 @@ void init_cp()
 	mtk_bind(appid, "b_load", "commit", cp_callback, (void *)CP_ITEM_LOAD);
 	mtk_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
 	mtk_bind(appid, "b_filemanager", "commit", cp_callback, (void *)CP_ITEM_FILEMANAGER);
+#ifdef WITH_PDF
 	mtk_bind(appid, "b_pdfreader", "commit", cp_callback, (void *)CP_ITEM_PDFREADER);
+#endif
 	mtk_bind(appid, "b_sysettings", "commit", cp_callback, (void *)CP_ITEM_SYSETTINGS);
 	mtk_bind(appid, "b_about", "commit", cp_callback, (void *)CP_ITEM_ABOUT);
 	mtk_bind(appid, "b_shutdown", "commit", cp_callback, (void *)CP_ITEM_SHUTDOWN);
