@@ -7,7 +7,7 @@ if [ "$2" == "nocompress" ]; then
     TARGET=flickernoise.fbi
 fi
 
-make -C ../src ${TARGET}
+make -C ../src bin/${TARGET}
 
 BATCH_FILE=flash.batch
 
@@ -31,6 +31,6 @@ batch "initbus fjmem opcode=000010"
 batch "frequency 6000000"
 batch "detectflash 0"
 batch "endian big"
-batch "flashmem ${ADDRESS} ../src/${TARGET} noverify"
+batch "flashmem ${ADDRESS} ../src/bin/${TARGET} noverify"
 
 jtag -n ${BATCH_FILE}

@@ -1,0 +1,9 @@
+src/bin/flickernoise
+src/bin/flickernoise.fbiz
+src/bin/flickernoise.lzma
+src/bin/flickernoise.ralf
+src/obj/*.o
+doc/handbook.aux
+doc/handbook.log
+doc/handbook.pdf
+flash/flash.batch

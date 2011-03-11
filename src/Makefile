@@ -11,6 +11,8 @@ CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msi
 LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
 STRIPFLAGS=
 LIBS=-lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lz -lm
+OBJDIR=obj
+BINDIR=bin
 
 # base
 OBJS=shellext.o sysconfig.o config.o fb.o input.o reboot.o osc.o pngload.o flashvalid.o main.o
@@ -28,33 +30,42 @@ endif
 # renderer
 OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o
 
-all: flickernoise
+#
 
-flickernoise: $(OBJS)
-	$(LD) -o $@ $(OBJS) $(LDFLAGS) $(LIBS)
+POBJS=$(addprefix $(OBJDIR)/,$(OBJS))
+
+all: $(BINDIR)/flickernoise
+
+$(OBJDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BINDIR)/flickernoise: $(POBJS)
+	$(LD) -o $@ $^ $(LDFLAGS) $(LIBS)
 	$(STRIP) $(STRIPFLAGS) $@
 
 bandfilters.h: bandfilters.sce
 	scilab -nw -nwni -nogui -nb -f bandfilters.sce
 
-# boot images for Milkymist
-flickernoise.ralf: flickernoise
-	$(OBJCOPY) -O binary flickernoise flickernoise.ralf
+# boot images for Milkymist One
+$(BINDIR)/flickernoise.ralf: $(BINDIR)/flickernoise
+	$(OBJCOPY) -O binary $< $@
 
-flickernoise.fbi: flickernoise.ralf
-	mkmmimg flickernoise.ralf write flickernoise.fbi
+$(BINDIR)/flickernoise.fbi: $(BINDIR)/flickernoise.ralf
+	mkmmimg $< write $@
 
-flickernoise.lzma: flickernoise.ralf
-	cat flickernoise.ralf | lzma > flickernoise.lzma
+$(BINDIR)/flickernoise.lzma: $(BINDIR)/flickernoise.ralf
+	cat $< | lzma > $@
 
-flickernoise.fbiz: flickernoise.lzma
-	mkmmimg flickernoise.lzma writelzma flickernoise.fbiz
+$(BINDIR)/flickernoise.fbiz: $(BINDIR)/flickernoise.lzma
+	mkmmimg $< writelzma $@
 
 # convenience target for loading to MM board
-load: flickernoise.ralf
-	cp flickernoise.ralf /var/lib/tftpboot/boot.bin
+load: $(BINDIR)/flickernoise.ralf
+	cp $(BINDIR)/flickernoise.ralf /var/lib/tftpboot/boot.bin
 
 clean:
-	rm -f flickernoise flickernoise.ralf flickernoise.lzma flickernoise.fbi flickernoise.fbiz $(OBJS)
+	rm -f $(BINDIR)/flickernoise $(BINDIR)/flickernoise.ralf 
+	rm -f $(BINDIR)/flickernoise.lzma $(BINDIR)/flickernoise.fbi $(BINDIR)/flickernoise.fbiz 
+	rm -f $(POBJS)
 
 .PHONY: clean load
