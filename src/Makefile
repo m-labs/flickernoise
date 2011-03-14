@@ -24,7 +24,7 @@ OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard
 ifeq ($(WITH_PDF),1)
 	OBJS+=pdfreader.o
 	CFLAGS+=-DWITH_PDF
-	LIBS+=-lmupdf -lfreetype -ljbig2dec -lopenjpeg -ljpeg
+	LIBS:=-lmupdf -lfreetype -ljbig2dec -lopenjpeg -ljpeg $(LIBS)
 endif
 
 # renderer
