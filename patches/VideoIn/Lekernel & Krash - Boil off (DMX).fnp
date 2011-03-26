@@ -61,5 +61,6 @@ per_frame=wave_g = green;
 per_frame=wave_b = blue;
 per_vertex=dy = 0.1*(1-q1);
 per_vertex=dy = below(dy,0.02)*dy - 0.02;
-per_vertex=dy = idmx2*(dy + 0.01*(sin((x*q2*0.483) + (y*q2*1.238)) + sin((x*q2*1.612) + (y*q2*0.648))));
-per_vertex=dx = idmx2*0.01*(sin((y*q2*0.43) + (x*q2*1.28)) + sin((y*q2*1.62) + (x*q2*0.68*idmx2)))
+per_vertex=w=time%20
+per_vertex=dy = idmx2*(dy + 0.01*(sin((x*q2*0.483*w) + (y*q2*1.238)) + sin((x*q2*1.612) + (y*q2*0.648))));
+per_vertex=dx = idmx2*0.01*(sin((y*q2*0.43) + (x*q2*1.28*w)) + sin((y*q2*1.62) + (x*q2*0.68*idmx2)))
