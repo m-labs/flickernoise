@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,10 +30,12 @@ int framebuffer_fd;
 void init_fb_mtk()
 {
 	struct fb_fix_screeninfo fb_fix;
+	struct fb_var_screeninfo fb_var;
 
 	framebuffer_fd = open("/dev/fb", O_RDWR);
 	assert(framebuffer_fd != -1);
 	ioctl(framebuffer_fd, FBIOGET_FSCREENINFO, &fb_fix);
-
-	mtk_init((void *)fb_fix.smem_start, 640, 480);
+	ioctl(framebuffer_fd, FBIOGET_VSCREENINFO, &fb_var);
+	
+	mtk_init((void *)fb_fix.smem_start, fb_var.xres, fb_var.yres);
 }
