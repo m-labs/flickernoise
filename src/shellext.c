@@ -1,6 +1,7 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
+ * Copyright (C) 2011 Xiangfu Liu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +18,7 @@
 
 #include <rtems.h>
 #include <rtems/shell.h>
+#include <rtems/fb.h>
 #include <bsp/milkymist_flash.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -211,11 +213,11 @@ int main_fbgrab(int argc, char **argv)
 	int fd;
 	unsigned char *buf_p;
 	int ret = 0;
-
+	struct fb_var_screeninfo fb_var;
 	unsigned int bitdepth = 16;
-	size_t width = 640;
-	size_t height = 480;
-	size_t buf_size = width * height * 2;
+	size_t width;
+	size_t height;
+	size_t buf_size;
 	int interlace = PNG_INTERLACE_NONE;
 
 	char *device = "/dev/fb";
@@ -232,6 +234,11 @@ int main_fbgrab(int argc, char **argv)
 		perror("Unable to open /dev/fb");
 		return 2;
 	}
+	
+	ioctl(fd, FBIOGET_VSCREENINFO, &fb_var);
+	width = fb_var.xres;
+	height = fb_var.yres;
+	buf_size = width * height * 2;
 
 	buf_p = malloc(buf_size);
 	if(buf_p == NULL) {
