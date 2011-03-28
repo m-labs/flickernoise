@@ -19,5 +19,6 @@
 #define __SHELLEXT_H
 
 extern rtems_shell_cmd_t shell_usercmd;
+extern rtems_shell_cmd_t framebuffer_grab;
 
 #endif /* __SHELLEXT_H */
