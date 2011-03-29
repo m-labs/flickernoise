@@ -39,6 +39,11 @@ all: $(BINDIR)/flickernoise
 $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+# always rebuild about.o to show the latest build date
+.PHONY: $(OBJDIR)/about.o
+$(OBJDIR)/about.o: about.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 $(BINDIR)/flickernoise: $(POBJS)
 	$(LD) -o $@ $^ $(LDFLAGS) $(LIBS)
 	$(STRIP) $(STRIPFLAGS) $@
