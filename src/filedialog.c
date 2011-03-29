@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 
 #include "filedialog.h"
 
-static void display_folder(int appid, const char *folder)
+static void display_folder(struct filedialog *dlg, const char *folder)
 {
 	char fmt_folders[8192];
 	char *c_folders;
@@ -38,6 +38,7 @@ static void display_folder(int appid, const char *folder)
 	struct dirent *entry;
 	struct stat s;
 	int len;
+	char *c;
 
 	// TODO: sort output
 	d = opendir(folder);
@@ -53,30 +54,36 @@ static void display_folder(int appid, const char *folder)
 		lstat(fullname, &s);
 		len = strlen(entry->d_name);
 		if(S_ISDIR(s.st_mode)) {
-			if((c_folders-fmt_folders)+len+3 > sizeof(fmt_folders)) break;
-			*c_folders++ = '\n';
-			strcpy(c_folders, entry->d_name);
-			c_folders += len;
-			*c_folders++ = '/';
-			*c_folders = 0;
+			/* hide /dev */
+			if((strcmp(folder, "/") != 0) || (strcmp(entry->d_name, "dev") != 0)) {
+				if((c_folders-fmt_folders)+len+3 > sizeof(fmt_folders)) break;
+				*c_folders++ = '\n';
+				strcpy(c_folders, entry->d_name);
+				c_folders += len;
+				*c_folders++ = '/';
+				*c_folders = 0;
+			}
 		} else {
-			if((c_files-fmt_files)+len+2 > sizeof(fmt_files)) break;
-			if(c_files != fmt_files)
-				*c_files++ = '\n';
-			strcpy(c_files, entry->d_name);
-			c_files += len;
-			*c_files = 0;
+			c = strchr(entry->d_name, '.');
+			if((dlg->extfilter[0] == 0) || ((c != NULL) && (strcmp(dlg->extfilter, c+1) == 0))) {
+				if((c_files-fmt_files)+len+2 > sizeof(fmt_files)) break;
+				if(c_files != fmt_files)
+					*c_files++ = '\n';
+				strcpy(c_files, entry->d_name);
+				c_files += len;
+				*c_files = 0;
+			}
 		}
 	}
 	closedir(d);
 
 
-	mtk_cmdf(appid, "fd_g2_folders.set(-text \"%s\" -selection 0)", fmt_folders);
-	mtk_cmdf(appid, "fd_g2_files.set(-text \"%s\" -selection 0)", fmt_files);
-	mtk_cmdf(appid, "fd_g1_l.set(-text \"%s\")", folder);
-	mtk_cmdf(appid, "fd_selection.set(-text \"Selection: %s\")", folder);
-	mtk_cmd(appid, "fd_g2_foldersf.expose(0, 0)");
-	mtk_cmd(appid, "fd_g2_filesf.expose(0, 0)");
+	mtk_cmdf(dlg->appid, "fd_g2_folders.set(-text \"%s\" -selection 0)", fmt_folders);
+	mtk_cmdf(dlg->appid, "fd_g2_files.set(-text \"%s\" -selection 0)", fmt_files);
+	mtk_cmdf(dlg->appid, "fd_g1_l.set(-text \"%s\")", folder);
+	mtk_cmdf(dlg->appid, "fd_selection.set(-text \"Selection: %s\")", folder);
+	mtk_cmd(dlg->appid, "fd_g2_foldersf.expose(0, 0)");
+	mtk_cmd(dlg->appid, "fd_g2_filesf.expose(0, 0)");
 }
 
 static char *get_selection(char *list, int n)
@@ -100,16 +107,16 @@ static char *get_selection(char *list, int n)
 
 static void folder_selcommit_callback(mtk_event *e, void *arg)
 {
-	int appid = (int)arg;
+	struct filedialog *dlg = arg;
 	char curfolder[384];
 	char folderlist[8192];
 	char num[8];
 	int nselection;
 	char *selection;
 
-	mtk_req(appid, curfolder, sizeof(curfolder), "fd_g1_l.text");
-	mtk_req(appid, folderlist, sizeof(folderlist), "fd_g2_folders.text");
-	mtk_req(appid, num, sizeof(num), "fd_g2_folders.selection");
+	mtk_req(dlg->appid, curfolder, sizeof(curfolder), "fd_g1_l.text");
+	mtk_req(dlg->appid, folderlist, sizeof(folderlist), "fd_g2_folders.text");
+	mtk_req(dlg->appid, num, sizeof(num), "fd_g2_folders.selection");
 	nselection = atoi(num);
 	selection = get_selection(folderlist, nselection);
 
@@ -123,113 +130,144 @@ static void folder_selcommit_callback(mtk_event *e, void *arg)
 	} else
 		strncat(curfolder, selection, sizeof(curfolder));
 
-	display_folder(appid, curfolder);
+	display_folder(dlg, curfolder);
 }
 
-static void update_filename(int appid)
+static void update_filename(struct filedialog *dlg)
 {
 	char filelist[8192];
 	char num[8];
 	int nselection;
 	char *selection;
 
-	mtk_req(appid, filelist, sizeof(filelist), "fd_g2_files.text");
+	mtk_req(dlg->appid, filelist, sizeof(filelist), "fd_g2_files.text");
 	if(strlen(filelist) == 0) return;
-	mtk_req(appid, num, sizeof(num), "fd_g2_files.selection");
+	mtk_req(dlg->appid, num, sizeof(num), "fd_g2_files.selection");
 	nselection = atoi(num);
 	selection = get_selection(filelist, nselection);
 
-	mtk_cmdf(appid, "fd_filename.set(-text \"%s\")", selection);
+	mtk_cmdf(dlg->appid, "fd_filename.set(-text \"%s\")", selection);
 }
 
 static void file_selchange_callback(mtk_event *e, void *arg)
 {
-	int appid = (int)arg;
-
-	update_filename(appid);
+	struct filedialog *dlg = arg;
+	
+	update_filename(dlg);
 }
 
 static void file_selcommit_callback(mtk_event *e, void *arg)
 {
-	int appid = (int)arg;
-
-	update_filename(appid);
+	struct filedialog *dlg = arg;
+	
+	close_filedialog(dlg);
+	update_filename(dlg);
+	if(dlg->ok_callback)
+		dlg->ok_callback(dlg->ok_callback_arg);
 }
 
-int create_filedialog(const char *name, int is_save, void (*ok_callback)(mtk_event *,void *), void *ok_callback_arg, void (*cancel_callback)(mtk_event *,void *), void *cancel_callback_arg)
+static void dlg_ok_callback(mtk_event *e, void *arg)
 {
-	int appid;
-
-	appid = mtk_init_app(name);
-
-	mtk_cmd(appid, "fd_g = new Grid()");
-
-	mtk_cmd(appid, "fd_g1 = new Grid()");
-	mtk_cmd(appid, "fd_g1_s1 = new Separator(-vertical no)");
-	mtk_cmd(appid, "fd_g1_l = new Label(-text \"/\")");
-	mtk_cmd(appid, "fd_g1_s2 = new Separator(-vertical no)");
-	mtk_cmd(appid, "fd_g1.place(fd_g1_s1, -column 1 -row 1)");
-	mtk_cmd(appid, "fd_g1.place(fd_g1_l, -column 2 -row 1)");
-	mtk_cmd(appid, "fd_g1.place(fd_g1_s2, -column 3 -row 1)");
-
-	mtk_cmd(appid, "fd_g2 = new Grid()");
-	mtk_cmd(appid, "fd_g2_folders = new List()");
-	mtk_cmd(appid, "fd_g2_foldersf = new Frame(-content fd_g2_folders -scrollx yes -scrolly yes)");
-	mtk_cmd(appid, "fd_g2_files = new List()");
-	mtk_cmd(appid, "fd_g2_filesf = new Frame(-content fd_g2_files -scrollx yes -scrolly yes)");
-	mtk_cmd(appid, "fd_g2.place(fd_g2_foldersf, -column 1 -row 1)");
-	mtk_cmd(appid, "fd_g2.place(fd_g2_filesf, -column 2 -row 1)");
-	mtk_cmd(appid, "fd_g2.rowconfig(1, -size 200)");
-
-	mtk_cmd(appid, "fd_selection = new Label(-text \"Selection: /\")");
-
-	mtk_cmd(appid, "fd_filename = new Entry()");
-
-	mtk_cmd(appid, "fd_g3 = new Grid()");
-	mtk_cmd(appid, "fd_g3_ok = new Button(-text \"OK\")");
-	mtk_cmd(appid, "fd_g3_cancel = new Button(-text \"Cancel\")");
-	mtk_cmd(appid, "fd_g3.columnconfig(1, -size 340)");
-	mtk_cmd(appid, "fd_g3.place(fd_g3_ok, -column 2 -row 1)");
-	mtk_cmd(appid, "fd_g3.place(fd_g3_cancel, -column 3 -row 1)");
-
-	mtk_cmd(appid, "fd_g.place(fd_g1, -column 1 -row 1)");
-	mtk_cmd(appid, "fd_g.place(fd_g2, -column 1 -row 2)");
-	mtk_cmd(appid, "fd_g.place(fd_selection, -column 1 -row 3 -align \"w\")");
-	mtk_cmd(appid, "fd_g.place(fd_filename, -column 1 -row 4)");
-	mtk_cmd(appid, "fd_g.place(fd_g3, -column 1 -row 5)");
-	mtk_cmd(appid, "fd_g.rowconfig(3, -size 0)");
-
-	mtk_cmdf(appid, "fd = new Window(-content fd_g -title \"%s\")", is_save ? "Save As" : "Open");
-
-	mtk_bind(appid, "fd_g2_folders", "selcommit", folder_selcommit_callback, (void *)appid);
-	mtk_bind(appid, "fd_g2_files", "selchange", file_selchange_callback, (void *)appid);
-	mtk_bind(appid, "fd_g2_files", "selcommit", file_selcommit_callback, (void *)appid);
-
-	mtk_bind(appid, "fd_g3_ok", "commit", ok_callback, ok_callback_arg);
-	mtk_bind(appid, "fd_g3_cancel", "commit", cancel_callback, cancel_callback_arg);
-	mtk_bind(appid, "fd", "close", cancel_callback, cancel_callback_arg);
-
-	return appid;
+	struct filedialog *dlg = arg;
+	
+	close_filedialog(dlg);
+	if(dlg->ok_callback)
+		dlg->ok_callback(dlg->ok_callback_arg);
 }
 
-void open_filedialog(int appid, const char *folder)
+static void dlg_close_callback(mtk_event *e, void *arg)
 {
-	display_folder(appid, folder);
-
-	mtk_cmd(appid, "fd_filename.set(-text \"\")");
-	mtk_cmd(appid, "fd.open()");
+	struct filedialog *dlg = arg;
+	
+	close_filedialog(dlg);
+	if(dlg->cancel_callback)
+		dlg->cancel_callback(dlg->ok_callback_arg);
 }
 
-void close_filedialog(int appid)
+struct filedialog *create_filedialog(const char *name, int is_save, const char *extfilter, void (*ok_callback)(void *), void *ok_callback_arg, void (*cancel_callback)(void *), void *cancel_callback_arg)
 {
-	mtk_cmd(appid, "fd.close()");
+	struct filedialog *dlg;
+
+	dlg = malloc(sizeof(struct filedialog));
+	if(dlg == NULL) abort();
+	dlg->appid = mtk_init_app(name);
+	dlg->is_save = is_save;
+	dlg->extfilter = extfilter;
+	dlg->ok_callback = ok_callback;
+	dlg->ok_callback_arg = ok_callback_arg;
+	dlg->cancel_callback = cancel_callback;
+	dlg->cancel_callback_arg = cancel_callback_arg;
+
+	mtk_cmd(dlg->appid, "fd_g = new Grid()");
+
+	mtk_cmd(dlg->appid, "fd_g1 = new Grid()");
+	mtk_cmd(dlg->appid, "fd_g1_s1 = new Separator(-vertical no)");
+	mtk_cmd(dlg->appid, "fd_g1_l = new Label(-text \"/\")");
+	mtk_cmd(dlg->appid, "fd_g1_s2 = new Separator(-vertical no)");
+	mtk_cmd(dlg->appid, "fd_g1.place(fd_g1_s1, -column 1 -row 1)");
+	mtk_cmd(dlg->appid, "fd_g1.place(fd_g1_l, -column 2 -row 1)");
+	mtk_cmd(dlg->appid, "fd_g1.place(fd_g1_s2, -column 3 -row 1)");
+
+	mtk_cmd(dlg->appid, "fd_g2 = new Grid()");
+	mtk_cmd(dlg->appid, "fd_g2_folders = new List()");
+	mtk_cmd(dlg->appid, "fd_g2_foldersf = new Frame(-content fd_g2_folders -scrollx yes -scrolly yes)");
+	mtk_cmd(dlg->appid, "fd_g2_files = new List()");
+	mtk_cmd(dlg->appid, "fd_g2_filesf = new Frame(-content fd_g2_files -scrollx yes -scrolly yes)");
+	mtk_cmd(dlg->appid, "fd_g2.place(fd_g2_foldersf, -column 1 -row 1)");
+	mtk_cmd(dlg->appid, "fd_g2.place(fd_g2_filesf, -column 2 -row 1)");
+	mtk_cmd(dlg->appid, "fd_g2.rowconfig(1, -size 200)");
+
+	mtk_cmd(dlg->appid, "fd_selection = new Label(-text \"Selection: /\")");
+
+	mtk_cmd(dlg->appid, "fd_filename = new Entry()");
+
+	mtk_cmd(dlg->appid, "fd_g3 = new Grid()");
+	mtk_cmd(dlg->appid, "fd_g3_ok = new Button(-text \"OK\")");
+	mtk_cmd(dlg->appid, "fd_g3_cancel = new Button(-text \"Cancel\")");
+	mtk_cmd(dlg->appid, "fd_g3.columnconfig(1, -size 340)");
+	mtk_cmd(dlg->appid, "fd_g3.place(fd_g3_ok, -column 2 -row 1)");
+	mtk_cmd(dlg->appid, "fd_g3.place(fd_g3_cancel, -column 3 -row 1)");
+
+	mtk_cmd(dlg->appid, "fd_g.place(fd_g1, -column 1 -row 1)");
+	mtk_cmd(dlg->appid, "fd_g.place(fd_g2, -column 1 -row 2)");
+	mtk_cmd(dlg->appid, "fd_g.place(fd_selection, -column 1 -row 3 -align \"w\")");
+	mtk_cmd(dlg->appid, "fd_g.place(fd_filename, -column 1 -row 4)");
+	mtk_cmd(dlg->appid, "fd_g.place(fd_g3, -column 1 -row 5)");
+	mtk_cmd(dlg->appid, "fd_g.rowconfig(3, -size 0)");
+
+	mtk_cmdf(dlg->appid, "fd = new Window(-content fd_g -title \"%s\")", name);
+
+	mtk_bind(dlg->appid, "fd_g2_folders", "selcommit", folder_selcommit_callback, (void *)dlg);
+	mtk_bind(dlg->appid, "fd_g2_files", "selchange", file_selchange_callback, (void *)dlg);
+	mtk_bind(dlg->appid, "fd_g2_files", "selcommit", file_selcommit_callback, (void *)dlg);
+
+	mtk_bind(dlg->appid, "fd_g3_ok", "commit", dlg_ok_callback, (void *)dlg);
+	mtk_bind(dlg->appid, "fd_g3_cancel", "commit", dlg_close_callback, (void *)dlg);
+	mtk_bind(dlg->appid, "fd", "close", dlg_close_callback, (void *)dlg);
+
+	return dlg;
 }
 
-void get_filedialog_selection(int appid, char *buffer, int buflen)
+void open_filedialog(struct filedialog *dlg)
+{
+	char curfolder[384];
+
+	mtk_req(dlg->appid, curfolder, sizeof(curfolder), "fd_g1_l.text");
+	display_folder(dlg, curfolder);
+	mtk_cmd(dlg->appid, "fd_filename.set(-text \"\")");
+	mtk_cmd(dlg->appid, "fd.open()");
+}
+
+void close_filedialog(struct filedialog *dlg)
+{
+	mtk_cmd(dlg->appid, "fd.close()");
+}
+
+void get_filedialog_selection(struct filedialog *dlg, char *buffer, int buflen)
 {
 	char file[384];
 
-	mtk_req(appid, buffer, buflen, "fd_g1_l.text");
-	mtk_req(appid, file, sizeof(file), "fd_filename.text");
+	mtk_req(dlg->appid, buffer, buflen, "fd_g1_l.text");
+	mtk_req(dlg->appid, file, sizeof(file), "fd_filename.text");
 	strncat(buffer, file, buflen);
 }

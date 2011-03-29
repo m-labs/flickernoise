@@ -44,8 +44,8 @@
 #include "cp.h"
 
 static int appid;
-static int load_appid;
-static int save_appid;
+static struct filedialog *load_dlg;
+static struct filedialog *save_dlg;
 
 static int changed;
 
@@ -69,38 +69,26 @@ static void on_config_change()
 	load_dmx_config();
 }
 
-static void loadok_callback(mtk_event *e, void *arg)
+static void loadok_callback(void *arg)
 {
 	char buf[8192];
 
-	get_filedialog_selection(load_appid, buf, 8192);
+	get_filedialog_selection(load_dlg, buf, 8192);
 	if(!config_load(buf)) {
 		messagebox("Performance load", "Unable to load the performance file");
 		return;
 	}
 	on_config_change();
 	clear_changed();
-	close_filedialog(load_appid);
 }
 
-static void loadcancel_callback(mtk_event *e, void *arg)
+static void saveok_callback(void *arg)
 {
-	close_filedialog(load_appid);
-}
+	char buf[4096];
 
-static void saveok_callback(mtk_event *e, void *arg)
-{
-	char buf[32768];
-
-	get_filedialog_selection(save_appid, buf, 32768);
+	get_filedialog_selection(save_dlg, buf, sizeof(buf));
 	config_save(buf);
 	clear_changed();
-	close_filedialog(save_appid);
-}
-
-static void savecancel_callback(mtk_event *e, void *arg)
-{
-	close_filedialog(save_appid);
 }
 
 enum {
@@ -173,10 +161,10 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_firstpatch_window();
 			break;
 		case CP_ITEM_LOAD:
-			open_filedialog(load_appid, "/");
+			open_filedialog(load_dlg);
 			break;
 		case CP_ITEM_SAVE:
-			open_filedialog(save_appid, "/");
+			open_filedialog(save_dlg);
 			break;
 		
 		case CP_ITEM_FILEMANAGER:
@@ -337,8 +325,8 @@ void init_cp()
 
 	mtk_bind(appid, "w", "close", cp_callback, (void *)CP_ITEM_SHUTDOWN);
 
-	load_appid = create_filedialog("Load performance", 0, loadok_callback, NULL, loadcancel_callback, NULL);
-	save_appid = create_filedialog("Save performance", 1, saveok_callback, NULL, savecancel_callback, NULL);
+	load_dlg = create_filedialog("Load performance", 0, "per", loadok_callback, NULL, NULL, NULL);
+	save_dlg = create_filedialog("Save performance", 1, "per", saveok_callback, NULL, NULL, NULL);
 }
 
 void cp_autostart()

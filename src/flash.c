@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,27 +37,22 @@
 #include "flash.h"
 
 static int appid;
-static int file_dialog_id;
+static struct filedialog *file_dlg;
 static int current_file_to_choose;
 
 static void flash_filedialog_ok_callback()
 {
 	char filepath[384];
 
-	get_filedialog_selection(file_dialog_id, filepath, sizeof(filepath));
+	get_filedialog_selection(file_dlg, filepath, sizeof(filepath));
 	mtk_cmdf(appid, "e%d.set(-text \"%s\")", current_file_to_choose, filepath);
-	close_filedialog(file_dialog_id);
-}
-
-static void flash_filedialog_cancel_callback()
-{
-	close_filedialog(file_dialog_id);
+	close_filedialog(file_dlg);
 }
 
 static void opendialog_callback(mtk_event *e, void *arg)
 {
 	current_file_to_choose = (int)arg;
-	open_filedialog(file_dialog_id, "/");
+	open_filedialog(file_dlg);
 }
 
 enum {
@@ -368,7 +363,7 @@ static int w_open;
 static void close_callback(mtk_event *e, void *arg)
 {
 	if(flash_busy()) return;
-	close_filedialog(file_dialog_id);
+	close_filedialog(file_dlg);
 	mtk_cmd(appid, "w.close()");
 	w_open = 0;
 }
@@ -451,7 +446,7 @@ void init_flash()
 
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 
-	file_dialog_id = create_filedialog("Flashimg selection", 0, flash_filedialog_ok_callback, NULL, flash_filedialog_cancel_callback, NULL);
+	file_dlg = create_filedialog("Open flash image", 0, "", flash_filedialog_ok_callback, NULL, NULL, NULL);
 }
 
 void open_flash_window()

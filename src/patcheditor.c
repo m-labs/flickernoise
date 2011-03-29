@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,8 +31,8 @@
 #include "guirender.h"
 
 static int appid;
-static int fileopen_appid;
-static int filesave_appid;
+static struct filedialog *fileopen_dlg;
+static struct filedialog *filesave_dlg;
 
 static int modified;
 static char current_filename[384];
@@ -66,17 +66,16 @@ static void new_callback(mtk_event *e, void *arg)
 
 static void openbtn_callback(mtk_event *e, void *arg)
 {
-	open_filedialog(fileopen_appid, "/");
+	open_filedialog(fileopen_dlg);
 }
 
-static void openok_callback(mtk_event *e, void *arg)
+static void openok_callback(void *arg)
 {
 	char buf[32768];
 	FILE *fd;
 	int r;
 
-	get_filedialog_selection(fileopen_appid, current_filename, sizeof(current_filename));
-	close_filedialog(fileopen_appid);
+	get_filedialog_selection(fileopen_dlg, current_filename, sizeof(current_filename));
 	modified = 0;
 	update_wintitle();
 
@@ -94,11 +93,6 @@ static void openok_callback(mtk_event *e, void *arg)
 	buf[r] = 0;
 	mtk_cmdf(appid, "ed.set(-text \"%s\")", buf);
 	mtk_cmd(appid, "edf.expose(0, 0)");
-}
-
-static void opencancel_callback(mtk_event *e, void *arg)
-{
-	close_filedialog(fileopen_appid);
 }
 
 static void save_current()
@@ -123,7 +117,7 @@ static void save_current()
 
 static void saveas_callback(mtk_event *e, void *arg)
 {
-	open_filedialog(filesave_appid, "/");
+	open_filedialog(filesave_dlg);
 }
 
 static void save_callback(mtk_event *e, void *arg)
@@ -137,18 +131,12 @@ static void save_callback(mtk_event *e, void *arg)
 	}
 }
 
-static void saveasok_callback(mtk_event *e, void *arg)
+static void saveasok_callback(void *arg)
 {
-	get_filedialog_selection(filesave_appid, current_filename, sizeof(current_filename));
-	close_filedialog(filesave_appid);
+	get_filedialog_selection(filesave_dlg, current_filename, sizeof(current_filename));
 	modified = 0;
 	update_wintitle();
 	save_current();
-}
-
-static void saveascancel_callback(mtk_event *e, void *arg)
-{
-	close_filedialog(filesave_appid);
 }
 
 static void rmc(const char *m)
@@ -224,8 +212,8 @@ void init_patcheditor()
 		"w = new Window(-content g -title \"Patch editor [untitled]\" -workw 400 -workh 300)",
 		0);
 
-	fileopen_appid = create_filedialog("Open patch", 0, openok_callback, NULL, opencancel_callback, NULL);
-	filesave_appid = create_filedialog("Save patch", 1, saveasok_callback, NULL, saveascancel_callback, NULL);
+	fileopen_dlg = create_filedialog("Open patch", 0, "fnp", openok_callback, NULL, NULL, NULL);
+	filesave_dlg = create_filedialog("Save patch", 1, "fnp", saveasok_callback, NULL, NULL, NULL);
 
 	mtk_bind(appid, "b_new", "commit", new_callback, NULL);
 	mtk_bind(appid, "b_open", "commit", openbtn_callback, NULL);
