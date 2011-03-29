@@ -26,7 +26,7 @@
 #include "pdfreader.h"
 
 static int appid;
-static int file_dialog_id;
+static struct filedialog *file_dlg;
 
 static fz_glyphcache *glyphcache;
 
@@ -142,19 +142,12 @@ static void pdf_open(char *filename, char *password)
 	display_page();
 }
 
-static void pdf_filedialog_ok_callback()
+static void pdf_filedialog_ok_callback(void *arg)
 {
 	char filepath[384];
 
-	get_filedialog_selection(file_dialog_id, filepath, sizeof(filepath));
-	close_filedialog(file_dialog_id);
-	
+	get_filedialog_selection(file_dlg, filepath, sizeof(filepath));
 	pdf_open(filepath, "");
-}
-
-static void pdf_filedialog_cancel_callback()
-{
-	close_filedialog(file_dialog_id);
 }
 
 static void prev_callback(mtk_event *e, void *arg)
@@ -206,14 +199,14 @@ static void zoomin_callback(mtk_event *e, void *arg)
 
 static void open_callback(mtk_event *e, void *arg)
 {
-	open_filedialog(file_dialog_id, "/");
+	open_filedialog(file_dlg);
 }
 
 static int w_open;
 
 static void close_callback(mtk_event *e, void *arg)
 {
-	close_filedialog(file_dialog_id);
+	close_filedialog(file_dlg);
 	mtk_cmd(appid, "w.close()");
 	pdf_close();
 	w_open = 0;
@@ -271,7 +264,7 @@ void init_pdfreader()
 
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 
-	file_dialog_id = create_filedialog("PDF selection", 0, pdf_filedialog_ok_callback, NULL, pdf_filedialog_cancel_callback, NULL);
+	file_dlg = create_filedialog("PDF selection", 0, "pdf", pdf_filedialog_ok_callback, NULL, NULL, NULL);
 	
 	glyphcache = fz_newglyphcache();
 }

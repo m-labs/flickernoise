@@ -233,6 +233,8 @@ static int w_open;
 static void close_callback(mtk_event *e, void *arg)
 {
 	w_open = 0;
+	close_filedialog(fileopen_dlg);
+	close_filedialog(filesave_dlg);
 	mtk_cmd(appid, "w.close()");
 }
 

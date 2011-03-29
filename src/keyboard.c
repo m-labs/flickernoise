@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 #include "keyboard.h"
 
 static int appid;
-static int browse_appid;
+static struct filedialog *browse_dlg;
 
 static int w_open;
 
@@ -118,33 +118,27 @@ static void ok_callback(mtk_event *e, void *arg)
 	w_open = 0;
 	set_config();
 	cp_notify_changed();
-	close_filedialog(browse_appid);
+	close_filedialog(browse_dlg);
 }
 
 static void cancel_callback(mtk_event *e, void *arg)
 {
 	mtk_cmd(appid, "w.close()");
 	w_open = 0;
-	close_filedialog(browse_appid);
+	close_filedialog(browse_dlg);
 }
 
 static void browse_ok_callback()
 {
 	char filename[384];
 
-	get_filedialog_selection(browse_appid, filename, sizeof(filename));
-	close_filedialog(browse_appid);
+	get_filedialog_selection(browse_dlg, filename, sizeof(filename));
 	mtk_cmdf(appid, "e_filename.set(-text \"%s\")", filename);
-}
-
-static void browse_cancel_callback()
-{
-	close_filedialog(browse_appid);
 }
 
 static void browse_callback(mtk_event *e, void *arg)
 {
-	open_filedialog(browse_appid, "/");
+	open_filedialog(browse_dlg);
 }
 
 static void clear_callback(mtk_event *e, void *arg)
@@ -241,7 +235,7 @@ void init_keyboard()
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 
-	browse_appid = create_filedialog("Keyboard patch select", 0, browse_ok_callback, NULL, browse_cancel_callback, NULL);
+	browse_dlg = create_filedialog("Select keyboard patch", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
 }
 
 void open_keyboard_window()
