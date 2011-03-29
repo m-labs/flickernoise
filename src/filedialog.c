@@ -27,8 +27,19 @@
 
 #include "filedialog.h"
 
+static int cmpstringp(const void *p1, const void *p2)
+{
+	return strcmp(*(char * const *)p1, *(char * const *)p2);
+}
+
 static void display_folder(struct filedialog *dlg, const char *folder)
 {
+	char *folders[384];
+	int n_folders;
+	char *files[384];
+	int n_files;
+	int i;
+
 	char fmt_folders[8192];
 	char *c_folders;
 	char fmt_files[8192];
@@ -40,43 +51,63 @@ static void display_folder(struct filedialog *dlg, const char *folder)
 	int len;
 	char *c;
 
-	// TODO: sort output
 	d = opendir(folder);
 	if(!d) return;
-	strcpy(fmt_folders, "../");
-	c_folders = fmt_folders + 3;
-	fmt_files[0] = 0;
-	c_files = fmt_files;
+	n_folders = 0;
+	n_files = 0;
 	while((entry = readdir(d))) {
 		if(entry->d_name[0] == '.') continue;
 		strncpy(fullname, folder, sizeof(fullname));
 		strncat(fullname, entry->d_name, sizeof(fullname));
 		lstat(fullname, &s);
-		len = strlen(entry->d_name);
 		if(S_ISDIR(s.st_mode)) {
 			/* hide /dev */
 			if((strcmp(folder, "/") != 0) || (strcmp(entry->d_name, "dev") != 0)) {
-				if((c_folders-fmt_folders)+len+3 > sizeof(fmt_folders)) break;
-				*c_folders++ = '\n';
-				strcpy(c_folders, entry->d_name);
-				c_folders += len;
-				*c_folders++ = '/';
-				*c_folders = 0;
+				if(n_folders < 384) {
+					folders[n_folders] = strdup(entry->d_name);
+					n_folders++;
+				}
 			}
 		} else {
+			/* hide files without the extension we are looking for */
 			c = strchr(entry->d_name, '.');
 			if((dlg->extfilter[0] == 0) || ((c != NULL) && (strcmp(dlg->extfilter, c+1) == 0))) {
-				if((c_files-fmt_files)+len+2 > sizeof(fmt_files)) break;
-				if(c_files != fmt_files)
-					*c_files++ = '\n';
-				strcpy(c_files, entry->d_name);
-				c_files += len;
-				*c_files = 0;
+				if(n_files < 384) {
+					files[n_files] = strdup(entry->d_name);
+					n_files++;
+				}
 			}
 		}
 	}
 	closedir(d);
+	
+	qsort(folders, n_folders, sizeof(char *), cmpstringp);
+	qsort(files, n_files, sizeof(char *), cmpstringp);
 
+	strcpy(fmt_folders, "../");
+	c_folders = fmt_folders + 3;
+	fmt_files[0] = 0;
+	c_files = fmt_files;
+	for(i=0;i<n_folders;i++) {
+		len = strlen(folders[i]);
+		if((c_folders-fmt_folders)+len+3 > sizeof(fmt_folders)) break;
+		*c_folders++ = '\n';
+		strcpy(c_folders, folders[i]);
+		free(folders[i]);
+		c_folders += len;
+		*c_folders++ = '/';
+		*c_folders = 0;
+	}
+	for(i=0;i<n_files;i++) {
+		len = strlen(files[i]);
+		if((c_files-fmt_files)+len+2 > sizeof(fmt_files)) break;
+		if(c_files != fmt_files)
+			*c_files++ = '\n';
+		strcpy(c_files, files[i]);
+		free(files[i]);
+		c_files += len;
+		*c_files = 0;
+	}
 
 	mtk_cmdf(dlg->appid, "fd_g2_folders.set(-text \"%s\" -selection 0)", fmt_folders);
 	mtk_cmdf(dlg->appid, "fd_g2_files.set(-text \"%s\" -selection 0)", fmt_files);
