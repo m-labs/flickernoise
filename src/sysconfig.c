@@ -68,12 +68,16 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 };
 
 #define SYSCONFIG_MAGIC 0xda81d4cb
-#define SYSCONFIG_VERSION 0
+#define SYSCONFIG_VERSION 1
 
 struct sysconfig {
 	unsigned int magic;
 	unsigned char version;
 	
+	unsigned char resolution;
+	char wallpaper[256];
+	
+	unsigned char language;
 	unsigned char keyboard_layout;
 	
 	unsigned char dhcp_enable;
@@ -116,6 +120,10 @@ static int readconfig(const char *filename, struct sysconfig *out)
 static struct sysconfig sysconfig = {
 	.magic = SYSCONFIG_MAGIC,
 	.version = SYSCONFIG_VERSION,
+	.resolution = SC_RESOLUTION_1024_768,
+	.wallpaper = "/flash/comet.png",
+	.language = SC_LANGUAGE_ENGLISH,
+	.keyboard_layout = SC_KEYBOARD_LAYOUT_GERMAN,
 	.dhcp_enable = 0,
 	.ip = 0xc0a8002a,
 	.netmask = 0xffffff00
@@ -207,6 +215,21 @@ static void ifconfig_set_ip(uint32_t cmd, unsigned int ip)
 
 /* get */
 
+int sysconfig_get_resolution()
+{
+	return sysconfig.resolution;
+}
+
+void sysconfig_get_wallpaper(char *wallpaper)
+{
+	strcpy(wallpaper, sysconfig.wallpaper);
+}
+
+int sysconfig_get_language()
+{
+	return sysconfig.language;
+}
+
 int sysconfig_get_keyboard_layout()
 {
 	return sysconfig.keyboard_layout;
@@ -234,6 +257,23 @@ void sysconfig_get_autostart(char *autostart)
 }
 
 /* set */
+
+void sysconfig_set_resolution(int resolution)
+{
+	sysconfig.resolution = resolution;
+	/* TODO: switch video mode and redraw screen */
+}
+
+void sysconfig_set_wallpaper(char *wallpaper)
+{
+	strcpy(sysconfig.wallpaper, wallpaper);
+	/* TODO: display new wallpaper */
+}
+
+void sysconfig_set_language(int language)
+{
+	sysconfig.language = language;
+}
 
 void sysconfig_set_keyboard_layout(int layout)
 {

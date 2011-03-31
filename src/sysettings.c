@@ -25,11 +25,30 @@
 #include "sysettings.h"
 
 static int appid;
-static struct filedialog *browse_dlg;
+static struct filedialog *browse_wallpaper_dlg;
+static struct filedialog *browse_autostart_dlg;
 
 static void close_sysettings_window(int save);
+static void update_resolution();
+static void update_language();
 static void update_layout();
 static void update_network();
+
+static void resolution_callback(mtk_event *e, void *arg)
+{
+	int resolution = (int)arg;
+
+	sysconfig_set_resolution(resolution);
+	update_resolution();
+}
+
+static int current_language;
+
+static void language_callback(mtk_event *e, void *arg)
+{
+	current_language = (int)arg;
+	update_language();
+}
 
 static void layout_callback(mtk_event *e, void *arg)
 {
@@ -58,20 +77,38 @@ static void cancel_callback(mtk_event *e, void *arg)
 	close_sysettings_window(0);
 }
 
-static void browse_ok_callback()
+static void wallpaper_ok_callback()
 {
 	char filename[384];
 
-	get_filedialog_selection(browse_dlg, filename, sizeof(filename));
+	get_filedialog_selection(browse_wallpaper_dlg, filename, sizeof(filename));
+	mtk_cmdf(appid, "e_wallpaper.set(-text \"%s\")", filename);
+}
+
+static void autostart_ok_callback()
+{
+	char filename[384];
+
+	get_filedialog_selection(browse_autostart_dlg, filename, sizeof(filename));
 	mtk_cmdf(appid, "e_autostart.set(-text \"%s\")", filename);
 }
 
-static void browse_callback(mtk_event *e, void *arg)
+static void browse_wallpaper_callback(mtk_event *e, void *arg)
 {
-	open_filedialog(browse_dlg);
+	open_filedialog(browse_wallpaper_dlg);
 }
 
-static void clear_callback(mtk_event *e, void *arg)
+static void browse_autostart_callback(mtk_event *e, void *arg)
+{
+	open_filedialog(browse_autostart_dlg);
+}
+
+static void clear_wallpaper_callback(mtk_event *e, void *arg)
+{
+	mtk_cmd(appid, "e_wallpaper.set(-text \"\")");
+}
+
+static void clear_autostart_callback(mtk_event *e, void *arg)
 {
 	mtk_cmd(appid, "e_autostart.set(-text \"\")");
 }
@@ -83,22 +120,58 @@ void init_sysettings()
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
-		"g_keyboard0 = new Grid()",
-		"l_keyboard = new Label(-text \"Keyboard\" -font \"title\")",
-		"s_keyboard1 = new Separator(-vertical no)",
-		"s_keyboard2 = new Separator(-vertical no)",
-		"g_keyboard0.place(s_keyboard1, -column 1 -row 1)",
-		"g_keyboard0.place(l_keyboard, -column 2 -row 1)",
-		"g_keyboard0.place(s_keyboard2, -column 3 -row 1)",
-		"g_keyboard1 = new Grid()",
-		"l_layout = new Label(-text \"Layout:\")",
-		"b_german = new Button(-text \"German\")",
-		"b_french = new Button(-text \"French\")",
-		"b_us = new Button(-text \"US\")",
-		"g_keyboard1.place(l_layout, -column 1 -row 1)",
-		"g_keyboard1.place(b_german, -column 2 -row 1)",
-		"g_keyboard1.place(b_french, -column 3 -row 1)",
-		"g_keyboard1.place(b_us, -column 4 -row 1)",
+		"g_desktop0 = new Grid()",
+		"l_desktop = new Label(-text \"Desktop\" -font \"title\")",
+		"s_desktop1 = new Separator(-vertical no)",
+		"s_desktop2 = new Separator(-vertical no)",
+		"g_desktop0.place(s_desktop1, -column 1 -row 1)",
+		"g_desktop0.place(l_desktop, -column 2 -row 1)",
+		"g_desktop0.place(s_desktop2, -column 3 -row 1)",
+		"g_desktop1 = new Grid()",
+		"l_resolution = new Label(-text \"Resolution:\")",
+		"b_res_640 = new Button(-text \"640x480\")",
+		"b_res_800 = new Button(-text \"800x600\")",
+		"b_res_1024 = new Button(-text \"1024x768\")",
+		"g_desktop1.place(l_resolution, -column 1 -row 1)",
+		"g_desktop1.place(b_res_640, -column 2 -row 1)",
+		"g_desktop1.place(b_res_800, -column 3 -row 1)",
+		"g_desktop1.place(b_res_1024, -column 4 -row 1)",
+		"g_desktop2 = new Grid()",
+		"l_wallpaper = new Label(-text \"Wallpaper:\")",
+		"e_wallpaper = new Entry()",
+		"b_wallpaper = new Button(-text \"Browse\")",
+		"b_wallpaper_clr = new Button(-text \"Clear\")",
+		"g_desktop2.place(l_wallpaper, -column 1 -row 1)",
+		"g_desktop2.place(e_wallpaper, -column 2 -row 1)",
+		"g_desktop2.place(b_wallpaper, -column 3 -row 1)",
+		"g_desktop2.place(b_wallpaper_clr, -column 4 -row 1)",
+		"g_desktop2.columnconfig(3, -size 0)",
+		"g_desktop2.columnconfig(4, -size 0)",
+
+		"g_localization0 = new Grid()",
+		"l_localization = new Label(-text \"Localization\" -font \"title\")",
+		"s_localization1 = new Separator(-vertical no)",
+		"s_localization2 = new Separator(-vertical no)",
+		"g_localization0.place(s_localization1, -column 1 -row 1)",
+		"g_localization0.place(l_localization, -column 2 -row 1)",
+		"g_localization0.place(s_localization2, -column 3 -row 1)",
+		"g_localization = new Grid()",
+		"l_language = new Label(-text \"Language:\")",
+		"b_lang_english = new Button(-text \"English\")",
+		"b_lang_french = new Button(-text \"French\")",
+		"b_lang_german = new Button(-text \"German\")",
+		"l_layout = new Label(-text \"Keyboard layout:\")",
+		"b_kbd_us = new Button(-text \"US\")",
+		"b_kbd_french = new Button(-text \"French\")",
+		"b_kbd_german = new Button(-text \"German\")",
+		"g_localization.place(l_language, -column 1 -row 1)",
+		"g_localization.place(b_lang_english, -column 2 -row 1)",
+		"g_localization.place(b_lang_french, -column 3 -row 1)",
+		"g_localization.place(b_lang_german, -column 4 -row 1)",
+		"g_localization.place(l_layout, -column 1 -row 2)",
+		"g_localization.place(b_kbd_us, -column 2 -row 2)",
+		"g_localization.place(b_kbd_french, -column 3 -row 2)",
+		"g_localization.place(b_kbd_german, -column 4 -row 2)",
 
 		"g_network0 = new Grid()",
 		"l_network = new Label(-text \"Network\" -font \"title\")",
@@ -164,35 +237,76 @@ void init_sysettings()
 		"g_btn.place(b_ok, -column 2 -row 1)",
 		"g_btn.place(b_cancel, -column 3 -row 1)",
 
-		"g.place(g_keyboard0, -column 1 -row 1)",
-		"g.place(g_keyboard1, -column 1 -row 2)",
-		"g.place(g_network0, -column 1 -row 3)",
-		"g.place(g_network1, -column 1 -row 4)",
-		"g.place(g_remote0, -column 1 -row 5)",
-		"g.place(g_remote1, -column 1 -row 6)",
-		"g.place(g_autostart0, -column 1 -row 7)",
-		"g.place(g_autostart1, -column 1 -row 8)",
-		"g.rowconfig(9, -size 10)",
-		"g.place(g_btn, -column 1 -row 10)",
+		"g.place(g_desktop0, -column 1 -row 1)",
+		"g.place(g_desktop1, -column 1 -row 2)",
+		"g.place(g_desktop2, -column 1 -row 3)",
+		"g.place(g_localization0, -column 1 -row 4)",
+		"g.place(g_localization, -column 1 -row 5)",
+		"g.place(g_network0, -column 1 -row 6)",
+		"g.place(g_network1, -column 1 -row 7)",
+		"g.place(g_remote0, -column 1 -row 8)",
+		"g.place(g_remote1, -column 1 -row 9)",
+		"g.place(g_autostart0, -column 1 -row 10)",
+		"g.place(g_autostart1, -column 1 -row 11)",
+		"g.rowconfig(12, -size 10)",
+		"g.place(g_btn, -column 1 -row 13)",
 
 		"w = new Window(-content g -title \"System settings\")",
 		0);
 
-	mtk_bind(appid, "b_german", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_GERMAN);
-	mtk_bind(appid, "b_french", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_FRENCH);
-	mtk_bind(appid, "b_us", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_US);
+	mtk_bind(appid, "b_res_640", "press", resolution_callback, (void *)SC_RESOLUTION_640_480);
+	mtk_bind(appid, "b_res_800", "press", resolution_callback, (void *)SC_RESOLUTION_800_600);
+	mtk_bind(appid, "b_res_1024", "press", resolution_callback, (void *)SC_RESOLUTION_1024_768);
+
+	mtk_bind(appid, "b_wallpaper", "commit", browse_wallpaper_callback, NULL);
+	mtk_bind(appid, "b_wallpaper_clr", "commit", clear_wallpaper_callback, NULL);
+
+	mtk_bind(appid, "b_lang_english", "press", language_callback, (void *)SC_LANGUAGE_ENGLISH);
+	mtk_bind(appid, "b_lang_french", "press", language_callback, (void *)SC_LANGUAGE_FRENCH);
+	mtk_bind(appid, "b_lang_german", "press", language_callback, (void *)SC_LANGUAGE_GERMAN);
+
+	mtk_bind(appid, "b_kbd_us", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_US);
+	mtk_bind(appid, "b_kbd_french", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_FRENCH);
+	mtk_bind(appid, "b_kbd_german", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_GERMAN);
 
 	mtk_bind(appid, "b_dhcp", "press", dhcp_callback, NULL);
 
-	mtk_bind(appid, "b_autostart", "commit", browse_callback, NULL);
-	mtk_bind(appid, "b_autostart_clr", "commit", clear_callback, NULL);
+	mtk_bind(appid, "b_autostart", "commit", browse_autostart_callback, NULL);
+	mtk_bind(appid, "b_autostart_clr", "commit", clear_autostart_callback, NULL);
 	
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 
-	browse_dlg = create_filedialog("Select autostart performance", 0, "per", browse_ok_callback, NULL, NULL, NULL);
+	browse_wallpaper_dlg = create_filedialog("Select wallpaper", 0, "png", wallpaper_ok_callback, NULL, NULL, 	NULL);
+	browse_autostart_dlg = create_filedialog("Select autostart performance", 0, "per", autostart_ok_callback, NULL, NULL, NULL);
+}
+
+static void update_resolution()
+{
+	int resolution;
+
+	resolution = sysconfig_get_resolution();
+
+	mtk_cmdf(appid, "b_res_640.set(-state %s)", resolution == SC_RESOLUTION_640_480 ? "on" : "off");
+	mtk_cmdf(appid, "b_res_800.set(-state %s)", resolution == SC_RESOLUTION_800_600 ? "on" : "off");
+	mtk_cmdf(appid, "b_res_1024.set(-state %s)", resolution == SC_RESOLUTION_1024_768 ? "on" : "off");
+}
+
+static void update_wallpaper()
+{
+	char wallpaper[256];
+
+	sysconfig_get_wallpaper(wallpaper);
+	mtk_cmdf(appid, "e_wallpaper.set(-text \"%s\")", wallpaper);
+}
+
+static void update_language()
+{
+	mtk_cmdf(appid, "b_lang_english.set(-state %s)", current_language == SC_LANGUAGE_ENGLISH ? "on" : "off");
+	mtk_cmdf(appid, "b_lang_french.set(-state %s)", current_language == SC_LANGUAGE_FRENCH ? "on" : "off");
+	mtk_cmdf(appid, "b_lang_german.set(-state %s)", current_language == SC_LANGUAGE_GERMAN ? "on" : "off");
 }
 
 static void update_layout()
@@ -201,9 +315,9 @@ static void update_layout()
 
 	layout = sysconfig_get_keyboard_layout();
 
-	mtk_cmdf(appid, "b_german.set(-state %s)", layout == SC_KEYBOARD_LAYOUT_GERMAN ? "on" : "off");
-	mtk_cmdf(appid, "b_french.set(-state %s)", layout == SC_KEYBOARD_LAYOUT_FRENCH ? "on" : "off");
-	mtk_cmdf(appid, "b_us.set(-state %s)", layout == SC_KEYBOARD_LAYOUT_US ? "on" : "off");
+	mtk_cmdf(appid, "b_kbd_us.set(-state %s)", layout == SC_KEYBOARD_LAYOUT_US ? "on" : "off");
+	mtk_cmdf(appid, "b_kbd_french.set(-state %s)", layout == SC_KEYBOARD_LAYOUT_FRENCH ? "on" : "off");
+	mtk_cmdf(appid, "b_kbd_german.set(-state %s)", layout == SC_KEYBOARD_LAYOUT_GERMAN ? "on" : "off");
 }
 
 static void update_network()
@@ -265,6 +379,7 @@ static void ip_update(mtk_event *e, int count)
 
 static int w_open;
 
+static int previous_resolution;
 static int previous_layout;
 static int previous_dhcp;
 static unsigned int previous_ip, previous_netmask;
@@ -274,6 +389,12 @@ void open_sysettings_window()
 	if(w_open) return;
 	w_open = 1;
 
+	previous_resolution = sysconfig_get_resolution();
+	current_language = sysconfig_get_language();
+	
+	update_resolution();
+	update_wallpaper();
+	update_language();
 	update_layout();
 	update_network();
 	update_credentials();
@@ -303,27 +424,34 @@ static void close_sysettings_window(int save)
 	w_open = 0;
 
 	input_delete_callback(ip_update);
-	close_filedialog(browse_dlg);
+	close_filedialog(browse_wallpaper_dlg);
+	close_filedialog(browse_autostart_dlg);
 	
 	if(save) {
+		char wallpaper[256];
 		char ip_txt[16];
 		char netmask_txt[16];
 		char login[32];
 		char password[32];
 		char autostart[256];
 
+		sysconfig_set_language(current_language);
+
+		mtk_req(appid, wallpaper, sizeof(wallpaper), "e_wallpaper.text");
 		mtk_req(appid, ip_txt, sizeof(ip_txt), "e_ip.text");
 		mtk_req(appid, netmask_txt, sizeof(netmask_txt), "e_netmask.text");
 		mtk_req(appid, login, sizeof(login), "e_login.text");
 		mtk_req(appid, password, sizeof(password), "e_password.text");
 		mtk_req(appid, autostart, sizeof(autostart), "e_autostart.text");
 
+		sysconfig_set_wallpaper(wallpaper);
 		sysconfig_set_ipconfig(-1, parse_ip(ip_txt), parse_ip(netmask_txt));
 		sysconfig_set_credentials(login, password);
 		sysconfig_set_autostart(autostart);
 		
 		sysconfig_save();
 	} else {
+		sysconfig_set_resolution(previous_resolution);
 		sysconfig_set_keyboard_layout(previous_layout);
 		sysconfig_set_ipconfig(previous_dhcp, previous_ip, previous_netmask);
 	}
