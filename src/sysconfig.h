@@ -51,6 +51,7 @@ void sysconfig_get_autostart(char *autostart);
 
 void sysconfig_set_resolution(int resolution);
 void sysconfig_set_wallpaper(char *wallpaper);
+void sysconfig_set_mtk_wallpaper();
 void sysconfig_set_language(int language);
 void sysconfig_set_keyboard_layout(int layout);
 void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netmask);

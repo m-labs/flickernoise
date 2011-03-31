@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <netinet/in.h>
 #include <sys/types.h>
@@ -27,8 +28,10 @@
 #include <rtems/rtems_bsdnet.h>
 #include <rtems/dhcp.h>
 #include <bsp.h>
+#include <mtklib.h>
 
 #include "version.h"
+#include "pngload.h"
 #include "sysconfig.h"
 
 static struct rtems_bsdnet_ifconfig netdriver_config = {
@@ -264,10 +267,29 @@ void sysconfig_set_resolution(int resolution)
 	/* TODO: switch video mode and redraw screen */
 }
 
+void sysconfig_set_mtk_wallpaper()
+{
+	unsigned short *bitmap;
+	unsigned int w, h;
+	
+	if(strcmp(sysconfig.wallpaper, "") != 0)
+		bitmap = png_load(sysconfig.wallpaper, &w, &h);
+	else
+		bitmap = NULL;
+	mtk_config_set_wallpaper(bitmap, w, h);
+	free(bitmap);
+}
+
 void sysconfig_set_wallpaper(char *wallpaper)
 {
+	int update;
+	
+	update = strcmp(sysconfig.wallpaper, wallpaper) != 0;
 	strcpy(sysconfig.wallpaper, wallpaper);
-	/* TODO: display new wallpaper */
+	if(update) {
+		sysconfig_set_mtk_wallpaper();
+		mtk_cmd(1, "screen.refresh()");
+	}
 }
 
 void sysconfig_set_language(int language)

@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,6 @@
 
 #include "shellext.h"
 #include "sysconfig.h"
-#include "pngload.h"
 #include "fb.h"
 #include "input.h"
 #include "reboot.h"
@@ -77,10 +76,8 @@
 
 static rtems_task gui_task(rtems_task_argument argument)
 {
-	config_wallpaper_bitmap = png_load("/memcard/wallpaper.png", &config_wallpaper_w, &config_wallpaper_h);
-	if(config_wallpaper_bitmap == NULL)
-		config_wallpaper_bitmap = png_load("/flash/wallpaper.png", &config_wallpaper_w, &config_wallpaper_h);
 	init_fb_mtk();
+	sysconfig_set_mtk_wallpaper();
 	init_input();
 	input_add_callback(mtk_input);
 	init_reboot();
