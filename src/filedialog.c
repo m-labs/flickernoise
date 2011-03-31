@@ -297,8 +297,16 @@ void close_filedialog(struct filedialog *dlg)
 void get_filedialog_selection(struct filedialog *dlg, char *buffer, int buflen)
 {
 	char file[384];
+	char *c;
 
 	mtk_req(dlg->appid, buffer, buflen, "fd_g1_l.text");
 	mtk_req(dlg->appid, file, sizeof(file), "fd_filename.text");
 	strncat(buffer, file, buflen);
+	if(dlg->is_save) {
+		c = strrchr(buffer, '.');
+		if((c == NULL) || (strcmp(c+1, dlg->extfilter) != 0)) {
+			strncat(buffer, ".", buflen);
+			strncat(buffer, dlg->extfilter, buflen);
+		}
+	}
 }
