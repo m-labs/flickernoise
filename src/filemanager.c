@@ -31,11 +31,78 @@ static int appid;
 
 static int move_mode;
 
+static void display_folder(int panel, const char *folder);
+
 static void mode_callback(mtk_event *e, void *arg)
 {
 	move_mode = (int)arg;
 	mtk_cmdf(appid, "pc_copy.set(-state %s)", !move_mode ? "on" : "off");
 	mtk_cmdf(appid, "pc_move.set(-state %s)", move_mode ? "on" : "off");
+}
+
+static char *get_selection(char *list, int n)
+{
+	int i;
+	char *s;
+
+	s = list;
+	i = 0;
+	while(*list != 0) {
+		if(*list == '\n') {
+			*list = 0;
+			if(i == n) break;
+			i++;
+			s = list+1;
+		}
+		list++;
+	}
+	return s;
+}
+
+static void update_filename(int panel)
+{
+	char filelist[16384];
+	char num[8];
+	int nselection;
+	char *selection;
+
+	mtk_reqf(appid, filelist, sizeof(filelist), "p%d_list.text", panel);
+	if(strlen(filelist) == 0) return;
+	mtk_reqf(appid, num, sizeof(num), "p%d_list.selection", panel);
+	nselection = atoi(num);
+	selection = get_selection(filelist, nselection);
+
+	mtk_cmdf(appid, "p%d_name.set(-text \"%s\")", panel, selection);
+}
+
+static void selchange_callback(mtk_event *e, void *arg)
+{
+	int panel = (int)arg;
+	update_filename(panel);
+}
+
+static void selcommit_callback(mtk_event *e, void *arg)
+{
+	int panel = (int)arg;
+	char curfolder[384];
+	char sel[384];
+	
+	update_filename(panel);
+	mtk_reqf(appid, sel, sizeof(sel), "p%d_name.text", panel);
+	if(sel[strlen(sel)-1] == '/') {
+		mtk_reqf(appid, curfolder, sizeof(curfolder), "p%d_lfolder.text", panel);
+		if(strcmp(sel, "../") == 0) {
+			char *c;
+			if(strcmp(curfolder, "/") == 0) return;
+			*(curfolder+strlen(curfolder)-1) = 0;
+			c = strrchr(curfolder, '/');
+			c++;
+			*c = 0;
+		} else
+			strncat(curfolder, sel, sizeof(curfolder));
+
+		display_folder(panel, curfolder);
+	}
 }
 
 static void close_callback(mtk_event *e, void *arg)
@@ -52,26 +119,29 @@ void init_filemanager()
 		"s1 = new Separator(-vertical yes)",
 		"s2 = new Separator(-vertical yes)",
 		
-		"p1_g = new Grid()",
-		"p1_lfolder = new Label()",
-		"p1_list = new List()",
-		"p1_listf = new Frame(-content p1_list -scrollx yes -scrolly yes)",
-		"p1_delete = new Button(-text \"Delete\")",
-		"p1_ig = new Grid()",
-		"p1_lname = new Label(-text \"Name:\")",
-		"p1_name = new Entry()",
-		"p1_lsize = new Label(-text \"Size:\")",
-		"p1_size = new Label()",
-		"p1_ig.place(p1_lname, -column 1 -row 1)",
-		"p1_ig.place(p1_name, -column 2 -row 1)",
-		"p1_ig.place(p1_lsize, -column 1 -row 2)",
-		"p1_ig.place(p1_size, -column 2 -row 2 -align \"w\")",
-		"p1_g.place(p1_lfolder, -column 1 -row 1 -align \"w\")",
-		"p1_g.rowconfig(1, -size 0)",
-		"p1_g.place(p1_listf, -column 1 -row 2)",
-		"p1_g.place(p1_ig, -column 1 -row 3)",
-		"p1_g.place(p1_delete, -column 1 -row 4 -align \"n\")",
-		"p1_g.rowconfig(4, -size 0)",
+		"p0_g = new Grid()",
+		"p0_lfolder = new Label()",
+		"p0_list = new List()",
+		"p0_listf = new Frame(-content p0_list -scrollx yes -scrolly yes)",
+		"p0_ig = new Grid()",
+		"p0_lname = new Label(-text \"Name:\")",
+		"p0_name = new Entry()",
+		"p0_ig.place(p0_lname, -column 1 -row 1)",
+		"p0_ig.place(p0_name, -column 2 -row 1)",
+		"p0_bg = new Grid()",
+		"p0_clear = new Button(-text \"Clear\")",
+		"p0_rename = new Button(-text \"Rename\")",
+		"p0_delete = new Button(-text \"Delete\")",
+		"p0_mkdir = new Button(-text \"Mkdir\")",
+		"p0_bg.place(p0_clear, -column 1 -row 1)",
+		"p0_bg.place(p0_rename, -column 2 -row 1)",
+		"p0_bg.place(p0_delete, -column 3 -row 1)",
+		"p0_bg.place(p0_mkdir, -column 4 -row 1)",
+		"p0_g.place(p0_lfolder, -column 1 -row 1 -align \"w\")",
+		"p0_g.rowconfig(1, -size 0)",
+		"p0_g.place(p0_listf, -column 1 -row 2)",
+		"p0_g.place(p0_ig, -column 1 -row 3)",
+		"p0_g.place(p0_bg, -column 1 -row 4)",
 		
 		"pc_g = new Grid()",
 		"pc_copy = new Button(-text \"Copy\" -state on)",
@@ -86,40 +156,48 @@ void init_filemanager()
 		"pc_g.place(pc_from, -row 6 -column 1)",
 		"pc_g.rowconfig(7, -weight 1)",
 		
-		"p2_g = new Grid()",
-		"p2_lfolder = new Label()",
-		"p2_list = new List()",
-		"p2_listf = new Frame(-content p2_list -scrollx yes -scrolly yes)",
-		"p2_delete = new Button(-text \"Delete\")",
-		"p2_ig = new Grid()",
-		"p2_lname = new Label(-text \"Name:\")",
-		"p2_name = new Entry()",
-		"p2_lsize = new Label(-text \"Size:\")",
-		"p2_size = new Label()",
-		"p2_ig.place(p2_lname, -column 1 -row 1)",
-		"p2_ig.place(p2_name, -column 2 -row 1)",
-		"p2_ig.place(p2_lsize, -column 1 -row 2)",
-		"p2_ig.place(p2_size, -column 2 -row 2 -align \"w\")",
-		"p2_g.place(p2_lfolder, -column 1 -row 1 -align \"w\")",
-		"p2_g.rowconfig(1, -size 0)",
-		"p2_g.place(p2_listf, -column 1 -row 2)",
-		"p2_g.place(p2_ig, -column 1 -row 3)",
-		"p2_g.place(p2_delete, -column 1 -row 4 -align \"n\")",
-		"p2_g.rowconfig(4, -size 0)",
+		"p1_g = new Grid()",
+		"p1_lfolder = new Label()",
+		"p1_list = new List()",
+		"p1_listf = new Frame(-content p1_list -scrollx yes -scrolly yes)",
+		"p1_ig = new Grid()",
+		"p1_lname = new Label(-text \"Name:\")",
+		"p1_name = new Entry()",
+		"p1_ig.place(p1_lname, -column 1 -row 1)",
+		"p1_ig.place(p1_name, -column 2 -row 1)",
+		"p1_bg = new Grid()",
+		"p1_clear = new Button(-text \"Clear\")",
+		"p1_rename = new Button(-text \"Rename\")",
+		"p1_delete = new Button(-text \"Delete\")",
+		"p1_mkdir = new Button(-text \"Mkdir\")",
+		"p1_bg.place(p1_clear, -column 1 -row 1)",
+		"p1_bg.place(p1_rename, -column 2 -row 1)",
+		"p1_bg.place(p1_delete, -column 3 -row 1)",
+		"p1_bg.place(p1_mkdir, -column 4 -row 1)",
+		"p1_g.place(p1_lfolder, -column 1 -row 1 -align \"w\")",
+		"p1_g.rowconfig(1, -size 0)",
+		"p1_g.place(p1_listf, -column 1 -row 2)",
+		"p1_g.place(p1_ig, -column 1 -row 3)",
+		"p1_g.place(p1_bg, -column 1 -row 4)",
 		
-		"g.place(p1_g, -column 1 -row 1)",
+		"g.place(p0_g, -column 1 -row 1)",
 		"g.place(s1, -column 2 -row 1)",
 		"g.place(pc_g, -column 3 -row 1)",
 		"g.place(s2, -column 4 -row 1)",
-		"g.place(p2_g, -column 5 -row 1)",
+		"g.place(p1_g, -column 5 -row 1)",
 		
 		"g.columnconfig(3, -size 0)",
 		
-		"w = new Window(-content g -title \"File manager\" -workw 450 -workh 350)",
+		"w = new Window(-content g -title \"File manager\" -workh 350)",
 	0);
 	
 	mtk_bind(appid, "pc_copy", "press", mode_callback, (void *)0);
 	mtk_bind(appid, "pc_move", "press", mode_callback, (void *)1);
+	
+	mtk_bind(appid, "p0_list", "selchange", selchange_callback, (void *)0);
+	mtk_bind(appid, "p0_list", "selcommit", selcommit_callback, (void *)0);
+	mtk_bind(appid, "p1_list", "selchange", selchange_callback, (void *)1);
+	mtk_bind(appid, "p1_list", "selcommit", selcommit_callback, (void *)1);
 
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
@@ -202,7 +280,7 @@ static void display_folder(int panel, const char *folder)
 
 void open_filemanager_window()
 {
+	display_folder(0, "/");
 	display_folder(1, "/");
-	display_folder(2, "/flash/");
 	mtk_cmd(appid, "w.open()");
 }
