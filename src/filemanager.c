@@ -112,7 +112,85 @@ void init_filemanager()
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
+static int cmpstringp(const void *p1, const void *p2)
+{
+	return strcmp(*(char * const *)p1, *(char * const *)p2);
+}
+
+static void display_folder(int panel, const char *folder)
+{
+	char *folders[384];
+	int n_folders;
+	char *files[384];
+	int n_files;
+	int i;
+
+	char fmt_list[16385];
+	char *c_list;
+	char fullname[384];
+	DIR *d;
+	struct dirent *entry;
+	struct stat s;
+	int len;
+
+	d = opendir(folder);
+	if(!d) return;
+	n_folders = 0;
+	n_files = 0;
+	while((entry = readdir(d))) {
+		if(entry->d_name[0] == '.') continue;
+		strncpy(fullname, folder, sizeof(fullname));
+		strncat(fullname, entry->d_name, sizeof(fullname));
+		lstat(fullname, &s);
+		if(S_ISDIR(s.st_mode)) {
+			/* hide /dev */
+			if((strcmp(folder, "/") != 0) || (strcmp(entry->d_name, "dev") != 0)) {
+				if(n_folders < 384) {
+					folders[n_folders] = strdup(entry->d_name);
+					n_folders++;
+				}
+			}
+		} else {
+			files[n_files] = strdup(entry->d_name);
+			n_files++;
+		}
+	}
+	closedir(d);
+	
+	qsort(folders, n_folders, sizeof(char *), cmpstringp);
+	qsort(files, n_files, sizeof(char *), cmpstringp);
+	
+	strcpy(fmt_list, "../");
+	c_list = fmt_list + 3;
+	for(i=0;i<n_folders;i++) {
+		len = strlen(folders[i]);
+		if((c_list-fmt_list)+len+3 > sizeof(fmt_list)) break;
+		*c_list++ = '\n';
+		strcpy(c_list, folders[i]);
+		free(folders[i]);
+		c_list += len;
+		*c_list++ = '/';
+		*c_list = 0;
+	}
+	for(i=0;i<n_files;i++) {
+		len = strlen(files[i]);
+		if((c_list-fmt_list)+len+2 > sizeof(fmt_list)) break;
+		if(c_list != fmt_list)
+			*c_list++ = '\n';
+		strcpy(c_list, files[i]);
+		free(files[i]);
+		c_list += len;
+		*c_list = 0;
+	}
+
+//	mtk_cmdf(appid, "p%d_lfolder.set(-text \"%s\")", panel, folder);
+	mtk_cmdf(appid, "p%d_list.set(-text \"%s\" -selection 0)", panel, fmt_list);
+	mtk_cmdf(appid, "p%d_listf.expose(0, 0)", panel);
+}
+
 void open_filemanager_window()
 {
+	display_folder(1, "/");
+	display_folder(2, "/flash/");
 	mtk_cmd(appid, "w.open()");
 }
