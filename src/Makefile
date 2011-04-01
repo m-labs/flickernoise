@@ -18,7 +18,7 @@ BINDIR=bin
 OBJS=shellext.o sysconfig.o config.o fb.o input.o reboot.o osc.o pngload.o flashvalid.o main.o
 
 # GUI
-OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxtable.o dmx.o videoin.o patcheditor.o monitor.o firstpatch.o sysettings.o about.o flash.o shutdown.o
+OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxtable.o dmx.o videoin.o patcheditor.o monitor.o firstpatch.o filemanager.o sysettings.o about.o flash.o shutdown.o
 
 # PDF
 ifeq ($(WITH_PDF),1)

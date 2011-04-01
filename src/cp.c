@@ -29,6 +29,7 @@
 #include "patcheditor.h"
 #include "monitor.h"
 #include "firstpatch.h"
+#include "filemanager.h"
 #ifdef WITH_PDF
 #include "pdfreader.h"
 #endif
@@ -168,6 +169,7 @@ static void cp_callback(mtk_event *e, void *arg)
 			break;
 		
 		case CP_ITEM_FILEMANAGER:
+			open_filemanager_window();
 			break;
 #ifdef WITH_PDF
 		case CP_ITEM_PDFREADER:
