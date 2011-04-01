@@ -53,8 +53,10 @@ void init_filemanager()
 		"s2 = new Separator(-vertical yes)",
 		
 		"p1_g = new Grid()",
+		"p1_lfolder = new Label()",
 		"p1_list = new List()",
 		"p1_listf = new Frame(-content p1_list -scrollx yes -scrolly yes)",
+		"p1_delete = new Button(-text \"Delete\")",
 		"p1_ig = new Grid()",
 		"p1_lname = new Label(-text \"Name:\")",
 		"p1_name = new Entry()",
@@ -64,8 +66,12 @@ void init_filemanager()
 		"p1_ig.place(p1_name, -column 2 -row 1)",
 		"p1_ig.place(p1_lsize, -column 1 -row 2)",
 		"p1_ig.place(p1_size, -column 2 -row 2 -align \"w\")",
-		"p1_g.place(p1_listf, -column 1 -row 1)",
-		"p1_g.place(p1_ig, -column 1 -row 2)",
+		"p1_g.place(p1_lfolder, -column 1 -row 1 -align \"w\")",
+		"p1_g.rowconfig(1, -size 0)",
+		"p1_g.place(p1_listf, -column 1 -row 2)",
+		"p1_g.place(p1_ig, -column 1 -row 3)",
+		"p1_g.place(p1_delete, -column 1 -row 4 -align \"n\")",
+		"p1_g.rowconfig(4, -size 0)",
 		
 		"pc_g = new Grid()",
 		"pc_copy = new Button(-text \"Copy\" -state on)",
@@ -81,8 +87,10 @@ void init_filemanager()
 		"pc_g.rowconfig(7, -weight 1)",
 		
 		"p2_g = new Grid()",
+		"p2_lfolder = new Label()",
 		"p2_list = new List()",
 		"p2_listf = new Frame(-content p2_list -scrollx yes -scrolly yes)",
+		"p2_delete = new Button(-text \"Delete\")",
 		"p2_ig = new Grid()",
 		"p2_lname = new Label(-text \"Name:\")",
 		"p2_name = new Entry()",
@@ -91,9 +99,13 @@ void init_filemanager()
 		"p2_ig.place(p2_lname, -column 1 -row 1)",
 		"p2_ig.place(p2_name, -column 2 -row 1)",
 		"p2_ig.place(p2_lsize, -column 1 -row 2)",
-		"p2_ig.place(p2_size, -column 2 -row 2  -align \"w\")",
-		"p2_g.place(p2_listf, -column 1 -row 1)",
-		"p2_g.place(p2_ig, -column 1 -row 2)",
+		"p2_ig.place(p2_size, -column 2 -row 2 -align \"w\")",
+		"p2_g.place(p2_lfolder, -column 1 -row 1 -align \"w\")",
+		"p2_g.rowconfig(1, -size 0)",
+		"p2_g.place(p2_listf, -column 1 -row 2)",
+		"p2_g.place(p2_ig, -column 1 -row 3)",
+		"p2_g.place(p2_delete, -column 1 -row 4 -align \"n\")",
+		"p2_g.rowconfig(4, -size 0)",
 		
 		"g.place(p1_g, -column 1 -row 1)",
 		"g.place(s1, -column 2 -row 1)",
@@ -183,7 +195,7 @@ static void display_folder(int panel, const char *folder)
 		*c_list = 0;
 	}
 
-//	mtk_cmdf(appid, "p%d_lfolder.set(-text \"%s\")", panel, folder);
+	mtk_cmdf(appid, "p%d_lfolder.set(-text \"%s\")", panel, folder);
 	mtk_cmdf(appid, "p%d_list.set(-text \"%s\" -selection 0)", panel, fmt_list);
 	mtk_cmdf(appid, "p%d_listf.expose(0, 0)", panel);
 }
