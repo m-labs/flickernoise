@@ -1,6 +1,7 @@
 /*
  * Flickernoise
  * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2011 Xiangfu Liu <xiangfu@sharism.cc>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,15 +18,15 @@
 
 #include <mtklib.h>
 #include <keycodes.h>
+#include <stdio.h>
 
 #include "input.h"
-
 #include "shutdown.h"
-#include "reboot.h"
+#include "fbgrab.h"
 
 static int ctrl, alt;
 
-static void callback(mtk_event *e, int count)
+static void shortcuts_callback(mtk_event *e, int count)
 {
 	int i;
 
@@ -37,16 +38,19 @@ static void callback(mtk_event *e, int count)
 				alt = 1;
 			else if(ctrl && alt && (e[i].press.code == MTK_KEY_DELETE))
 				clean_shutdown(0);
+			else if(ctrl && (e[i].press.code == MTK_KEY_F12))
+				fbgrab(NULL);
 		} else if (e[i].type == EVENT_TYPE_RELEASE) {
 			if(e[i].release.code == MTK_KEY_LEFTCTRL)
 				ctrl = 0;
 			else if(e[i].release.code == MTK_KEY_LEFTALT)
 				alt = 0;
+
 		}
 	}
 }
 
-void init_reboot()
+void init_shortcuts()
 {
-	input_add_callback(callback);
+	input_add_callback(shortcuts_callback);
 }

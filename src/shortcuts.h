@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2011 Xiangfu Liu <xiangfu@sharism.cc>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __REBOOT_H
-#define __REBOOT_H
+#ifndef __SHORTCUTS_H
+#define __SHORTCUTS_H
 
-void init_reboot();
+void init_shortcuts();
 
-#endif /* __REBOOT_H */
+#endif /* __SHORTCUTS_H */
