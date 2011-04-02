@@ -15,7 +15,7 @@ OBJDIR=obj
 BINDIR=bin
 
 # base
-OBJS=shellext.o sysconfig.o config.o fb.o input.o fbgrab.o reboot.o osc.o pngload.o flashvalid.o main.o
+OBJS=shellext.o sysconfig.o config.o fb.o input.o fbgrab.o shortcuts.o osc.o pngload.o flashvalid.o main.o
 
 # GUI
 OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxtable.o dmx.o videoin.o patcheditor.o monitor.o firstpatch.o filemanager.o sysettings.o about.o flash.o shutdown.o
