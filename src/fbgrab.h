@@ -15,10 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __PNGLOAD_H
-#define __PNGLOAD_H
+#ifndef __FBGRAB_H
+#define __FBGRAB_H
 
-unsigned short *png_load(const char *filename, unsigned int *w, unsigned int *h);
-int png_write(unsigned char *outbuffer, const char *filename,
-	      int width, int height, int interlace);
-#endif /* __PNGLOAD_H */
+int fbgrab(char *fn);
+
+#endif /* FBGRAB_H */
