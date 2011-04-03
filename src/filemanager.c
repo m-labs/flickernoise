@@ -29,11 +29,51 @@
 
 #include "filemanager.h"
 
+/* Ugly APIs need ugly hacks. */
+int rtems_shell_main_cp(int argc, char *argv[]);
+int rtems_shell_main_rm(int argc, char *argv[]);
+int rtems_shell_main_mv(int argc, char *argv[]);
+
+static void call_cp(char *from, char *to)
+{
+	char *cp_argv[6] = { "cp", "-PRp", "--", from, to, NULL };
+	int r;
+	
+	r = rtems_shell_main_cp(5, cp_argv);
+	#ifdef DEBUG
+	printf("CP: '%s' -> '%s': %d\n", from, to, r);
+	#endif
+}
+
+static void call_rm(char *from)
+{
+	char *rm_argv[5] = { "rm", "-r", "--", from, NULL };
+	int r;
+	
+	r = rtems_shell_main_rm(4, rm_argv);
+	#ifdef DEBUG
+	printf("RM: '%s': %d\n", from, r);
+	#endif
+}
+
+static void call_mv(char *from, char *to)
+{
+	char *mv_argv[5] = { "mv", "--", from, to, NULL };
+	int r;
+	
+	r = rtems_shell_main_mv(4, mv_argv);
+	#ifdef DEBUG
+	printf("MV: '%s' -> '%s': %d\n", from, to, r);
+	#endif
+}
+/* */
+
 static int appid;
 
 static int move_mode;
 
 static void display_folder(int panel, const char *folder);
+static void refresh(int panel);
 
 static void mode_callback(mtk_event *e, void *arg)
 {
@@ -75,6 +115,40 @@ static char *get_selection_panel(int panel)
 	selection = strdup(get_selection(filelist, nselection));
 	assert(selection != NULL);
 	return selection;
+}
+
+static void copymove(int src, int dst)
+{
+	char orig[384];
+	char copied[384];
+	char basename[384];
+	int last;
+	
+	mtk_reqf(appid, orig, sizeof(orig), "p%d_lfolder.text", src);
+	mtk_reqf(appid, copied, sizeof(copied), "p%d_lfolder.text", dst);
+	mtk_reqf(appid, basename, sizeof(basename), "p%d_name.text", src);
+	last = strlen(basename)-1;
+	if(basename[last] == '/')
+		basename[last] = 0;
+	strncat(orig, basename, sizeof(orig));
+	if(move_mode)
+		call_mv(orig, copied);
+	else {
+		strncat(copied, basename, sizeof(orig));
+		call_cp(orig, copied);
+	}
+	refresh(src);
+	refresh(dst);
+}
+
+static void to_callback(mtk_event *e, void *arg)
+{
+	copymove(0, 1);
+}
+
+static void from_callback(mtk_event *e, void *arg)
+{
+	copymove(1, 0);
 }
 
 static void update_filename(int panel)
@@ -145,40 +219,8 @@ static void rename_callback(mtk_event *e, void *arg)
 	strncat(orig, selection, sizeof(orig));
 	free(selection);
 	mtk_reqf(appid, renamed+strlen(renamed), sizeof(renamed)-strlen(renamed), "p%d_name.text", panel);
-	rename(orig, renamed);
+	call_mv(orig, renamed);
 	refresh(panel);
-}
-
-static void rec_delete(char *target)
-{
-	int baselen;
-	DIR *d;
-	struct dirent *entry;
-	struct stat s;
-	
-	if(target[strlen(target)-1] != '/') {
-		lstat(target, &s);
-		if(S_ISDIR(s.st_mode))
-			strcat(target, "/");
-	}
-	
-	baselen = strlen(target);
-	if(target[baselen-1] == '/') {
-		d = opendir(target);
-		if(!d) return;
-		while((entry = readdir(d))) {
-			if(entry->d_name[0] == '.') continue;
-			strcpy(target+baselen, entry->d_name);
-			rec_delete(target);
-		}
-		closedir(d);
-		target[baselen] = 0;
-		//printf("delete directory: '%s'\n", target);
-		rmdir(target);
-	} else {
-		//printf("delete file: '%s'\n", target);
-		unlink(target);
-	}
 }
 
 static int delete_confirm[2];
@@ -187,11 +229,15 @@ static void delete_callback(mtk_event *e, void *arg)
 {
 	int panel = (int)arg;
 	char target[384];
+	int last;
 	
 	if(delete_confirm[panel]) {
 		mtk_reqf(appid, target, sizeof(target), "p%d_lfolder.text", panel);
 		mtk_reqf(appid, target+strlen(target), sizeof(target)-strlen(target), "p%d_name.text", panel);
-		rec_delete(target);
+		last = strlen(target)-1;
+		if(target[last] == '/')
+			target[last] = 0;
+		call_rm(target);
 		refresh(panel);
 		mtk_cmdf(appid, "p%d_delete.set(-text \"Delete\")", panel);
 		delete_confirm[panel] = 0;
@@ -307,6 +353,8 @@ void init_filemanager()
 	
 	mtk_bind(appid, "pc_copy", "press", mode_callback, (void *)0);
 	mtk_bind(appid, "pc_move", "press", mode_callback, (void *)1);
+	mtk_bind(appid, "pc_to", "press", to_callback, NULL);
+	mtk_bind(appid, "pc_from", "press", from_callback, NULL);
 	
 	mtk_bind(appid, "p0_list", "selchange", selchange_callback, (void *)0);
 	mtk_bind(appid, "p0_list", "selcommit", selcommit_callback, (void *)0);
