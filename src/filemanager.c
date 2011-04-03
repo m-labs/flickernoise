@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -59,7 +60,7 @@ static char *get_selection(char *list, int n)
 	return s;
 }
 
-static void update_filename(int panel)
+static char *get_selection_panel(int panel)
 {
 	char filelist[16384];
 	char num[8];
@@ -67,12 +68,23 @@ static void update_filename(int panel)
 	char *selection;
 
 	mtk_reqf(appid, filelist, sizeof(filelist), "p%d_list.text", panel);
-	if(strlen(filelist) == 0) return;
+	if(strlen(filelist) == 0) return NULL;
 	mtk_reqf(appid, num, sizeof(num), "p%d_list.selection", panel);
 	nselection = atoi(num);
-	selection = get_selection(filelist, nselection);
+	selection = strdup(get_selection(filelist, nselection));
+	assert(selection != NULL);
+	return selection;
+}
 
-	mtk_cmdf(appid, "p%d_name.set(-text \"%s\")", panel, selection);
+static void update_filename(int panel)
+{
+	char *selection;
+
+	selection = get_selection_panel(panel);
+	if(selection != NULL) {
+		mtk_cmdf(appid, "p%d_name.set(-text \"%s\")", panel, selection);
+		free(selection);
+	}
 }
 
 static void selchange_callback(mtk_event *e, void *arg)
@@ -103,6 +115,53 @@ static void selcommit_callback(mtk_event *e, void *arg)
 
 		display_folder(panel, curfolder);
 	}
+}
+
+static void clear_callback(mtk_event *e, void *arg)
+{
+	int panel = (int)arg;
+	mtk_cmdf(appid, "p%d_name.set(-text \"\")", panel);
+}
+
+static void refresh(int panel)
+{
+	char curfolder[384];
+	mtk_reqf(appid, curfolder, sizeof(curfolder), "p%d_lfolder.text", panel);
+	display_folder(panel, curfolder);
+}
+
+static void rename_callback(mtk_event *e, void *arg)
+{
+	int panel = (int)arg;
+	char orig[384];
+	char renamed[384];
+	char *selection;
+	
+	mtk_reqf(appid, orig, sizeof(orig), "p%d_lfolder.text", panel);
+	strcpy(renamed, orig);
+	selection = get_selection_panel(panel);
+	if(selection == NULL) return;
+	strncat(orig, selection, sizeof(orig));
+	free(selection);
+	mtk_reqf(appid, renamed+strlen(renamed), sizeof(renamed)-strlen(renamed), "p%d_name.text", panel);
+	rename(orig, renamed);
+	refresh(panel);
+}
+
+static void delete_callback(mtk_event *e, void *arg)
+{
+	int panel = (int)arg;
+}
+
+static void mkdir_callback(mtk_event *e, void *arg)
+{
+	int panel = (int)arg;
+	char dirname[384];
+	
+	mtk_reqf(appid, dirname, sizeof(dirname), "p%d_lfolder.text", panel);
+	mtk_reqf(appid, dirname+strlen(dirname), sizeof(dirname)-strlen(dirname), "p%d_name.text", panel);
+	mkdir(dirname, 0777);
+	refresh(panel);
 }
 
 static void close_callback(mtk_event *e, void *arg)
@@ -198,6 +257,15 @@ void init_filemanager()
 	mtk_bind(appid, "p0_list", "selcommit", selcommit_callback, (void *)0);
 	mtk_bind(appid, "p1_list", "selchange", selchange_callback, (void *)1);
 	mtk_bind(appid, "p1_list", "selcommit", selcommit_callback, (void *)1);
+
+	mtk_bind(appid, "p0_clear", "commit", clear_callback, (void *)0);
+	mtk_bind(appid, "p1_clear", "commit", clear_callback, (void *)1);
+	mtk_bind(appid, "p0_rename", "commit", rename_callback, (void *)0);
+	mtk_bind(appid, "p1_rename", "commit", rename_callback, (void *)1);
+	mtk_bind(appid, "p0_delete", "commit", delete_callback, (void *)0);
+	mtk_bind(appid, "p1_delete", "commit", delete_callback, (void *)1);
+	mtk_bind(appid, "p0_mkdir", "commit", mkdir_callback, (void *)0);
+	mtk_bind(appid, "p1_mkdir", "commit", mkdir_callback, (void *)1);
 
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
