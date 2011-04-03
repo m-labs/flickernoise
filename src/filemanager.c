@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <mtklib.h>
 
@@ -148,9 +149,63 @@ static void rename_callback(mtk_event *e, void *arg)
 	refresh(panel);
 }
 
+static void rec_delete(char *target)
+{
+	int baselen;
+	DIR *d;
+	struct dirent *entry;
+	struct stat s;
+	
+	if(target[strlen(target)-1] != '/') {
+		lstat(target, &s);
+		if(S_ISDIR(s.st_mode))
+			strcat(target, "/");
+	}
+	
+	baselen = strlen(target);
+	if(target[baselen-1] == '/') {
+		d = opendir(target);
+		if(!d) return;
+		while((entry = readdir(d))) {
+			if(entry->d_name[0] == '.') continue;
+			strcpy(target+baselen, entry->d_name);
+			rec_delete(target);
+		}
+		closedir(d);
+		target[baselen] = 0;
+		//printf("delete directory: '%s'\n", target);
+		rmdir(target);
+	} else {
+		//printf("delete file: '%s'\n", target);
+		unlink(target);
+	}
+}
+
+static int delete_confirm[2];
+
 static void delete_callback(mtk_event *e, void *arg)
 {
 	int panel = (int)arg;
+	char target[384];
+	
+	if(delete_confirm[panel]) {
+		mtk_reqf(appid, target, sizeof(target), "p%d_lfolder.text", panel);
+		mtk_reqf(appid, target+strlen(target), sizeof(target)-strlen(target), "p%d_name.text", panel);
+		rec_delete(target);
+		refresh(panel);
+		mtk_cmdf(appid, "p%d_delete.set(-text \"Delete\")", panel);
+		delete_confirm[panel] = 0;
+	} else {
+		mtk_cmdf(appid, "p%d_delete.set(-text \"Sure?\")", panel);
+		delete_confirm[panel] = 1;
+	}
+}
+
+static void delete_leave_callback(mtk_event *e, void *arg)
+{
+	int panel = (int)arg;
+	mtk_cmdf(appid, "p%d_delete.set(-text \"Delete\")", panel);
+	delete_confirm[panel] = 0;
 }
 
 static void mkdir_callback(mtk_event *e, void *arg)
@@ -264,6 +319,8 @@ void init_filemanager()
 	mtk_bind(appid, "p1_rename", "commit", rename_callback, (void *)1);
 	mtk_bind(appid, "p0_delete", "commit", delete_callback, (void *)0);
 	mtk_bind(appid, "p1_delete", "commit", delete_callback, (void *)1);
+	mtk_bind(appid, "p0_delete", "leave", delete_leave_callback, (void *)0);
+	mtk_bind(appid, "p1_delete", "leave", delete_leave_callback, (void *)1);
 	mtk_bind(appid, "p0_mkdir", "commit", mkdir_callback, (void *)0);
 	mtk_bind(appid, "p1_mkdir", "commit", mkdir_callback, (void *)1);
 
