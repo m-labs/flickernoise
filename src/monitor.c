@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +74,10 @@ static float *get_variable(const char *name)
 	else if(strcmp(name, "idmx2") == 0) return &idmx[1];
 	else if(strcmp(name, "idmx3") == 0) return &idmx[2];
 	else if(strcmp(name, "idmx4") == 0) return &idmx[3];
+	else if(strcmp(name, "idmx5") == 0) return &idmx[4];
+	else if(strcmp(name, "idmx6") == 0) return &idmx[5];
+	else if(strcmp(name, "idmx7") == 0) return &idmx[6];
+	else if(strcmp(name, "idmx8") == 0) return &idmx[7];
 
 	else if(strcmp(name, "osc1") == 0) return &osc[0];
 	else if(strcmp(name, "osc2") == 0) return &osc[1];

@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,6 +95,10 @@ static void transfer_pvv_regs(struct patch *p)
 	write_pvv(p, pvv_idmx2, read_pfv(p, pfv_idmx2));
 	write_pvv(p, pvv_idmx3, read_pfv(p, pfv_idmx3));
 	write_pvv(p, pvv_idmx4, read_pfv(p, pfv_idmx4));
+	write_pvv(p, pvv_idmx5, read_pfv(p, pfv_idmx5));
+	write_pvv(p, pvv_idmx6, read_pfv(p, pfv_idmx6));
+	write_pvv(p, pvv_idmx7, read_pfv(p, pfv_idmx7));
+	write_pvv(p, pvv_idmx8, read_pfv(p, pfv_idmx8));
 
 	write_pvv(p, pvv_osc1, read_pfv(p, pfv_osc1));
 	write_pvv(p, pvv_osc2, read_pfv(p, pfv_osc2));
@@ -132,6 +136,10 @@ static void set_pfv_from_frd(struct patch *p, struct frame_descriptor *frd)
 	write_pfv(p, pfv_idmx2, frd->idmx[1]);
 	write_pfv(p, pfv_idmx3, frd->idmx[2]);
 	write_pfv(p, pfv_idmx4, frd->idmx[3]);
+	write_pfv(p, pfv_idmx5, frd->idmx[4]);
+	write_pfv(p, pfv_idmx6, frd->idmx[5]);
+	write_pfv(p, pfv_idmx7, frd->idmx[6]);
+	write_pfv(p, pfv_idmx8, frd->idmx[7]);
 
 	write_pfv(p, pfv_osc1, frd->osc[0]);
 	write_pfv(p, pfv_osc2, frd->osc[1]);
@@ -189,6 +197,10 @@ static void set_frd_from_pfv(struct patch *p, struct frame_descriptor *frd)
 	frd->dmx[1] = read_pfv(p, pfv_dmx2);
 	frd->dmx[2] = read_pfv(p, pfv_dmx3);
 	frd->dmx[3] = read_pfv(p, pfv_dmx4);
+	frd->dmx[4] = read_pfv(p, pfv_dmx5);
+	frd->dmx[5] = read_pfv(p, pfv_dmx6);
+	frd->dmx[6] = read_pfv(p, pfv_dmx7);
+	frd->dmx[7] = read_pfv(p, pfv_dmx8);
 
 	frd->video_a = read_pfv(p, pfv_video_a);
 }

@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,9 +33,9 @@ enum {
 	FRD_STATUS_USED
 };
 
-#define IDMX_COUNT 4
+#define IDMX_COUNT 8
 #define OSC_COUNT 4
-#define DMX_COUNT 4
+#define DMX_COUNT 8
 
 struct frame_descriptor {
 	int status;

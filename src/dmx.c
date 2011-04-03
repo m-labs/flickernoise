@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include <mtklib.h>
 
 #include "config.h"
+#include "framedescriptor.h"
 #include "cp.h"
 #include "util.h"
 #include "resmgr.h"
@@ -67,10 +68,12 @@ void load_dmx_config()
 	int i, value;
 	char confname[12];
 
-	for(i=0;i<4;i++) {
+	for(i=0;i<IDMX_COUNT;i++) {
 		sprintf(confname, "idmx%d", i+1);
 		value = config_read_int(confname, i+1);
 		mtk_cmdf(appid, "e_idmx%d.set(-text \"%d\")", i, value);
+	}
+	for(i=0;i<DMX_COUNT;i++) {
 		sprintf(confname, "dmx%d", i+1);
 		value = config_read_int(confname, i+1);
 		mtk_cmdf(appid, "e_dmx%d.set(-text \"%d\")", i, value);
@@ -83,13 +86,15 @@ static void set_config()
 	int i, value;
 	char confname[16];
 
-	for(i=0;i<4;i++) {
+	for(i=0;i<IDMX_COUNT;i++) {
 		sprintf(confname, "e_idmx%d.text", i);
 		value = mtk_req_i(appid, confname);
 		if((value < 1) || (value > 512))
 			value = i;
 		sprintf(confname, "idmx%d", i+1);
 		config_write_int(confname, value);
+	}
+	for(i=0;i<DMX_COUNT;i++) {
 		sprintf(confname, "e_dmx%d.text", i);
 		value = mtk_req_i(appid, confname);
 		if((value < 1) || (value > 512))
@@ -183,11 +188,13 @@ void init_dmx()
 		"w = new Window(-content g -title \"DMX settings\")",
 		0);
 
-	for(i=0;i<4;i++) {
+	for(i=0;i<IDMX_COUNT;i++) {
 		mtk_cmdf(appid, "l_idmx%d = new Label(-text \"idmx%d\")", i, i+1);
 		mtk_cmdf(appid, "e_idmx%d = new Entry()", i);
 		mtk_cmdf(appid, "g_in.place(l_idmx%d, -column 1 -row %d)", i, i);
 		mtk_cmdf(appid, "g_in.place(e_idmx%d, -column 2 -row %d)", i, i);
+	}
+	for(i=0;i<DMX_COUNT;i++) {
 		mtk_cmdf(appid, "l_dmx%d = new Label(-text \"dmx%d\")", i, i+1);
 		mtk_cmdf(appid, "e_dmx%d = new Entry()", i);
 		mtk_cmdf(appid, "g_out.place(l_dmx%d, -column 1 -row %d)", i, i);

@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,11 +96,19 @@ enum {
 	pfv_dmx2,
 	pfv_dmx3,
 	pfv_dmx4,
+	pfv_dmx5,
+	pfv_dmx6,
+	pfv_dmx7,
+	pfv_dmx8,
 
 	pfv_idmx1,
 	pfv_idmx2,
 	pfv_idmx3,
 	pfv_idmx4,
+	pfv_idmx5,
+	pfv_idmx6,
+	pfv_idmx7,
+	pfv_idmx8,
 
 	pfv_osc1,
 	pfv_osc2,
@@ -153,6 +161,10 @@ enum {
 	pvv_idmx2,
 	pvv_idmx3,
 	pvv_idmx4,
+	pvv_idmx5,
+	pvv_idmx6,
+	pvv_idmx7,
+	pvv_idmx8,
 
 	pvv_osc1,
 	pvv_osc2,
