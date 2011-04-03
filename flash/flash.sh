@@ -32,5 +32,6 @@ batch "frequency 6000000"
 batch "detectflash 0"
 batch "endian big"
 batch "flashmem ${ADDRESS} ../src/bin/${TARGET} noverify"
+batch "pld reconfigure"
 
 jtag -n ${BATCH_FILE}
