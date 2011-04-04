@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,10 @@
 
 extern int framebuffer_fd;
 
-void init_fb_mtk();
+void init_fb_mtk(int quiet);
+void fb_unblank();
+void fb_render_mode();
+void fb_gui_mode();
+void fb_resize_gui();
 
 #endif /* __FB_H */

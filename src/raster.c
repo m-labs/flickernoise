@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include <bsp/milkymist_video.h>
 
 #include "config.h"
+#include "fb.h"
 #include "framedescriptor.h"
 #include "renderer.h"
 #include "color.h"
@@ -542,7 +543,6 @@ static rtems_task raster_task(rtems_task_argument argument)
 	ioctl(video_fd, VIDEO_SET_HUE, param->video_hue);
 	
 	get_screen_res(param->framebuffer_fd, &hres, &vres);
-	ioctl(param->framebuffer_fd, FBIOSETBUFFERMODE, FB_TRIPLE_BUFFERED);
 
 	brightness_error = 0.0;
 
@@ -610,7 +610,6 @@ static rtems_task raster_task(rtems_task_argument argument)
 		param->callback(frd);
 	}
 
-	ioctl(param->framebuffer_fd, FBIOSETBUFFERMODE, FB_SINGLE_BUFFERED);
 	close(video_fd);
 	close(dmx_fd);
 	close(tmu_fd);
@@ -648,6 +647,7 @@ void raster_start(int framebuffer_fd, frd_callback callback)
 
 	param = malloc(sizeof(struct raster_task_param));
 	assert(param != NULL);
+	fb_render_mode();
 	param->framebuffer_fd = framebuffer_fd;
 	param->video_brightness = config_read_int("vin_brightness", 0);
 	param->video_contrast = config_read_int("vin_contrast", 0x80);
@@ -679,7 +679,8 @@ void raster_stop()
 	rtems_message_queue_send(raster_q, &dummy, sizeof(void *));
 
 	rtems_semaphore_obtain(raster_terminated, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
-
+	
+	fb_gui_mode();
 	/* task self-deleted and freed raster_task_param */
 	rtems_semaphore_delete(raster_terminated);
 	rtems_message_queue_delete(raster_q);

@@ -28,16 +28,80 @@
 
 int framebuffer_fd;
 
-void init_fb_mtk()
+static int blanked;
+
+static void get_resolution(int mode, int *hres, int *vres)
+{
+	*hres = 0;
+	*vres = 0;
+	switch(mode) {
+		case SC_RESOLUTION_640_480:
+			*hres = 640;
+			*vres = 480;
+			break;
+		case SC_RESOLUTION_800_600:
+			*hres = 800;
+			*vres = 600;
+			break;
+		case SC_RESOLUTION_1024_768:
+			*hres = 1024;
+			*vres = 768;
+			break;
+		default:
+			assert(0);
+			break;
+	}
+}
+
+void init_fb_mtk(int quiet)
 {
 	struct fb_fix_screeninfo fb_fix;
-	struct fb_var_screeninfo fb_var;
+	int mode, hres, vres;
+
+	blanked = quiet;
 
 	framebuffer_fd = open("/dev/fb", O_RDWR);
 	assert(framebuffer_fd != -1);
-	ioctl(framebuffer_fd, FBIOSETVIDEOMODE, sysconfig_get_resolution());
+	mode = sysconfig_get_resolution();
+	get_resolution(mode, &hres, &vres);
+	if(!quiet)
+		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, mode);
 	ioctl(framebuffer_fd, FBIOGET_FSCREENINFO, &fb_fix);
-	ioctl(framebuffer_fd, FBIOGET_VSCREENINFO, &fb_var);
 	
-	mtk_init((void *)fb_fix.smem_start, fb_var.xres, fb_var.yres);
+	mtk_init((void *)fb_fix.smem_start, hres, vres);
+}
+
+void fb_unblank()
+{
+	if(blanked) {
+		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, sysconfig_get_resolution());
+		blanked = 0;
+	}
+}
+
+void fb_render_mode()
+{
+	if(sysconfig_get_resolution() != 0)
+		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, 0);
+	ioctl(framebuffer_fd, FBIOSETBUFFERMODE, FB_TRIPLE_BUFFERED);
+}
+
+void fb_gui_mode()
+{
+	if(sysconfig_get_resolution() != 0)
+		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, sysconfig_get_resolution());
+	ioctl(framebuffer_fd, FBIOSETBUFFERMODE, FB_SINGLE_BUFFERED);
+	blanked = 0;
+}
+
+void fb_resize_gui()
+{
+	struct fb_fix_screeninfo fb_fix;
+	int mode, hres, vres;
+	
+	mode = sysconfig_get_resolution();
+	ioctl(framebuffer_fd, FBIOSETVIDEOMODE, mode);
+	get_resolution(mode, &hres, &vres);
+	ioctl(framebuffer_fd, FBIOGET_FSCREENINFO, &fb_fix);
+	mtk_resize((void *)fb_fix.smem_start, hres, vres);
 }

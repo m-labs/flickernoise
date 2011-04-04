@@ -314,6 +314,7 @@ static void refresh_callback(mtk_event *e, int count)
 			input_delete_callback(refresh_callback);
 			started = 0;
 			free_patches();
+			fb_unblank();
 			return;
 		}
 		next_update = t + UPDATE_PERIOD;
@@ -335,6 +336,7 @@ void start_performance()
 	if(npatches < 1) {
 		messagebox("Error", "No first patch defined!\n");
 		started = 0;
+		fb_unblank();
 		return;
 	}
 	add_keyboard_patches();

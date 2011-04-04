@@ -32,6 +32,7 @@
 
 #include "version.h"
 #include "pngload.h"
+#include "fb.h"
 #include "sysconfig.h"
 
 static struct rtems_bsdnet_ifconfig netdriver_config = {
@@ -263,8 +264,11 @@ void sysconfig_get_autostart(char *autostart)
 
 void sysconfig_set_resolution(int resolution)
 {
+	int update;
+	update = sysconfig.resolution != resolution;
 	sysconfig.resolution = resolution;
-	/* TODO: switch video mode and redraw screen */
+	if(update)
+		fb_resize_gui();
 }
 
 void sysconfig_set_mtk_wallpaper()
