@@ -23,6 +23,7 @@
 #include <rtems/fb.h>
 #include <mtklib.h>
 
+#include "sysconfig.h"
 #include "fb.h"
 
 int framebuffer_fd;
@@ -34,6 +35,7 @@ void init_fb_mtk()
 
 	framebuffer_fd = open("/dev/fb", O_RDWR);
 	assert(framebuffer_fd != -1);
+	ioctl(framebuffer_fd, FBIOSETVIDEOMODE, sysconfig_get_resolution());
 	ioctl(framebuffer_fd, FBIOGET_FSCREENINFO, &fb_fix);
 	ioctl(framebuffer_fd, FBIOGET_VSCREENINFO, &fb_var);
 	
