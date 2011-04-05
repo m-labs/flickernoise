@@ -4,12 +4,10 @@ WITH_PDF?=0
 
 CC=lm32-rtems$(RTEMS_VERSION)-gcc
 LD=lm32-rtems$(RTEMS_VERSION)-gcc
-STRIP=lm32-rtems$(RTEMS_VERSION)-strip
 OBJCOPY=lm32-rtems$(RTEMS_VERSION)-objcopy
 
-CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(RTEMS_MAKEFILE_PATH)/lib/include
+CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(RTEMS_MAKEFILE_PATH)/lib/include -g
 LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
-STRIPFLAGS=
 LIBS=-lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lz -lm
 OBJDIR=obj
 BINDIR=bin
@@ -46,7 +44,6 @@ $(OBJDIR)/about.o: about.c
 
 $(BINDIR)/flickernoise: $(POBJS)
 	$(LD) -o $@ $^ $(LDFLAGS) $(LIBS)
-	$(STRIP) $(STRIPFLAGS) $@
 
 bandfilters.h: bandfilters.sce
 	scilab -nw -nwni -nogui -nb -f bandfilters.sce
