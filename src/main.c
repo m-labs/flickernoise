@@ -147,6 +147,18 @@ static void start_memcard()
 rtems_task Init(rtems_task_argument argument)
 {
 	rtems_status_code sc;
+	
+	sc = rtems_shell_init(
+		"SHLL",
+		RTEMS_MINIMUM_STACK_SIZE * 8,
+		1, /* We want it to work */
+		"/dev/console",
+		false,
+		false,
+		NULL
+	);
+	if(sc != RTEMS_SUCCESSFUL)
+		printf("Unable to start shell (error code %d)\n", sc);
 
 	/* FIXME: can this be moved into the initialization table? */
 	memcard_register();
@@ -167,18 +179,6 @@ rtems_task Init(rtems_task_argument argument)
 	assert(sc == RTEMS_SUCCESSFUL);
 	sc = rtems_task_start(gui_task_id, gui_task, 0);
 	assert(sc == RTEMS_SUCCESSFUL);
-
-	sc = rtems_shell_init(
-		"SHLL",
-		RTEMS_MINIMUM_STACK_SIZE * 8,
-		1, /* We want it to work */
-		"/dev/console",
-		false,
-		false,
-		NULL
-	);
-	if(sc != RTEMS_SUCCESSFUL)
-		printf("Unable to start shell (error code %d)\n", sc);
 
 	rtems_task_delete(RTEMS_SELF);
 }
