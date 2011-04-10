@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DMXTABLE_H
-#define __DMXTABLE_H
+#ifndef __DMXDESK_H
+#define __DMXDESK_H
 
-void init_dmxtable();
-void open_dmxtable_window();
-void close_dmxtable_window();
+void init_dmxdesk();
+void open_dmxdesk_window();
+void close_dmxdesk_window();
 
 #endif /* __DMXTABLE_H */

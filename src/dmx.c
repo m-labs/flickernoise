@@ -35,7 +35,7 @@
 #include "resmgr.h"
 #include "monitor.h"
 #include "dmxspy.h"
-#include "dmxtable.h"
+#include "dmxdesk.h"
 #include "dmx.h"
 
 static int appid;
@@ -117,9 +117,9 @@ static void spy_callback(mtk_event *e, void *arg)
 	open_dmxspy_window();
 }
 
-static void table_callback(mtk_event *e, void *arg)
+static void desk_callback(mtk_event *e, void *arg)
 {
-	open_dmxtable_window();
+	open_dmxdesk_window();
 }
 
 static int w_open;
@@ -128,7 +128,7 @@ static void ok_callback(mtk_event *e, void *arg)
 {
 	w_open = 0;
 	close_dmxspy_window();
-	close_dmxtable_window();
+	close_dmxdesk_window();
 	mtk_cmd(appid, "w.close()");
 	set_config();
 }
@@ -137,7 +137,7 @@ static void close_callback(mtk_event *e, void *arg)
 {
 	w_open = 0;
 	close_dmxspy_window();
-	close_dmxtable_window();
+	close_dmxdesk_window();
 	mtk_cmd(appid, "w.close()");
 	load_dmx_config();
 }
@@ -170,7 +170,7 @@ void init_dmx()
 		"b_chain = new Button(-text \"Chain\")",
 		"sep1 = new Separator(-vertical yes)",
 		"b_spy = new Button(-text \"DMX spy\")",
-		"b_table = new Button(-text \"DMX table\")",
+		"b_desk = new Button(-text \"DMX desk\")",
 		"sep2 = new Separator(-vertical yes)",
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
@@ -178,7 +178,7 @@ void init_dmx()
 		"g_btn.place(b_chain, -column 2 -row 1)",
 		"g_btn.place(sep1, -column 3 -row 1)",
 		"g_btn.place(b_spy, -column 4 -row 1)",
-		"g_btn.place(b_table, -column 5 -row 1)",
+		"g_btn.place(b_desk, -column 5 -row 1)",
 		"g_btn.place(sep2, -column 6 -row 1)",
 		"g_btn.place(b_ok, -column 7 -row 1)",
 		"g_btn.place(b_cancel, -column 8 -row 1)",
@@ -203,7 +203,7 @@ void init_dmx()
 
 	mtk_bind(appid, "b_chain", "press", chain_callback, NULL);
 	mtk_bind(appid, "b_spy", "commit", spy_callback, NULL);
-	mtk_bind(appid, "b_table", "commit", table_callback, NULL);
+	mtk_bind(appid, "b_desk", "commit", desk_callback, NULL);
 
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", close_callback, NULL);

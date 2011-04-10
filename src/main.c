@@ -59,7 +59,7 @@
 #include "midi.h"
 #include "oscsettings.h"
 #include "dmxspy.h"
-#include "dmxtable.h"
+#include "dmxdesk.h"
 #include "dmx.h"
 #include "videoin.h"
 #include "patcheditor.h"
@@ -100,7 +100,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_midi();
 	init_oscsettings();
 	init_dmxspy();
-	init_dmxtable();
+	init_dmxdesk();
 	init_dmx();
 	init_videoin();
 	init_patcheditor();

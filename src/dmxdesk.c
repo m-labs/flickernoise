@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 #include "util.h"
 #include "resmgr.h"
-#include "dmxtable.h"
+#include "dmxdesk.h"
 
 static int appid;
 static int dmx_fd;
@@ -79,14 +79,14 @@ static void slide_callback(mtk_event *e, void *arg)
 
 static void close_callback(mtk_event *e, void *arg)
 {
-	close_dmxtable_window();
+	close_dmxdesk_window();
 }
 
-void init_dmxtable()
+void init_dmxdesk()
 {
 	int i;
 
-	appid = mtk_init_app("DMX table");
+	appid = mtk_init_app("DMX desk");
 	mtk_cmd(appid, "g = new Grid()");
 
 	for(i=0;i<64;i++) {
@@ -105,7 +105,7 @@ void init_dmxtable()
 	mtk_cmd(appid, "chanbtn0.set(-state on)");
 
 	mtk_cmd(appid, "g.rowconfig(8, -size 150)");
-	mtk_cmd(appid, "w = new Window(-content g -title \"DMX table\" -workx 20 -worky 35)");
+	mtk_cmd(appid, "w = new Window(-content g -title \"DMX desk\" -workx 20 -worky 35)");
 
 	for(i=0;i<8;i++)
 		mtk_bindf(appid, "slide%d", "change", slide_callback, (void *)i, i);
@@ -115,11 +115,11 @@ void init_dmxtable()
 
 static int w_open;
 
-void open_dmxtable_window()
+void open_dmxdesk_window()
 {
 	if(w_open) return;
 	w_open = 1;
-	if(!resmgr_acquire("DMX table", RESOURCE_DMX_OUT))
+	if(!resmgr_acquire("DMX desk", RESOURCE_DMX_OUT))
 		return;
 	dmx_fd = open("/dev/dmx_out", O_RDWR);
 	if(dmx_fd == -1) {
@@ -131,7 +131,7 @@ void open_dmxtable_window()
 	mtk_cmd(appid, "w.open()");
 }
 
-void close_dmxtable_window()
+void close_dmxdesk_window()
 {
 	if(!w_open) return;
 	w_open = 0;
