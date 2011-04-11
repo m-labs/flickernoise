@@ -25,5 +25,6 @@ void fb_unblank();
 void fb_render_mode();
 void fb_gui_mode();
 void fb_resize_gui();
+int fb_get_mode();
 
 #endif /* __FB_H */

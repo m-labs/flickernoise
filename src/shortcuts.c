@@ -23,8 +23,25 @@
 #include "input.h"
 #include "shutdown.h"
 #include "fbgrab.h"
+#include "sysconfig.h"
+#include "fb.h"
 
 static int ctrl, alt;
+
+static void switch_resolution()
+{
+	int res;
+
+	if(fb_get_mode()) return;
+
+	res = sysconfig_get_resolution();
+	res++;
+
+	if (res > SC_RESOLUTION_1024_768)
+		res = SC_RESOLUTION_640_480;
+
+	sysconfig_set_resolution(res);
+}
 
 static void shortcuts_callback(mtk_event *e, int count)
 {
@@ -40,6 +57,8 @@ static void shortcuts_callback(mtk_event *e, int count)
 				clean_shutdown(0);
 			else if(ctrl && (e[i].press.code == MTK_KEY_F12))
 				fbgrab(NULL);
+			else if(ctrl && (e[i].press.code == MTK_KEY_F1))
+				switch_resolution();
 		} else if (e[i].type == EVENT_TYPE_RELEASE) {
 			if(e[i].release.code == MTK_KEY_LEFTCTRL)
 				ctrl = 0;
