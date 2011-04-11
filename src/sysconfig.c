@@ -124,7 +124,7 @@ static int readconfig(const char *filename, struct sysconfig *out)
 static struct sysconfig sysconfig = {
 	.magic = SYSCONFIG_MAGIC,
 	.version = SYSCONFIG_VERSION,
-	.resolution = SC_RESOLUTION_1024_768,
+	.resolution = SC_RESOLUTION_640_480,
 	.wallpaper = "/flash/comet.png",
 	.language = SC_LANGUAGE_ENGLISH,
 	.keyboard_layout = SC_KEYBOARD_LAYOUT_GERMAN,
