@@ -70,7 +70,7 @@ static void display_folder(struct filedialog *dlg, const char *folder)
 			}
 		} else {
 			/* hide files without the extension we are looking for */
-			c = strchr(entry->d_name, '.');
+			c = strrchr(entry->d_name, '.');
 			if((dlg->extfilter[0] == 0) || ((c != NULL) && (strcmp(dlg->extfilter, c+1) == 0))) {
 				if(n_files < 384) {
 					files[n_files] = strdup(entry->d_name);
