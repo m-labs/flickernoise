@@ -232,7 +232,7 @@ int png_write(unsigned char *outbuffer, const char *filename,
 
 	png_init_io(png_ptr, outfile);
 
-	png_set_compression_level(png_ptr, Z_BEST_COMPRESSION);
+	png_set_compression_level(png_ptr, Z_DEFAULT_COMPRESSION);
 
 	bit_depth = 8;
 	color_type = PNG_COLOR_TYPE_RGB_ALPHA;
