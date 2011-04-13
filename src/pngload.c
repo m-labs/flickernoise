@@ -201,14 +201,13 @@ int png_write(unsigned char *outbuffer, const char *filename,
 	     int width, int height, int interlace)
 {
 	int i;
-	int bit_depth = 0, color_type;
 	png_bytep row_pointers[height];
 	png_structp png_ptr;
 	png_infop info_ptr;
 	FILE *outfile;
 
 	for (i=0; i<height; i++)
-		row_pointers[i] = outbuffer + i * 4 * width;
+		row_pointers[i] = outbuffer + i * width * 3;
 
 	outfile = fopen(filename, "w");
 	if (outfile == NULL) {
@@ -217,40 +216,35 @@ int png_write(unsigned char *outbuffer, const char *filename,
 	}
 
 	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-
 	if (!png_ptr) {
-		fprintf(stderr, "Error: Couldn't create PNG write struct");
-		return -1;
+		fprintf(stderr, "Error: Couldn't create PNG write struct\n");
+		goto free0;
 	}
 
 	info_ptr = png_create_info_struct(png_ptr);
 	if (!info_ptr) {
-		png_destroy_write_struct(&png_ptr, (png_infopp) NULL);
-		fprintf(stderr, "Error: Couldn't create PNG info struct");
-		return -1;
+		fprintf(stderr, "Error: Couldn't create PNG info struct\n");
+		goto free1;
 	}
+
+	if (setjmp(png_jmpbuf(png_ptr))) goto free1;
 
 	png_init_io(png_ptr, outfile);
 
 	png_set_compression_level(png_ptr, Z_DEFAULT_COMPRESSION);
-
-	bit_depth = 8;
-	color_type = PNG_COLOR_TYPE_RGB_ALPHA;
-	png_set_invert_alpha(png_ptr);
 	png_set_bgr(png_ptr);
-
 	png_set_IHDR(png_ptr, info_ptr, width, height,
-		     bit_depth, color_type, interlace,
+		     8, PNG_COLOR_TYPE_RGB, interlace,
 		     PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
 	png_write_info(png_ptr, info_ptr);
-
 	png_write_image(png_ptr, row_pointers);
-
 	png_write_end(png_ptr, info_ptr);
-	/* puh, done, now freeing memory... */
+
+free1:
 	png_destroy_write_struct(&png_ptr, &info_ptr);
 
+free0:
 	fclose(outfile);
 
 	return 0;

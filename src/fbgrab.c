@@ -49,24 +49,21 @@ static char *get_name()
 	return filename;
 }
 
-static void convert565to32(int width, int height,
+static void convert565to24(int width, int height,
 			   unsigned char *inbuffer,
 			   unsigned char *outbuffer)
 {
 	unsigned int i;
 
-	for (i=0; i < height*width*2; i+=2)
-	{
+	for (i=0; i < height*width*2; i+=2) {
 		/* BLUE  = 0 */
-		outbuffer[(i<<1)+0] = (inbuffer[i+1] & 0x1f) << 3;
+		outbuffer[(i/2*3)+0] = (inbuffer[i+1] & 0x1f) << 3;
 		/* GREEN = 1 */
-		outbuffer[(i<<1)+1] = 
+		outbuffer[(i/2*3)+1] =
 			(((inbuffer[i] & 0x7) << 3) | (inbuffer[i+1] & 0xE0) >> 5) 
 			<< 2;
 		/* RED   = 2 */
-		outbuffer[(i<<1)+2] = (inbuffer[i] & 0xF8);
-		/* ALPHA = 3 */
-		outbuffer[(i<<1)+3] = '\0';
+		outbuffer[(i/2*3)+2] = (inbuffer[i] & 0xF8);
 	}
 }
 
@@ -74,22 +71,20 @@ static int convert_and_write(unsigned char *inbuffer, char *filename,
 			     int width, int height, int bits, int interlace)
 {
 	int ret = 0;
-
-	size_t bufsize = width * height * 4;
+	size_t bufsize = width * height * 3;
 
 	unsigned char *outbuffer = malloc(bufsize);
 	if (outbuffer == NULL) {
 		fprintf(stderr, "Not enough memory");
 		return -1;
 	}
-
 	memset(outbuffer, 0, bufsize);
 
 	printf("grab screen to %s\n", filename);
 
 	switch (bits) {
 	case 16:
-		convert565to32(width, height, inbuffer, outbuffer);
+		convert565to24(width, height, inbuffer, outbuffer);
 		ret = png_write(outbuffer, filename, width, height, interlace);
 		break;
 	case 15:
@@ -107,21 +102,20 @@ static int convert_and_write(unsigned char *inbuffer, char *filename,
 int fbgrab(char *fn)
 {
 	int fd;
-	unsigned char *buf_p;
-	int ret = 0;
+
 	struct fb_var_screeninfo fb_var;
-	unsigned int bitdepth = 16;
 	size_t width;
 	size_t height;
 	size_t buf_size;
-	int interlace = PNG_INTERLACE_NONE;
+	unsigned char *buf_p;
 
 	char *device = "/dev/fb";
 	char *outfile = NULL;
+	int ret = 0;
 
-	if(fn == NULL) {
+	if(fn == NULL)
 		outfile = get_name();
-	} else
+	else
 		outfile = fn;
 
 	fd = open(device, O_RDONLY);
@@ -149,8 +143,9 @@ int fbgrab(char *fn)
 	}
 
 	ret = convert_and_write(buf_p, outfile,
-			  width, height, bitdepth,
-			  interlace);
+				width, height, 16, /* bit depth */
+				PNG_INTERLACE_NONE);
+
 free0:
 	free(buf_p);
 close0:
