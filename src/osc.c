@@ -138,7 +138,7 @@ static rtems_task osc_task(rtems_task_argument argument)
 
 	memset((char *)&local, 0, sizeof(struct sockaddr_in));
 	local.sin_family = AF_INET;
-	local.sin_port = htons(7777);
+	local.sin_port = htons(4444);
 	local.sin_addr.s_addr = htonl(INADDR_ANY);
 	r = bind(udpsocket, (struct sockaddr *)&local, sizeof(struct sockaddr_in));
 	if(r == -1) {
