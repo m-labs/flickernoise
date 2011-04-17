@@ -127,7 +127,7 @@ static struct sysconfig sysconfig = {
 	.resolution = SC_RESOLUTION_640_480,
 	.wallpaper = "/flash/comet.png",
 	.language = SC_LANGUAGE_ENGLISH,
-	.keyboard_layout = SC_KEYBOARD_LAYOUT_GERMAN,
+	.keyboard_layout = MTK_KEYBOARD_LAYOUT_GERMAN,
 	.dhcp_enable = 0,
 	.ip = 0xc0a8002a,
 	.netmask = 0xffffff00
@@ -301,10 +301,15 @@ void sysconfig_set_language(int language)
 	sysconfig.language = language;
 }
 
+void sysconfig_set_mtk_keyboard_layout()
+{
+	mtk_config_set_keyboard_layout(sysconfig.keyboard_layout);
+}
+
 void sysconfig_set_keyboard_layout(int layout)
 {
 	sysconfig.keyboard_layout = layout;
-	/* TODO: notify MTK about the changed layout */
+	sysconfig_set_mtk_keyboard_layout();
 }
 
 static int dhcp_task_running;

@@ -87,6 +87,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 {
 	init_fb_mtk(has_autostart());
 	sysconfig_set_mtk_wallpaper();
+	sysconfig_set_mtk_keyboard_layout();
 	init_input();
 	input_add_callback(mtk_input);
 	init_shortcuts();

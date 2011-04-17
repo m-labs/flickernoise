@@ -32,12 +32,6 @@ enum {
 	SC_LANGUAGE_GERMAN
 };
 
-enum {
-	SC_KEYBOARD_LAYOUT_US,
-	SC_KEYBOARD_LAYOUT_FRENCH,
-	SC_KEYBOARD_LAYOUT_GERMAN
-};
-
 void sysconfig_load();
 void sysconfig_save();
 
@@ -54,6 +48,7 @@ void sysconfig_set_wallpaper(char *wallpaper);
 void sysconfig_set_mtk_wallpaper();
 void sysconfig_set_language(int language);
 void sysconfig_set_keyboard_layout(int layout);
+void sysconfig_set_mtk_keyboard_layout();
 void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netmask);
 void sysconfig_set_credentials(char *login, char *password);
 void sysconfig_set_autostart(char *autostart);
