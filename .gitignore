@@ -1,10 +1,5 @@
-src/bin/flickernoise
-src/bin/flickernoise.fbi
-src/bin/flickernoise.fbiz
-src/bin/flickernoise.lzma
-src/bin/flickernoise.ralf
-src/obj/*.o
+src/bin
+src/obj
 doc/handbook.aux
 doc/handbook.log
 doc/handbook.pdf
-flash/flash.batch

@@ -63,7 +63,7 @@ $(BINDIR)/flickernoise.fbiz: $(BINDIR)/flickernoise.lzma
 
 # convenience target for loading to MM board
 load: $(BINDIR)/flickernoise.ralf
-	cp $(BINDIR)/flickernoise.ralf /var/lib/tftpboot/boot.bin
+	cp $< /var/lib/tftpboot/boot.bin
 
 clean:
 	rm -f $(BINDIR)/flickernoise $(BINDIR)/flickernoise.ralf 
