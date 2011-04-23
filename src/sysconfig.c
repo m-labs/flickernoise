@@ -27,6 +27,7 @@
 #include <rtems.h>
 #include <rtems/rtems_bsdnet.h>
 #include <rtems/dhcp.h>
+#include <rtems/bspcmdline.h>
 #include <bsp.h>
 #include <mtklib.h>
 
@@ -158,14 +159,26 @@ static void sysconfig_credentials_lock_init();
 static void sysconfig_credentials_lock();
 static void sysconfig_credentials_unlock();
 
+static int is_rescue()
+{
+	const char *bsp_cmdline;
+	
+	bsp_cmdline = rtems_bsp_cmdline_get();
+	if(bsp_cmdline == NULL)
+		return 0;
+	return strcmp(bsp_cmdline, "rescue") == 0;
+}
+
 void sysconfig_load()
 {
 	struct sysconfig conf;
 
 	sysconfig_credentials_lock_init();
 	
-	if(readconfig(SYSCONFIG_FILE, &conf))
-		memcpy(&sysconfig, &conf, sizeof(struct sysconfig));
+	if(!is_rescue()) {
+		if(readconfig(SYSCONFIG_FILE, &conf))
+			memcpy(&sysconfig, &conf, sizeof(struct sysconfig));
+	}
 
 	if(sysconfig.dhcp_enable)
 		rtems_bsdnet_config.bootp = my_dhcp;
