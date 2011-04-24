@@ -209,7 +209,7 @@ static void autobuild(int sk, char *folder)
 	qsort(files, n_files, sizeof(char *), cmpstringp);
 	
 	for(i=0;i<n_files;i++) {
-		sprintf(key_bindings[i], "%s/%s", folder, files[i]);
+		sprintf(key_bindings[i+sk], "%s/%s", folder, files[i]);
 		free(files[i]);
 	}
 }
