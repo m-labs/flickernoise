@@ -16,8 +16,12 @@
  */
 
 #include <bsp.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
+#include <dirent.h>
+#include <unistd.h>
 #include <mtklib.h>
 
 #include "util.h"
@@ -163,6 +167,80 @@ static void addupdate_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "e_filename.set(-text \"\")");
 }
 
+static int cmpstringp(const void *p1, const void *p2)
+{
+	return strcmp(*(char * const *)p1, *(char * const *)p2);
+}
+
+static void autobuild(int sk, char *folder)
+{
+	DIR *d;
+	struct dirent *entry;
+	struct stat s;
+	char fullname[384];
+	char *c;
+	char *files[26];
+	int n_files;
+	int max_files = 26 - sk;
+	int i;
+	
+	d = opendir(folder);
+	if(!d) {
+		messagebox("Auto build failed", "Unable to open directory");
+		return;
+	}
+	n_files = 0;
+	while((entry = readdir(d))) {
+		if(entry->d_name[0] == '.') continue;
+		strncpy(fullname, folder, sizeof(fullname));
+		strncat(fullname, entry->d_name, sizeof(fullname));
+		lstat(fullname, &s);
+		if(!S_ISDIR(s.st_mode)) {
+			c = strrchr(entry->d_name, '.');
+			if((c != NULL) && (strcmp(c, ".fnp") == 0)) {
+				if(n_files < max_files) {
+					files[n_files] = strdup(entry->d_name);
+					n_files++;
+				}
+			}
+		}
+	}
+	closedir(d);
+	qsort(files, n_files, sizeof(char *), cmpstringp);
+	
+	for(i=0;i<n_files;i++) {
+		sprintf(key_bindings[i], "%s/%s", folder, files[i]);
+		free(files[i]);
+	}
+}
+
+static void autobuild_callback(mtk_event *e, void *arg)
+{
+	char key[4];
+	char filename[384];
+	int sk;
+	int i;
+
+	mtk_req(appid, key, sizeof(key), "e_key.text");
+	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
+	if(key[0] == 0x00) {
+		key[0] = 'a';
+		key[1] = 0x00;
+	}
+	if(filename[0] == 0x00)
+		strcpy(filename, "/flash");
+	if((key[1] != 0x00) || (key[0] < 'a') || (key[0] > 'z')) {
+		messagebox("Error", "Invalid starting key. Use only one lower case letter from 'a' to 'z'.");
+		return;
+	}
+	i = strlen(filename);
+	if(filename[i-1] == '/')
+		filename[i-1] = 0x00;
+	sk = key[0] - 'a';
+	autobuild(sk, filename);
+	update_list();
+}
+
 void init_keyboard()
 {
 	appid = mtk_init_app("Keyboard");
@@ -204,6 +282,7 @@ void init_keyboard()
 		"g_addedit1.columnconfig(3, -size 0)",
 		"g_addedit1.columnconfig(4, -size 0)",
 		"b_addupdate = new Button(-text \"Add/update\")",
+		"b_autobuild = new Button(-text \"Auto build\")",
 
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
@@ -218,8 +297,9 @@ void init_keyboard()
 		"g.place(g_addedit0, -column 1 -row 3)",
 		"g.place(g_addedit1, -column 1 -row 4)",
 		"g.place(b_addupdate, -column 1 -row 5)",
-		"g.rowconfig(6, -size 10)",
-		"g.place(g_btn, -column 1 -row 7)",
+		"g.place(b_autobuild, -column 1 -row 6)",
+		"g.rowconfig(7, -size 10)",
+		"g.place(g_btn, -column 1 -row 8)",
 
 		"w = new Window(-content g -title \"Keyboard settings\")",
 		0);
@@ -229,6 +309,7 @@ void init_keyboard()
 	mtk_bind(appid, "b_filename", "commit", browse_callback, NULL);
 	mtk_bind(appid, "b_filenameclear", "commit", clear_callback, NULL);
 	mtk_bind(appid, "b_addupdate", "commit", addupdate_callback, NULL);
+	mtk_bind(appid, "b_autobuild", "commit", autobuild_callback, NULL);
 
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
