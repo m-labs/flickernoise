@@ -179,7 +179,7 @@ static void autobuild(int sk, char *folder)
 	struct stat s;
 	char fullname[384];
 	char *c;
-	char *files[26];
+	char *files[384];
 	int n_files;
 	int max_files = 26 - sk;
 	int i;
@@ -198,7 +198,7 @@ static void autobuild(int sk, char *folder)
 		if(!S_ISDIR(s.st_mode)) {
 			c = strrchr(entry->d_name, '.');
 			if((c != NULL) && (strcmp(c, ".fnp") == 0)) {
-				if(n_files < max_files) {
+				if(n_files < 384) {
 					files[n_files] = strdup(entry->d_name);
 					n_files++;
 				}
@@ -209,7 +209,8 @@ static void autobuild(int sk, char *folder)
 	qsort(files, n_files, sizeof(char *), cmpstringp);
 	
 	for(i=0;i<n_files;i++) {
-		sprintf(key_bindings[i+sk], "%s/%s", folder, files[i]);
+		if(i < max_files)
+			sprintf(key_bindings[i+sk], "%s/%s", folder, files[i]);
 		free(files[i]);
 	}
 }
