@@ -82,9 +82,10 @@ void fb_unblank()
 
 void fb_render_mode()
 {
-	if(sysconfig_get_resolution() != SC_RESOLUTION_640_480)
+	if((sysconfig_get_resolution() != SC_RESOLUTION_640_480) || blanked)
 		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, SC_RESOLUTION_640_480);
 	ioctl(framebuffer_fd, FBIOSETBUFFERMODE, FB_TRIPLE_BUFFERED);
+	blanked = 0;
 	g_render_mode = 1;
 }
 
