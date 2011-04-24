@@ -231,7 +231,7 @@ static void autobuild_callback(mtk_event *e, void *arg)
 	if(filename[0] == 0x00)
 		strcpy(filename, "/flash");
 	if((key[1] != 0x00) || (key[0] < 'a') || (key[0] > 'z')) {
-		messagebox("Error", "Invalid starting key. Use only one lower case letter from 'a' to 'z'.");
+		messagebox("Auto build failed", "Invalid starting key. Use only one lower case letter from 'a' to 'z'.");
 		return;
 	}
 	i = strlen(filename);

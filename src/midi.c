@@ -16,9 +16,13 @@
  */
 
 #include <bsp.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
+#include <unistd.h>
 #include <mtklib.h>
 
 #include "util.h"
@@ -319,13 +323,82 @@ static void addupdate_callback(mtk_event *e, void *arg)
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
 	notecode = midistr(note);
 	if(notecode < 0) {
-		messagebox("Error", "Invalid note.");
+		messagebox("Error", "Invalid note");
 		return;
 	}
 	strcpy(midi_bindings[notecode], filename);
 	update_list();
 	mtk_cmd(appid, "e_note.set(-text \"\")");
 	mtk_cmd(appid, "e_filename.set(-text \"\")");
+}
+
+static int cmpstringp(const void *p1, const void *p2)
+{
+	return strcmp(*(char * const *)p1, *(char * const *)p2);
+}
+
+static void autobuild(int sn, char *folder)
+{
+	DIR *d;
+	struct dirent *entry;
+	struct stat s;
+	char fullname[384];
+	char *c;
+	char *files[384];
+	int n_files;
+	int max_files = 128 - sn;
+	int i;
+	
+	d = opendir(folder);
+	if(!d) {
+		messagebox("Auto build failed", "Unable to open directory");
+		return;
+	}
+	n_files = 0;
+	while((entry = readdir(d))) {
+		if(entry->d_name[0] == '.') continue;
+		strncpy(fullname, folder, sizeof(fullname));
+		strncat(fullname, entry->d_name, sizeof(fullname));
+		lstat(fullname, &s);
+		if(!S_ISDIR(s.st_mode)) {
+			c = strrchr(entry->d_name, '.');
+			if((c != NULL) && (strcmp(c, ".fnp") == 0)) {
+				if(n_files < 384) {
+					files[n_files] = strdup(entry->d_name);
+					n_files++;
+				}
+			}
+		}
+	}
+	closedir(d);
+	qsort(files, n_files, sizeof(char *), cmpstringp);
+	
+	for(i=0;i<n_files;i++) {
+		if(i < max_files)
+			sprintf(midi_bindings[i+sn], "%s/%s", folder, files[i]);
+		free(files[i]);
+	}
+}
+
+static void autobuild_callback(mtk_event *e, void *arg)
+{
+	char note[8];
+	int notecode;
+	char filename[384];
+
+	mtk_req(appid, note, sizeof(note), "e_note.text");
+	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
+	if(note[0] == 0x00)
+		strcpy(note, "C2");
+	if(filename[0] == 0x00)
+		strcpy(filename, "/flash");
+	notecode = midistr(note);
+	if(notecode < 0) {
+		messagebox("Auto build failed", "Invalid starting note");
+		return;
+	}
+	autobuild(notecode, filename);
+	update_list();
 }
 
 void init_midi()
@@ -384,6 +457,7 @@ void init_midi()
 		"g_addedit1.columnconfig(3, -size 0)",
 		"g_addedit1.columnconfig(4, -size 0)",
 		"b_addupdate = new Button(-text \"Add/update\")",
+		"b_autobuild = new Button(-text \"Auto build\")",
 
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
@@ -400,8 +474,9 @@ void init_midi()
 		"g.place(g_addedit0, -column 1 -row 5)",
 		"g.place(g_addedit1, -column 1 -row 6)",
 		"g.place(b_addupdate, -column 1 -row 7)",
-		"g.rowconfig(8, -size 10)",
-		"g.place(g_btn, -column 1 -row 9)",
+		"g.place(b_autobuild, -column 1 -row 8)",
+		"g.rowconfig(9, -size 10)",
+		"g.place(g_btn, -column 1 -row 10)",
 
 		"w = new Window(-content g -title \"MIDI settings\")",
 		0);
@@ -412,6 +487,7 @@ void init_midi()
 	mtk_bind(appid, "b_filename", "commit", browse_callback, NULL);
 	mtk_bind(appid, "b_filenameclear", "commit", clear_callback, NULL);
 	mtk_bind(appid, "b_addupdate", "commit", addupdate_callback, NULL);
+	mtk_bind(appid, "b_autobuild", "commit", autobuild_callback, NULL);
 
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
