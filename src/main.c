@@ -36,6 +36,7 @@
 #include <bsp/milkymist_midi.h>
 #include <bsp/milkymist_versions.h>
 #include <bsp/milkymist_gpio.h>
+#include <bsp/milkymist_buttons.h>
 #include <rtems/stackchk.h>
 #include <rtems/shell.h>
 #include <rtems/bdpart.h>
@@ -263,9 +264,10 @@ rtems_telnetd_config_table rtems_telnetd_config = {
 	VIDEO_DRIVER_TABLE_ENTRY, \
 	MIDI_DRIVER_TABLE_ENTRY, \
 	VERSIONS_DRIVER_TABLE_ENTRY, \
-	GPIO_DRIVER_TABLE_ENTRY
+	GPIO_DRIVER_TABLE_ENTRY, \
+	BUTTONS_DRIVER_TABLE_ENTRY
 
-#define CONFIGURE_MAXIMUM_DRIVERS 16
+#define CONFIGURE_MAXIMUM_DRIVERS 20
 
 #define CONFIGURE_APPLICATION_NEEDS_LIBBLOCK
 #define CONFIGURE_USE_IMFS_AS_BASE_FILESYSTEM
