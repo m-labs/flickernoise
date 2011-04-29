@@ -1,0 +1,39 @@
+fDecay=0.970000
+fVideoEchoZoom=2.000000
+fVideoEchoAlpha=0.000000
+nVideoEchoOrientation=0
+nWaveMode=2
+bAdditiveWaves=0
+bWaveDots=0
+bMaximizeWaveColor=1
+bTexWrap=1
+bMotionVectorsOn=0
+nMotionVectorsX=12
+nMotionVectorsY=9
+fWaveAlpha=3.500000
+fWaveScale=2.720000
+fWarpAnimSpeed=1.000000
+fWarpScale=2.853000
+zoom=1.046000
+rot=0.020000
+cx=0.500000
+cy=0.500000
+dx=0.000000
+dy=0.000000
+warp=1.420000
+sx=1.000000
+sy=1.000000
+wave_r=0.600000
+wave_g=0.600000
+wave_b=0.600000
+wave_x=0.500000
+wave_y=0.470000
+per_frame=wave_r = wave_r + 0.400*( 0.60*sin(0.933*time) + 0.40*sin(1.045*time) );
+per_frame=wave_g = wave_g + 0.400*( 0.60*sin(0.900*time) + 0.40*sin(0.956*time) );
+per_frame=wave_b = wave_b + 0.400*( 0.60*sin(0.910*time) + 0.40*sin(0.920*time) );
+per_frame=zoom = zoom + 0.023*( 0.60*sin(0.339*time) + 0.40*sin(0.276*time) );
+per_frame=rot = rot + 0.030*( 0.60*sin(0.381*time) + 0.40*sin(0.579*time) );
+per_frame=cx = cx + 0.070*( 0.60*sin(0.374*time) + 0.40*sin(0.294*time) );
+per_frame=cy = cy + 0.070*( 0.60*sin(0.393*time) + 0.40*sin(0.223*time) );
+per_frame=video_a=above(sin(time*15),0.98)
+per_vertex=zoom=zoom+0.27*sin(time*1.55+rad*5);
