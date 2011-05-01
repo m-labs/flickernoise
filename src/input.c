@@ -302,9 +302,37 @@ static int handle_injected_midi_event(mtk_event *e, unsigned char *msg)
 	return 1;
 }
 
+static int handle_btn_event(mtk_event *e, unsigned char *msg)
+{
+	switch(msg[0]) {
+		case 'A':
+			write_press_event(e, MTK_KEY_F9);
+			return 1;
+		case 'B':
+			write_press_event(e, MTK_KEY_F10);
+			return 1;
+		case 'C':
+			write_press_event(e, MTK_KEY_F11);
+			return 1;
+		case 'a':
+			write_release_event(e, MTK_KEY_F9);
+			return 1;
+		case 'b':
+			write_release_event(e, MTK_KEY_F10);
+			return 1;
+		case 'c':
+			write_release_event(e, MTK_KEY_F11);
+			return 1;
+		default:
+			printf("Unknown button code: %c\n", msg[0]);
+			return 0;
+	}
+}
+
 static int input_fd;
-static int midi_fd;
 static int ir_fd;
+static int midi_fd;
+static int btn_fd;
 
 static rtems_id input_q;
 
@@ -357,8 +385,9 @@ void init_input(input_callback cb)
 		&input_q);
 	assert(sc == RTEMS_SUCCESSFUL);
 	start_event_task("/dev/usbinput", rtems_build_name('I', 'N', 'P', 'U'), &input_fd);
-	start_event_task("/dev/midi", rtems_build_name('I', 'N', 'P', 'M'), &midi_fd);
 	start_event_task("/dev/ir", rtems_build_name('I', 'N', 'P', 'I'), &ir_fd);
+	start_event_task("/dev/midi", rtems_build_name('I', 'N', 'P', 'M'), &midi_fd);
+	start_event_task("/dev/buttons", rtems_build_name('I', 'N', 'P', 'B'), &btn_fd);
 
 	for(i=0;i<MAX_CALLBACKS;i++)
 		callbacks[i] = NULL;
@@ -419,6 +448,8 @@ void input_eventloop()
 				n = handle_ir_event(&e[total], m.data);
 			} else if(m.fd == midi_fd) {
 				n = handle_midi_event(&e[total], m.data);
+			} else if(m.fd == btn_fd) {
+				n = handle_btn_event(&e[total], m.data);
 			} else if(m.fd == -1) {
 				n = handle_injected_midi_event(&e[total], m.data);
 			} else if(m.fd == -2) {
