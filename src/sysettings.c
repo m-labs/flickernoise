@@ -62,8 +62,8 @@ static void dhcp_callback(mtk_event *e, void *arg)
 {
 	int en;
 
-	sysconfig_get_ipconfig(&en, NULL, NULL);
-	sysconfig_set_ipconfig(!en, 0, 0);
+	sysconfig_get_ipconfig(&en, NULL, NULL, NULL, NULL, NULL);
+	sysconfig_set_ipconfig(!en, 0, 0, 0, 0, 0);
 	update_network();
 }
 
@@ -106,11 +106,6 @@ static void browse_autostart_callback(mtk_event *e, void *arg)
 static void clear_wallpaper_callback(mtk_event *e, void *arg)
 {
 	mtk_cmd(appid, "e_wallpaper.set(-text \"\")");
-}
-
-static void clear_autostart_callback(mtk_event *e, void *arg)
-{
-	mtk_cmd(appid, "e_autostart.set(-text \"\")");
 }
 
 void init_sysettings()
@@ -187,12 +182,20 @@ void init_sysettings()
 		"e_ip = new Entry()",
 		"l_netmask = new Label(-text \"Netmask:\")",
 		"e_netmask = new Entry()",
+		"l_gateway = new Label(-text \"Gateway:\")",
+		"e_gateway = new Entry()",
+		"l_dns = new Label(-text \"DNS:\")",
+		"e_dns = new Entry()",
 		"g_network1.place(l_dhcp, -column 1 -row 1)",
 		"g_network1.place(b_dhcp, -column 2 -row 1)",
 		"g_network1.place(l_ip, -column 1 -row 2)",
 		"g_network1.place(e_ip, -column 2 -row 2)",
 		"g_network1.place(l_netmask, -column 1 -row 3)",
 		"g_network1.place(e_netmask, -column 2 -row 3)",
+		"g_network1.place(l_gateway, -column 1 -row 4)",
+		"g_network1.place(e_gateway, -column 2 -row 4)",
+		"g_network1.place(l_dns, -column 1 -row 5)",
+		"g_network1.place(e_dns, -column 2 -row 5)",
 
 		"g_remote0 = new Grid()",
 		"l_remote = new Label(-text \"Remote access\" -font \"title\")",
@@ -204,12 +207,12 @@ void init_sysettings()
 		"g_remote1 = new Grid()",
 		"l_login = new Label(-text \"Login:\")",
 		"e_login = new Entry()",
-		"l_password = new Label(-text \"Password:\")",
+		"l_password = new Label(-text \"Pass:\")",
 		"e_password = new Entry(-blind yes)",
 		"g_remote1.place(l_login, -column 1 -row 1)",
 		"g_remote1.place(e_login, -column 2 -row 1)",
-		"g_remote1.place(l_password, -column 1 -row 2)",
-		"g_remote1.place(e_password, -column 2 -row 2)",
+		"g_remote1.place(l_password, -column 3 -row 1)",
+		"g_remote1.place(e_password, -column 4 -row 1)",
 
 		"g_autostart0 = new Grid()",
 		"l_autostart = new Label(-text \"Autostart\" -font \"title\")",
@@ -219,16 +222,22 @@ void init_sysettings()
 		"g_autostart0.place(l_autostart, -column 2 -row 1)",
 		"g_autostart0.place(s_autostart2, -column 3 -row 1)",
 		"g_autostart1 = new Grid()",
+		"l_asmode = new Label(-text \"Mode:\")",
+		"b_asmode_none = new Button(-text \"None\")",
+		"b_asmode_simple = new Button(-text \"Simple\")",
+		"b_asmode_file = new Button(-text \"File\")",
+		"g_autostart1.place(l_asmode, -column 1 -row 1)",
+		"g_autostart1.place(b_asmode_none, -column 2 -row 1)",
+		"g_autostart1.place(b_asmode_simple, -column 3 -row 1)",
+		"g_autostart1.place(b_asmode_file, -column 4 -row 1)",
+		"g_autostart2 = new Grid()",
 		"l_autostart = new Label(-text \"File:\")",
 		"e_autostart = new Entry()",
 		"b_autostart = new Button(-text \"Browse\")",
-		"b_autostart_clr = new Button(-text \"Clear\")",
-		"g_autostart1.place(l_autostart, -column 1 -row 1)",
-		"g_autostart1.place(e_autostart, -column 2 -row 1)",
-		"g_autostart1.place(b_autostart, -column 3 -row 1)",
-		"g_autostart1.place(b_autostart_clr, -column 4 -row 1)",
-		"g_autostart1.columnconfig(3, -size 0)",
-		"g_autostart1.columnconfig(4, -size 0)",
+		"g_autostart2.place(l_autostart, -column 1 -row 1)",
+		"g_autostart2.place(e_autostart, -column 2 -row 1)",
+		"g_autostart2.place(b_autostart, -column 3 -row 1)",
+		"g_autostart2.columnconfig(3, -size 0)",
 
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
@@ -248,10 +257,10 @@ void init_sysettings()
 		"g.place(g_remote1, -column 1 -row 9)",
 		"g.place(g_autostart0, -column 1 -row 10)",
 		"g.place(g_autostart1, -column 1 -row 11)",
-		"g.rowconfig(12, -size 10)",
-		"g.place(g_btn, -column 1 -row 13)",
+		"g.place(g_autostart2, -column 1 -row 12)",
+		"g.place(g_btn, -column 1 -row 14)",
 
-		"w = new Window(-content g -title \"System settings\")",
+		"w = new Window(-content g -title \"System settings\" -y 0)",
 		0);
 
 	mtk_bind(appid, "b_res_640", "press", resolution_callback, (void *)SC_RESOLUTION_640_480);
@@ -272,7 +281,6 @@ void init_sysettings()
 	mtk_bind(appid, "b_dhcp", "press", dhcp_callback, NULL);
 
 	mtk_bind(appid, "b_autostart", "commit", browse_autostart_callback, NULL);
-	mtk_bind(appid, "b_autostart_clr", "commit", clear_autostart_callback, NULL);
 	
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
@@ -326,7 +334,7 @@ static void update_network()
 	unsigned int ip;
 	unsigned int netmask;
 	
-	sysconfig_get_ipconfig(&dhcp_enable, &ip, &netmask);
+	sysconfig_get_ipconfig(&dhcp_enable, &ip, &netmask, NULL, NULL, NULL); // TODO
 	mtk_cmdf(appid, "b_dhcp.set(-state %s)", dhcp_enable ? "on" : "off");
 	mtk_cmdf(appid, "e_ip.set(-text \"%u.%u.%u.%u\")",
 		(ip & 0xff000000) >> 24,
@@ -370,7 +378,7 @@ static void ip_update(mtk_event *e, int count)
 
 	t = rtems_clock_get_ticks_since_boot();
 	if(t >= next_update) {
-		sysconfig_get_ipconfig(&dhcp_en, NULL, NULL);
+		sysconfig_get_ipconfig(&dhcp_en, NULL, NULL, NULL, NULL, NULL);
 		if(dhcp_en)
 			update_network();
 		next_update = t + UPDATE_PERIOD;
@@ -401,7 +409,7 @@ void open_sysettings_window()
 	update_autostart();
 
 	previous_layout = sysconfig_get_keyboard_layout();
-	sysconfig_get_ipconfig(&previous_dhcp, &previous_ip, &previous_netmask);
+	sysconfig_get_ipconfig(&previous_dhcp, &previous_ip, &previous_netmask, NULL, NULL, NULL); // TODO
 	
 	mtk_cmd(appid, "w.open()");
 
@@ -445,7 +453,7 @@ static void close_sysettings_window(int save)
 		mtk_req(appid, autostart, sizeof(autostart), "e_autostart.text");
 
 		sysconfig_set_wallpaper(wallpaper);
-		sysconfig_set_ipconfig(-1, parse_ip(ip_txt), parse_ip(netmask_txt));
+		sysconfig_set_ipconfig(-1, parse_ip(ip_txt), parse_ip(netmask_txt), 0, 0, 0); // TODO
 		sysconfig_set_credentials(login, password);
 		sysconfig_set_autostart(autostart);
 		
@@ -453,6 +461,6 @@ static void close_sysettings_window(int save)
 	} else {
 		sysconfig_set_resolution(previous_resolution);
 		sysconfig_set_keyboard_layout(previous_layout);
-		sysconfig_set_ipconfig(previous_dhcp, previous_ip, previous_netmask);
+		sysconfig_set_ipconfig(previous_dhcp, previous_ip, previous_netmask, 0, 0, 0); // TODO
 	}
 }

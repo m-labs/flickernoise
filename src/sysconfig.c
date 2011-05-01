@@ -73,7 +73,7 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 };
 
 #define SYSCONFIG_MAGIC 0xda81d4cb
-#define SYSCONFIG_VERSION 1
+#define SYSCONFIG_VERSION 2
 
 struct sysconfig {
 	unsigned int magic;
@@ -88,10 +88,13 @@ struct sysconfig {
 	unsigned char dhcp_enable;
 	unsigned int ip;
 	unsigned int netmask;
+	unsigned int gateway;
+	unsigned int dns1, dns2;
 	
 	char login[32];
 	char password[32];
 
+	int autostart_mode;
 	char autostart[256];
 };
 
@@ -126,12 +129,11 @@ static struct sysconfig sysconfig = {
 	.magic = SYSCONFIG_MAGIC,
 	.version = SYSCONFIG_VERSION,
 	.resolution = SC_RESOLUTION_640_480,
-	.wallpaper = "/flash/comet.png",
 	.language = SC_LANGUAGE_ENGLISH,
 	.keyboard_layout = MTK_KEYBOARD_LAYOUT_GERMAN,
-	.dhcp_enable = 0,
+	.dhcp_enable = 1,
 	.ip = 0xc0a8002a,
-	.netmask = 0xffffff00
+	.netmask = 0xffffff00,
 };
 
 #define FMT_IP_LEN (4*3+3*1+1)
@@ -176,6 +178,7 @@ void sysconfig_load()
 	sysconfig_credentials_lock_init();
 	
 	if(!sysconfig_is_rescue()) {
+		sysconfig.autostart_mode = SC_AUTOSTART_SIMPLE;
 		if(readconfig(SYSCONFIG_FILE, &conf))
 			memcpy(&sysconfig, &conf, sizeof(struct sysconfig));
 	}
@@ -194,6 +197,7 @@ void sysconfig_load()
 		netdriver_config.ip_netmask = netmask_fmt;
 	} else
 		netdriver_config.ip_netmask = NULL;
+	/* TODO: gateway, DNS */
 }
 
 void sysconfig_save()
@@ -252,7 +256,7 @@ int sysconfig_get_keyboard_layout()
 	return sysconfig.keyboard_layout;
 }
 
-void sysconfig_get_ipconfig(int *dhcp_enable, unsigned int *ip, unsigned int *netmask)
+void sysconfig_get_ipconfig(int *dhcp_enable, unsigned int *ip, unsigned int *netmask, unsigned int *gateway, unsigned int *dns1, unsigned int *dns2)
 {
 	*dhcp_enable = sysconfig.dhcp_enable;
 
@@ -260,12 +264,23 @@ void sysconfig_get_ipconfig(int *dhcp_enable, unsigned int *ip, unsigned int *ne
 		*ip = ifconfig_get_ip(SIOCGIFADDR);
 	if(netmask != NULL)
 		*netmask = ifconfig_get_ip(SIOCGIFNETMASK);
+	if(gateway != NULL)
+		*gateway = 0; /* TODO */
+	if(dns1 != NULL)
+		*dns1 = 0; /* TODO */
+	if(dns2 != NULL)
+		*dns2 = 0; /* TODO */
 }
 
 void sysconfig_get_credentials(char *login, char *password)
 {
 	strcpy(login, sysconfig.login);
 	strcpy(password, sysconfig.password);
+}
+
+int sysconfig_get_autostart_mode()
+{
+	return sysconfig.autostart_mode;
 }
 
 void sysconfig_get_autostart(char *autostart)
@@ -351,7 +366,7 @@ static void start_dhcp_task()
 	dhcp_task_running = 1;
 }
 
-void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netmask)
+void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netmask, unsigned int gateway, unsigned int dns1, unsigned int dns2)
 {
 	if(dhcp_enable == -1)
 		dhcp_enable = sysconfig.dhcp_enable;
@@ -364,6 +379,7 @@ void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netma
 				ifconfig_set_ip(SIOCSIFADDR, ip);
 			if(netmask != 0)
 				ifconfig_set_ip(SIOCSIFNETMASK, netmask);
+			/* TODO: gateway, DNS */
 		} else if(!sysconfig.dhcp_enable) {
 			ifconfig_set_ip(SIOCSIFADDR, 0);
 			ifconfig_set_ip(SIOCSIFNETMASK, 0);
@@ -376,6 +392,12 @@ void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netma
 		sysconfig.ip = ip;
 	if(netmask != 0)
 		sysconfig.netmask = netmask;
+	if(gateway != 0)
+		sysconfig.gateway = gateway;
+	if(dns1 != 0)
+		sysconfig.dns1 = dns1;
+	if(dns2 != 0)
+		sysconfig.dns2 = dns2;
 }
 
 void sysconfig_set_credentials(char *login, char *password)
@@ -384,6 +406,11 @@ void sysconfig_set_credentials(char *login, char *password)
 	strcpy(sysconfig.login, login);
 	strcpy(sysconfig.password, password);
 	sysconfig_credentials_unlock();
+}
+
+void sysconfig_set_autostart_mode(int autostart_mode)
+{
+	sysconfig.autostart_mode = autostart_mode;
 }
 
 void sysconfig_set_autostart(char *autostart)
