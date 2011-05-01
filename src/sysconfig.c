@@ -159,7 +159,7 @@ static void sysconfig_credentials_lock_init();
 static void sysconfig_credentials_lock();
 static void sysconfig_credentials_unlock();
 
-static int is_rescue()
+int sysconfig_is_rescue()
 {
 	const char *bsp_cmdline;
 	
@@ -175,7 +175,7 @@ void sysconfig_load()
 
 	sysconfig_credentials_lock_init();
 	
-	if(!is_rescue()) {
+	if(!sysconfig_is_rescue()) {
 		if(readconfig(SYSCONFIG_FILE, &conf))
 			memcpy(&sysconfig, &conf, sizeof(struct sysconfig));
 	}

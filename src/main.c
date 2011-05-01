@@ -118,6 +118,11 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_shutdown();
 
 	cp_autostart();
+	
+	if(sysconfig_is_rescue())
+		messagebox("Rescue mode", "You have booted in rescue mode.\n"
+			"Your system will function as usual, using back-up software.\n"
+			"From there, you can upgrade the main software or perform\nother actions to fix the problem.\n");
 
 	/* FIXME: work around "black screen" bug in MTK */
 	mtk_cmd(1, "screen.refresh()");

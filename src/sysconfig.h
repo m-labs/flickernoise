@@ -32,6 +32,8 @@ enum {
 	SC_LANGUAGE_GERMAN
 };
 
+int sysconfig_is_rescue();
+
 void sysconfig_load();
 void sysconfig_save();
 
