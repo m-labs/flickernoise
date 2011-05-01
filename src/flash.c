@@ -375,7 +375,7 @@ void init_flash()
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
-		"l0 = new Label(-text \"Select images to flash.\nIf your station does not restart after flashing, don't panic!\nHold pushbutton #1 during power-up to enable rescue mode.\")",
+		"l0 = new Label(-text \"Select images to flash.\nIf your synthesizer does not restart after flashing, don't panic!\nHold right (R) pushbutton during power-up to enable rescue mode.\")",
 
 		"g.place(l0, -column 1 -row 1 -align w)",
 
