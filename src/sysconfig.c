@@ -187,12 +187,12 @@ void sysconfig_load()
 		rtems_bsdnet_config.bootp = my_dhcp;
 	else
 		rtems_bsdnet_config.bootp = NULL;
-	if(sysconfig.ip) {
+	if(sysconfig.ip && !sysconfig.dhcp_enable) {
 		format_ip(sysconfig.ip, ip_fmt);
 		netdriver_config.ip_address = ip_fmt;
 	} else
 		netdriver_config.ip_address = NULL;
-	if(sysconfig.netmask) {
+	if(sysconfig.netmask && !sysconfig.dhcp_enable) {
 		format_ip(sysconfig.netmask, netmask_fmt);
 		netdriver_config.ip_netmask = netmask_fmt;
 	} else
