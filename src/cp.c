@@ -26,6 +26,7 @@
 #include "oscsettings.h"
 #include "dmx.h"
 #include "videoin.h"
+#include "rsswall.h"
 #include "patcheditor.h"
 #include "monitor.h"
 #include "firstpatch.h"
@@ -100,15 +101,19 @@ enum {
 	CP_ITEM_OSC,
 	CP_ITEM_DMX,
 	CP_ITEM_VIDEOIN,
+	
+	CP_ITEM_RSSWALL,
+	CP_ITEM_WEBUPDATE,
 
 	CP_ITEM_EDITOR,
 	CP_ITEM_MONITOR,
 
-	CP_ITEM_START,
 	CP_ITEM_NEW,
-	CP_ITEM_FIRSTPATCH,
 	CP_ITEM_LOAD,
 	CP_ITEM_SAVE,
+	CP_ITEM_FIRSTPATCH,
+	CP_ITEM_START,
+	CP_ITEM_STARTSIMPLE,
 
 	CP_ITEM_FILEMANAGER,
 	CP_ITEM_PDFREADER,
@@ -143,6 +148,12 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_videoin_window();
 			break;
 
+		case CP_ITEM_RSSWALL:
+			open_rsswall_window();
+			break;
+		case CP_ITEM_WEBUPDATE:
+			break;
+
 		case CP_ITEM_EDITOR:
 			open_patcheditor_window();
 			break;
@@ -150,16 +161,10 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_monitor_window();
 			break;
 
-		case CP_ITEM_START:
-			start_performance();
-			break;
 		case CP_ITEM_NEW:
 			config_free();
 			on_config_change();
 			clear_changed();
-			break;
-		case CP_ITEM_FIRSTPATCH:
-			open_firstpatch_window();
 			break;
 		case CP_ITEM_LOAD:
 			open_filedialog(load_dlg);
@@ -167,7 +172,16 @@ static void cp_callback(mtk_event *e, void *arg)
 		case CP_ITEM_SAVE:
 			open_filedialog(save_dlg);
 			break;
-		
+		case CP_ITEM_FIRSTPATCH:
+			open_firstpatch_window();
+			break;
+		case CP_ITEM_START:
+			start_performance();
+			break;
+		case CP_ITEM_STARTSIMPLE:
+			printf("TODO\n");
+			break;
+
 		case CP_ITEM_FILEMANAGER:
 			open_filemanager_window();
 			break;
@@ -234,9 +248,9 @@ void init_cp()
 		"g_online0.place(l_online, -column 2 -row 1)",
 		"g_online0.place(s_online2, -column 3 -row 1)",
 		"g_online = new Grid()",
-		"b_rss = new Button(-text \"RSS wall\")",
+		"b_rsswall = new Button(-text \"RSS wall\")",
 		"b_webupdate = new Button(-text \"Web update\")",
-		"g_online.place(b_rss, -column 1 -row 1)",
+		"g_online.place(b_rsswall, -column 1 -row 1)",
 		"g_online.place(b_webupdate, -column 2 -row 1)",
 		"g.place(g_online0, -column 1 -row 4)",
 		"g.place(g_online, -column 1 -row 5)",
@@ -329,13 +343,15 @@ void init_cp()
 	mtk_bind(appid, "b_osc", "commit", cp_callback, (void *)CP_ITEM_OSC);
 	mtk_bind(appid, "b_dmx", "commit", cp_callback, (void *)CP_ITEM_DMX);
 	mtk_bind(appid, "b_videoin", "commit", cp_callback, (void *)CP_ITEM_VIDEOIN);
+	mtk_bind(appid, "b_rsswall", "commit", cp_callback, (void *)CP_ITEM_RSSWALL);
+	mtk_bind(appid, "b_webupdate", "commit", cp_callback, (void *)CP_ITEM_WEBUPDATE);
 	mtk_bind(appid, "b_editor", "commit", cp_callback, (void *)CP_ITEM_EDITOR);
 	mtk_bind(appid, "b_monitor", "commit", cp_callback, (void *)CP_ITEM_MONITOR);
-	mtk_bind(appid, "b_start", "commit", cp_callback, (void *)CP_ITEM_START);
-	mtk_bind(appid, "b_firstpatch", "commit", cp_callback, (void *)CP_ITEM_FIRSTPATCH);
 	mtk_bind(appid, "b_new", "commit", cp_callback, (void *)CP_ITEM_NEW);
 	mtk_bind(appid, "b_load", "commit", cp_callback, (void *)CP_ITEM_LOAD);
 	mtk_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
+	mtk_bind(appid, "b_firstpatch", "commit", cp_callback, (void *)CP_ITEM_FIRSTPATCH);
+	mtk_bind(appid, "b_startsimple", "commit", cp_callback, (void *)CP_ITEM_STARTSIMPLE);
 	mtk_bind(appid, "b_filemanager", "commit", cp_callback, (void *)CP_ITEM_FILEMANAGER);
 #ifdef WITH_PDF
 	mtk_bind(appid, "b_pdfreader", "commit", cp_callback, (void *)CP_ITEM_PDFREADER);
