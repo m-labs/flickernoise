@@ -44,6 +44,7 @@
 #include <rtems/ftpd.h>
 #include <rtems/telnetd.h>
 #include <yaffs.h>
+#include <curl/curl.h>
 
 #include "shellext.h"
 #include "sysconfig.h"
@@ -181,6 +182,7 @@ rtems_task Init(rtems_task_argument argument)
 	rtems_bsdnet_initialize_network();
 	rtems_initialize_ftpd();
 	rtems_telnetd_initialize();
+	curl_global_init(CURL_GLOBAL_ALL);
 
 	sc = rtems_task_create(rtems_build_name('G', 'U', 'I', ' '), 9, 1024*1024,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,

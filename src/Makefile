@@ -8,7 +8,7 @@ OBJCOPY=lm32-rtems$(RTEMS_VERSION)-objcopy
 
 CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(RTEMS_MAKEFILE_PATH)/lib/include -g
 LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
-LIBS=-lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lcurl -lz -lm
+LIBS=-lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lcurl -lexpat -lz -lm
 OBJDIR=obj
 BINDIR=bin
 
