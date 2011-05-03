@@ -292,27 +292,40 @@ static char *feed_get_last(const char *url)
 		return strdup(fs.title);
 }
 
+static int rsswall_running;
 static rtems_id rsswall_task_id;
 static rtems_id rsswall_terminated;
+static const char *rsswall_url;
+static const char *rsswall_idle;
+static int rsswall_refresh;
+static int rsswall_idlep;
 
 static rtems_task rsswall_task(rtems_task_argument argument)
 {
 	char *previous_entry;
 	char *last_entry;
 	rtems_event_set events;
+	int empty_count;
 	
 	previous_entry = NULL;
+	empty_count = 0;
 	while(rtems_event_receive(RTEMS_EVENT_1,
 	  RTEMS_EVENT_ANY | RTEMS_WAIT, 
-	  500, &events) == RTEMS_TIMEOUT) {
-		last_entry = feed_get_last("http://search.twitter.com/search.atom?q=milkymist");
-		if(last_entry == NULL) continue;
-		if((previous_entry == NULL) || (strcmp(previous_entry, last_entry) != 0)) {
+	  rsswall_refresh, &events) == RTEMS_TIMEOUT) {
+		last_entry = feed_get_last(rsswall_url);
+		if((last_entry != NULL) && ((previous_entry == NULL) || (strcmp(previous_entry, last_entry) != 0))) {
+			empty_count = 0;
 			osd_event(last_entry);
 			free(previous_entry);
 			previous_entry = last_entry;
-		} else
+		} else {
 			free(last_entry);
+			empty_count++;
+			if(empty_count == rsswall_idlep) {
+				osd_event(rsswall_idle);
+				empty_count = 0;
+			}
+		}
 	}
 	free(previous_entry);
 	rtems_semaphore_release(rsswall_terminated);
@@ -322,6 +335,18 @@ static rtems_task rsswall_task(rtems_task_argument argument)
 void rsswall_start()
 {
 	rtems_status_code sc;
+	
+	if(!rsswall_enable || rsswall_running) return;
+	
+	rsswall_url = config_read_string("rss_url");
+	if((rsswall_url == NULL) || (rsswall_url[0] == 0)) return;
+	rsswall_idle = config_read_string("rss_idle");
+	rsswall_refresh = config_read_int("rss_refresh", 7)*100;
+	if(rsswall_refresh < 100)
+		rsswall_refresh = 100;
+	rsswall_idlep = config_read_int("rss_idlep", 5);
+	if(rsswall_idlep < 2)
+		rsswall_idlep = 2;
 	
 	sc = rtems_semaphore_create(
 		rtems_build_name('R', 'S', 'S', 'W'),
@@ -337,12 +362,16 @@ void rsswall_start()
 	assert(sc == RTEMS_SUCCESSFUL);
 	sc = rtems_task_start(rsswall_task_id, rsswall_task, 0);
 	assert(sc == RTEMS_SUCCESSFUL);
+	
+	rsswall_running = 1;
 }
 
 void rsswall_stop()
 {
+	if(!rsswall_running) return;
 	rtems_event_send(rsswall_task_id, RTEMS_EVENT_1);
 	rtems_semaphore_obtain(rsswall_terminated, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
-	/* task self-deleted  */
+	/* task self-deleted */
 	rtems_semaphore_delete(rsswall_terminated);
+	rsswall_running = 0;
 }
