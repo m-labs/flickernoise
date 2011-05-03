@@ -326,7 +326,8 @@ static rtems_task rsswall_task(rtems_task_argument argument)
 			free(last_entry);
 			empty_count++;
 			if(empty_count == rsswall_idlep) {
-				osd_event(rsswall_idle);
+				if((rsswall_idle != NULL) && (rsswall_idle[0] != 0))
+					osd_event(rsswall_idle);
 				empty_count = 0;
 			}
 		}
