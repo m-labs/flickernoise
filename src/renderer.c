@@ -25,6 +25,7 @@
 #include "eval.h"
 #include "raster.h"
 #include "osd.h"
+#include "rsswall.h"
 
 #include "renderer.h"
 
@@ -98,10 +99,12 @@ void renderer_start(int framebuffer_fd, struct patch *p)
 	raster_start(framebuffer_fd, sampler_return);
 	eval_start(raster_input);
 	sampler_start(eval_input);
+	rsswall_start();
 }
 
 void renderer_stop()
 {
+	rsswall_stop();
 	sampler_stop();
 	eval_stop();
 	raster_stop();

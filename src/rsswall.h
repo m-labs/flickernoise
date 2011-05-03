@@ -21,4 +21,7 @@
 void init_rsswall();
 void open_rsswall_window();
 
+void rsswall_start();
+void rsswall_stop();
+
 #endif /* __RSSWALL_H */
