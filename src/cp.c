@@ -351,6 +351,7 @@ void init_cp()
 	mtk_bind(appid, "b_load", "commit", cp_callback, (void *)CP_ITEM_LOAD);
 	mtk_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
 	mtk_bind(appid, "b_firstpatch", "commit", cp_callback, (void *)CP_ITEM_FIRSTPATCH);
+	mtk_bind(appid, "b_start", "commit", cp_callback, (void *)CP_ITEM_START);
 	mtk_bind(appid, "b_startsimple", "commit", cp_callback, (void *)CP_ITEM_STARTSIMPLE);
 	mtk_bind(appid, "b_filemanager", "commit", cp_callback, (void *)CP_ITEM_FILEMANAGER);
 #ifdef WITH_PDF
