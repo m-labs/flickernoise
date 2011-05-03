@@ -23,17 +23,157 @@
 
 #include <curl/curl.h>
 #include <expat.h>
+#include <mtklib.h>
 
 #include "version.h"
+#include "util.h"
 #include "osd.h"
+#include "cp.h"
+#include "config.h"
 #include "rsswall.h"
+
+static int appid;
+static int w_open;
+static int rsswall_enable;
+
+static void load_config()
+{
+	const char *url, *idle;
+	
+	rsswall_enable = config_read_int("rss_enable", 0);
+	mtk_cmdf(appid, "b_enable.set(-state %s)", rsswall_enable ? "on" : "off");
+	url = config_read_string("rss_url");
+	/* Use http://search.twitter.com/search.atom?q=milkymist for Twitter */
+	if(url == NULL)
+		url = "http://identi.ca/api/search.atom?q=milkymist";
+	idle = config_read_string("rss_idle");
+	if(idle == NULL)
+		idle = "Your message here? Hashtag #milkymist on identi.ca";
+	mtk_cmdf(appid, "e_url.set(-text \"%s\")", url);
+	mtk_cmdf(appid, "e_idle.set(-text \"%s\")", idle);
+	mtk_cmdf(appid, "e_refresh.set(-text \"%d\")", config_read_int("rss_refresh", 7));
+	mtk_cmdf(appid, "e_idlep.set(-text \"%d\")", config_read_int("rss_idlep", 5));
+}
+
+static void set_config()
+{
+	char url[512];
+	char idle[512];
+	
+	mtk_req(appid, url, sizeof(url), "e_url.text");
+	mtk_req(appid, idle, sizeof(idle), "e_idle.text");
+	
+	config_write_int("rss_enable", rsswall_enable);
+	config_write_string("rss_url", url);
+	config_write_string("rss_idle", idle);
+	config_write_int("rss_refresh", mtk_req_i(appid, "e_refresh.text"));
+	config_write_int("rss_idlep", mtk_req_i(appid, "e_idlep.text"));
+}
+
+static void close_window()
+{
+	mtk_cmd(appid, "w.close()");
+	w_open = 0;
+}
+
+static void ok_callback(mtk_event *e, void *arg)
+{
+	set_config();
+	cp_notify_changed();
+	close_window();
+}
+
+static void cancel_callback(mtk_event *e, void *arg)
+{
+	close_window();
+}
+
+static void enable_callback(mtk_event *e, void *arg)
+{
+	rsswall_enable = !rsswall_enable;
+	mtk_cmdf(appid, "b_enable.set(-state %s)", rsswall_enable ? "on" : "off");
+}
+
+static void clearurl_callback(mtk_event *e, void *arg)
+{
+	mtk_cmd(appid, "e_url.set(-text \"\")");
+}
+
+static void clearidle_callback(mtk_event *e, void *arg)
+{
+	mtk_cmd(appid, "e_idle.set(-text \"\")");
+}
 
 void init_rsswall()
 {
+	appid = mtk_init_app("RSS wall");
+
+	mtk_cmd_seq(appid,
+		"g = new Grid()",
+
+		"g_param = new Grid()",
+		"l_enable = new Label(-text \"Wall:\")",
+		"b_enable = new Button(-text \"Enable\")",
+		"l_url = new Label(-text \"RSS/ATOM URL:\")",
+		"e_url = new Entry()",
+		"b_urlclear = new Button(-text \"Clear\")",
+		"l_idle = new Label(-text \"Idle message:\")",
+		"e_idle = new Entry()",
+		"b_idleclear = new Button(-text \"Clear\")",
+		"l_refresh = new Label(-text \"Refresh period:\")",
+		"e_refresh = new Entry()",
+		"l_refreshu = new Label(-text \"seconds\")",
+		"l_idlep = new Label(-text \"Idle period:\")",
+		"e_idlep = new Entry()",
+		"l_idlepu = new Label(-text \"refreshes\")",
+		"g_param.place(l_enable, -column 1 -row 1)",
+		"g_param.place(b_enable, -column 2 -row 1)",
+		"g_param.place(l_url, -column 1 -row 2)",
+		"g_param.place(e_url, -column 2 -row 2)",
+		"g_param.place(b_urlclear, -column 3 -row 2)",
+		"g_param.place(l_idle, -column 1 -row 3)",
+		"g_param.place(e_idle, -column 2 -row 3)",
+		"g_param.place(b_idleclear, -column 3 -row 3)",
+		"g_param.place(l_refresh, -column 1 -row 4)",
+		"g_param.place(e_refresh, -column 2 -row 4)",
+		"g_param.place(l_refreshu, -column 3 -row 4)",
+		"g_param.place(l_idlep, -column 1 -row 5)",
+		"g_param.place(e_idlep, -column 2 -row 5)",
+		"g_param.place(l_idlepu, -column 3 -row 5)",
+		"g_param.columnconfig(1, -size 0)",
+		"g_param.columnconfig(2, -size 360)",
+		"g_param.columnconfig(3, -size 0)",
+
+		"g_btn = new Grid()",
+		"b_ok = new Button(-text \"OK\")",
+		"b_cancel = new Button(-text \"Cancel\")",
+		"g_btn.columnconfig(1, -size 200)",
+		"g_btn.place(b_ok, -column 2 -row 1)",
+		"g_btn.place(b_cancel, -column 3 -row 1)",
+
+		"g.place(g_param, -column 1 -row 1)",
+		"g.rowconfig(2, -size 10)",
+		"g.place(g_btn, -column 1 -row 3)",
+
+		"w = new Window(-content g -title \"RSS/ATOM wall\")",
+		0);
+
+	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
+	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
+	
+	mtk_bind(appid, "b_enable", "press", enable_callback, NULL);
+	mtk_bind(appid, "b_urlclear", "commit", clearurl_callback, NULL);
+	mtk_bind(appid, "b_idleclear", "commit", clearidle_callback, NULL);
+
+	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 }
 
 void open_rsswall_window()
 {
+	if(w_open) return;
+	w_open = 1;
+	load_config();
+	mtk_cmd(appid, "w.open()");
 }
 
 static size_t data_callback(void *ptr, size_t size, size_t nmemb, void *data)
@@ -167,7 +307,6 @@ static rtems_task rsswall_task(rtems_task_argument argument)
 	  500, &events) == RTEMS_TIMEOUT) {
 		last_entry = feed_get_last("http://search.twitter.com/search.atom?q=milkymist");
 		if(last_entry == NULL) continue;
-		printf("fetched: '%s'\n", last_entry);
 		if((previous_entry == NULL) || (strcmp(previous_entry, last_entry) != 0)) {
 			osd_event(last_entry);
 			free(previous_entry);
