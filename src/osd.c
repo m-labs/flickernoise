@@ -25,7 +25,7 @@
 #include "osd.h"
 
 #define OSD_W 600
-#define OSD_H 52
+#define OSD_H 82
 #define OSD_CORNER 15
 #define OSD_CHROMAKEY 0x001f
 
@@ -86,7 +86,7 @@ static void clear_user_area()
 void osd_event(const char *string)
 {
 	clear_user_area();
-	font_draw_string(&osd_font, OSD_CORNER, OSD_CORNER, 0, string, 64);
+	font_draw_string(&osd_font, OSD_CORNER, OSD_CORNER, 0, string);
 	osd_timer = OSD_DURATION;
 }
 

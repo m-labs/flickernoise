@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  * Copyright (C) 2002-2009 Norman Feske <norman.feske@genode-labs.com>
  * Genode Labs, Feske & Helmuth Systementwicklung GbR
  *
@@ -31,7 +31,6 @@ struct font_context {
 void font_init_context(struct font_context *ctx, unsigned char *font, unsigned short *fb, int fb_w, int fb_h);
 int font_get_height(struct font_context *ctx);
 int font_draw_char(struct font_context *ctx, int x, int y, int r, unsigned char c);
-void font_draw_string(struct font_context *ctx, int x, int y, int r, const char *str , int maxlen);
+void font_draw_string(struct font_context *ctx, int x, int y, int r, const char *str);
 
 #endif /* __FONT_H */
-

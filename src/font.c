@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  * Copyright (C) 2002-2009 Norman Feske <norman.feske@genode-labs.com>
  * Genode Labs, Feske & Helmuth Systementwicklung GbR
  *
@@ -56,8 +56,8 @@ static void draw_pixel(struct font_context *ctx, int x, int y, int r, unsigned c
 {
 	if(x < 0) return;
 	if(x >= ctx->fb_w) return;
-	/*if(y < 0) return;
-	if(y >= ctx->fb_h) return;*/
+	if(y < 0) return;
+	if(y >= ctx->fb_h) return;
 	if(r)
 		i = 255-i;
 	ctx->fb[x+y*ctx->fb_w] = MAKERGB565(i >> 3, i >> 2, i >> 3);
@@ -83,12 +83,22 @@ int font_draw_char(struct font_context *ctx, int x, int y, int r, unsigned char 
 	return w;
 }
 
-void font_draw_string(struct font_context *ctx, int x, int y, int r, const char *str, int maxlen)
+void font_draw_string(struct font_context *ctx, int x, int y, int r, const char *str)
 {
-	while((maxlen > 0) && (*str)) {
-		x += font_draw_char(ctx, x, y, r, (unsigned char)(*str));
+	unsigned char c;
+	int xb;
+	struct tff_file_hdr *tff = (struct tff_file_hdr *)ctx->font;
+	
+	xb = x;
+	while(*str) {
+		c = (unsigned char)(*str);
+		if((x+i2u32(&tff->wtab[c])) >= (ctx->fb_w-1)) {
+			x = xb;
+			y += i2u32(&tff->img_h);
+			if(y >= (ctx->fb_h-1))
+				break;
+		}
+		x += font_draw_char(ctx, x, y, r, c);
 		str++;
-		maxlen--;
 	}
 }
-
