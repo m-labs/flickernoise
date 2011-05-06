@@ -15,6 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <rtems.h>
+#include <rtems/rtems_bsdnet.h>
+#include <rtems/dhcp.h>
+#include <rtems/bspcmdline.h>
+#include <rtems/bsdnet/servers.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,10 +29,7 @@
 #include <sys/sockio.h>
 #include <arpa/inet.h>
 #include <net/if.h>
-#include <rtems.h>
-#include <rtems/rtems_bsdnet.h>
-#include <rtems/dhcp.h>
-#include <rtems/bspcmdline.h>
+#include <net/route.h>
 #include <bsp.h>
 #include <mtklib.h>
 
@@ -63,7 +65,7 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 	"local", /* domainname */
 	NULL, /* gateway */
 	NULL, /* log_host */
-	{ NULL }, /* name_server[3] */
+	{ NULL, NULL, NULL }, /* name_server[3] */
 	{ NULL }, /* ntp_server[3] */
 	0,
 	0,
@@ -140,6 +142,9 @@ static struct sysconfig sysconfig = {
 
 static char ip_fmt[FMT_IP_LEN];
 static char netmask_fmt[FMT_IP_LEN];
+static char gateway_fmt[FMT_IP_LEN];
+static char dns1_fmt[FMT_IP_LEN];
+static char dns2_fmt[FMT_IP_LEN];
 
 static void format_ip(unsigned int ip, char *out)
 {
@@ -185,19 +190,28 @@ void sysconfig_load()
 
 	if(sysconfig.dhcp_enable)
 		rtems_bsdnet_config.bootp = my_dhcp;
-	else
-		rtems_bsdnet_config.bootp = NULL;
-	if(sysconfig.ip && !sysconfig.dhcp_enable) {
-		format_ip(sysconfig.ip, ip_fmt);
-		netdriver_config.ip_address = ip_fmt;
-	} else
-		netdriver_config.ip_address = NULL;
-	if(sysconfig.netmask && !sysconfig.dhcp_enable) {
-		format_ip(sysconfig.netmask, netmask_fmt);
-		netdriver_config.ip_netmask = netmask_fmt;
-	} else
-		netdriver_config.ip_netmask = NULL;
-	/* TODO: gateway, DNS */
+	else {
+		if(sysconfig.ip) {
+			format_ip(sysconfig.ip, ip_fmt);
+			netdriver_config.ip_address = ip_fmt;
+		}
+		if(sysconfig.netmask) {
+			format_ip(sysconfig.netmask, netmask_fmt);
+			netdriver_config.ip_netmask = netmask_fmt;
+		}
+		if(sysconfig.gateway) {
+			format_ip(sysconfig.gateway, gateway_fmt);
+			rtems_bsdnet_config.gateway = gateway_fmt;
+		}
+		if(sysconfig.dns1) {
+			format_ip(sysconfig.dns1, dns1_fmt);
+			rtems_bsdnet_config.name_server[0] = dns1_fmt;
+		}
+		if(sysconfig.dns2) {
+			format_ip(sysconfig.dns2, dns2_fmt);
+			rtems_bsdnet_config.name_server[1] = dns2_fmt;
+		}
+	}
 }
 
 void sysconfig_save()
@@ -234,6 +248,76 @@ static void ifconfig_set_ip(uint32_t cmd, unsigned int ip)
 	rtems_bsdnet_ifconfig(NETWORK_INTERFACE, cmd, &ipaddr);
 }
 
+/* HACK: we are not meant to use those from the application,
+ * but RTEMS provides no other way to read the routing table.
+ * (In its defense, the BSD API is about as crappy)
+ */
+extern struct radix_node_head *rt_tables[AF_MAX+1];
+void rtems_bsdnet_semaphore_obtain(void);
+void rtems_bsdnet_semaphore_release(void);
+
+static int retrieve_gateway(struct radix_node *rn, void *vw)
+{
+	unsigned int *r = (unsigned int *)vw;
+	struct rtentry *rt = (struct rtentry *)rn;
+	struct sockaddr_in *dst;
+	struct sockaddr_in *gateway;
+	
+	dst = (struct sockaddr_in *)rt_key(rt);
+	gateway = (struct sockaddr_in *)rt->rt_gateway;
+	if((dst != NULL) && (dst->sin_addr.s_addr == INADDR_ANY)
+	  && (rt->rt_flags & RTF_GATEWAY) && (gateway != NULL))
+		*r = gateway->sin_addr.s_addr;
+	
+	return 0;
+}
+
+static unsigned int route_get_gateway()
+{
+	struct radix_node_head *rnh;
+	int error;
+	unsigned int r;
+	
+	rnh = rt_tables[AF_INET];
+	if(!rnh)
+		return 0;
+	r = 0;
+	rtems_bsdnet_semaphore_obtain();
+	error = rnh->rnh_walktree(rnh, retrieve_gateway, &r);
+	rtems_bsdnet_semaphore_release();
+	if(error)
+		return 0;
+	return r;
+}
+
+static void route_set_gateway(unsigned int ip)
+{
+	struct sockaddr_in dst;
+	struct sockaddr_in gw;
+	struct sockaddr_in netmask;
+
+	dst.sin_len = sizeof(dst);
+	dst.sin_family = AF_INET;
+	dst.sin_addr.s_addr = 0;
+
+	gw.sin_len = sizeof(gw);
+	gw.sin_family = AF_INET;
+	gw.sin_addr.s_addr = ip;
+
+	netmask.sin_len = sizeof(netmask);
+	netmask.sin_family = AF_INET;
+	netmask.sin_addr.s_addr = 0xffffff00;
+
+	rtems_bsdnet_rtrequest(
+		RTM_ADD,
+		(struct sockaddr *)&dst,
+		(struct sockaddr *)&gw,
+		(struct sockaddr *)&netmask,
+		RTF_STATIC | RTF_GATEWAY,
+		NULL
+	);
+}
+
 /* get */
 
 int sysconfig_get_resolution()
@@ -265,11 +349,11 @@ void sysconfig_get_ipconfig(int *dhcp_enable, unsigned int *ip, unsigned int *ne
 	if(netmask != NULL)
 		*netmask = ifconfig_get_ip(SIOCGIFNETMASK);
 	if(gateway != NULL)
-		*gateway = 0; /* TODO */
+		*gateway = route_get_gateway();
 	if(dns1 != NULL)
-		*dns1 = 0; /* TODO */
+		*dns1 = rtems_bsdnet_nameserver_count > 0 ? rtems_bsdnet_nameserver[0].s_addr : 0;
 	if(dns2 != NULL)
-		*dns2 = 0; /* TODO */
+		*dns2 = rtems_bsdnet_nameserver_count > 1 ? rtems_bsdnet_nameserver[1].s_addr : 0;
 }
 
 void sysconfig_get_credentials(char *login, char *password)
@@ -379,7 +463,17 @@ void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netma
 				ifconfig_set_ip(SIOCSIFADDR, ip);
 			if(netmask != 0)
 				ifconfig_set_ip(SIOCSIFNETMASK, netmask);
-			/* TODO: gateway, DNS */
+			if(gateway != 0)
+				route_set_gateway(gateway);
+			if(dns1 != 0) {
+				rtems_bsdnet_nameserver_count = 1;
+				rtems_bsdnet_nameserver[0].s_addr = dns1;
+				if(dns2 != 0) {
+					rtems_bsdnet_nameserver_count = 2;
+					rtems_bsdnet_nameserver[1].s_addr = dns2;
+				}
+			}
+			/* TODO: run res_init() ? */
 		} else if(!sysconfig.dhcp_enable) {
 			ifconfig_set_ip(SIOCSIFADDR, 0);
 			ifconfig_set_ip(SIOCSIFNETMASK, 0);
