@@ -34,6 +34,7 @@ static void update_resolution();
 static void update_language();
 static void update_layout();
 static void update_network();
+static void update_asmode();
 
 static void resolution_callback(mtk_event *e, void *arg)
 {
@@ -66,6 +67,16 @@ static void dhcp_callback(mtk_event *e, void *arg)
 	sysconfig_get_ipconfig(&en, NULL, NULL, NULL, NULL, NULL);
 	sysconfig_set_ipconfig(!en, 0, 0, 0, 0, 0);
 	update_network();
+}
+
+static int current_asmode;
+
+static void asmode_callback(mtk_event *e, void *arg)
+{
+	int asmode = (int)arg;
+
+	current_asmode = asmode;
+	update_asmode();
 }
 
 static void ok_callback(mtk_event *e, void *arg)
@@ -281,6 +292,9 @@ void init_sysettings()
 
 	mtk_bind(appid, "b_dhcp", "press", dhcp_callback, NULL);
 
+	mtk_bind(appid, "b_asmode_none", "press", asmode_callback, (void *)SC_AUTOSTART_NONE);
+	mtk_bind(appid, "b_asmode_simple", "press", asmode_callback, (void *)SC_AUTOSTART_SIMPLE);
+	mtk_bind(appid, "b_asmode_file", "press", asmode_callback, (void *)SC_AUTOSTART_FILE);
 	mtk_bind(appid, "b_autostart", "commit", browse_autostart_callback, NULL);
 	
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
@@ -391,6 +405,13 @@ static void update_credentials()
 	mtk_cmdf(appid, "e_password.set(-text \"%s\")", password);
 }
 
+static void update_asmode()
+{
+	mtk_cmdf(appid, "b_asmode_none.set(-state %s)", current_asmode == SC_AUTOSTART_NONE ? "on" : "off");
+	mtk_cmdf(appid, "b_asmode_simple.set(-state %s)", current_asmode == SC_AUTOSTART_SIMPLE ? "on" : "off");
+	mtk_cmdf(appid, "b_asmode_file.set(-state %s)", current_asmode == SC_AUTOSTART_FILE ? "on" : "off");
+}
+
 static void update_autostart()
 {
 	char autostart[256];
@@ -430,6 +451,7 @@ void open_sysettings_window()
 
 	previous_resolution = sysconfig_get_resolution();
 	current_language = sysconfig_get_language();
+	current_asmode = sysconfig_get_autostart_mode();
 	
 	update_resolution();
 	update_wallpaper();
@@ -437,6 +459,7 @@ void open_sysettings_window()
 	update_layout();
 	update_network();
 	update_credentials();
+	update_asmode();
 	update_autostart();
 
 	previous_layout = sysconfig_get_keyboard_layout();
@@ -496,6 +519,7 @@ static void close_sysettings_window(int save)
 		sysconfig_set_ipconfig(-1, inet_addr(ip_txt), inet_addr(netmask_txt),
 			inet_addr(gateway_txt), dns1, dns2);
 		sysconfig_set_credentials(login, password);
+		sysconfig_set_autostart_mode(current_asmode);
 		sysconfig_set_autostart(autostart);
 		
 		sysconfig_save();
