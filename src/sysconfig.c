@@ -292,30 +292,42 @@ static unsigned int route_get_gateway()
 
 static void route_set_gateway(unsigned int ip)
 {
-	struct sockaddr_in dst;
+	struct sockaddr_in oldgw;
+	struct sockaddr_in olddst;
+	struct sockaddr_in oldmask;
 	struct sockaddr_in gw;
-	struct sockaddr_in netmask;
 
-	dst.sin_len = sizeof(dst);
-	dst.sin_family = AF_INET;
-	dst.sin_addr.s_addr = 0;
+	memset(&olddst, 0, sizeof(olddst));
+	olddst.sin_len = sizeof(olddst);
+	olddst.sin_family = AF_INET;
+	olddst.sin_addr.s_addr = INADDR_ANY;
 
+	memset(&oldgw, 0, sizeof(oldgw));
+	oldgw.sin_len = sizeof(oldgw);
+	oldgw.sin_family = AF_INET;
+	oldgw.sin_addr.s_addr = INADDR_ANY;
+
+	memset(&oldmask, 0, sizeof(oldmask));
+	oldmask.sin_len = sizeof(oldmask);
+	oldmask.sin_family = AF_INET;
+	oldmask.sin_addr.s_addr = INADDR_ANY;
+	
+	memset(&gw, 0, sizeof(gw));
 	gw.sin_len = sizeof(gw);
 	gw.sin_family = AF_INET;
 	gw.sin_addr.s_addr = ip;
 
-	netmask.sin_len = sizeof(netmask);
-	netmask.sin_family = AF_INET;
-	netmask.sin_addr.s_addr = 0xffffff00;
+	rtems_bsdnet_rtrequest(RTM_DELETE,
+		(struct sockaddr *)&olddst,
+		(struct sockaddr *)&oldgw,
+		(struct sockaddr *)&oldmask, 
+		(RTF_UP | RTF_STATIC), NULL);
 
-	rtems_bsdnet_rtrequest(
-		RTM_ADD,
-		(struct sockaddr *)&dst,
+	rtems_bsdnet_rtrequest(RTM_ADD,
+		(struct sockaddr *)&olddst,
 		(struct sockaddr *)&gw,
-		(struct sockaddr *)&netmask,
-		RTF_STATIC | RTF_GATEWAY,
-		NULL
-	);
+		(struct sockaddr *)&oldmask,
+		(RTF_UP | RTF_GATEWAY | RTF_STATIC), NULL);
 }
 
 /* get */

@@ -17,6 +17,7 @@
 
 #include <bsp.h>
 #include <stdio.h>
+#include <arpa/inet.h>
 #include <mtklib.h>
 
 #include "input.h"
@@ -333,8 +334,10 @@ static void update_network()
 	int dhcp_enable;
 	unsigned int ip;
 	unsigned int netmask;
+	unsigned int gateway;
+	unsigned int dns1, dns2;
 	
-	sysconfig_get_ipconfig(&dhcp_enable, &ip, &netmask, NULL, NULL, NULL); // TODO
+	sysconfig_get_ipconfig(&dhcp_enable, &ip, &netmask, &gateway, &dns1, &dns2);
 	mtk_cmdf(appid, "b_dhcp.set(-state %s)", dhcp_enable ? "on" : "off");
 	mtk_cmdf(appid, "e_ip.set(-text \"%u.%u.%u.%u\")",
 		(ip & 0xff000000) >> 24,
@@ -346,8 +349,36 @@ static void update_network()
 		(netmask & 0x00ff0000) >> 16,
 		(netmask & 0x0000ff00) >> 8,
 		netmask & 0x000000ff);
+	if(gateway == 0)
+		mtk_cmd(appid, "e_gateway.set(-text \"\")");
+	else
+		mtk_cmdf(appid, "e_gateway.set(-text \"%u.%u.%u.%u\")",
+			(gateway & 0xff000000) >> 24,
+			(gateway & 0x00ff0000) >> 16,
+			(gateway & 0x0000ff00) >> 8,
+			gateway & 0x000000ff);
+	if(dns1 == 0)
+		mtk_cmd(appid, "e_dns.set(-text \"\")");
+	else if(dns2 == 0)
+		mtk_cmdf(appid, "e_dns.set(-text \"%u.%u.%u.%u\")",
+			(dns1 & 0xff000000) >> 24,
+			(dns1 & 0x00ff0000) >> 16,
+			(dns1 & 0x0000ff00) >> 8,
+			dns1 & 0x000000ff);
+	else
+		mtk_cmdf(appid, "e_dns.set(-text \"%u.%u.%u.%u,%u.%u.%u.%u\")",
+			(dns1 & 0xff000000) >> 24,
+			(dns1 & 0x00ff0000) >> 16,
+			(dns1 & 0x0000ff00) >> 8,
+			dns1 & 0x000000ff,
+			(dns2 & 0xff000000) >> 24,
+			(dns2 & 0x00ff0000) >> 16,
+			(dns2 & 0x0000ff00) >> 8,
+			dns2 & 0x000000ff);
 	mtk_cmdf(appid, "e_ip.set(-readonly %s)", dhcp_enable ? "yes" : "no");
 	mtk_cmdf(appid, "e_netmask.set(-readonly %s)", dhcp_enable ? "yes" : "no");
+	mtk_cmdf(appid, "e_gateway.set(-readonly %s)", dhcp_enable ? "yes" : "no");
+	mtk_cmdf(appid, "e_dns.set(-readonly %s)", dhcp_enable ? "yes" : "no");
 }
 
 static void update_credentials()
@@ -390,7 +421,7 @@ static int w_open;
 static int previous_resolution;
 static int previous_layout;
 static int previous_dhcp;
-static unsigned int previous_ip, previous_netmask;
+static unsigned int previous_ip, previous_netmask, previous_gateway, previous_dns1, previous_dns2;
 
 void open_sysettings_window()
 {
@@ -409,21 +440,13 @@ void open_sysettings_window()
 	update_autostart();
 
 	previous_layout = sysconfig_get_keyboard_layout();
-	sysconfig_get_ipconfig(&previous_dhcp, &previous_ip, &previous_netmask, NULL, NULL, NULL); // TODO
+	sysconfig_get_ipconfig(&previous_dhcp, &previous_ip, &previous_netmask,
+		&previous_gateway, &previous_dns1, &previous_dns2);
 	
 	mtk_cmd(appid, "w.open()");
 
 	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
 	input_add_callback(ip_update);
-}
-
-static unsigned int parse_ip(const char *ip)
-{
-	unsigned int i[4];
-
-	if(sscanf(ip, "%u.%u.%u.%u", &i[0], &i[1], &i[2], &i[3]) != 4)
-		return 0;
-	return (i[0] << 24)|(i[1] << 16)|(i[2] << 8)|i[3];
 }
 
 static void close_sysettings_window(int save)
@@ -439,6 +462,10 @@ static void close_sysettings_window(int save)
 		char wallpaper[256];
 		char ip_txt[16];
 		char netmask_txt[16];
+		char gateway_txt[16];
+		char dns_txt[33];
+		char *c;
+		unsigned int dns1, dns2;
 		char login[32];
 		char password[32];
 		char autostart[256];
@@ -448,12 +475,26 @@ static void close_sysettings_window(int save)
 		mtk_req(appid, wallpaper, sizeof(wallpaper), "e_wallpaper.text");
 		mtk_req(appid, ip_txt, sizeof(ip_txt), "e_ip.text");
 		mtk_req(appid, netmask_txt, sizeof(netmask_txt), "e_netmask.text");
+		mtk_req(appid, gateway_txt, sizeof(gateway_txt), "e_gateway.text");
+		mtk_req(appid, dns_txt, sizeof(dns_txt), "e_dns.text");
 		mtk_req(appid, login, sizeof(login), "e_login.text");
 		mtk_req(appid, password, sizeof(password), "e_password.text");
 		mtk_req(appid, autostart, sizeof(autostart), "e_autostart.text");
+		
+		dns1 = dns2 = 0;
+		if(dns_txt[0] != 0) {
+			c = strchr(dns_txt, ',');
+			if(c != NULL) {
+				*c = 0;
+				c++;
+				dns2 = inet_addr(c);
+			}
+			dns1 = inet_addr(dns_txt);
+		}
 
 		sysconfig_set_wallpaper(wallpaper);
-		sysconfig_set_ipconfig(-1, parse_ip(ip_txt), parse_ip(netmask_txt), 0, 0, 0); // TODO
+		sysconfig_set_ipconfig(-1, inet_addr(ip_txt), inet_addr(netmask_txt),
+			inet_addr(gateway_txt), dns1, dns2);
 		sysconfig_set_credentials(login, password);
 		sysconfig_set_autostart(autostart);
 		
@@ -461,6 +502,7 @@ static void close_sysettings_window(int save)
 	} else {
 		sysconfig_set_resolution(previous_resolution);
 		sysconfig_set_keyboard_layout(previous_layout);
-		sysconfig_set_ipconfig(previous_dhcp, previous_ip, previous_netmask, 0, 0, 0); // TODO
+		sysconfig_set_ipconfig(previous_dhcp, previous_ip, previous_netmask,
+			previous_gateway, previous_dns1, previous_dns2);
 	}
 }
