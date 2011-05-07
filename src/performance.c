@@ -16,9 +16,11 @@
  */
 
 #include <assert.h>
+#include <rtems.h>
 #include <stdio.h>
 #include <string.h>
-#include <rtems.h>
+#include <dirent.h>
+#include <sys/stat.h>
 #include <mtklib.h>
 #include <keycodes.h>
 
@@ -42,6 +44,8 @@ struct patch_info {
 
 static int npatches;
 static struct patch_info patches[MAX_PATCHES];
+static bool simple_mode;
+static int simple_current;
 
 static int add_patch(const char *filename)
 {
@@ -139,6 +143,33 @@ static void add_osc_patches()
 		else
 			osc_patches[i] = -1;
 	}
+}
+
+#define SIMPLE_PATCHES_FOLDER "/flash/"
+
+static void add_simple_patches()
+{
+	DIR *d;
+	struct dirent *entry;
+	struct stat s;
+	char fullname[384];
+	char *c;
+	
+	d = opendir(SIMPLE_PATCHES_FOLDER);
+	if(!d)
+		return;
+	while((entry = readdir(d))) {
+		if(entry->d_name[0] == '.') continue;
+		strncpy(fullname, SIMPLE_PATCHES_FOLDER, sizeof(fullname));
+		strncat(fullname, entry->d_name, sizeof(fullname));
+		lstat(fullname, &s);
+		if(!S_ISDIR(s.st_mode)) {
+			c = strrchr(entry->d_name, '.');
+			if((c != NULL) && (strcmp(c, ".fnp") == 0))
+				add_patch(fullname);
+		}
+	}
+	closedir(d);
 }
 
 static int appid;
@@ -260,27 +291,38 @@ static void event_callback(mtk_event *e, int count)
 	int i;
 	int index;
 
-	for(i=0;i<count;i++) {
-		index = -1;
-		if(e[i].type == EVENT_TYPE_PRESS) {
-			index = keycode_to_index(e[i].press.code);
-			if(index != -1)
-				index = keyboard_patches[index];
-		} else if(e[i].type == EVENT_TYPE_IR) {
-			index = e[i].press.code;
-			index = ir_patches[index];
-		} else if(e[i].type == EVENT_TYPE_MIDI) {
-			if(((e[i].press.code & 0x0f00) >> 8) == midi_channel) {
-				index = e[i].press.code & 0x7f;
-				index = midi_patches[index];
+	index = -1;
+	if(simple_mode) {
+		for(i=0;i<count;i++) {
+			if((e[i].type == EVENT_TYPE_PRESS) && (e[i].press.code == MTK_KEY_F11)) {
+				simple_current++;
+				if(simple_current == npatches)
+					simple_current = 0;
+				index = simple_current;
 			}
-		} else if(e[i].type == EVENT_TYPE_OSC) {
-			index = e[i].press.code & 0x3f;
-			index = osc_patches[index];
 		}
-		if(index != -1)
-			renderer_set_patch(patches[index].p);
+	} else {
+		for(i=0;i<count;i++) {
+			if(e[i].type == EVENT_TYPE_PRESS) {
+				index = keycode_to_index(e[i].press.code);
+				if(index != -1)
+					index = keyboard_patches[index];
+			} else if(e[i].type == EVENT_TYPE_IR) {
+				index = e[i].press.code;
+				index = ir_patches[index];
+			} else if(e[i].type == EVENT_TYPE_MIDI) {
+				if(((e[i].press.code & 0x0f00) >> 8) == midi_channel) {
+					index = e[i].press.code & 0x7f;
+					index = midi_patches[index];
+				}
+			} else if(e[i].type == EVENT_TYPE_OSC) {
+				index = e[i].press.code & 0x3f;
+				index = osc_patches[index];
+			}
+		}
 	}
+	if(index != -1)
+		renderer_set_patch(patches[index].p);
 }
 
 static void stop_callback()
@@ -303,7 +345,8 @@ static void refresh_callback(mtk_event *e, int count)
 				input_delete_callback(refresh_callback);
 				input_add_callback(event_callback);
 				mtk_cmd(appid, "l_text.set(-text \"Done.\")");
-				if(!guirender(appid, patches[firstpatch].p, stop_callback))
+				if(!guirender(appid, patches[simple_mode ? simple_current : firstpatch].p,
+				  stop_callback))
 					stop_callback();
 				return;
 			}
@@ -324,7 +367,7 @@ static void refresh_callback(mtk_event *e, int count)
 
 static rtems_id comp_task_id;
 
-void start_performance()
+void start_performance(bool simple)
 {
 	rtems_status_code sc;
 	
@@ -332,18 +375,30 @@ void start_performance()
 	started = 1;
 
 	/* build patch list */
+	simple_mode = simple;
 	npatches = 0;
-	add_firstpatch();
-	if(npatches < 1) {
-		messagebox("Error", "No first patch defined!\n");
-		started = 0;
-		fb_unblank();
-		return;
+	simple_current = 0;
+	if(simple) {
+		add_simple_patches();
+		if(npatches < 1) {
+			messagebox("Error", "No patches found!\n");
+			started = 0;
+			fb_unblank();
+			return;
+		}
+	} else {
+		add_firstpatch();
+		if(npatches < 1) {
+			messagebox("Error", "No first patch defined!\n");
+			started = 0;
+			fb_unblank();
+			return;
+		}
+		add_keyboard_patches();
+		add_ir_patches();
+		add_midi_patches();
+		add_osc_patches();
 	}
-	add_keyboard_patches();
-	add_ir_patches();
-	add_midi_patches();
-	add_osc_patches();
 
 	/* start patch compilation task */
 	compiled_patches = 0;

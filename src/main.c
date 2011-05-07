@@ -78,17 +78,9 @@
 #include "flash.h"
 #include "filedialog.h"
 
-static int has_autostart()
-{
-	char autostart[256];
-	
-	sysconfig_get_autostart(autostart);
-	return autostart[0] != 0;
-}
-
 static rtems_task gui_task(rtems_task_argument argument)
 {
-	init_fb_mtk(has_autostart());
+	init_fb_mtk(sysconfig_get_autostart_mode() != SC_AUTOSTART_NONE);
 	sysconfig_set_mtk_wallpaper();
 	sysconfig_set_mtk_keyboard_layout();
 	init_input();

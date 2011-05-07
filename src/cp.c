@@ -15,12 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <rtems.h>
 #include <stdio.h>
 #include <mtklib.h>
 
 #include "performance.h"
 #include "keyboard.h"
 #include "ir.h"
+#include "fb.h"
 #include "audio.h"
 #include "midi.h"
 #include "oscsettings.h"
@@ -176,10 +178,10 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_firstpatch_window();
 			break;
 		case CP_ITEM_START:
-			start_performance();
+			start_performance(false);
 			break;
 		case CP_ITEM_STARTSIMPLE:
-			printf("TODO\n");
+			start_performance(true);
 			break;
 
 		case CP_ITEM_FILEMANAGER:
@@ -371,12 +373,26 @@ void cp_autostart()
 {
 	char autostart[256];
 
-	sysconfig_get_autostart(autostart);
-	if(autostart[0] == 0) return;
-	if(!config_load(autostart)) {
-		messagebox("Autostart failed", "Unable to load the specified performance file.\nCheck the 'Autostart' section in the 'System settings' dialog box.");
-		return;
+	switch(sysconfig_get_autostart_mode()) {
+		case SC_AUTOSTART_NONE:
+			break;
+		case SC_AUTOSTART_SIMPLE:
+			start_performance(true);
+			break;
+		case SC_AUTOSTART_FILE:
+			sysconfig_get_autostart(autostart);
+			if(autostart[0] == 0) {
+				messagebox("Autostart failed", "No performance file specified.");
+				fb_unblank();
+				return;
+			}
+			if(!config_load(autostart)) {
+				messagebox("Autostart failed", "Unable to load the specified performance file.\nCheck the 'Autostart' section in the 'System settings' dialog box.");
+				fb_unblank();
+				return;
+			}
+			on_config_change();
+			start_performance(false);
+			break;
 	}
-	on_config_change();
-	start_performance();
 }
