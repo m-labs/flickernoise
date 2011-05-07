@@ -64,8 +64,6 @@ static void browse_ok_callback(void *arg)
 
 void init_firstpatch()
 {
-	const char *firstpatch;
-
 	appid = mtk_init_app("First patch");
 
 	mtk_cmd_seq(appid,
@@ -101,16 +99,19 @@ void init_firstpatch()
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 
-	firstpatch = config_read_string("firstpatch");
-	if(firstpatch == NULL) firstpatch = "";
-	mtk_cmdf(appid, "e_filename.set(-text \"%s\")", firstpatch);
-
 	browse_dlg = create_filedialog("Select first patch", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
 }
 
 void open_firstpatch_window()
 {
+	const char *firstpatch;
+	
 	if(w_open) return;
 	w_open = 1;
+	
+	firstpatch = config_read_string("firstpatch");
+	if(firstpatch == NULL) firstpatch = "";
+	mtk_cmdf(appid, "e_filename.set(-text \"%s\")", firstpatch);
+
 	mtk_cmd(appid, "w.open()");
 }
