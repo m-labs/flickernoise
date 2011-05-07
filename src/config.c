@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -164,7 +164,7 @@ int config_load(const char *filename)
 	FILE *fd;
 	char *line;
 	size_t n;
-	size_t readbytes;
+	ssize_t readbytes;
 	char *c;
 
 	config_free();
