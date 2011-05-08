@@ -321,8 +321,10 @@ static void event_callback(mtk_event *e, int count)
 			}
 		}
 	}
-	if(index != -1)
+	if(index != -1) {
 		renderer_set_patch(patches[index].p);
+		osd_event(patches[index].filename);
+	}
 }
 
 static void stop_callback()
