@@ -32,6 +32,7 @@
 #include "renderer.h"
 #include "guirender.h"
 #include "performance.h"
+#include "osd.h"
 
 #define FILENAME_LEN 384
 
@@ -43,9 +44,9 @@ struct patch_info {
 };
 
 static int npatches;
+static int current_patch;
 static struct patch_info patches[MAX_PATCHES];
 static bool simple_mode;
-static int simple_current;
 
 static int add_patch(const char *filename)
 {
@@ -61,7 +62,6 @@ static int add_patch(const char *filename)
 	return npatches++;
 }
 
-static int firstpatch;
 static int keyboard_patches[26];
 static int ir_patches[64];
 static int midi_channel;
@@ -72,10 +72,9 @@ static void add_firstpatch()
 {
 	const char *filename;
 
-	firstpatch = -1;
 	filename = config_read_string("firstpatch");
 	if(filename == NULL) return;
-	firstpatch = add_patch(filename);
+	current_patch = add_patch(filename);
 }
 
 static void add_keyboard_patches()
@@ -295,10 +294,10 @@ static void event_callback(mtk_event *e, int count)
 	if(simple_mode) {
 		for(i=0;i<count;i++) {
 			if((e[i].type == EVENT_TYPE_PRESS) && (e[i].press.code == MTK_KEY_F11)) {
-				simple_current++;
-				if(simple_current == npatches)
-					simple_current = 0;
-				index = simple_current;
+				current_patch++;
+				if(current_patch == npatches)
+					current_patch = 0;
+				index = current_patch;
 			}
 		}
 	} else {
@@ -322,8 +321,13 @@ static void event_callback(mtk_event *e, int count)
 		}
 	}
 	if(index != -1) {
-		renderer_set_patch(patches[index].p);
-		osd_event(patches[index].filename);
+		current_patch = index;
+		renderer_set_patch(patches[current_patch].p);
+	}
+
+	for(i=0;i<count;i++) {
+		if((e[i].type == EVENT_TYPE_PRESS) && (e[i].press.code == MTK_KEY_F1))
+			osd_event(patches[current_patch].filename);
 	}
 }
 
@@ -347,8 +351,7 @@ static void refresh_callback(mtk_event *e, int count)
 				input_delete_callback(refresh_callback);
 				input_add_callback(event_callback);
 				mtk_cmd(appid, "l_text.set(-text \"Done.\")");
-				if(!guirender(appid, patches[simple_mode ? simple_current : firstpatch].p,
-				  stop_callback))
+				if(!guirender(appid, patches[current_patch].p, stop_callback))
 					stop_callback();
 				return;
 			}
@@ -379,7 +382,7 @@ void start_performance(bool simple)
 	/* build patch list */
 	simple_mode = simple;
 	npatches = 0;
-	simple_current = 0;
+	current_patch = 0;
 	if(simple) {
 		add_simple_patches();
 		if(npatches < 1) {
