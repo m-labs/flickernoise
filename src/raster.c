@@ -394,11 +394,13 @@ static void init_scale_vertices(struct tmu_vertex *vertices)
 static void init_vecho_vertices(struct tmu_vertex *vertices, struct frame_descriptor *frd)
 {
 	int a, b;
+	int orientation;
 
 	a = (32.0-32.0/frd->vecho_zoom)*(float)renderer_texsize;
 	b = renderer_texsize*64 - a;
 
-	if((frd->vecho_orientation == 1) || (frd->vecho_orientation == 3)) {
+	orientation = (int)frd->vecho_orientation;
+	if((orientation == 1) || (orientation == 3)) {
 		vertices[0].x = b;
 		vertices[1].x = a;
 		vertices[TMU_MESH_MAXSIZE].x = b;
@@ -409,7 +411,7 @@ static void init_vecho_vertices(struct tmu_vertex *vertices, struct frame_descri
 		vertices[TMU_MESH_MAXSIZE].x = a;
 		vertices[TMU_MESH_MAXSIZE+1].x = b;
 	}
-	if((frd->vecho_orientation == 2) || (frd->vecho_orientation == 3)) {
+	if((orientation == 2) || (orientation == 3)) {
 		vertices[0].y = b;
 		vertices[1].y = b;
 		vertices[TMU_MESH_MAXSIZE].y = a;
