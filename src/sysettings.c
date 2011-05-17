@@ -286,9 +286,9 @@ void init_sysettings()
 	mtk_bind(appid, "b_lang_french", "press", language_callback, (void *)SC_LANGUAGE_FRENCH);
 	mtk_bind(appid, "b_lang_german", "press", language_callback, (void *)SC_LANGUAGE_GERMAN);
 
-	mtk_bind(appid, "b_kbd_us", "press", layout_callback, (void *)MTK_KEYBOARD_LAYOUT_US);
-	mtk_bind(appid, "b_kbd_french", "press", layout_callback, (void *)MTK_KEYBOARD_LAYOUT_FRENCH);
-	mtk_bind(appid, "b_kbd_german", "press", layout_callback, (void *)MTK_KEYBOARD_LAYOUT_GERMAN);
+	mtk_bind(appid, "b_kbd_us", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_US);
+	mtk_bind(appid, "b_kbd_french", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_FRENCH);
+	mtk_bind(appid, "b_kbd_german", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_GERMAN);
 
 	mtk_bind(appid, "b_dhcp", "press", dhcp_callback, NULL);
 
@@ -338,9 +338,9 @@ static void update_layout()
 
 	layout = sysconfig_get_keyboard_layout();
 
-	mtk_cmdf(appid, "b_kbd_us.set(-state %s)", layout == MTK_KEYBOARD_LAYOUT_US ? "on" : "off");
-	mtk_cmdf(appid, "b_kbd_french.set(-state %s)", layout == MTK_KEYBOARD_LAYOUT_FRENCH ? "on" : "off");
-	mtk_cmdf(appid, "b_kbd_german.set(-state %s)", layout == MTK_KEYBOARD_LAYOUT_GERMAN ? "on" : "off");
+	mtk_cmdf(appid, "b_kbd_us.set(-state %s)", layout == SC_KEYBOARD_LAYOUT_US ? "on" : "off");
+	mtk_cmdf(appid, "b_kbd_french.set(-state %s)", layout == SC_KEYBOARD_LAYOUT_FRENCH ? "on" : "off");
+	mtk_cmdf(appid, "b_kbd_german.set(-state %s)", layout == SC_KEYBOARD_LAYOUT_GERMAN ? "on" : "off");
 }
 
 static void update_network()

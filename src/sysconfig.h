@@ -33,6 +33,12 @@ enum {
 };
 
 enum {
+	SC_KEYBOARD_LAYOUT_GERMAN = 0,
+	SC_KEYBOARD_LAYOUT_FRENCH = 1,
+	SC_KEYBOARD_LAYOUT_US     = 2,
+};
+
+enum {
 	SC_AUTOSTART_NONE,
 	SC_AUTOSTART_SIMPLE,
 	SC_AUTOSTART_FILE
@@ -57,7 +63,6 @@ void sysconfig_set_wallpaper(char *wallpaper);
 void sysconfig_set_mtk_wallpaper();
 void sysconfig_set_language(int language);
 void sysconfig_set_keyboard_layout(int layout);
-void sysconfig_set_mtk_keyboard_layout();
 void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netmask, unsigned int gateway, unsigned int dns1, unsigned int dns2);
 void sysconfig_set_credentials(char *login, char *password);
 void sysconfig_set_autostart_mode(int autostart_mode);
