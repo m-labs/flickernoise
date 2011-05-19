@@ -44,6 +44,11 @@ static struct filedialog *file_dlg;
 static int current_file_to_choose;
 
 enum {
+	ARG_FILE_UPDATE = 0,
+	ARG_WEB_UPDATE
+};
+
+enum {
 	FLASH_STATE_READY = 0,
 	FLASH_STATE_STARTING,
 
@@ -73,10 +78,53 @@ enum {
 
 static int flash_state;
 static int flash_progress;
+static int flashvalid_val;
 
 static char bitstream_name[384];
 static char bios_name[384];
 static char application_name[384];
+
+static double *d_progress;
+static int progress_callback(void *d_progress, double t, double d, double ultotal, double ulnow)
+{
+	flash_progress = (int) d/t*100;
+	return 0;
+}
+
+static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+	size_t written;
+	written = fwrite(ptr, size, nmemb, stream);
+	return written;
+}
+
+static int download(const char *url, const char *filename)
+{
+	CURL *curl;
+	FILE *fp;
+	int ret = 0;
+
+	fp = fopen(filename, "wb");
+	if(fp == NULL) return 0;
+
+	curl = curl_easy_init();
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, url);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &d_progress);
+
+		if(curl_easy_perform(curl) == 0)
+			ret = 1;
+
+		curl_easy_cleanup(curl);
+	}
+
+	fclose(fp);
+	return ret;
+}
 
 static int flash_erase(int fd, unsigned int len)
 {
@@ -196,18 +244,64 @@ static void flash_terminate(int state)
 
 static rtems_task flash_task(rtems_task_argument argument)
 {
-	if(bitstream_name[0] != 0) {
-		if(!flash_file("/dev/flash1", bitstream_name, FLASH_STATE_ERASE_BITSTREAM, FLASH_STATE_PROGRAM_BITSTREAM))
-			flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
+	const char *s_url = "http://www.milkymist.org/snapshots/latest/soc.fpg";
+	const char *b_url = "http://www.milkymist.org/snapshots/latest/bios.bin";
+	const char *f_url = "http://www.milkymist.org/snapshots/latest/flickernoise.fbi";
+	const char *s = "/ramdisk/soc.fpg";
+	const char *b = "/ramdisk/bios.bin";
+	const char *f = "/ramdisk/flickernoise.fbi";
+
+	int task = (int)argument;
+
+	switch (task) {
+	case ARG_WEB_UPDATE:
+		flash_state = DOWNLOAD_STATE_START_BITSTREAM;
+		if(!download(s_url, s))
+			flash_terminate(DOWNLOAD_STATE_ERROR_BITSTREAM);
+		mtk_cmdf(appid, "e1.set(-text \"%s\")", s);
+		strcpy(bitstream_name, s);
+
+		flash_state = DOWNLOAD_STATE_START_BIOS;
+		if(!download(b_url, b))
+			flash_terminate(DOWNLOAD_STATE_ERROR_BIOS);
+		mtk_cmdf(appid, "e2.set(-text \"%s\")", b);
+		strcpy(bios_name, b);
+
+		flash_state = DOWNLOAD_STATE_START_APP;
+		if(!download(f_url, f))
+			flash_terminate(DOWNLOAD_STATE_ERROR_APP);
+		mtk_cmdf(appid, "e3.set(-text \"%s\")", f);
+		strcpy(application_name, f);
+	case ARG_FILE_UPDATE:
+		if(bitstream_name[0] != 0) {
+			flashvalid_val = flashvalid_bitstream(bitstream_name);
+			if(flashvalid_val != FLASHVALID_PASSED)
+				flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
+
+			if(!flash_file("/dev/flash1", bitstream_name,
+				       FLASH_STATE_ERASE_BITSTREAM, FLASH_STATE_PROGRAM_BITSTREAM))
+				flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
+		}
+		if(bios_name[0] != 0) {
+			flashvalid_val = flashvalid_bios(bios_name);
+			if(flashvalid_val != FLASHVALID_PASSED)
+				flash_terminate(FLASH_STATE_ERROR_BIOS);
+
+			if(!flash_file("/dev/flash2", bios_name,
+				       FLASH_STATE_ERASE_BIOS, FLASH_STATE_PROGRAM_BIOS))
+				flash_terminate(FLASH_STATE_ERROR_BIOS);
+		}
+		if(application_name[0] != 0) {
+			flashvalid_val = flashvalid_application(application_name);
+			if(flashvalid_val != FLASHVALID_PASSED)
+				flash_terminate(FLASH_STATE_ERROR_APP);
+
+			if(!flash_file("/dev/flash4", application_name,
+				       FLASH_STATE_ERASE_APP, FLASH_STATE_PROGRAM_APP))
+				flash_terminate(FLASH_STATE_ERROR_APP);
+		}
 	}
-	if(bios_name[0] != 0) {
-		if(!flash_file("/dev/flash2", bios_name, FLASH_STATE_ERASE_BIOS, FLASH_STATE_PROGRAM_BIOS))
-			flash_terminate(FLASH_STATE_ERROR_BIOS);
-	}
-	if(application_name[0] != 0) {
-		if(!flash_file("/dev/flash4", application_name, FLASH_STATE_ERASE_APP, FLASH_STATE_PROGRAM_APP))
-			flash_terminate(FLASH_STATE_ERROR_APP);
-	}
+
 	flash_terminate(FLASH_STATE_SUCCESS);
 }
 
@@ -244,6 +338,19 @@ static void refresh_callback(mtk_event *e, int count)
 	}
 }
 
+static void display_flashvalid_message(const char *n)
+{
+	char buf[256];
+
+	if(flashvalid_val == FLASHVALID_ERROR_IO) {
+		sprintf(buf, "Unable to read the %s image.\nCheck that the file exists. Operation aborted.", n);
+		messagebox("I/O error", buf);
+	} else if(flashvalid_val == FLASHVALID_ERROR_FORMAT) {
+		sprintf(buf, "The format of the %s image is not recognized.\nHave you selected the correct file? Operation aborted.", n);
+		messagebox("Format error", buf);
+	}
+}
+
 static void update_progress()
 {
 	switch(flash_state) {
@@ -261,6 +368,7 @@ static void update_progress()
 			break;
 		case FLASH_STATE_ERROR_BITSTREAM:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to program bitstream.\")");
+			display_flashvalid_message("bitstream");
 			input_delete_callback(refresh_callback);
 			break;
 		case FLASH_STATE_ERASE_BIOS:
@@ -271,6 +379,7 @@ static void update_progress()
 			break;
 		case FLASH_STATE_ERROR_BIOS:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to program BIOS.\")");
+			display_flashvalid_message("BIOS");
 			input_delete_callback(refresh_callback);
 			break;
 		case FLASH_STATE_ERASE_APP:
@@ -281,6 +390,7 @@ static void update_progress()
 			break;
 		case FLASH_STATE_ERROR_APP:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to program application.\")");
+			display_flashvalid_message("application");
 			input_delete_callback(refresh_callback);
 			break;
 		case DOWNLOAD_STATE_START_BITSTREAM:
@@ -291,7 +401,7 @@ static void update_progress()
 			input_delete_callback(refresh_callback);
 			break;
 		case DOWNLOAD_STATE_START_BIOS:
-			mtk_cmd(appid, "l_stat.set(-text \"Downloading bios...\")");
+			mtk_cmd(appid, "l_stat.set(-text \"Downloading BIOS...\")");
 			break;
 		case DOWNLOAD_STATE_ERROR_BIOS:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to download bitstream.\")");
@@ -314,68 +424,37 @@ static void update_progress()
 
 static rtems_id flash_task_id;
 
-static void display_flashvalid_message(int val, const char *n)
-{
-	char buf[256];
-	
-	if(val == FLASHVALID_ERROR_IO) {
-		sprintf(buf, "Unable to read the %s image.\nCheck that the file exists. Operation aborted.", n);
-		messagebox("I/O error", buf);
-	} else if(val == FLASHVALID_ERROR_FORMAT) {
-		sprintf(buf, "The format of the %s image is not recognized.\nHave you selected the correct file? Operation aborted.", n);
-		messagebox("Format error", buf);
-	}
-}
-
 static void ok_callback(mtk_event *e, void *arg)
 {
 	rtems_status_code sc;
-	int nothing;
-	int val;
 	
 	if(flash_busy()) return;
 
-	mtk_req(appid, bitstream_name, sizeof(bitstream_name), "e1.text");
-	mtk_req(appid, bios_name, sizeof(bios_name), "e2.text");
-	mtk_req(appid, application_name, sizeof(application_name), "e3.text");
+	if((int)arg == ARG_FILE_UPDATE) {
+		mtk_req(appid, bitstream_name, sizeof(bitstream_name), "e1.text");
+		mtk_req(appid, bios_name, sizeof(bios_name), "e2.text");
+		mtk_req(appid, application_name, sizeof(application_name), "e3.text");
 
-	/* Sanity checks */
-	nothing = 1;
-	if(bitstream_name[0] != 0) {
-		nothing = 0;
-		val = flashvalid_bitstream(bitstream_name);
-		display_flashvalid_message(val, "bitstream");
-		if(val != FLASHVALID_PASSED) return;
-	}
-	if(bios_name[0] != 0) {
-		nothing = 0;
-		val = flashvalid_bios(bios_name);
-		display_flashvalid_message(val, "BIOS");
-		if(val != FLASHVALID_PASSED) return;
-	}
-	if(application_name[0] != 0) {
-		nothing = 0;
-		val = flashvalid_application(application_name);
-		display_flashvalid_message(val, "application");
-		if(val != FLASHVALID_PASSED) return;
-	}
-	if(nothing) {
-		messagebox("Nothing to do!", "No flash images are specified.");
-		return;
+		/* Sanity checks */
+		if((bitstream_name[0] == 0) && (bios_name[0] == 0) &&(application_name[0] == 0)) {
+			messagebox("Nothing to do!", "No flash images are specified.");
+			return;
+		}
+		/* prevent a race condition that could cause two flash tasks to start
+		 * if this function is called twice quickly.
+		 */
+		flash_state = FLASH_STATE_STARTING;
 	}
 
-	/* prevent a race condition that could cause two flash tasks to start
-	 * if this function is called twice quickly.
-	 */
-	flash_state = FLASH_STATE_STARTING;
 	flash_progress = 0;
-	
+
 	/* start flashing in the background */
 	sc = rtems_task_create(rtems_build_name('F', 'L', 'S', 'H'), 100, 24*1024,
-		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
-		0, &flash_task_id);
+			       RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
+			       0, &flash_task_id);
 	assert(sc == RTEMS_SUCCESSFUL);
-	sc = rtems_task_start(flash_task_id, flash_task, 0);
+
+	sc = rtems_task_start(flash_task_id, flash_task, (int)arg);
 	assert(sc == RTEMS_SUCCESSFUL);
 
 	/* display update */
@@ -391,120 +470,6 @@ static void close_callback(mtk_event *e, void *arg)
 	close_filedialog(file_dlg);
 	mtk_cmd(appid, "w.close()");
 	w_open = 0;
-}
-
-static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-	size_t written;
-	written = fwrite(ptr, size, nmemb, stream);
-	return written;
-}
-
-static double *d_progress;
-
-int progress_callback(void *d_progress, double t, double d, double ultotal, double ulnow)
-{
-	flash_progress = (int) d/t*100;
-	return 0;
-}
-
-static int download(char *url, char *filename)
-{
-	CURL *curl;
-	FILE *fp;
-	int ret = 0;
-
-	fp = fopen(filename, "wb");
-	if(fp == NULL) return 0;
-
-	curl = curl_easy_init();
-	if (curl) {
-		curl_easy_setopt(curl, CURLOPT_URL, url);
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-
-		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &d_progress);
-
-		if(curl_easy_perform(curl) == 0)
-			ret = 1;
-
-		curl_easy_cleanup(curl);
-	}
-
-	fclose(fp);
-	return ret;
-}
-
-static rtems_id download_task_id;
-
-static rtems_task download_task(rtems_task_argument argument)
-{
-	int val;
-	char *s_url = "http://www.milkymist.org/snapshots/latest/soc.fpg";
-	char *b_url = "http://www.milkymist.org/snapshots/latest/bios.bin";
-	char *f_url = "http://www.milkymist.org/snapshots/latest/flickernoise.fbi";
-
-	char *s = "/flash/soc.fpg";
-	char *b = "/flash/bios.bin";
-	char *f = "/flash/flickernoise.fbi";
-
-	flash_state = DOWNLOAD_STATE_START_BITSTREAM;
-	if(!download(s_url, s))
-		flash_terminate(DOWNLOAD_STATE_ERROR_BITSTREAM);
-
-	val = flashvalid_bitstream(s);
-	display_flashvalid_message(val, "bitstream");
-	if(val != FLASHVALID_PASSED)
-		flash_terminate(DOWNLOAD_STATE_ERROR_BITSTREAM);
-	mtk_cmdf(appid, "e1.set(-text \"%s\")", s);
-
-	flash_state = DOWNLOAD_STATE_START_BIOS;
-	if(!download(b_url, b))
-		flash_terminate(DOWNLOAD_STATE_ERROR_BIOS);
-
-	val = flashvalid_bios(b);
-	display_flashvalid_message(val, "BIOS");
-	if(val != FLASHVALID_PASSED)
-		flash_terminate(DOWNLOAD_STATE_ERROR_BIOS);
-	mtk_cmdf(appid, "e2.set(-text \"%s\")", b);
-
-	flash_state = DOWNLOAD_STATE_START_APP;
-	if(!download(f_url, f))
-		flash_terminate(DOWNLOAD_STATE_ERROR_APP);
-
-	val = flashvalid_application(f);
-	display_flashvalid_message(val, "application");
-	if(val != FLASHVALID_PASSED)
-		flash_terminate(DOWNLOAD_STATE_ERROR_APP);
-	mtk_cmdf(appid, "e3.set(-text \"%s\")", f);
-
-	if(!flash_file("/dev/flash1", s, FLASH_STATE_ERASE_BITSTREAM, FLASH_STATE_PROGRAM_BITSTREAM))
-		flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
-	if(!flash_file("/dev/flash2", b, FLASH_STATE_ERASE_BIOS, FLASH_STATE_PROGRAM_BIOS))
-		flash_terminate(FLASH_STATE_ERROR_BIOS);
-	if(!flash_file("/dev/flash4", f, FLASH_STATE_ERASE_APP, FLASH_STATE_PROGRAM_APP))
-		flash_terminate(FLASH_STATE_ERROR_APP);
-
-	flash_terminate(FLASH_STATE_SUCCESS);
-}
-
-static void webupdate_callback(mtk_event *e, void *arg)
-{
-	rtems_status_code sc;
-
-	if(flash_busy()) return;
-
-	sc = rtems_task_create(rtems_build_name('D', 'O', 'W', 'N'), 100, 24*1024,
-		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
-		0, &download_task_id);
-	assert(sc == RTEMS_SUCCESSFUL);
-	sc = rtems_task_start(download_task_id, download_task, 0);
-	assert(sc == RTEMS_SUCCESSFUL);
-
-	/* display update */
-	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
-	input_add_callback(refresh_callback);
 }
 
 static void flash_filedialog_ok_callback()
@@ -598,8 +563,8 @@ void init_flash()
 	mtk_bind(appid, "b_browse2", "commit", opendialog_callback, (void *)2);
 	mtk_bind(appid, "b_browse3", "commit", opendialog_callback, (void *)3);
 	mtk_bind(appid, "b_close", "commit", close_callback, NULL);
-	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
-	mtk_bind(appid, "b_webupdate", "commit", webupdate_callback, NULL);
+	mtk_bind(appid, "b_ok", "commit", ok_callback, (void *)ARG_FILE_UPDATE);
+	mtk_bind(appid, "b_webupdate", "commit", ok_callback, (void *)ARG_WEB_UPDATE);
 
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 
