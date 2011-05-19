@@ -27,6 +27,9 @@
 #include <rtems.h>
 #include <bsp/milkymist_flash.h>
 
+#include <curl/curl.h>
+#include <curl/types.h>
+#include <curl/easy.h>
 #include <mtklib.h>
 
 #include "filedialog.h"
@@ -43,15 +46,28 @@ static int current_file_to_choose;
 enum {
 	FLASH_STATE_READY = 0,
 	FLASH_STATE_STARTING,
+
 	FLASH_STATE_ERASE_BITSTREAM,
 	FLASH_STATE_PROGRAM_BITSTREAM,
 	FLASH_STATE_ERROR_BITSTREAM,
+
 	FLASH_STATE_ERASE_BIOS,
 	FLASH_STATE_PROGRAM_BIOS,
 	FLASH_STATE_ERROR_BIOS,
+
 	FLASH_STATE_ERASE_APP,
 	FLASH_STATE_PROGRAM_APP,
 	FLASH_STATE_ERROR_APP,
+
+	DOWNLOAD_STATE_START_BITSTREAM,
+	DOWNLOAD_STATE_ERROR_BITSTREAM,
+
+	DOWNLOAD_STATE_START_BIOS,
+	DOWNLOAD_STATE_ERROR_BIOS,
+
+	DOWNLOAD_STATE_START_APP,
+	DOWNLOAD_STATE_ERROR_APP,
+
 	FLASH_STATE_SUCCESS
 };
 
@@ -202,6 +218,9 @@ static int flash_busy()
 		case FLASH_STATE_ERROR_BITSTREAM:
 		case FLASH_STATE_ERROR_BIOS:
 		case FLASH_STATE_ERROR_APP:
+		case DOWNLOAD_STATE_ERROR_BITSTREAM:
+		case DOWNLOAD_STATE_ERROR_BIOS:
+		case DOWNLOAD_STATE_ERROR_APP:
 		case FLASH_STATE_SUCCESS:
 			return 0;
 		default:
@@ -262,6 +281,27 @@ static void update_progress()
 			break;
 		case FLASH_STATE_ERROR_APP:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to program application.\")");
+			input_delete_callback(refresh_callback);
+			break;
+		case DOWNLOAD_STATE_START_BITSTREAM:
+			mtk_cmd(appid, "l_stat.set(-text \"Downloading bitstream...\")");
+			break;
+		case DOWNLOAD_STATE_ERROR_BITSTREAM:
+			mtk_cmd(appid, "l_stat.set(-text \"Failed to download bitstream .\")");
+			input_delete_callback(refresh_callback);
+			break;
+		case DOWNLOAD_STATE_START_BIOS:
+			mtk_cmd(appid, "l_stat.set(-text \"Downloading bios...\")");
+			break;
+		case DOWNLOAD_STATE_ERROR_BIOS:
+			mtk_cmd(appid, "l_stat.set(-text \"Failed to download bitstream.\")");
+			input_delete_callback(refresh_callback);
+			break;
+		case DOWNLOAD_STATE_START_APP:
+			mtk_cmd(appid, "l_stat.set(-text \"Downloading application...\")");
+			break;
+		case DOWNLOAD_STATE_ERROR_APP:
+			mtk_cmd(appid, "l_stat.set(-text \"Failed to download application .\")");
 			input_delete_callback(refresh_callback);
 			break;
 		case FLASH_STATE_SUCCESS:
@@ -353,6 +393,120 @@ static void close_callback(mtk_event *e, void *arg)
 	w_open = 0;
 }
 
+static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+	size_t written;
+	written = fwrite(ptr, size, nmemb, stream);
+	return written;
+}
+
+static double *d_progress;
+
+int progress_callback(void *d_progress, double t, double d, double ultotal, double ulnow)
+{
+	flash_progress = (int) d/t*100;
+	return 0;
+}
+
+static int download(char *url, char *filename)
+{
+	CURL *curl;
+	FILE *fp;
+	int ret = 0;
+
+	fp = fopen(filename, "wb");
+	if(fp == NULL) return 0;
+
+	curl = curl_easy_init();
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, url);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &d_progress);
+
+		if(curl_easy_perform(curl) == 0)
+			ret = 1;
+
+		curl_easy_cleanup(curl);
+	}
+
+	fclose(fp);
+	return ret;
+}
+
+static rtems_id download_task_id;
+
+static rtems_task download_task(rtems_task_argument argument)
+{
+	int val;
+	char *s_url = "http://www.milkymist.org/snapshots/latest/soc.fpg";
+	char *b_url = "http://www.milkymist.org/snapshots/latest/bios.bin";
+	char *f_url = "http://www.milkymist.org/snapshots/latest/flickernoise.fbi";
+
+	char *s = "/flash/soc.fpg";
+	char *b = "/flash/bios.bin";
+	char *f = "/flash/flickernoise.fbi";
+
+	flash_state = DOWNLOAD_STATE_START_BITSTREAM;
+	if(!download(s_url, s))
+		flash_terminate(DOWNLOAD_STATE_ERROR_BITSTREAM);
+
+	val = flashvalid_bitstream(s);
+	display_flashvalid_message(val, "bitstream");
+	if(val != FLASHVALID_PASSED)
+		flash_terminate(DOWNLOAD_STATE_ERROR_BITSTREAM);
+	mtk_cmdf(appid, "e1.set(-text \"%s\")", s);
+
+	flash_state = DOWNLOAD_STATE_START_BIOS;
+	if(!download(b_url, b))
+		flash_terminate(DOWNLOAD_STATE_ERROR_BIOS);
+
+	val = flashvalid_bios(b);
+	display_flashvalid_message(val, "BIOS");
+	if(val != FLASHVALID_PASSED)
+		flash_terminate(DOWNLOAD_STATE_ERROR_BIOS);
+	mtk_cmdf(appid, "e2.set(-text \"%s\")", b);
+
+	flash_state = DOWNLOAD_STATE_START_APP;
+	if(!download(f_url, f))
+		flash_terminate(DOWNLOAD_STATE_ERROR_APP);
+
+	val = flashvalid_application(f);
+	display_flashvalid_message(val, "application");
+	if(val != FLASHVALID_PASSED)
+		flash_terminate(DOWNLOAD_STATE_ERROR_APP);
+	mtk_cmdf(appid, "e3.set(-text \"%s\")", f);
+
+	if(!flash_file("/dev/flash1", s, FLASH_STATE_ERASE_BITSTREAM, FLASH_STATE_PROGRAM_BITSTREAM))
+		flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
+	if(!flash_file("/dev/flash2", b, FLASH_STATE_ERASE_BIOS, FLASH_STATE_PROGRAM_BIOS))
+		flash_terminate(FLASH_STATE_ERROR_BIOS);
+	if(!flash_file("/dev/flash4", f, FLASH_STATE_ERASE_APP, FLASH_STATE_PROGRAM_APP))
+		flash_terminate(FLASH_STATE_ERROR_APP);
+
+	flash_terminate(FLASH_STATE_SUCCESS);
+}
+
+static void webupdate_callback(mtk_event *e, void *arg)
+{
+	rtems_status_code sc;
+
+	if(flash_busy()) return;
+
+	sc = rtems_task_create(rtems_build_name('D', 'O', 'W', 'N'), 100, 24*1024,
+		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
+		0, &download_task_id);
+	assert(sc == RTEMS_SUCCESSFUL);
+	sc = rtems_task_start(download_task_id, download_task, 0);
+	assert(sc == RTEMS_SUCCESSFUL);
+
+	/* display update */
+	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
+	input_add_callback(refresh_callback);
+}
+
 static void flash_filedialog_ok_callback()
 {
 	char filepath[384];
@@ -422,10 +576,11 @@ void init_flash()
 
 		"g3 = new Grid()",
 
+		"b_webupdate = new Button(-text \"Web Update\")",
 		"b_ok = new Button(-text \"Program flash\")",
 		"b_close = new Button(-text \"Close\")",
 
-		"g3.columnconfig(1, -size 100)",
+		"g3.place(b_webupdate, -column 1 -row 1)",
 		"g3.place(b_ok, -column 2 -row 1)",
 		"g3.place(b_close, -column 3 -row 1)",
 
@@ -444,6 +599,7 @@ void init_flash()
 	mtk_bind(appid, "b_browse3", "commit", opendialog_callback, (void *)3);
 	mtk_bind(appid, "b_close", "commit", close_callback, NULL);
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
+	mtk_bind(appid, "b_webupdate", "commit", webupdate_callback, NULL);
 
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 
