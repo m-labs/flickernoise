@@ -40,21 +40,6 @@ static int appid;
 static struct filedialog *file_dlg;
 static int current_file_to_choose;
 
-static void flash_filedialog_ok_callback()
-{
-	char filepath[384];
-
-	get_filedialog_selection(file_dlg, filepath, sizeof(filepath));
-	mtk_cmdf(appid, "e%d.set(-text \"%s\")", current_file_to_choose, filepath);
-	close_filedialog(file_dlg);
-}
-
-static void opendialog_callback(mtk_event *e, void *arg)
-{
-	current_file_to_choose = (int)arg;
-	open_filedialog(file_dlg);
-}
-
 enum {
 	FLASH_STATE_READY = 0,
 	FLASH_STATE_STARTING,
@@ -366,6 +351,22 @@ static void close_callback(mtk_event *e, void *arg)
 	close_filedialog(file_dlg);
 	mtk_cmd(appid, "w.close()");
 	w_open = 0;
+}
+
+static void flash_filedialog_ok_callback()
+{
+	char filepath[384];
+
+	get_filedialog_selection(file_dlg, filepath, sizeof(filepath));
+	mtk_cmdf(appid, "e%d.set(-text \"%s\")", current_file_to_choose, filepath);
+	close_filedialog(file_dlg);
+}
+
+static void opendialog_callback(mtk_event *e, void *arg)
+{
+	if(flash_busy()) return;
+	current_file_to_choose = (int)arg;
+	open_filedialog(file_dlg);
 }
 
 void init_flash()
