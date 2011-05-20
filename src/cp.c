@@ -38,6 +38,7 @@
 #endif
 #include "sysettings.h"
 #include "about.h"
+#include "flash.h"
 #include "shutdown.h"
 
 #include "config.h"
@@ -154,6 +155,7 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_rsswall_window();
 			break;
 		case CP_ITEM_WEBUPDATE:
+			open_flash_window();
 			break;
 
 		case CP_ITEM_EDITOR:
