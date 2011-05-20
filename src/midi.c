@@ -391,7 +391,7 @@ static void autobuild_callback(mtk_event *e, void *arg)
 	if(note[0] == 0x00)
 		strcpy(note, "C2");
 	if(filename[0] == 0x00)
-		strcpy(filename, "/flash");
+		strcpy(filename, "/ssd");
 	notecode = midistr(note);
 	if(notecode < 0) {
 		messagebox("Auto build failed", "Invalid starting note");

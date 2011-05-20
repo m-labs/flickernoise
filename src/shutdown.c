@@ -29,7 +29,7 @@ static int appid;
 void clean_shutdown(int turnoff)
 {
 	unmount("/memcard");
-	unmount("/flash");
+	unmount("/ssd");
 	rtems_shutdown_executive(turnoff);
 }
 

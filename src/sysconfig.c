@@ -155,7 +155,7 @@ static void format_ip(unsigned int ip, char *out)
 		ip & 0x000000ff);
 }
 
-#define SYSCONFIG_FILE "/flash/sysconfig.bin"
+#define SYSCONFIG_FILE "/ssd/sysconfig.bin"
 
 static void my_dhcp()
 {

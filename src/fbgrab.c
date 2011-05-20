@@ -31,7 +31,7 @@
 #include "pngload.h"
 #include "fbgrab.h"
 
-static char *filename = "/flash/Screenshot-00.png";
+static char *filename = "/ssd/Screenshot-00.png";
 
 static char *get_name()
 {
@@ -43,7 +43,7 @@ static char *get_name()
 			if (errno == ENOENT)
 				break;
 		} else
-			sprintf(filename + 18, "%02d.png", i);
+			sprintf(filename + strlen(filename) - 6, "%02d.png", i);
 	}
 
 	return filename;

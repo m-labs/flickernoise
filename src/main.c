@@ -166,8 +166,8 @@ rtems_task Init(rtems_task_argument argument)
 
 	mkdir("/ramdisk", 0777);
 	start_memcard();
-	mkdir("/flash", 0777);
-	mount("/dev/flash5", "/flash", "yaffs", RTEMS_FILESYSTEM_READ_WRITE, "");
+	mkdir("/ssd", 0777);
+	mount("/dev/flash5", "/ssd", "yaffs", RTEMS_FILESYSTEM_READ_WRITE, "");
 
 	sysconfig_load();
 	rtems_bsdnet_initialize_network();
