@@ -85,7 +85,7 @@
 #define NL  MTK_KEY_ENTER
 
 #define NIL MTK_KEY_INVALID
-/* translation table for scancode set 2 to scancode set 1 conversion */
+
 static int keyb_translation_table[3][112] = {
 /*        0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f */
 	{
