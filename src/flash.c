@@ -253,53 +253,55 @@ static rtems_task flash_task(rtems_task_argument argument)
 
 	int task = (int)argument;
 
-	switch (task) {
-	case ARG_WEB_UPDATE:
-		flash_state = DOWNLOAD_STATE_START_BITSTREAM;
-		if(!download(s_url, s))
-			flash_terminate(DOWNLOAD_STATE_ERROR_BITSTREAM);
-		mtk_cmdf(appid, "e1.set(-text \"%s\")", s);
-		strcpy(bitstream_name, s);
+	switch(task) {
+		case ARG_WEB_UPDATE:
+			flash_state = DOWNLOAD_STATE_START_BITSTREAM;
+			if(!download(s_url, s))
+				flash_terminate(DOWNLOAD_STATE_ERROR_BITSTREAM);
+			mtk_cmdf(appid, "e1.set(-text \"%s\")", s);
+			strcpy(bitstream_name, s);
 
-		flash_state = DOWNLOAD_STATE_START_BIOS;
-		if(!download(b_url, b))
-			flash_terminate(DOWNLOAD_STATE_ERROR_BIOS);
-		mtk_cmdf(appid, "e2.set(-text \"%s\")", b);
-		strcpy(bios_name, b);
+			flash_state = DOWNLOAD_STATE_START_BIOS;
+			if(!download(b_url, b))
+				flash_terminate(DOWNLOAD_STATE_ERROR_BIOS);
+			mtk_cmdf(appid, "e2.set(-text \"%s\")", b);
+			strcpy(bios_name, b);
 
-		flash_state = DOWNLOAD_STATE_START_APP;
-		if(!download(f_url, f))
-			flash_terminate(DOWNLOAD_STATE_ERROR_APP);
-		mtk_cmdf(appid, "e3.set(-text \"%s\")", f);
-		strcpy(application_name, f);
-	case ARG_FILE_UPDATE:
-		if(bitstream_name[0] != 0) {
-			flashvalid_val = flashvalid_bitstream(bitstream_name);
-			if(flashvalid_val != FLASHVALID_PASSED)
-				flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
+			flash_state = DOWNLOAD_STATE_START_APP;
+			if(!download(f_url, f))
+				flash_terminate(DOWNLOAD_STATE_ERROR_APP);
+			mtk_cmdf(appid, "e3.set(-text \"%s\")", f);
+			strcpy(application_name, f);
+			/* fall through */
+		case ARG_FILE_UPDATE:
+			if(bitstream_name[0] != 0) {
+				flashvalid_val = flashvalid_bitstream(bitstream_name);
+				if(flashvalid_val != FLASHVALID_PASSED)
+					flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
 
-			if(!flash_file("/dev/flash1", bitstream_name,
-				       FLASH_STATE_ERASE_BITSTREAM, FLASH_STATE_PROGRAM_BITSTREAM))
-				flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
-		}
-		if(bios_name[0] != 0) {
-			flashvalid_val = flashvalid_bios(bios_name);
-			if(flashvalid_val != FLASHVALID_PASSED)
-				flash_terminate(FLASH_STATE_ERROR_BIOS);
+				if(!flash_file("/dev/flash1", bitstream_name,
+					       FLASH_STATE_ERASE_BITSTREAM, FLASH_STATE_PROGRAM_BITSTREAM))
+					flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
+			}
+			if(bios_name[0] != 0) {
+				flashvalid_val = flashvalid_bios(bios_name);
+				if(flashvalid_val != FLASHVALID_PASSED)
+					flash_terminate(FLASH_STATE_ERROR_BIOS);
 
-			if(!flash_file("/dev/flash2", bios_name,
-				       FLASH_STATE_ERASE_BIOS, FLASH_STATE_PROGRAM_BIOS))
-				flash_terminate(FLASH_STATE_ERROR_BIOS);
-		}
-		if(application_name[0] != 0) {
-			flashvalid_val = flashvalid_application(application_name);
-			if(flashvalid_val != FLASHVALID_PASSED)
-				flash_terminate(FLASH_STATE_ERROR_APP);
+				if(!flash_file("/dev/flash2", bios_name,
+					       FLASH_STATE_ERASE_BIOS, FLASH_STATE_PROGRAM_BIOS))
+					flash_terminate(FLASH_STATE_ERROR_BIOS);
+			}
+			if(application_name[0] != 0) {
+				flashvalid_val = flashvalid_application(application_name);
+				if(flashvalid_val != FLASHVALID_PASSED)
+					flash_terminate(FLASH_STATE_ERROR_APP);
 
-			if(!flash_file("/dev/flash4", application_name,
-				       FLASH_STATE_ERASE_APP, FLASH_STATE_PROGRAM_APP))
-				flash_terminate(FLASH_STATE_ERROR_APP);
-		}
+				if(!flash_file("/dev/flash4", application_name,
+					       FLASH_STATE_ERASE_APP, FLASH_STATE_PROGRAM_APP))
+					flash_terminate(FLASH_STATE_ERROR_APP);
+			}
+			break;
 	}
 
 	flash_terminate(FLASH_STATE_SUCCESS);
