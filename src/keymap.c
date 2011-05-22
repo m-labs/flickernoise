@@ -167,7 +167,7 @@ static int keyb_altgr_table[2][112] = {
 
 int get_keycode(unsigned char modifiers, int scan_code)
 {
-	static unsigned int curr_layout;
+	unsigned int curr_layout;
 	int k = NIL;
 
 	if(scan_code>112) return NIL;
