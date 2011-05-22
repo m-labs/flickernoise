@@ -541,8 +541,8 @@ void init_flash()
 
 		"g3 = new Grid()",
 
-		"b_webupdate = new Button(-text \"Web Update\")",
-		"b_ok = new Button(-text \"Program flash\")",
+		"b_webupdate = new Button(-text \"Update from web\")",
+		"b_ok = new Button(-text \"Update from files\")",
 		"b_close = new Button(-text \"Close\")",
 
 		"g3.place(b_webupdate, -column 1 -row 1)",
