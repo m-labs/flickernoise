@@ -34,17 +34,11 @@
 #define S2  MTK_KEY_S2
 
 #define EA  MTK_KEY_EA
-#define UEA MTK_KEY_UEA
-#define DR  MTK_KEY_DR
-#define DL  MTK_KEY_DL
-#define PM  MTK_KEY_PM
-#define SU  MTK_KEY_SU
-#define AG6 MTK_KEY_AG6
-#define CT  MTK_KEY_CT
+#define AG  MTK_KEY_AG
+#define EG  MTK_KEY_EG
+#define CC  MTK_KEY_CC
+#define UG  MTK_KEY_UG
 #define PD  MTK_KEY_PD
-#define HF  MTK_KEY_HF
-#define QT  MTK_KEY_QT
-#define PS  MTK_KEY_PS
 
 #define F1  MTK_KEY_F1
 #define F2  MTK_KEY_F2
@@ -97,14 +91,14 @@ static int keyb_translation_table[3][112] = {
 /* 50 */ LFT, DWN,  UP, NLC,  DI, '*', '-', '+',  NL, '1', '2', '3', '4', '5', '6', '7',
 /* 60 */ '8', '9', '0', '.', '<', NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 	},{			/* German layout 129 */
-/* 00 */ NIL, NIL, NIL, NIL, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-/* 10 */ 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2',
-/* 20 */ '3', '4', '5', '6', '7', '8', '9', '0',  NL, ESC, BSP, TAB, ' ', '-', '=', '^',
-/* 30 */ NIL, '<', NIL, ';', '`', '#', ',', '.',  EA, CLC,  F1,  F2,  F3,  F4,  F5,  F6,
+/* 00 */ NIL, NIL, NIL, NIL, 'q', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+/* 10 */ ',', 'n', 'o', 'p', 'a', 'r', 's', 't', 'u', 'v', 'z', 'x', 'y', 'w', '&',  EA,
+/* 20 */'\"','\'', '(', '-',  EG, '_',  CC,  AG,  NL, ESC, BSP, TAB, ' ', ')', '=', NIL,
+/* 30 */ '$', NIL, '*', 'm',  UG, NIL, ';', ':',  '!', CLC,  F1,  F2,  F3,  F4,  F5,  F6,
 /* 40 */  F7,  F8,  F9, F10, F11, F12, SRQ, SLC, PAU, INT, HME, PUP, DEL, END, PDW, RIT,
-/* 50 */ LFT, DWN,  UP, NLC,  DI, '*', '-', '+',  NL, '1', '2', '3', '4', '5', '6', '7',
-/* 60 */ '8', '9', '0', '.',  DR, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
-	},{			/* French layout 058 */
+/* 50 */ LFT, DWN,  UP, NLC, '/', '*', '-', '+',  NL, '1', '2', '3', '4', '5', '6', '7',
+/* 60 */ '8', '9', '0', '.', '<', NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
+	},{			/* French layout 189 */
 /* 00 */ NIL, NIL, NIL, NIL, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
 /* 10 */ 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2',
 /* 20 */ '3', '4', '5', '6', '7', '8', '9', '0',  NL, ESC, BSP, TAB, ' ', '-', '=', '[',
@@ -125,15 +119,15 @@ static int keyb_shift_table[3][112] = {
 /* 40 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 50 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 60 */ NIL, NIL, NIL, NIL, '>', NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
-	},{
-/* 00 */ NIL, NIL, NIL, NIL, 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-/* 10 */ 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '!','\"',
-/* 20 */ '/', '$', '%', '?', '&', '*', '(', ')', NIL, NIL, NIL, NIL, NIL, '_', '+', NIL,
-/* 30 */ NIL, '>', NIL, ':', NIL, '|','\'', NIL, UEA, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
+	},{			/* German layout 129 shift */
+/* 00 */ NIL, NIL, NIL, NIL, 'Q', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+/* 10 */ '?', 'N', 'O', 'P', 'A', 'R', 'S', 'T', 'U', 'V', 'Z', 'X', 'Y', 'W', '1', '2',
+/* 20 */ '3', '4', '5', '6', '7', '8', '9', '0', NIL, NIL, NIL, NIL, NIL, DEG, '+', NIL,
+/* 30 */  PD, NIL,  MU, 'M', '%',  S2, '.', '/', PAR, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 40 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 50 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
-/* 60 */ NIL, NIL, NIL, NIL,  DL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
-	},{
+/* 60 */ NIL, NIL, NIL, NIL, '>', NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
+	},{			/* French layout 189 shift*/
 /* 00 */ NIL, NIL, NIL, NIL, 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
 /* 10 */ 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '!', '@',
 /* 20 */ '#', '$', '%', '^', '&', '*', '(', ')', NIL, NIL, NIL, NIL, NIL, '_', '+', '{',
@@ -141,7 +135,7 @@ static int keyb_shift_table[3][112] = {
 /* 40 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 50 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 60 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
-	}
+	}			/* US layout 103P shift*/
 };
 
 static int keyb_altgr_table[2][112] = {
@@ -154,15 +148,15 @@ static int keyb_altgr_table[2][112] = {
 /* 40 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 50 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 60 */ NIL, NIL, NIL, NIL, '|', NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
-	},{
+	},{			/* German layout 129 altgr */
 /* 00 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
-/* 10 */  MU, NIL, PAR,  PS, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,  PM, '@',
-/* 20 */  PD,  CT,  SU, AG6, '|',  S2, NIL,  QT, NIL, NIL, NIL, NIL, NIL,  HF, NIL, '[',
-/* 30 */ ']', '}', NIL, '~', '{','\\', NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
+/* 10 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, '~',
+/* 20 */ '#', '{', '[', '|', NIL,'\\', '^', '@', NIL, NIL, NIL, NIL, NIL, ']', '}', NIL,
+/* 30 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 40 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 50 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
-/* 60 */ NIL, NIL, NIL, NIL, DEG, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
-	}
+/* 60 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
+	}			/* French layout 189 altgr*/
 };
 
 int get_keycode(unsigned char modifiers, int scan_code)
