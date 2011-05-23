@@ -127,9 +127,9 @@ static int keyb_shift_table[3][112] = {
 /* 60 */ NIL, NIL, NIL, NIL, '>', NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 	},{
 /* 00 */ NIL, NIL, NIL, NIL, 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-/* 10 */ 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '!', NIL,
+/* 10 */ 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '!','\"',
 /* 20 */ '/', '$', '%', '?', '&', '*', '(', ')', NIL, NIL, NIL, NIL, NIL, '_', '+', NIL,
-/* 30 */ NIL, '>', NIL, ':', NIL, '|','\'','\"', UEA, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
+/* 30 */ NIL, '>', NIL, ':', NIL, '|','\'', NIL, UEA, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 40 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 50 */ NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 /* 60 */ NIL, NIL, NIL, NIL,  DL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
