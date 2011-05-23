@@ -18,7 +18,7 @@
 #ifndef __KEYMAP_H
 #define __KEYMAP_H
 
-#include <keycodes.h>
+#include <mtkeycodes.h>
 
 int get_keycode(unsigned char modifiers, int scan_code);
 

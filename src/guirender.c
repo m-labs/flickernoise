@@ -22,7 +22,7 @@
 #include <fcntl.h>
 #include <rtems.h>
 #include <mtklib.h>
-#include <keycodes.h>
+#include <mtkeycodes.h>
 
 #include "compiler.h"
 #include "renderer.h"

@@ -18,7 +18,7 @@
 
 #include <rtems.h>
 #include <stdio.h>
-#include <keycodes.h>
+#include <mtkeycodes.h>
 #include <mtklib.h>
 
 #include "input.h"

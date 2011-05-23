@@ -21,7 +21,7 @@
 #include <errno.h>
 
 #include <mtklib.h>
-#include <keycodes.h>
+#include <mtkeycodes.h>
 
 #include "filedialog.h"
 #include "patcheditor.h"

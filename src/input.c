@@ -25,7 +25,7 @@
 #include <rtems.h>
 
 #include <mtklib.h>
-#include <keycodes.h>
+#include <mtkeycodes.h>
 
 #include "keymap.h"
 #include "input.h"

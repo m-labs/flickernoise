@@ -22,7 +22,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <mtklib.h>
-#include <keycodes.h>
+#include <mtkeycodes.h>
 
 #include "input.h"
 #include "fb.h"
