@@ -31,6 +31,7 @@
 #include "cp.h"
 #include "messagebox.h"
 #include "filedialog.h"
+#include "performance.h"
 
 #include "midi.h"
 
@@ -391,7 +392,7 @@ static void autobuild_callback(mtk_event *e, void *arg)
 	if(note[0] == 0x00)
 		strcpy(note, "C2");
 	if(filename[0] == 0x00)
-		strcpy(filename, "/ssd");
+		strcpy(filename, SIMPLE_PATCHES_FOLDER);
 	notecode = midistr(note);
 	if(notecode < 0) {
 		messagebox("Auto build failed", "Invalid starting note");
