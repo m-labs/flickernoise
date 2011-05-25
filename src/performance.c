@@ -144,8 +144,6 @@ static void add_osc_patches()
 	}
 }
 
-#define SIMPLE_PATCHES_FOLDER "/ssd/patches/"
-
 static void add_simple_patches()
 {
 	DIR *d;

@@ -18,6 +18,8 @@
 #ifndef __PERFORMANCE_H
 #define __PERFORMANCE_H
 
+#define SIMPLE_PATCHES_FOLDER "/ssd/patches/"
+
 void init_performance();
 void start_performance(bool simple);
 

@@ -29,10 +29,9 @@
 #include "cp.h"
 #include "messagebox.h"
 #include "filedialog.h"
+#include "performance.h"
 
 #include "keyboard.h"
-
-#define AUTOBUILD_PATCHES_FOLDER "/ssd/patches/"
 
 static int appid;
 static struct filedialog *browse_dlg;
@@ -209,11 +208,6 @@ static void autobuild(int sk, char *folder)
 	}
 	closedir(d);
 
-	if(n_files == 0) {
-		messagebox("Auto build failed", "No patches under "AUTOBUILD_PATCHES_FOLDER);
-		return;
-	}
-
 	qsort(files, n_files, sizeof(char *), cmpstringp);
 	
 	for(i=0;i<n_files;i++) {
@@ -237,7 +231,7 @@ static void autobuild_callback(mtk_event *e, void *arg)
 		key[1] = 0x00;
 	}
 	if(filename[0] == 0x00)
-		strcpy(filename, AUTOBUILD_PATCHES_FOLDER);
+		strcpy(filename, SIMPLE_PATCHES_FOLDER);
 	if((key[1] != 0x00) || (key[0] < 'a') || (key[0] > 'z')) {
 		messagebox("Auto build failed", "Invalid starting key. Use only one lower case letter from 'a' to 'z'.");
 		return;
