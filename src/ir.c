@@ -112,8 +112,6 @@ static void selchange_callback(mtk_event *e, void *arg)
 	}
 }
 
-static int capturing;
-
 static void ir_event(mtk_event *e, int count)
 {
 	int i;
@@ -121,31 +119,15 @@ static void ir_event(mtk_event *e, int count)
 	for(i=0;i<count;i++) {
 		if(e[i].type == EVENT_TYPE_IR) {
 			mtk_cmdf(appid, "e_key.set(-text \"0x%02x\")", e[i].press.code);
-			mtk_cmd(appid, "b_key.set(-state off)");
-			capturing = 0;
-			input_delete_callback(ir_event);
 			break;
 		}
 	}
 }
 
-static void capture_callback(mtk_event *e, void *arg)
-{
-	if(capturing) {
-		input_delete_callback(ir_event);
-		mtk_cmd(appid, "b_key.set(-state off)");
-	} else {
-		input_add_callback(ir_event);
-		mtk_cmd(appid, "b_key.set(-state on)");
-	}
-	capturing = !capturing;
-}
-
 static void close_window()
 {
 	mtk_cmd(appid, "w.close()");
-	if(capturing)
-		capture_callback(NULL, NULL);
+	input_delete_callback(ir_event);
 	w_open = 0;
 	close_filedialog(browse_dlg);
 }
@@ -228,10 +210,8 @@ void init_ir()
 		"g_addedit1 = new Grid()",
 		"l_key = new Label(-text \"Key code:\")",
 		"e_key = new Entry()",
-		"b_key = new Button(-text \"Capture\")",
 		"g_addedit1.place(l_key, -column 1 -row 1)",
 		"g_addedit1.place(e_key, -column 2 -row 1)",
-		"g_addedit1.place(b_key, -column 3 -row 1)",
 		"l_filename = new Label(-text \"Filename:\")",
 		"e_filename = new Entry()",
 		"b_filename = new Button(-text \"Browse\")",
@@ -265,7 +245,6 @@ void init_ir()
 
 	mtk_bind(appid, "lst_existing", "selchange", selchange_callback, NULL);
 	mtk_bind(appid, "lst_existing", "selcommit", selchange_callback, NULL);
-	mtk_bind(appid, "b_key", "press", capture_callback, NULL);
 	mtk_bind(appid, "b_filename", "commit", browse_callback, NULL);
 	mtk_bind(appid, "b_filenameclear", "commit", clear_callback, NULL);
 	mtk_bind(appid, "b_addupdate", "commit", addupdate_callback, NULL);
@@ -285,4 +264,5 @@ void open_ir_window()
 	load_config();
 	update_list();
 	mtk_cmd(appid, "w.open()");
+	input_add_callback(ir_event);
 }
