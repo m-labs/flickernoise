@@ -242,8 +242,6 @@ static void selchange_callback(mtk_event *e, void *arg)
 	}
 }
 
-static int capturing;
-
 static void midi_event(mtk_event *e, int count)
 {
 	int i;
@@ -254,32 +252,16 @@ static void midi_event(mtk_event *e, int count)
 			if(((e[i].press.code & 0x0f00) >> 8) == mtk_req_i(appid, "e_channel.text")) {
 				strmidi(note, e[i].press.code & 0x7f);
 				mtk_cmdf(appid, "e_note.set(-text \"%s\")", note);
-				mtk_cmd(appid, "b_note.set(-state off)");
-				capturing = 0;
-				input_delete_callback(midi_event);
 				break;
 			}
 		}
 	}
 }
 
-static void capture_callback(mtk_event *e, void *arg)
-{
-	if(capturing) {
-		input_delete_callback(midi_event);
-		mtk_cmd(appid, "b_note.set(-state off)");
-	} else {
-		input_add_callback(midi_event);
-		mtk_cmd(appid, "b_note.set(-state on)");
-	}
-	capturing = !capturing;
-}
-
 static void close_window()
 {
 	mtk_cmd(appid, "w.close()");
-	if(capturing)
-		capture_callback(NULL, NULL);
+	input_delete_callback(midi_event);
 	w_open = 0;
 	close_filedialog(browse_dlg);
 }
@@ -443,10 +425,8 @@ void init_midi()
 		"g_addedit1 = new Grid()",
 		"l_note = new Label(-text \"Note:\")",
 		"e_note = new Entry()",
-		"b_note = new Button(-text \"Capture\")",
 		"g_addedit1.place(l_note, -column 1 -row 1)",
 		"g_addedit1.place(e_note, -column 2 -row 1)",
-		"g_addedit1.place(b_note, -column 3 -row 1)",
 		"l_filename = new Label(-text \"Filename:\")",
 		"e_filename = new Entry()",
 		"b_filename = new Button(-text \"Browse\")",
@@ -484,7 +464,6 @@ void init_midi()
 
 	mtk_bind(appid, "lst_existing", "selchange", selchange_callback, NULL);
 	mtk_bind(appid, "lst_existing", "selcommit", selchange_callback, NULL);
-	mtk_bind(appid, "b_note", "press", capture_callback, NULL);
 	mtk_bind(appid, "b_filename", "commit", browse_callback, NULL);
 	mtk_bind(appid, "b_filenameclear", "commit", clear_callback, NULL);
 	mtk_bind(appid, "b_addupdate", "commit", addupdate_callback, NULL);
@@ -505,4 +484,5 @@ void open_midi_window()
 	load_config();
 	update_list();
 	mtk_cmd(appid, "w.open()");
+	input_add_callback(midi_event);
 }
