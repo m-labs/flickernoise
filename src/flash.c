@@ -516,6 +516,7 @@ void init_flash()
 		"g2 = new Grid()",
 		"l_socbios = new Label(-text \"SoC/BIOS:\")",
 		"l_flickernoise = new Label(-text \"Flickernoise:\")",
+		"l_patchpool = new Label(-text \"Patch pool:\")",
 		"l_installed = new Label(-text \"Installed\")",
 		"l_available = new Label(-text \"Available\")",
 		0);
@@ -525,14 +526,19 @@ void init_flash()
 		"l_socbios_a = new Label(-text \"?\")",
 		"l_flickernoise_i = new Label(-text \""VERSION"\")",
 		"l_flickernoise_a = new Label(-text \"?\")",
+		"l_patchpool_i = new Label(-text \"?\")",
+		"l_patchpool_a = new Label(-text \"?\")",
 		"g2.place(l_socbios, -column 1 -row 2)",
 		"g2.place(l_flickernoise, -column 1 -row 3)",
+		"g2.place(l_patchpool, -column 1 -row 4)",
 		"g2.place(l_installed, -column 2 -row 1)",
 		"g2.place(l_available, -column 3 -row 1)",
 		"g2.place(l_socbios_i, -column 2 -row 2)",
 		"g2.place(l_socbios_a, -column 3 -row 2)",
 		"g2.place(l_flickernoise_i, -column 2 -row 3)",
 		"g2.place(l_flickernoise_a, -column 3 -row 3)",
+		"g2.place(l_patchpool_i, -column 2 -row 4)",
+		"g2.place(l_patchpool_a, -column 3 -row 4)",
 
 		"g.place(g2, -column 1 -row 2)",
 
