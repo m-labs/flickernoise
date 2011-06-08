@@ -283,22 +283,22 @@ static int handle_btn_event(mtk_event *e, unsigned char *msg)
 {
 	switch(msg[0]) {
 		case 'A':
-			write_press_event(e, MTK_KEY_F9);
+			write_press_event(e, MTK_KEY_F11);
 			return 1;
 		case 'B':
 			write_press_event(e, MTK_KEY_F10);
 			return 1;
 		case 'C':
-			write_press_event(e, MTK_KEY_F11);
+			write_press_event(e, MTK_KEY_F9);
 			return 1;
 		case 'a':
-			write_release_event(e, MTK_KEY_F9);
+			write_release_event(e, MTK_KEY_F11);
 			return 1;
 		case 'b':
 			write_release_event(e, MTK_KEY_F10);
 			return 1;
 		case 'c':
-			write_release_event(e, MTK_KEY_F11);
+			write_release_event(e, MTK_KEY_F9);
 			return 1;
 		default:
 			printf("Unknown button code: %c\n", msg[0]);
