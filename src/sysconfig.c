@@ -75,7 +75,7 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 };
 
 #define SYSCONFIG_MAGIC 0xda81d4cb
-#define SYSCONFIG_VERSION 2
+#define SYSCONFIG_VERSION 3
 
 struct sysconfig {
 	unsigned int magic;
@@ -97,6 +97,8 @@ struct sysconfig {
 	char password[32];
 
 	int autostart_mode;
+	int autostart_dt;
+	int autostart_as;
 	char autostart[256];
 };
 
@@ -136,6 +138,7 @@ static struct sysconfig sysconfig = {
 	.dhcp_enable = 1,
 	.ip = 0xc0a8002a,
 	.netmask = 0xffffff00,
+	.autostart_as = 1
 };
 
 #define FMT_IP_LEN (4*3+3*1+1)
@@ -379,6 +382,14 @@ int sysconfig_get_autostart_mode()
 	return sysconfig.autostart_mode;
 }
 
+void sysconfig_get_autostart_mode_simple(int *dt, int *as)
+{
+	if(dt != NULL)
+		*dt = sysconfig.autostart_dt;
+	if(as != NULL)
+		*as = sysconfig.autostart_as;
+}
+
 void sysconfig_get_autostart(char *autostart)
 {
 	strcpy(autostart, sysconfig.autostart);
@@ -511,6 +522,12 @@ void sysconfig_set_credentials(char *login, char *password)
 void sysconfig_set_autostart_mode(int autostart_mode)
 {
 	sysconfig.autostart_mode = autostart_mode;
+}
+
+void sysconfig_set_autostart_mode_simple(int dt, int as)
+{
+	sysconfig.autostart_dt = dt;
+	sysconfig.autostart_as = as;
 }
 
 void sysconfig_set_autostart(char *autostart)

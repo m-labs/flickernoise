@@ -56,6 +56,7 @@ int sysconfig_get_keyboard_layout();
 void sysconfig_get_ipconfig(int *dhcp_enable, unsigned int *ip, unsigned int *netmask, unsigned int *gateway, unsigned int *dns1, unsigned int *dns2);
 void sysconfig_get_credentials(char *login, char *password);
 int sysconfig_get_autostart_mode();
+void sysconfig_get_autostart_mode_simple(int *dt, int *as);
 void sysconfig_get_autostart(char *autostart);
 
 void sysconfig_set_resolution(int resolution);
@@ -66,6 +67,7 @@ void sysconfig_set_keyboard_layout(int layout);
 void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netmask, unsigned int gateway, unsigned int dns1, unsigned int dns2);
 void sysconfig_set_credentials(char *login, char *password);
 void sysconfig_set_autostart_mode(int autostart_mode);
+void sysconfig_set_autostart_mode_simple(int dt, int as);
 void sysconfig_set_autostart(char *autostart);
 
 bool sysconfig_login_check(const char *user, const char *passphrase);

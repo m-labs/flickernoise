@@ -78,6 +78,22 @@ static void asmode_callback(mtk_event *e, void *arg)
 	update_asmode();
 }
 
+static int current_asmode_dt;
+
+static void asmode_dt_callback(mtk_event *e, void *arg)
+{
+	current_asmode_dt = !current_asmode_dt;
+	update_asmode();
+}
+
+static int current_asmode_as;
+
+static void asmode_as_callback(mtk_event *e, void *arg)
+{
+	current_asmode_as = !current_asmode_as;
+	update_asmode();
+}
+
 static void ok_callback(mtk_event *e, void *arg)
 {
 	close_sysettings_window(1);
@@ -189,6 +205,9 @@ void init_sysettings()
 		"g_network1 = new Grid()",
 		"l_dhcp = new Label(-text \"DHCP client:\")",
 		"b_dhcp = new Button(-text \"Enable\")",
+		"g_network1.place(l_dhcp, -column 1 -row 1)",
+		"g_network1.place(b_dhcp, -column 2 -row 1)",
+		"g_network2 = new Grid()",
 		"l_ip = new Label(-text \"IP address:\")",
 		"e_ip = new Entry()",
 		"l_netmask = new Label(-text \"Netmask:\")",
@@ -197,16 +216,14 @@ void init_sysettings()
 		"e_gateway = new Entry()",
 		"l_dns = new Label(-text \"DNS:\")",
 		"e_dns = new Entry()",
-		"g_network1.place(l_dhcp, -column 1 -row 1)",
-		"g_network1.place(b_dhcp, -column 2 -row 1)",
-		"g_network1.place(l_ip, -column 1 -row 2)",
-		"g_network1.place(e_ip, -column 2 -row 2)",
-		"g_network1.place(l_netmask, -column 1 -row 3)",
-		"g_network1.place(e_netmask, -column 2 -row 3)",
-		"g_network1.place(l_gateway, -column 1 -row 4)",
-		"g_network1.place(e_gateway, -column 2 -row 4)",
-		"g_network1.place(l_dns, -column 1 -row 5)",
-		"g_network1.place(e_dns, -column 2 -row 5)",
+		"g_network2.place(l_ip, -column 1 -row 1)",
+		"g_network2.place(e_ip, -column 2 -row 1)",
+		"g_network2.place(l_netmask, -column 3 -row 1)",
+		"g_network2.place(e_netmask, -column 4 -row 1)",
+		"g_network2.place(l_gateway, -column 1 -row 2)",
+		"g_network2.place(e_gateway, -column 2 -row 2)",
+		"g_network2.place(l_dns, -column 3 -row 2)",
+		"g_network2.place(e_dns, -column 4 -row 2)",
 
 		"g_remote0 = new Grid()",
 		"l_remote = new Label(-text \"Remote access\" -font \"title\")",
@@ -237,10 +254,16 @@ void init_sysettings()
 		"b_asmode_none = new Button(-text \"None\")",
 		"b_asmode_simple = new Button(-text \"Simple\")",
 		"b_asmode_file = new Button(-text \"File\")",
+		"b_asmode_separator = new Separator(-vertical yes)",
+		"b_asmode_dt = new Button(-text \"Display titles\")",
+		"b_asmode_as = new Button(-text \"Auto switch\")",
 		"g_autostart1.place(l_asmode, -column 1 -row 1)",
 		"g_autostart1.place(b_asmode_none, -column 2 -row 1)",
 		"g_autostart1.place(b_asmode_simple, -column 3 -row 1)",
 		"g_autostart1.place(b_asmode_file, -column 4 -row 1)",
+		"g_autostart1.place(b_asmode_separator, -column 5 -row 1)",
+		"g_autostart1.place(b_asmode_dt, -column 6 -row 1)",
+		"g_autostart1.place(b_asmode_as, -column 7 -row 1)",
 		"g_autostart2 = new Grid()",
 		"l_autostart = new Label(-text \"File:\")",
 		"e_autostart = new Entry()",
@@ -264,11 +287,12 @@ void init_sysettings()
 		"g.place(g_localization, -column 1 -row 5)",
 		"g.place(g_network0, -column 1 -row 6)",
 		"g.place(g_network1, -column 1 -row 7)",
-		"g.place(g_remote0, -column 1 -row 8)",
-		"g.place(g_remote1, -column 1 -row 9)",
-		"g.place(g_autostart0, -column 1 -row 10)",
-		"g.place(g_autostart1, -column 1 -row 11)",
-		"g.place(g_autostart2, -column 1 -row 12)",
+		"g.place(g_network2, -column 1 -row 8)",
+		"g.place(g_remote0, -column 1 -row 9)",
+		"g.place(g_remote1, -column 1 -row 10)",
+		"g.place(g_autostart0, -column 1 -row 11)",
+		"g.place(g_autostart1, -column 1 -row 12)",
+		"g.place(g_autostart2, -column 1 -row 13)",
 		"g.place(g_btn, -column 1 -row 14)",
 
 		"w = new Window(-content g -title \"System settings\" -y 0)",
@@ -294,6 +318,8 @@ void init_sysettings()
 	mtk_bind(appid, "b_asmode_none", "press", asmode_callback, (void *)SC_AUTOSTART_NONE);
 	mtk_bind(appid, "b_asmode_simple", "press", asmode_callback, (void *)SC_AUTOSTART_SIMPLE);
 	mtk_bind(appid, "b_asmode_file", "press", asmode_callback, (void *)SC_AUTOSTART_FILE);
+	mtk_bind(appid, "b_asmode_dt", "press", asmode_dt_callback, NULL);
+	mtk_bind(appid, "b_asmode_as", "press", asmode_as_callback, NULL);
 	mtk_bind(appid, "b_autostart", "commit", browse_autostart_callback, NULL);
 	
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
@@ -409,6 +435,8 @@ static void update_asmode()
 	mtk_cmdf(appid, "b_asmode_none.set(-state %s)", current_asmode == SC_AUTOSTART_NONE ? "on" : "off");
 	mtk_cmdf(appid, "b_asmode_simple.set(-state %s)", current_asmode == SC_AUTOSTART_SIMPLE ? "on" : "off");
 	mtk_cmdf(appid, "b_asmode_file.set(-state %s)", current_asmode == SC_AUTOSTART_FILE ? "on" : "off");
+	mtk_cmdf(appid, "b_asmode_dt.set(-state %s)", current_asmode_dt ? "on" : "off");
+	mtk_cmdf(appid, "b_asmode_as.set(-state %s)", current_asmode_as ? "on" : "off");
 }
 
 static void update_autostart()
@@ -451,6 +479,7 @@ void open_sysettings_window()
 	previous_resolution = sysconfig_get_resolution();
 	current_language = sysconfig_get_language();
 	current_asmode = sysconfig_get_autostart_mode();
+	sysconfig_get_autostart_mode_simple(&current_asmode_dt, &current_asmode_as);
 	
 	sysettings_update_resolution();
 	update_wallpaper();
@@ -519,6 +548,7 @@ static void close_sysettings_window(int save)
 			inet_addr(gateway_txt), dns1, dns2);
 		sysconfig_set_credentials(login, password);
 		sysconfig_set_autostart_mode(current_asmode);
+		sysconfig_set_autostart_mode_simple(current_asmode_dt, current_asmode_as);
 		sysconfig_set_autostart(autostart);
 		
 		sysconfig_save();
