@@ -21,6 +21,6 @@
 #define SIMPLE_PATCHES_FOLDER "/ssd/patchpool/"
 
 void init_performance();
-void start_performance(bool simple);
+void start_performance(int simple, int dt, int as);
 
 #endif /* __PERFORMANCE_H */

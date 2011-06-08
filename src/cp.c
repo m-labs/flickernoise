@@ -180,10 +180,10 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_firstpatch_window();
 			break;
 		case CP_ITEM_START:
-			start_performance(false);
+			start_performance(0, 0, 0);
 			break;
 		case CP_ITEM_STARTSIMPLE:
-			start_performance(true);
+			start_performance(1, 1, 0);
 			break;
 
 		case CP_ITEM_FILEMANAGER:
@@ -374,12 +374,14 @@ void init_cp()
 void cp_autostart()
 {
 	char autostart[256];
+	int dt, as;
 
 	switch(sysconfig_get_autostart_mode()) {
 		case SC_AUTOSTART_NONE:
 			break;
 		case SC_AUTOSTART_SIMPLE:
-			start_performance(true);
+			sysconfig_get_autostart_mode_simple(&dt, &as);
+			start_performance(1, dt, as);
 			break;
 		case SC_AUTOSTART_FILE:
 			sysconfig_get_autostart(autostart);
@@ -394,7 +396,7 @@ void cp_autostart()
 				return;
 			}
 			on_config_change();
-			start_performance(false);
+			start_performance(0, 0, 0);
 			break;
 	}
 }

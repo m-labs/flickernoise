@@ -47,6 +47,8 @@ static int npatches;
 static int current_patch;
 static struct patch_info patches[MAX_PATCHES];
 static bool simple_mode;
+static int dt_mode;
+static int as_mode;
 
 static int add_patch(const char *filename)
 {
@@ -283,21 +285,37 @@ static int keycode_to_index(int keycode)
 	}
 }
 
+static rtems_interval next_as_time;
+
 static void event_callback(mtk_event *e, int count)
 {
 	int i;
 	int index;
+	int next;
+	rtems_interval t;
 
 	index = -1;
 	if(simple_mode) {
+		next = 0;
 		for(i=0;i<count;i++) {
-			if((e[i].type == EVENT_TYPE_PRESS) && (e[i].press.code == MTK_KEY_F11)) {
-				current_patch++;
-				if(current_patch == npatches)
-					current_patch = 0;
-				index = current_patch;
+			if((e[i].type == EVENT_TYPE_PRESS) && (e[i].press.code == MTK_KEY_F11))
+				next = 1;
+		}
+		if(as_mode) {
+			t = rtems_clock_get_ticks_since_boot();
+			if(t >= next_as_time) {
+				next = 1;
+				next_as_time = t + 3000;
 			}
 		}
+		if(next) {
+			current_patch++;
+			if(current_patch == npatches)
+				current_patch = 0;
+			index = current_patch;
+		}
+		if(dt_mode && (index != -1))
+			osd_event(patches[index].filename);
 	} else {
 		for(i=0;i<count;i++) {
 			if(e[i].type == EVENT_TYPE_PRESS) {
@@ -370,7 +388,7 @@ static void refresh_callback(mtk_event *e, int count)
 
 static rtems_id comp_task_id;
 
-void start_performance(bool simple)
+void start_performance(int simple, int dt, int as)
 {
 	rtems_status_code sc;
 	
@@ -379,6 +397,8 @@ void start_performance(bool simple)
 
 	/* build patch list */
 	simple_mode = simple;
+	dt_mode = dt;
+	as_mode = as;
 	npatches = 0;
 	current_patch = 0;
 	if(simple) {
