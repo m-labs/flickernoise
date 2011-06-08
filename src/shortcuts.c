@@ -25,6 +25,7 @@
 #include "shutdown.h"
 #include "fbgrab.h"
 #include "sysconfig.h"
+#include "sysettings.h"
 #include "fb.h"
 
 static int ctrl, alt;
@@ -35,15 +36,17 @@ static void switch_resolution()
 {
 	int res;
 
-	if(fb_get_mode()) return;
-
-	res = sysconfig_get_resolution();
-	res++;
-
-	if (res > SC_RESOLUTION_1024_768)
-		res = SC_RESOLUTION_640_480;
-
-	sysconfig_set_resolution(res);
+	if(!fb_get_mode()) {
+		open_sysettings_window();
+		
+		res = sysconfig_get_resolution();
+		res++;
+		if (res > SC_RESOLUTION_1024_768)
+			res = SC_RESOLUTION_640_480;
+		sysconfig_set_resolution(res);
+		
+		sysettings_update_resolution();
+	}
 }
 
 static void shortcuts_callback(mtk_event *e, int count)

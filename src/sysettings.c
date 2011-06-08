@@ -30,7 +30,6 @@ static struct filedialog *browse_wallpaper_dlg;
 static struct filedialog *browse_autostart_dlg;
 
 static void close_sysettings_window(int save);
-static void update_resolution();
 static void update_language();
 static void update_layout();
 static void update_network();
@@ -41,7 +40,7 @@ static void resolution_callback(mtk_event *e, void *arg)
 	int resolution = (int)arg;
 
 	sysconfig_set_resolution(resolution);
-	update_resolution();
+	sysettings_update_resolution();
 }
 
 static int current_language;
@@ -302,11 +301,11 @@ void init_sysettings()
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 
-	browse_wallpaper_dlg = create_filedialog("Select wallpaper", 0, "png", wallpaper_ok_callback, NULL, NULL, 	NULL);
+	browse_wallpaper_dlg = create_filedialog("Select wallpaper", 0, "png", wallpaper_ok_callback, NULL, NULL, NULL);
 	browse_autostart_dlg = create_filedialog("Select autostart performance", 0, "per", autostart_ok_callback, NULL, NULL, NULL);
 }
 
-static void update_resolution()
+void sysettings_update_resolution()
 {
 	int resolution;
 
@@ -453,7 +452,7 @@ void open_sysettings_window()
 	current_language = sysconfig_get_language();
 	current_asmode = sysconfig_get_autostart_mode();
 	
-	update_resolution();
+	sysettings_update_resolution();
 	update_wallpaper();
 	update_language();
 	update_layout();

@@ -20,5 +20,6 @@
 
 void init_sysettings();
 void open_sysettings_window();
+void sysettings_update_resolution();
 
 #endif /* __SYSETTINGS_H */
