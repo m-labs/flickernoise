@@ -36,6 +36,7 @@
 #include "messagebox.h"
 #include "input.h"
 #include "flashvalid.h"
+#include "version.h"
 
 #include "flash.h"
 
@@ -508,7 +509,7 @@ void init_flash()
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
-		"l0 = new Label(-text \"Click the 'Update from web' button to begin.\nIf your synthesizer does not restart after the upgrade, don't panic!\nHold right (R) pushbutton during power-up to enable rescue mode.\")",
+		"l0 = new Label(-text \"Click the 'Update from web' button to begin.\nIf your synthesizer does not restart after the update, don't panic!\nHold right (R) pushbutton during power-up to enable rescue mode.\")",
 
 		"g.place(l0, -column 1 -row 1 -align w)",
 
@@ -517,9 +518,12 @@ void init_flash()
 		"l_flickernoise = new Label(-text \"Flickernoise:\")",
 		"l_installed = new Label(-text \"Installed\")",
 		"l_available = new Label(-text \"Available\")",
-		"l_socbios_i = new Label(-text \"1.0RC4\")",
+		0);
+		
+	mtk_cmdf(appid, "l_socbios_i = new Label(-text \"%s\")", soc);
+	mtk_cmd_seq(appid,
 		"l_socbios_a = new Label(-text \"?\")",
-		"l_flickernoise_i = new Label(-text \"1.0RC1\")",
+		"l_flickernoise_i = new Label(-text \""VERSION"\")",
 		"l_flickernoise_a = new Label(-text \"?\")",
 		"g2.place(l_socbios, -column 1 -row 2)",
 		"g2.place(l_flickernoise, -column 1 -row 3)",
@@ -560,7 +564,7 @@ void init_flash()
 		"g.rowconfig(2, -size 0)",
 		"g.rowconfig(3, -size 0)",
 
-		"w = new Window(-content g -title \"Upgrade\")",
+		"w = new Window(-content g -title \"Update\")",
 		
 		"gfiles = new Grid()",
 		
@@ -606,7 +610,7 @@ void init_flash()
 		
 		"gfiles.place(gfiles_btn, -column 1 -row 2)",
 		
-		"w_files = new Window(-content gfiles -title \"Upgrade from files\")",
+		"w_files = new Window(-content gfiles -title \"Update from files\")",
 		0);
 
 	mtk_bind(appid, "b_webupdate", "commit", run_callback, (void *)ARG_WEB_UPDATE);

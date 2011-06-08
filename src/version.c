@@ -15,15 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H
-#define __VERSION_H
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
-#define VERSION "1.0RC1"
+char soc[13];
+char pcb[3];
+char pcb_rev[2];
 
-extern char soc[];
-extern char pcb[];
-extern char pcb_rev[];
+static void read_dev(const char *dev, char *buf, unsigned int len)
+{
+	int fd;
+	int rl;
 
-void init_version();
+	buf[0] = '?';
+	buf[1] = 0;
+	fd = open(dev, O_RDONLY);
+	if(fd == -1) return;
+	rl = read(fd, buf, len-1);
+	if(rl <= 0) {
+		close(fd);
+		return;
+	}
+	buf[rl] = 0;
+	close(fd);
+}
 
-#endif /* __VERSION_H */
+void init_version()
+{
+	read_dev("/dev/soc", soc, sizeof(soc));
+	read_dev("/dev/pcb", pcb, sizeof(pcb));
+	read_dev("/dev/pcb_rev", pcb_rev, sizeof(pcb_rev));
+}

@@ -46,6 +46,7 @@
 #include <yaffs.h>
 #include <curl/curl.h>
 
+#include "version.h"
 #include "shellext.h"
 #include "sysconfig.h"
 #include "fb.h"
@@ -116,7 +117,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	if(sysconfig_is_rescue())
 		messagebox("Rescue mode", "You have booted in rescue mode.\n"
 			"Your system will function as usual, using back-up software.\n"
-			"From there, you can upgrade the main software or perform\nother actions to fix the problem.\n");
+			"From there, you can update the main software or perform\nother actions to fix the problem.\n");
 
 	/* FIXME: work around "black screen" bug in MTK */
 	mtk_cmd(1, "screen.refresh()");
@@ -168,6 +169,8 @@ rtems_task Init(rtems_task_argument argument)
 	start_memcard();
 	mkdir("/ssd", 0777);
 	mount("/dev/flash5", "/ssd", "yaffs", RTEMS_FILESYSTEM_READ_WRITE, "");
+	
+	init_version();
 
 	sysconfig_load();
 	rtems_bsdnet_initialize_network();

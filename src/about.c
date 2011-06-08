@@ -17,10 +17,6 @@
 
 #include <bsp.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <mtklib.h>
 
 #include "version.h"
@@ -39,39 +35,13 @@ static void flash_callback(mtk_event *e, void *arg)
 	open_flash_window();
 }
 
-static void read_dev(const char *dev, char *buf, unsigned int len)
-{
-	int fd;
-	int rl;
-
-	buf[0] = '?';
-	buf[1] = 0;
-	fd = open(dev, O_RDONLY);
-	if(fd == -1) return;
-	rl = read(fd, buf, len-1);
-	if(rl <= 0) {
-		close(fd);
-		return;
-	}
-	buf[rl] = 0;
-	close(fd);
-
-}
-
 #define FLASH_OFFSET_MAC_ADDRESS (0x002200E0)
 
 void init_about()
 {
-	char soc[13];
-	char pcb[3];
-	char pcb_rev[2];
 	unsigned char *macadr = (unsigned char *)FLASH_OFFSET_MAC_ADDRESS;
 
 	appid = mtk_init_app("About");
-
-	read_dev("/dev/soc", soc, sizeof(soc));
-	read_dev("/dev/pcb", pcb, sizeof(pcb));
-	read_dev("/dev/pcb_rev", pcb_rev, sizeof(pcb_rev));
 
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
@@ -105,7 +75,7 @@ void init_about()
 
 		"g_btn = new Grid()",
 
-		"b_flash = new Button(-text \"Flash\")",
+		"b_flash = new Button(-text \"Update\")",
 		"b_close = new Button(-text \"Close\")",
 
 		"g_btn.place(b_flash, -column 1 -row 1)",
