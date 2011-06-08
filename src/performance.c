@@ -386,6 +386,11 @@ static void refresh_callback(mtk_event *e, int count)
 	}
 }
 
+void open_performance_window()
+{
+	mtk_cmd(appid, "w.open()");
+}
+
 static rtems_id comp_task_id;
 
 void start_performance(int simple, int dt, int as)
@@ -395,10 +400,11 @@ void start_performance(int simple, int dt, int as)
 	if(started) return;
 	started = 1;
 
-	/* build patch list */
 	simple_mode = simple;
 	dt_mode = dt;
 	as_mode = as;
+
+	/* build patch list */
 	npatches = 0;
 	current_patch = 0;
 	if(simple) {

@@ -116,7 +116,6 @@ enum {
 	CP_ITEM_SAVE,
 	CP_ITEM_FIRSTPATCH,
 	CP_ITEM_START,
-	CP_ITEM_STARTSIMPLE,
 
 	CP_ITEM_FILEMANAGER,
 	CP_ITEM_PDFREADER,
@@ -180,10 +179,7 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_firstpatch_window();
 			break;
 		case CP_ITEM_START:
-			start_performance(0, 0, 0);
-			break;
-		case CP_ITEM_STARTSIMPLE:
-			start_performance(1, 1, 0);
+			open_performance_window();
 			break;
 
 		case CP_ITEM_FILEMANAGER:
@@ -286,18 +282,14 @@ void init_cp()
 		"b_load = new Button(-text \"Load\")",
 		"b_save = new Button(-text \"Save\")",
 		"b_firstpatch = new Button(-text \"First patch\")",
-		"g_start = new Grid()",
 		"b_start = new Button(-text \"Start!\")",
-		"b_startsimple = new Button(-text \"Simple mode\")",
-		"g_start.place(b_start, -column 1 -row 1)",
-		"g_start.place(b_startsimple, -column 2 -row 1)",
 		"g_performance.place(b_new, -column 1 -row 1)",
 		"g_performance.place(b_load, -column 2 -row 1)",
 		"g_performance.place(b_save, -column 3 -row 1)",
 		"g.place(g_performance0, -column 1 -row 8)",
 		"g.place(g_performance, -column 1 -row 9)",
 		"g.place(b_firstpatch, -column 1 -row 10)",
-		"g.place(g_start, -column 1 -row 11)",
+		"g.place(b_start, -column 1 -row 11)",
 
 		"g_tools0 = new Grid()",
 		"l_tools = new Label(-text \"Tools\" -font \"title\")",
@@ -356,7 +348,6 @@ void init_cp()
 	mtk_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
 	mtk_bind(appid, "b_firstpatch", "commit", cp_callback, (void *)CP_ITEM_FIRSTPATCH);
 	mtk_bind(appid, "b_start", "commit", cp_callback, (void *)CP_ITEM_START);
-	mtk_bind(appid, "b_startsimple", "commit", cp_callback, (void *)CP_ITEM_STARTSIMPLE);
 	mtk_bind(appid, "b_filemanager", "commit", cp_callback, (void *)CP_ITEM_FILEMANAGER);
 #ifdef WITH_PDF
 	mtk_bind(appid, "b_pdfreader", "commit", cp_callback, (void *)CP_ITEM_PDFREADER);
