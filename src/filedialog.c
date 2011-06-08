@@ -45,11 +45,14 @@ static void display_folder(struct filedialog *dlg, const char *folder)
 	char fmt_files[8192];
 	char *c_files;
 	char fullname[384];
+	char quickfind[384];
 	DIR *d;
 	struct dirent *entry;
 	struct stat s;
 	int len;
 	char *c;
+
+	mtk_req(dlg->appid, quickfind, sizeof(quickfind), "fd_gqf_e.text");
 
 	d = opendir(folder);
 	if(!d) return;
@@ -69,9 +72,12 @@ static void display_folder(struct filedialog *dlg, const char *folder)
 				}
 			}
 		} else {
-			/* hide files without the extension we are looking for */
+			/* hide files without the extension we are looking for
+			 * and those which do not match the quickfind entry (if any).
+			 */
 			c = strrchr(entry->d_name, '.');
-			if((dlg->extfilter[0] == 0) || ((c != NULL) && (strcmp(dlg->extfilter, c+1) == 0))) {
+			if(((dlg->extfilter[0] == 0) || ((c != NULL) && (strcmp(dlg->extfilter, c+1) == 0)))
+			  && ((quickfind[0] == 0) || (strcasestr(entry->d_name, quickfind) != NULL))) {
 				if(n_files < 384) {
 					files[n_files] = strdup(entry->d_name);
 					n_files++;
@@ -115,6 +121,29 @@ static void display_folder(struct filedialog *dlg, const char *folder)
 	mtk_cmdf(dlg->appid, "fd_selection.set(-text \"Selection: %s\")", folder);
 	mtk_cmd(dlg->appid, "fd_g2_foldersf.expose(0, 0)");
 	mtk_cmd(dlg->appid, "fd_g2_filesf.expose(0, 0)");
+}
+
+static void refresh(struct filedialog *dlg)
+{
+	char curfolder[384];
+
+	mtk_req(dlg->appid, curfolder, sizeof(curfolder), "fd_g1_l.text");
+	display_folder(dlg, curfolder);
+	mtk_cmd(dlg->appid, "fd_filename.set(-text \"\")");
+}
+
+static void gqf_change_callback(mtk_event *e, void *arg)
+{
+	struct filedialog *dlg = arg;
+	refresh(dlg);
+}
+
+static void gqf_clear_callback(mtk_event *e, void *arg)
+{
+	struct filedialog *dlg = arg;
+
+	mtk_cmd(dlg->appid, "fd_gqf_e.set(-text \"\")");
+	refresh(dlg);
 }
 
 static char *get_selection(char *list, int n)
@@ -238,6 +267,15 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 	mtk_cmd(dlg->appid, "fd_g1.place(fd_g1_s1, -column 1 -row 1)");
 	mtk_cmd(dlg->appid, "fd_g1.place(fd_g1_l, -column 2 -row 1)");
 	mtk_cmd(dlg->appid, "fd_g1.place(fd_g1_s2, -column 3 -row 1)");
+	
+	mtk_cmd(dlg->appid, "fd_gqf = new Grid()");
+	mtk_cmd(dlg->appid, "fd_gqf_l = new Label(-text \"Quick find: \")");
+	mtk_cmd(dlg->appid, "fd_gqf_e = new Entry()");
+	mtk_cmd(dlg->appid, "fd_gqf_clear = new Button(-text \"Clear\")");
+	mtk_cmd(dlg->appid, "fd_gqf.place(fd_gqf_l, -column 1 -row 1)");
+	mtk_cmd(dlg->appid, "fd_gqf.place(fd_gqf_e, -column 2 -row 1)");
+	mtk_cmd(dlg->appid, "fd_gqf.place(fd_gqf_clear, -column 3 -row 1)");
+	mtk_cmd(dlg->appid, "fd_gqf.columnconfig(3, -size 0)");
 
 	mtk_cmd(dlg->appid, "fd_g2 = new Grid()");
 	mtk_cmd(dlg->appid, "fd_g2_folders = new List()");
@@ -260,13 +298,17 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 	mtk_cmd(dlg->appid, "fd_g3.place(fd_g3_cancel, -column 3 -row 1)");
 
 	mtk_cmd(dlg->appid, "fd_g.place(fd_g1, -column 1 -row 1)");
-	mtk_cmd(dlg->appid, "fd_g.place(fd_g2, -column 1 -row 2)");
-	mtk_cmd(dlg->appid, "fd_g.place(fd_selection, -column 1 -row 3 -align \"w\")");
-	mtk_cmd(dlg->appid, "fd_g.place(fd_filename, -column 1 -row 4)");
-	mtk_cmd(dlg->appid, "fd_g.place(fd_g3, -column 1 -row 5)");
-	mtk_cmd(dlg->appid, "fd_g.rowconfig(3, -size 0)");
+	mtk_cmd(dlg->appid, "fd_g.place(fd_gqf, -column 1 -row 2)");
+	mtk_cmd(dlg->appid, "fd_g.place(fd_g2, -column 1 -row 3)");
+	mtk_cmd(dlg->appid, "fd_g.place(fd_selection, -column 1 -row 4 -align \"w\")");
+	mtk_cmd(dlg->appid, "fd_g.place(fd_filename, -column 1 -row 5)");
+	mtk_cmd(dlg->appid, "fd_g.place(fd_g3, -column 1 -row 6)");
+	mtk_cmd(dlg->appid, "fd_g.rowconfig(4, -size 0)");
 
 	mtk_cmdf(dlg->appid, "fd = new Window(-content fd_g -title \"%s\")", name);
+	
+	mtk_bind(dlg->appid, "fd_gqf_e", "change", gqf_change_callback, (void *)dlg);
+	mtk_bind(dlg->appid, "fd_gqf_clear", "commit", gqf_clear_callback, (void *)dlg);
 
 	mtk_bind(dlg->appid, "fd_g2_folders", "selcommit", folder_selcommit_callback, (void *)dlg);
 	mtk_bind(dlg->appid, "fd_g2_files", "selchange", file_selchange_callback, (void *)dlg);
@@ -281,11 +323,7 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 
 void open_filedialog(struct filedialog *dlg)
 {
-	char curfolder[384];
-
-	mtk_req(dlg->appid, curfolder, sizeof(curfolder), "fd_g1_l.text");
-	display_folder(dlg, curfolder);
-	mtk_cmd(dlg->appid, "fd_filename.set(-text \"\")");
+	refresh(dlg);
 	mtk_cmd(dlg->appid, "fd.open()");
 }
 
