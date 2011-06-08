@@ -84,7 +84,7 @@ static void input_cb(mtk_event *e, int count)
 		} else {
 			if(e[i].type == EVENT_TYPE_PRESS) {
 				if((e[i].press.code == MTK_KEY_ENTER)
-				|| (e[i].press.code == MTK_KEY_F8)
+				|| (e[i].press.code == MTK_KEY_F2)
 				|| (e[i].press.code == MTK_BTN_LEFT)
 				|| (e[i].press.code == MTK_BTN_RIGHT))
 					wait_release = e[i].press.code;

@@ -170,12 +170,12 @@ static void change_callback(mtk_event *e, void *arg)
 
 static void accel_callback(mtk_event *e, void *arg)
 {
-	if((e->type == EVENT_TYPE_PRESS) && (e->press.code == MTK_KEY_F8)) {
+	if((e->type == EVENT_TYPE_PRESS) && (e->press.code == MTK_KEY_F2)) {
 		mtk_event evt;
 
 		/* hack to prevent "stuck key" bug */
 		evt.type = EVENT_TYPE_RELEASE;
-		evt.release.code = MTK_KEY_F8;
+		evt.release.code = MTK_KEY_F2;
 		mtk_input(&evt, 1);
 
 		run_callback(e, arg);
@@ -195,7 +195,7 @@ void init_patcheditor()
 		"b_save = new Button(-text \"Save\")",
 		"b_saveas = new Button(-text \"Save As\")",
 		"sep1 = new Separator(-vertical yes)",
-		"b_run = new Button(-text \"Run (F8)\")",
+		"b_run = new Button(-text \"Run (F2)\")",
 		"g_btn.place(b_new, -column 1 -row 1)",
 		"g_btn.place(b_open, -column 2 -row 1)",
 		"g_btn.place(b_save, -column 3 -row 1)",
