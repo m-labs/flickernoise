@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <png.h>
 
-#include "pngload.h"
+#include "png.h"
 #include "fbgrab.h"
 
 static char *filename = "/ssd/Screenshot-00.png";

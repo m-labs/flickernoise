@@ -34,7 +34,7 @@
 #include <mtklib.h>
 
 #include "version.h"
-#include "pngload.h"
+#include "png.h"
 #include "fb.h"
 #include "sysconfig.h"
 

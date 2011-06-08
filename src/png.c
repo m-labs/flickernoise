@@ -19,9 +19,14 @@
 #include <stdlib.h>
 #include <setjmp.h>
 #include <png.h>
+#include <zlib.h>
 
 #include "color.h"
-#include "pngload.h"
+#include "png.h"
+
+#ifdef PNG_FLOATING_ARITHMETIC_SUPPORTED
+#warning Floating point PNG is slow
+#endif
 
 static void floyd_steinberg(int *pic, int width, int height)
 {
@@ -206,28 +211,28 @@ int png_write(unsigned char *outbuffer, const char *filename,
 	png_infop info_ptr;
 	FILE *outfile;
 
-	for (i=0; i<height; i++)
+	for(i=0; i<height; i++)
 		row_pointers[i] = outbuffer + i * width * 3;
 
 	outfile = fopen(filename, "w");
-	if (outfile == NULL) {
+	if(outfile == NULL) {
 		perror("Error: Couldn't fopen");
 		return -1;
 	}
 
 	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (!png_ptr) {
+	if(!png_ptr) {
 		fprintf(stderr, "Error: Couldn't create PNG write struct\n");
 		goto free0;
 	}
 
 	info_ptr = png_create_info_struct(png_ptr);
-	if (!info_ptr) {
+	if(!info_ptr) {
 		fprintf(stderr, "Error: Couldn't create PNG info struct\n");
 		goto free1;
 	}
 
-	if (setjmp(png_jmpbuf(png_ptr))) goto free1;
+	if(setjmp(png_jmpbuf(png_ptr))) goto free1;
 
 	png_init_io(png_ptr, outfile);
 
