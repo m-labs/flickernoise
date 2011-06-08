@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,5 +23,6 @@
 typedef void (*guirender_stop_callback)();
 
 int guirender(int appid, struct patch *p, guirender_stop_callback cb);
+void guirender_stop();
 
 #endif /* __GUIRENDER_H */

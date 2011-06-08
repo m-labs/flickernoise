@@ -155,7 +155,7 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_rsswall_window();
 			break;
 		case CP_ITEM_WEBUPDATE:
-			open_flash_window();
+			open_flash_window(0);
 			break;
 
 		case CP_ITEM_EDITOR:

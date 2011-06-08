@@ -32,7 +32,7 @@ static void close_callback(mtk_event *e, void *arg)
 
 static void flash_callback(mtk_event *e, void *arg)
 {
-	open_flash_window();
+	open_flash_window(0);
 }
 
 #define FLASH_OFFSET_MAC_ADDRESS (0x002200E0)

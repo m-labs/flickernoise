@@ -638,7 +638,7 @@ void init_flash()
 	file_dlg = create_filedialog("Open flash image", 0, "", flash_filedialog_ok_callback, NULL, NULL, NULL);
 }
 
-void open_flash_window()
+void open_flash_window(int automatic)
 {
 	if(w_open) return;
 	w_open = 1;
@@ -646,4 +646,6 @@ void open_flash_window()
 	flash_progress = 0;
 	update_progress();
 	mtk_cmd(appid, "w.open()");
+	if(automatic)
+		run_callback(NULL, (void *)ARG_WEB_UPDATE);
 }

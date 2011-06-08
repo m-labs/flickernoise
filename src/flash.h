@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,6 @@
 #define __FLASH_H
 
 void init_flash();
-void open_flash_window();
+void open_flash_window(int automatic);
 
 #endif /* __FLASH_H */

@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,10 +46,14 @@ static int stop_appid;
 
 static void input_cb(mtk_event *e, int count);
 
+static int guirender_running;
 static guirender_stop_callback callback;
 
-static void stop()
+void guirender_stop()
 {
+	if(!guirender_running) return;
+	guirender_running = 0;
+
 	renderer_stop();
 
 	resmgr_release(RESOURCE_SAMPLER);
@@ -77,7 +81,7 @@ static void input_cb(mtk_event *e, int count)
 	for(i=0;i<count;i++) {
 		if(wait_release != -1) {
 			if((e[i].type == EVENT_TYPE_RELEASE) && (e[i].press.code == wait_release)) {
-				stop();
+				guirender_stop();
 				mtk_input(&e[i+1], count-i-1);
 				return;
 			}
@@ -95,6 +99,9 @@ static void input_cb(mtk_event *e, int count)
 
 int guirender(int appid, struct patch *p, guirender_stop_callback cb)
 {
+	if(guirender_running) return 0;
+		guirender_running = 1;
+
 	if(!resmgr_acquire_multiple("renderer",
 	  RESOURCE_AUDIO,
 	  RESOURCE_DMX_IN,

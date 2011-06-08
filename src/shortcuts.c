@@ -27,8 +27,12 @@
 #include "sysconfig.h"
 #include "sysettings.h"
 #include "fb.h"
+#include "guirender.h"
+#include "flash.h"
 
 static int ctrl, alt;
+static int f9_pressed;
+static rtems_interval f9_press_time;
 static int f10_pressed;
 static rtems_interval f10_press_time;
 
@@ -53,6 +57,13 @@ static void shortcuts_callback(mtk_event *e, int count)
 {
 	int i;
 
+
+	/* Handle long press on F9/left pushbutton */
+	if(f9_pressed 
+	  && ((rtems_clock_get_ticks_since_boot() - f9_press_time) > 200)) {
+		guirender_stop();
+		open_flash_window(1);
+	}
 	/* Handle long press on F10/middle pushbutton */
 	if(f10_pressed 
 	  && ((rtems_clock_get_ticks_since_boot() - f10_press_time) > 200))
@@ -70,6 +81,10 @@ static void shortcuts_callback(mtk_event *e, int count)
 				switch_resolution();
 			else if(ctrl && (e[i].press.code == MTK_KEY_F2))
 				fbgrab(NULL);
+			else if(e[i].press.code == MTK_KEY_F9) {
+				f9_pressed = 1;
+				f9_press_time = rtems_clock_get_ticks_since_boot();
+			}
 			else if(e[i].press.code == MTK_KEY_F10) {
 				f10_pressed = 1;
 				f10_press_time = rtems_clock_get_ticks_since_boot();
@@ -79,6 +94,8 @@ static void shortcuts_callback(mtk_event *e, int count)
 				ctrl = 0;
 			else if(e[i].release.code == MTK_KEY_LEFTALT)
 				alt = 0;
+			else if(e[i].release.code == MTK_KEY_F9)
+				f9_pressed = 0;
 			else if(e[i].release.code == MTK_KEY_F10)
 				f10_pressed = 0;
 		}
