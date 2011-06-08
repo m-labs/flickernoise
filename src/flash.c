@@ -45,6 +45,7 @@ static int current_file_to_choose;
 
 enum {
 	ARG_FILE_UPDATE = 0,
+	ARG_GET_VERSIONS,
 	ARG_WEB_UPDATE
 };
 
@@ -426,7 +427,7 @@ static void update_progress()
 
 static rtems_id flash_task_id;
 
-static void ok_callback(mtk_event *e, void *arg)
+static void run_callback(mtk_event *e, void *arg)
 {
 	rtems_status_code sc;
 	
@@ -471,7 +472,17 @@ static void close_callback(mtk_event *e, void *arg)
 	if(flash_busy()) return;
 	close_filedialog(file_dlg);
 	mtk_cmd(appid, "w.close()");
+	mtk_cmd(appid, "w_files.close()");
 	w_open = 0;
+}
+static void openfiles_callback(mtk_event *e, void *arg)
+{
+	mtk_cmd(appid, "w_files.open()");
+}
+
+static void closefiles_callback(mtk_event *e, void *arg)
+{
+	mtk_cmd(appid, "w_files.close()");
 }
 
 static void flash_filedialog_ok_callback()
@@ -497,38 +508,27 @@ void init_flash()
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
-		"l0 = new Label(-text \"Select images to flash.\nIf your synthesizer does not restart after flashing, don't panic!\nHold right (R) pushbutton during power-up to enable rescue mode.\")",
+		"l0 = new Label(-text \"Click the 'Update from web' button to begin.\nIf your synthesizer does not restart after the upgrade, don't panic!\nHold right (R) pushbutton during power-up to enable rescue mode.\")",
 
 		"g.place(l0, -column 1 -row 1 -align w)",
 
 		"g2 = new Grid()",
-		"g2.columnconfig(1, -size 0)",
-		"g2.columnconfig(2, -size 250)",
-		"g2.columnconfig(3, -size 0)",
-
-		"l1 = new Label(-text \"Bitstream image (.FPG):\")",
-		"l2 = new Label(-text \"BIOS image (.BIN):\")",
-		"l3 = new Label(-text \"Application image (.FBI):\")",
-
-		"e1 = new Entry()",
-		"e2 = new Entry()",
-		"e3 = new Entry()",
-
-		"b_browse1 = new Button(-text \"Browse\")",
-		"b_browse2 = new Button(-text \"Browse\")",
-		"b_browse3 = new Button(-text \"Browse\")",
-
-		"g2.place(l1, -column 1 -row 1 -align w)",
-		"g2.place(l2, -column 1 -row 2 -align w)",
-		"g2.place(l3, -column 1 -row 3 -align w)",
-
-		"g2.place(e1, -column 2 -row 1)",
-		"g2.place(e2, -column 2 -row 2)",
-		"g2.place(e3, -column 2 -row 3)",
-
-		"g2.place(b_browse1, -column 3 -row 1)",
-		"g2.place(b_browse2, -column 3 -row 2)",
-		"g2.place(b_browse3, -column 3 -row 3)",
+		"l_socbios = new Label(-text \"SoC/BIOS:\")",
+		"l_flickernoise = new Label(-text \"Flickernoise:\")",
+		"l_installed = new Label(-text \"Installed\")",
+		"l_available = new Label(-text \"Available\")",
+		"l_socbios_i = new Label(-text \"1.0RC4\")",
+		"l_socbios_a = new Label(-text \"?\")",
+		"l_flickernoise_i = new Label(-text \"1.0RC1\")",
+		"l_flickernoise_a = new Label(-text \"?\")",
+		"g2.place(l_socbios, -column 1 -row 2)",
+		"g2.place(l_flickernoise, -column 1 -row 3)",
+		"g2.place(l_installed, -column 2 -row 1)",
+		"g2.place(l_available, -column 3 -row 1)",
+		"g2.place(l_socbios_i, -column 2 -row 2)",
+		"g2.place(l_socbios_a, -column 3 -row 2)",
+		"g2.place(l_flickernoise_i, -column 2 -row 3)",
+		"g2.place(l_flickernoise_a, -column 3 -row 3)",
 
 		"g.place(g2, -column 1 -row 2)",
 
@@ -544,31 +544,86 @@ void init_flash()
 		"g3 = new Grid()",
 
 		"b_webupdate = new Button(-text \"Update from web\")",
-		"b_ok = new Button(-text \"Update from files\")",
+		"b_checkversions = new Button(-text \"Check versions\")",
+		"b_files = new Button(-text \"Update from files\")",
 		"b_close = new Button(-text \"Close\")",
 
-		"g3.place(b_webupdate, -column 1 -row 1)",
-		"g3.place(b_ok, -column 2 -row 1)",
+		"g3.place(b_checkversions, -column 1 -row 1)",
+		"g3.place(b_files, -column 2 -row 1)",
 		"g3.place(b_close, -column 3 -row 1)",
 
 		"g.rowconfig(7, -size 10)",
-		"g.place(g3, -column 1 -row 8)",
+		"g.place(b_webupdate, -column 1 -row 8)",
+		"g.place(g3, -column 1 -row 9)",
 
 		"g.rowconfig(1, -size 0)",
 		"g.rowconfig(2, -size 0)",
 		"g.rowconfig(3, -size 0)",
 
-		"w = new Window(-content g -title \"Flash upgrade\")",
+		"w = new Window(-content g -title \"Upgrade\")",
+		
+		"gfiles = new Grid()",
+		
+		"gfiles_sel = new Grid()",
+		"gfiles_sel.columnconfig(1, -size 0)",
+		"gfiles_sel.columnconfig(2, -size 250)",
+		"gfiles_sel.columnconfig(3, -size 0)",
+		
+		"l1 = new Label(-text \"Bitstream image (.FPG):\")",
+		"l2 = new Label(-text \"BIOS image (.BIN):\")",
+		"l3 = new Label(-text \"Application image (.FBI):\")",
+
+		"e1 = new Entry()",
+		"e2 = new Entry()",
+		"e3 = new Entry()",
+
+		"b_browse1 = new Button(-text \"Browse\")",
+		"b_browse2 = new Button(-text \"Browse\")",
+		"b_browse3 = new Button(-text \"Browse\")",
+
+		"gfiles_sel.place(l1, -column 1 -row 1 -align w)",
+		"gfiles_sel.place(l2, -column 1 -row 2 -align w)",
+		"gfiles_sel.place(l3, -column 1 -row 3 -align w)",
+
+		"gfiles_sel.place(e1, -column 2 -row 1)",
+		"gfiles_sel.place(e2, -column 2 -row 2)",
+		"gfiles_sel.place(e3, -column 2 -row 3)",
+
+		"gfiles_sel.place(b_browse1, -column 3 -row 1)",
+		"gfiles_sel.place(b_browse2, -column 3 -row 2)",
+		"gfiles_sel.place(b_browse3, -column 3 -row 3)",
+		
+		"gfiles.place(gfiles_sel, -column 1 -row 1)",
+		
+		"gfiles_btn = new Grid()",
+		
+		"b_filesupdate = new Button(-text \"Flash\")",
+		"b_closefiles = new Button(-text \"Close\")",
+		
+		"gfiles_btn.columnconfig(1, -size 100)",
+		"gfiles_btn.place(b_filesupdate, -column 2 -row 1)",
+		"gfiles_btn.place(b_closefiles, -column 3 -row 1)",
+		
+		"gfiles.place(gfiles_btn, -column 1 -row 2)",
+		
+		"w_files = new Window(-content gfiles -title \"Upgrade from files\")",
 		0);
 
+	mtk_bind(appid, "b_webupdate", "commit", run_callback, (void *)ARG_WEB_UPDATE);
+	mtk_bind(appid, "b_checkversions", "commit", run_callback, (void *)ARG_GET_VERSIONS);
+	mtk_bind(appid, "b_files", "commit", openfiles_callback, NULL);
+	mtk_bind(appid, "b_close", "commit", close_callback, NULL);
+
+	mtk_bind(appid, "w", "close", close_callback, NULL);
+	
 	mtk_bind(appid, "b_browse1", "commit", opendialog_callback, (void *)1);
 	mtk_bind(appid, "b_browse2", "commit", opendialog_callback, (void *)2);
 	mtk_bind(appid, "b_browse3", "commit", opendialog_callback, (void *)3);
-	mtk_bind(appid, "b_close", "commit", close_callback, NULL);
-	mtk_bind(appid, "b_ok", "commit", ok_callback, (void *)ARG_FILE_UPDATE);
-	mtk_bind(appid, "b_webupdate", "commit", ok_callback, (void *)ARG_WEB_UPDATE);
 
-	mtk_bind(appid, "w", "close", close_callback, NULL);
+	mtk_bind(appid, "b_filesupdate", "commit", run_callback, (void *)ARG_FILE_UPDATE);
+	mtk_bind(appid, "b_closefiles", "commit", closefiles_callback, NULL);
+
+	mtk_bind(appid, "w_files", "close", closefiles_callback, NULL);
 
 	file_dlg = create_filedialog("Open flash image", 0, "", flash_filedialog_ok_callback, NULL, NULL, NULL);
 }
