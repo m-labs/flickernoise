@@ -282,7 +282,7 @@ void init_cp()
 		"b_load = new Button(-text \"Load\")",
 		"b_save = new Button(-text \"Save\")",
 		"b_firstpatch = new Button(-text \"First patch\")",
-		"b_start = new Button(-text \"Start!\")",
+		"b_start = new Button(-text \"Start\")",
 		"g_performance.place(b_new, -column 1 -row 1)",
 		"g_performance.place(b_load, -column 2 -row 1)",
 		"g_performance.place(b_save, -column 3 -row 1)",

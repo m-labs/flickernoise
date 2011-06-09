@@ -46,7 +46,7 @@ struct patch_info {
 static int npatches;
 static int current_patch;
 static struct patch_info patches[MAX_PATCHES];
-static bool simple_mode;
+static int simple_mode;
 static int dt_mode;
 static int as_mode;
 
@@ -179,6 +179,43 @@ static void close_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "w.close()");
 }
 
+static void update_buttons()
+{
+	mtk_cmdf(appid, "b_mode_simple.set(-state %s)", simple_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_file.set(-state %s)", !simple_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_simple_dt.set(-state %s)", dt_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_simple_as.set(-state %s)", as_mode ? "on" : "off");
+}
+
+static void simple_callback(mtk_event *e, void *arg)
+{
+	simple_mode = 1;
+	update_buttons();
+}
+
+static void file_callback(mtk_event *e, void *arg)
+{
+	simple_mode = 0;
+	update_buttons();
+}
+
+static void dt_callback(mtk_event *e, void *arg)
+{
+	dt_mode = !dt_mode;
+	update_buttons();
+}
+
+static void as_callback(mtk_event *e, void *arg)
+{
+	as_mode = !as_mode;
+	update_buttons();
+}
+
+static void go_callback(mtk_event *e, void *arg)
+{
+	start_performance(simple_mode, dt_mode, as_mode);
+}
+
 void init_performance()
 {
 	appid = mtk_init_app("Performance");
@@ -186,19 +223,48 @@ void init_performance()
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
-		"l_text = new Label()",
-		"progress = new LoadDisplay()",
-		"b_close = new Button(-text \"Close\")",
+		"gs = new Grid()",
+		"l_mode = new Label(-text \"Mode:\")",
+		"b_mode_simple = new Button(-text \"Simple:\")",
+		"b_mode_simple_dt = new Button(-text \"Display titles\")",
+		"b_mode_simple_as = new Button(-text \"Auto switch\")",
+		"b_mode_file = new Button(-text \"Configured\")",
+		"gs.place(l_mode, -column 1 -row 1)",
+		"gs.place(b_mode_simple, -column 2 -row 1)",
+		"gs.place(b_mode_simple_dt, -column 3 -row 1)",
+		"gs.place(b_mode_simple_as, -column 4 -row 1)",
+		"gs.place(b_mode_file, -column 2 -row 2)",
 
-		"g.place(l_text, -column 1 -row 1)",
-		"g.place(progress, -column 1 -row 2)",
-		"g.place(b_close, -column 1 -row 3)",
-		"g.columnconfig(1, -size 150)",
+		"separator1 = new Separator()",
+		"l_status = new Label(-text \"Ready.\")",
+		"progress = new LoadDisplay()",
+		"separator2 = new Separator()",
+		
+		"gb = new Grid()",
+		"b_go = new Button(-text \"Go!\")",
+		"b_close = new Button(-text \"Close\")",
+		"gb.place(b_go, -column 1 -row 1)",
+		"gb.place(b_close, -column 2 -row 1)",
+		"gb.columnconfig(2, -size 0)",
+
+		"g.place(gs, -row 1 -column 1)",
+		"g.place(separator1, -row 2 -column 1)",
+		"g.place(l_status, -row 3 -column 1)",
+		"g.place(progress, -row 4 -column 1)",
+		"g.place(separator2, -row 5 -column 1)",
+		"g.place(gb, -column 1 -row 6 -column 1)",
 
 		"w = new Window(-content g -title \"Performance\")",
 		0);
 
+	mtk_bind(appid, "b_mode_simple", "press", simple_callback, NULL);
+	mtk_bind(appid, "b_mode_file", "press", file_callback, NULL);
+	mtk_bind(appid, "b_mode_simple_dt", "press", dt_callback, NULL);
+	mtk_bind(appid, "b_mode_simple_as", "press", as_callback, NULL);
+	
+	mtk_bind(appid, "b_go", "commit", go_callback, NULL);
 	mtk_bind(appid, "b_close", "commit", close_callback, NULL);
+
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
@@ -286,6 +352,7 @@ static int keycode_to_index(int keycode)
 }
 
 static rtems_interval next_as_time;
+#define AUTOSWITCH_PERIOD 3000
 
 static void event_callback(mtk_event *e, int count)
 {
@@ -305,7 +372,7 @@ static void event_callback(mtk_event *e, int count)
 			t = rtems_clock_get_ticks_since_boot();
 			if(t >= next_as_time) {
 				next = 1;
-				next_as_time = t + 3000;
+				next_as_time = t + AUTOSWITCH_PERIOD;
 			}
 		}
 		if(next) {
@@ -365,8 +432,9 @@ static void refresh_callback(mtk_event *e, int count)
 			if(compiled_patches == npatches) {
 				/* All patches compiled. Start rendering. */
 				input_delete_callback(refresh_callback);
+				next_as_time = t + AUTOSWITCH_PERIOD;
 				input_add_callback(event_callback);
-				mtk_cmd(appid, "l_text.set(-text \"Done.\")");
+				mtk_cmd(appid, "l_status.set(-text \"Ready.\")");
 				if(!guirender(appid, patches[current_patch].p, stop_callback))
 					stop_callback();
 				return;
@@ -375,7 +443,7 @@ static void refresh_callback(mtk_event *e, int count)
 			int error_patch;
 
 			error_patch = -compiled_patches-1;
-			mtk_cmdf(appid, "l_text.set(-text \"Failed to compile patch %s\")", patches[error_patch].filename);
+			mtk_cmdf(appid, "l_status.set(-text \"Failed to compile patch %s\")", patches[error_patch].filename);
 			input_delete_callback(refresh_callback);
 			started = 0;
 			free_patches();
@@ -388,6 +456,7 @@ static void refresh_callback(mtk_event *e, int count)
 
 void open_performance_window()
 {
+	update_buttons();
 	mtk_cmd(appid, "w.open()");
 }
 
@@ -403,6 +472,7 @@ void start_performance(int simple, int dt, int as)
 	simple_mode = simple;
 	dt_mode = dt;
 	as_mode = as;
+	open_performance_window();
 
 	/* build patch list */
 	npatches = 0;
@@ -431,9 +501,8 @@ void start_performance(int simple, int dt, int as)
 
 	/* start patch compilation task */
 	compiled_patches = 0;
-	mtk_cmd(appid, "l_text.set(-text \"Compiling patches...\")");
+	mtk_cmd(appid, "l_status.set(-text \"Compiling patches...\")");
 	mtk_cmd(appid, "progress.barconfig(load, -value 0)");
-	mtk_cmd(appid, "w.open()");
 	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
 	input_add_callback(refresh_callback);
 	sc = rtems_task_create(rtems_build_name('C', 'O', 'M', 'P'), 20, 64*1024,
