@@ -49,24 +49,24 @@ bandfilters.h: bandfilters.sce
 	scilab -nw -nwni -nogui -nb -f bandfilters.sce
 
 # boot images for Milkymist One
-$(BINDIR)/flickernoise.ralf: $(BINDIR)/flickernoise
+$(BINDIR)/flickernoise.bin: $(BINDIR)/flickernoise
 	$(OBJCOPY) -O binary $< $@
 
-$(BINDIR)/flickernoise.fbi: $(BINDIR)/flickernoise.ralf
+$(BINDIR)/flickernoise.fbi: $(BINDIR)/flickernoise.bin
 	mkmmimg $< write $@
 
-$(BINDIR)/flickernoise.lzma: $(BINDIR)/flickernoise.ralf
+$(BINDIR)/flickernoise.lzma: $(BINDIR)/flickernoise.bin
 	cat $< | lzma > $@
 
 $(BINDIR)/flickernoise.fbiz: $(BINDIR)/flickernoise.lzma
 	mkmmimg $< writelzma $@
 
 # convenience target for loading to MM board
-load: $(BINDIR)/flickernoise.ralf
+load: $(BINDIR)/flickernoise.bin
 	cp $< /var/lib/tftpboot/boot.bin
 
 clean:
-	rm -f $(BINDIR)/flickernoise $(BINDIR)/flickernoise.ralf 
+	rm -f $(BINDIR)/flickernoise $(BINDIR)/flickernoise.bin 
 	rm -f $(BINDIR)/flickernoise.lzma $(BINDIR)/flickernoise.fbi $(BINDIR)/flickernoise.fbiz 
 	rm -f $(POBJS)
 
