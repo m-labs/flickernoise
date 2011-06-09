@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,9 +20,11 @@
 
 #include <mtklib.h>
 
-#define EVENT_TYPE_IR     (EVENT_TYPE_USER_BASE)
-#define EVENT_TYPE_MIDI   (EVENT_TYPE_USER_BASE+1)
-#define EVENT_TYPE_OSC    (EVENT_TYPE_USER_BASE+2)
+#define EVENT_TYPE_IR              (EVENT_TYPE_USER_BASE)
+#define EVENT_TYPE_MIDI_NOTEON     (EVENT_TYPE_USER_BASE+1)
+#define EVENT_TYPE_MIDI_CONTROLLER (EVENT_TYPE_USER_BASE+2)
+#define EVENT_TYPE_MIDI_PITCH      (EVENT_TYPE_USER_BASE+3)
+#define EVENT_TYPE_OSC             (EVENT_TYPE_USER_BASE+4)
 
 typedef void (*input_callback)(mtk_event *e, int count);
 

@@ -235,13 +235,24 @@ static int handle_ir_event(mtk_event *e, unsigned char *msg)
 		return 0;
 }
 
-static void handle_note_on(mtk_event *e, unsigned char *msg)
+static int handle_midi_msg(mtk_event *e, unsigned char *msg)
 {
-	if((msg[0] & 0xf0) == 0x90) {
-		/* Note On */
-		e->type = EVENT_TYPE_MIDI;
-		e->press.code = (((unsigned int)(msg[0]) & 0x0f) << 8)
-			|(unsigned int)msg[1];
+	e->press.code = ((unsigned int)(msg[0]) & 0x0f) << 16; /* set channel */
+	switch(msg[0] & 0xf0) {
+		case 0x90: /* Note On */
+			e->type = EVENT_TYPE_MIDI_NOTEON;
+			e->press.code |= (unsigned int)msg[1];
+			return 1;
+		case 0xb0: /* Controller */
+			e->type = EVENT_TYPE_MIDI_CONTROLLER;
+			e->press.code |= ((unsigned int)msg[1] << 8) | (unsigned int)msg[2];
+			return 1;
+		case 0xe0: /* Pitch */
+			e->type = EVENT_TYPE_MIDI_PITCH;
+			e->press.code |= (unsigned int)msg[2];
+			return 1;
+		default:
+			return 0;
 	}
 }
 
@@ -254,6 +265,7 @@ static unsigned char midi_msg[3];
 static int handle_midi_event(mtk_event *e, unsigned char *msg)
 {
 	rtems_interval t;
+	int r;
 
 	t = rtems_clock_get_ticks_since_boot();
 	if(t > (midi_last + MIDI_TIMEOUT))
@@ -265,18 +277,12 @@ static int handle_midi_event(mtk_event *e, unsigned char *msg)
 
 	if(midi_p == 3) {
 		/* received a complete MIDI message */
-		handle_note_on(e, midi_msg);
+		r = handle_midi_msg(e, midi_msg);
 		midi_p = 0;
-		return 1;
+		return r;
 	}
 	
 	return 0;
-}
-
-static int handle_injected_midi_event(mtk_event *e, unsigned char *msg)
-{
-	handle_note_on(e, msg);
-	return 1;
 }
 
 static int handle_btn_event(mtk_event *e, unsigned char *msg)
@@ -428,7 +434,7 @@ void input_eventloop()
 			} else if(m.fd == btn_fd) {
 				n = handle_btn_event(&e[total], m.data);
 			} else if(m.fd == -1) {
-				n = handle_injected_midi_event(&e[total], m.data);
+				n = handle_midi_event(&e[total], m.data);
 			} else if(m.fd == -2) {
 				/* injected OSC */
 				e[total].type = EVENT_TYPE_OSC;

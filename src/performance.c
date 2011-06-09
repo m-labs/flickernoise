@@ -392,8 +392,8 @@ static void event_callback(mtk_event *e, int count)
 			} else if(e[i].type == EVENT_TYPE_IR) {
 				index = e[i].press.code;
 				index = ir_patches[index];
-			} else if(e[i].type == EVENT_TYPE_MIDI) {
-				if(((e[i].press.code & 0x0f00) >> 8) == midi_channel) {
+			} else if(e[i].type == EVENT_TYPE_MIDI_NOTEON) {
+				if(((e[i].press.code & 0x0f0000) >> 16) == midi_channel) {
 					index = e[i].press.code & 0x7f;
 					index = midi_patches[index];
 				}

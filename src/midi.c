@@ -242,17 +242,33 @@ static void selchange_callback(mtk_event *e, void *arg)
 	}
 }
 
+static void note_event(int code)
+{
+	char note[16];
+	
+	strmidi(note, code);
+	mtk_cmdf(appid, "e_note.set(-text \"%s\")", note);
+}
+
+static void controller_event(int controller, int value)
+{
+	printf("MIDI controller %d: %d\n", controller, value);
+}
+
 static void midi_event(mtk_event *e, int count)
 {
 	int i;
-	char note[16];
 
 	for(i=0;i<count;i++) {
-		if(e[i].type == EVENT_TYPE_MIDI) {
-			if(((e[i].press.code & 0x0f00) >> 8) == mtk_req_i(appid, "e_channel.text")) {
-				strmidi(note, e[i].press.code & 0x7f);
-				mtk_cmdf(appid, "e_note.set(-text \"%s\")", note);
-				break;
+		if((e[i].type == EVENT_TYPE_MIDI_NOTEON) || (e[i].type == EVENT_TYPE_MIDI_CONTROLLER) || (e[i].type == EVENT_TYPE_MIDI_PITCH)) {
+			if(((e[i].press.code & 0x0f0000) >> 16) == mtk_req_i(appid, "e_channel.text")) {
+				if(e[i].type == EVENT_TYPE_MIDI_NOTEON)
+					note_event(e[i].press.code & 0x7f);
+				else if(e[i].type == EVENT_TYPE_MIDI_CONTROLLER)
+					controller_event((e[i].press.code & 0x7f00) >> 8, e[i].press.code & 0x7f);
+				else
+					/* EVENT_TYPE_MIDI_PITCH */
+					controller_event(128, e[i].press.code & 0x7f);
 			}
 		}
 	}
