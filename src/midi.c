@@ -32,6 +32,7 @@
 #include "messagebox.h"
 #include "filedialog.h"
 #include "performance.h"
+#include "framedescriptor.h"
 
 #include "midi.h"
 
@@ -252,7 +253,7 @@ static void note_event(int code)
 
 static void controller_event(int controller, int value)
 {
-	printf("MIDI controller %d: %d\n", controller, value);
+	mtk_cmdf(appid, "l_lastctl.set(-text \"%d (%d)\")", controller, value);
 }
 
 static void midi_event(mtk_event *e, int count)
@@ -402,13 +403,15 @@ static void autobuild_callback(mtk_event *e, void *arg)
 
 void init_midi()
 {
+	int i;
+	
 	appid = mtk_init_app("MIDI");
 
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
 		"g_parameters0 = new Grid()",
-		"l_parameters = new Label(-text \"Parameters\" -font \"title\")",
+		"l_parameters = new Label(-text \"Global parameters\" -font \"title\")",
 		"s_parameters1 = new Separator(-vertical no)",
 		"s_parameters2 = new Separator(-vertical no)",
 		"g_parameters0.place(s_parameters1, -column 1 -row 1)",
@@ -419,6 +422,10 @@ void init_midi()
 		"e_channel = new Entry()",
 		"g_parameters.place(l_channel, -column 1 -row 1)",
 		"g_parameters.place(e_channel, -column 2 -row 1)",
+
+		"g_sep = new Grid()",
+
+		"g_patch = new Grid()",
 
 		"g_existing0 = new Grid()",
 		"l_existing = new Label(-text \"Existing bindings\" -font \"title\")",
@@ -455,28 +462,63 @@ void init_midi()
 		"g_addedit1.columnconfig(4, -size 0)",
 		"b_addupdate = new Button(-text \"Add/update\")",
 		"b_autobuild = new Button(-text \"Auto build\")",
+		
+		"g_patch.place(g_existing0, -column 1 -row 1)",
+		"g_patch.place(lst_existingf, -column 1 -row 2)",
+		"g_patch.rowconfig(2, -size 130)",
+		"g_patch.place(g_addedit0, -column 1 -row 3)",
+		"g_patch.place(g_addedit1, -column 1 -row 4)",
+		"g_patch.place(b_addupdate, -column 1 -row 5)",
+		"g_patch.place(b_autobuild, -column 1 -row 6)",
+		
+		"g_var = new Grid()",
+		
+		"g_cmap0 = new Grid()",
+		"l_cmap = new Label(-text \"Controller mapping\" -font \"title\")",
+		"s_cmap1 = new Separator(-vertical no)",
+		"s_cmap2 = new Separator(-vertical no)",
+		"g_cmap0.place(s_cmap1, -column 1 -row 1)",
+		"g_cmap0.place(l_cmap, -column 2 -row 1)",
+		"g_cmap0.place(s_cmap2, -column 3 -row 1)",
+		
+		"g_vars = new Grid()",
+		"g_vars.columnconfig(2, -size 55)",
+		
+		"l_lastctltxt = new Label(-text \"Latest active controller:\")",
+		"l_lastctl = new Label()",
+		
+		"g_var.place(g_cmap0, -column 1 -row 1)",
+		"g_var.place(g_vars, -column 1 -row 2)",
+		"g_var.place(l_lastctltxt, -column 1 -row 3)",
+		"g_var.place(l_lastctl, -column 1 -row 4)",
 
+		"g_sep.place(g_patch, -column 1 -row 1)",
+		"sep = new Separator(-vertical yes)",
+		"g_sep.place(sep, -column 2 -row 1)",
+		"g_sep.place(g_var, -column 3 -row 1)",
+		
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
-		"g_btn.columnconfig(1, -size 200)",
+		"g_btn.columnconfig(1, -size 450)",
 		"g_btn.place(b_ok, -column 2 -row 1)",
 		"g_btn.place(b_cancel, -column 3 -row 1)",
 
 		"g.place(g_parameters0, -column 1 -row 1)",
 		"g.place(g_parameters, -column 1 -row 2)",
-		"g.place(g_existing0, -column 1 -row 3)",
-		"g.place(lst_existingf, -column 1 -row 4)",
-		"g.rowconfig(4, -size 130)",
-		"g.place(g_addedit0, -column 1 -row 5)",
-		"g.place(g_addedit1, -column 1 -row 6)",
-		"g.place(b_addupdate, -column 1 -row 7)",
-		"g.place(b_autobuild, -column 1 -row 8)",
-		"g.rowconfig(9, -size 10)",
-		"g.place(g_btn, -column 1 -row 10)",
+		"g.place(g_sep, -column 1 -row 3)",
+		"g.rowconfig(4, -size 10)",
+		"g.place(g_btn, -column 1 -row 5)",
 
 		"w = new Window(-content g -title \"MIDI settings\")",
 		0);
+
+	for(i=0;i<MIDI_COUNT;i++) {
+		mtk_cmdf(appid, "l_midi%d = new Label(-text \"midi%d\")", i, i+1);
+		mtk_cmdf(appid, "e_midi%d = new Entry()", i);
+		mtk_cmdf(appid, "g_vars.place(l_midi%d, -column 1 -row %d)", i, i);
+		mtk_cmdf(appid, "g_vars.place(e_midi%d, -column 2 -row %d)", i, i);
+	}
 
 	mtk_bind(appid, "lst_existing", "selchange", selchange_callback, NULL);
 	mtk_bind(appid, "lst_existing", "selcommit", selchange_callback, NULL);

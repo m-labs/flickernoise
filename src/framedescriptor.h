@@ -35,6 +35,7 @@ enum {
 
 #define IDMX_COUNT 8
 #define OSC_COUNT 4
+#define MIDI_COUNT 8
 #define DMX_COUNT 8
 
 struct frame_descriptor {
