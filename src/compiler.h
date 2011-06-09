@@ -114,6 +114,15 @@ enum {
 	pfv_osc2,
 	pfv_osc3,
 	pfv_osc4,
+	
+	pfv_midi1,
+	pfv_midi2,
+	pfv_midi3,
+	pfv_midi4,
+	pfv_midi5,
+	pfv_midi6,
+	pfv_midi7,
+	pfv_midi8,
 
 	pfv_video_a,
 
@@ -170,6 +179,15 @@ enum {
 	pvv_osc2,
 	pvv_osc3,
 	pvv_osc4,
+	
+	pvv_midi1,
+	pvv_midi2,
+	pvv_midi3,
+	pvv_midi4,
+	pvv_midi5,
+	pvv_midi6,
+	pvv_midi7,
+	pvv_midi8,
 
 	COMP_PVV_COUNT /* must be last */
 };

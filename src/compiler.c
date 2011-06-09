@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,6 +148,15 @@ static const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
 	"osc2",
 	"osc3",
 	"osc4",
+	
+	"midi1",
+	"midi2",
+	"midi3",
+	"midi4",
+	"midi5",
+	"midi6",
+	"midi7",
+	"midi8",
 
 	"video_a"
 };
@@ -342,7 +351,16 @@ static const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN] = {
 	"osc1",
 	"osc2",
 	"osc3",
-	"osc4"
+	"osc4",
+	
+	"midi1",
+	"midi2",
+	"midi3",
+	"midi4",
+	"midi5",
+	"midi6",
+	"midi7",
+	"midi8",
 };
 
 static bool init_pvv(struct compiler_sc *sc)

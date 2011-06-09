@@ -47,6 +47,7 @@ struct frame_descriptor {
 	float bass_att, mid_att, treb_att;
 	float idmx[IDMX_COUNT];
 	float osc[OSC_COUNT];
+	float midi[MIDI_COUNT];
 
 	float decay;
 	float wave_mode;

@@ -104,6 +104,15 @@ static void transfer_pvv_regs(struct patch *p)
 	write_pvv(p, pvv_osc2, read_pfv(p, pfv_osc2));
 	write_pvv(p, pvv_osc3, read_pfv(p, pfv_osc3));
 	write_pvv(p, pvv_osc4, read_pfv(p, pfv_osc4));
+	
+	write_pvv(p, pvv_midi1, read_pfv(p, pfv_midi1));
+	write_pvv(p, pvv_midi2, read_pfv(p, pfv_midi2));
+	write_pvv(p, pvv_midi3, read_pfv(p, pfv_midi3));
+	write_pvv(p, pvv_midi4, read_pfv(p, pfv_midi4));
+	write_pvv(p, pvv_midi5, read_pfv(p, pfv_midi5));
+	write_pvv(p, pvv_midi6, read_pfv(p, pfv_midi6));
+	write_pvv(p, pvv_midi7, read_pfv(p, pfv_midi7));
+	write_pvv(p, pvv_midi8, read_pfv(p, pfv_midi8));
 }
 
 static void reinit_pfv(struct patch *p, int pfv)
@@ -145,6 +154,15 @@ static void set_pfv_from_frd(struct patch *p, struct frame_descriptor *frd)
 	write_pfv(p, pfv_osc2, frd->osc[1]);
 	write_pfv(p, pfv_osc3, frd->osc[2]);
 	write_pfv(p, pfv_osc4, frd->osc[3]);
+	
+	write_pfv(p, pfv_midi1, frd->midi[0]);
+	write_pfv(p, pfv_midi2, frd->midi[1]);
+	write_pfv(p, pfv_midi3, frd->midi[2]);
+	write_pfv(p, pfv_midi4, frd->midi[3]);
+	write_pfv(p, pfv_midi5, frd->midi[4]);
+	write_pfv(p, pfv_midi6, frd->midi[5]);
+	write_pfv(p, pfv_midi7, frd->midi[6]);
+	write_pfv(p, pfv_midi8, frd->midi[7]);
 }
 
 static void set_frd_from_pfv(struct patch *p, struct frame_descriptor *frd)

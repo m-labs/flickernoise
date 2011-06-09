@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <assert.h>
+#include <mtklib.h>
 #include <rtems.h>
 #include <bsp/milkymist_ac97.h>
 
@@ -29,6 +30,7 @@
 #include "analyzer.h"
 #include "osc.h"
 #include "config.h"
+#include "input.h"
 #include "sampler.h"
 
 struct snd_history {
@@ -76,6 +78,18 @@ static void get_dmx_variables(int fd, float *out)
 		read(fd, &val, 1);
 		out[i] = ((float)val)/255.0;
 	}
+}
+
+static int midi_channel;
+static int midi_map[MIDI_COUNT];
+static int midi_controllers[129];
+
+static void get_midi_variables(float *out)
+{
+	int i;
+	
+	for(i=0;i<MIDI_COUNT;i++)
+		out[i] = ((float)midi_controllers[midi_map[i]])/127.0;
 }
 
 static rtems_id returned_q;
@@ -176,9 +190,10 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		analyze_snd(recorded_descriptor, &history);
 		recorded_descriptor->time = time;
 		time += 1.0/FPS;
-		/* Get DMX/OSC */
+		/* Get DMX/OSC/MIDI inputs */
 		get_dmx_variables(dmx_fd, recorded_descriptor->idmx);
 		get_osc_variables(recorded_descriptor->osc);
+		get_midi_variables(recorded_descriptor->midi);
 		/* Update status and send downstream */
 		recorded_descriptor->status = FRD_STATUS_SAMPLED;
 		callback(recorded_descriptor);
@@ -243,6 +258,21 @@ end:
 	rtems_task_delete(RTEMS_SELF);
 }
 
+static void event_callback(mtk_event *e, int count)
+{
+	int i;
+
+	for(i=0;i<count;i++) {
+		if(e[i].type == EVENT_TYPE_MIDI_CONTROLLER) {
+			if(((e[i].press.code & 0x0f0000) >> 16) == midi_channel)
+				midi_controllers[(e[i].press.code & 0x7f00) >> 8] = e[i].press.code & 0x7f;
+		} else if(e[i].type == EVENT_TYPE_MIDI_PITCH) {
+			if(((e[i].press.code & 0x0f0000) >> 16) == midi_channel)
+				midi_controllers[128] = e[i].press.code & 0x7f;
+		}
+	}
+}
+
 static rtems_id sampler_task_id;
 
 void sampler_start(frd_callback callback)
@@ -254,6 +284,13 @@ void sampler_start(frd_callback callback)
 	for(i=0;i<IDMX_COUNT;i++) {
 		sprintf(confname, "idmx%d", i+1);
 		idmx_map[i] = config_read_int(confname, i+1)-1;
+	}
+	midi_channel = config_read_int("midi_channel", 0);
+	for(i=0;i<MIDI_COUNT;i++) {
+		sprintf(confname, "midi%d", i+1);
+		midi_map[i] = config_read_int(confname, i);
+		if((midi_map[i] < 0) || (midi_map[i] > 128))
+			midi_map[i] = i;
 	}
 
 	sc = rtems_message_queue_create(
@@ -278,6 +315,7 @@ void sampler_start(frd_callback callback)
 	assert(sc == RTEMS_SUCCESSFUL);
 	sc = rtems_task_start(sampler_task_id, sampler_task, (rtems_task_argument)callback);
 	assert(sc == RTEMS_SUCCESSFUL);
+	input_add_callback(event_callback);
 }
 
 void sampler_return(struct frame_descriptor *frd)
@@ -287,6 +325,7 @@ void sampler_return(struct frame_descriptor *frd)
 
 void sampler_stop()
 {
+	input_delete_callback(event_callback);
 	rtems_event_send(sampler_task_id, RTEMS_EVENT_0);
 
 	rtems_semaphore_obtain(sampler_terminated, RTEMS_WAIT, RTEMS_NO_TIMEOUT);

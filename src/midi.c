@@ -168,6 +168,7 @@ static void load_config()
 	char config_key[8];
 	int i;
 	const char *val;
+	int value;
 
 	mtk_cmdf(appid, "e_channel.set(-text \"%d\")", config_read_int("midi_channel", 0));
 	for(i=0;i<128;i++) {
@@ -178,13 +179,27 @@ static void load_config()
 		else
 			midi_bindings[i][0] = 0;
 	}
+	for(i=0;i<MIDI_COUNT;i++) {
+		sprintf(config_key, "midi%d", i+1);
+		value = config_read_int(config_key, i);
+		mtk_cmdf(appid, "e_midi%d.set(-text \"%d\")", i, value);
+	}
 }
 
 static void set_config()
 {
-	char config_key[8];
+	char config_key[16];
 	int i;
+	int value;
 
+	for(i=0;i<MIDI_COUNT;i++) {
+		sprintf(config_key, "e_midi%d.text", i);
+		value = mtk_req_i(appid, config_key);
+		if((value < 0) || (value > 128))
+			value = i;
+		sprintf(config_key, "midi%d", i+1);
+		config_write_int(config_key, value);
+	}
 	for(i=0;i<128;i++) {
 		sprintf(config_key, "midi_%02x", i);
 		if(midi_bindings[i][0] != 0)
