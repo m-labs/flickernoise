@@ -270,8 +270,8 @@ static char *feed_get_last(const char *url)
 	curl_easy_setopt(curl_handle, CURLOPT_URL, url);
 	/* FIXME: libcurl timeouts do not work in RTEMS */
 	// maybe needed? curl_easy_setopt(curl_handle, CURLOPT_NOSIGNAL, 1);
-	curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, 5);
-	curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 5);
+	curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, 10);
+	curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 15);
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, data_callback);
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)xml_handle);
 	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "flickernoise/"VERSION);
