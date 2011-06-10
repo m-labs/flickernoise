@@ -82,6 +82,7 @@
 static rtems_task gui_task(rtems_task_argument argument)
 {
 	init_fb_mtk(sysconfig_get_autostart_mode() != SC_AUTOSTART_NONE);
+	sysconfig_set_mtk_language();
 	sysconfig_set_mtk_wallpaper();
 	init_input();
 	input_add_callback(mtk_input);

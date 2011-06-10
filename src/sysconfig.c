@@ -32,10 +32,12 @@
 #include <net/route.h>
 #include <bsp.h>
 #include <mtklib.h>
+#include <mtki18n.h>
 
 #include "version.h"
 #include "png.h"
 #include "fb.h"
+#include "languages.h"
 #include "sysconfig.h"
 
 static struct rtems_bsdnet_ifconfig netdriver_config = {
@@ -434,6 +436,22 @@ void sysconfig_set_wallpaper(char *wallpaper)
 void sysconfig_set_language(int language)
 {
 	sysconfig.language = language;
+	sysconfig_set_mtk_language();
+}
+
+void sysconfig_set_mtk_language()
+{
+	switch(sysconfig.language) {
+		case SC_LANGUAGE_FRENCH:
+			mtk_set_language(translation_french);
+			break;
+		case SC_LANGUAGE_GERMAN:
+			mtk_set_language(translation_german);
+			break;
+		default:
+			mtk_set_language(NULL);
+			break;
+	}
 }
 
 void sysconfig_set_keyboard_layout(int layout)

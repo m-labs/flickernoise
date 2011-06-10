@@ -43,11 +43,11 @@ static void resolution_callback(mtk_event *e, void *arg)
 	sysettings_update_resolution();
 }
 
-static int current_language;
-
 static void language_callback(mtk_event *e, void *arg)
 {
-	current_language = (int)arg;
+	int language = (int)arg;
+	
+	sysconfig_set_language(language);
 	update_language();
 }
 
@@ -351,9 +351,13 @@ static void update_wallpaper()
 
 static void update_language()
 {
-	mtk_cmdf(appid, "b_lang_english.set(-state %s)", current_language == SC_LANGUAGE_ENGLISH ? "on" : "off");
-	mtk_cmdf(appid, "b_lang_french.set(-state %s)", current_language == SC_LANGUAGE_FRENCH ? "on" : "off");
-	mtk_cmdf(appid, "b_lang_german.set(-state %s)", current_language == SC_LANGUAGE_GERMAN ? "on" : "off");
+	int language;
+	
+	language = sysconfig_get_language();
+	
+	mtk_cmdf(appid, "b_lang_english.set(-state %s)", language == SC_LANGUAGE_ENGLISH ? "on" : "off");
+	mtk_cmdf(appid, "b_lang_french.set(-state %s)", language == SC_LANGUAGE_FRENCH ? "on" : "off");
+	mtk_cmdf(appid, "b_lang_german.set(-state %s)", language == SC_LANGUAGE_GERMAN ? "on" : "off");
 }
 
 static void update_layout()
@@ -466,6 +470,7 @@ static void ip_update(mtk_event *e, int count)
 static int w_open;
 
 static int previous_resolution;
+static int previous_language;
 static int previous_layout;
 static int previous_dhcp;
 static unsigned int previous_ip, previous_netmask, previous_gateway, previous_dns1, previous_dns2;
@@ -476,7 +481,7 @@ void open_sysettings_window()
 	w_open = 1;
 
 	previous_resolution = sysconfig_get_resolution();
-	current_language = sysconfig_get_language();
+	previous_language = sysconfig_get_language();
 	current_asmode = sysconfig_get_autostart_mode();
 	sysconfig_get_autostart_mode_simple(&current_asmode_dt, &current_asmode_as);
 	
@@ -520,8 +525,6 @@ static void close_sysettings_window(int save)
 		char password[32];
 		char autostart[256];
 
-		sysconfig_set_language(current_language);
-
 		mtk_req(appid, wallpaper, sizeof(wallpaper), "e_wallpaper.text");
 		mtk_req(appid, ip_txt, sizeof(ip_txt), "e_ip.text");
 		mtk_req(appid, netmask_txt, sizeof(netmask_txt), "e_netmask.text");
@@ -553,6 +556,7 @@ static void close_sysettings_window(int save)
 		sysconfig_save();
 	} else {
 		sysconfig_set_resolution(previous_resolution);
+		sysconfig_set_language(previous_language);
 		sysconfig_set_keyboard_layout(previous_layout);
 		sysconfig_set_ipconfig(previous_dhcp, previous_ip, previous_netmask,
 			previous_gateway, previous_dns1, previous_dns2);
