@@ -111,6 +111,9 @@ static int download(const char *url, const char *filename)
 	curl = curl_easy_init();
 	if (curl) {
 		curl_easy_setopt(curl, CURLOPT_URL, url);
+		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 180);
+
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
