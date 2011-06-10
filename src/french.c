@@ -25,8 +25,9 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Close",						"Fermer" },
 	{ "Filename:",						"Nom de fichier :" },
 	{ "Browse",						"Parcourir" },
-	{ "Clear",						"Effacer" },
-	{ "Ready.",						"Pr\xea""t" },
+	{ "Clear",						"Eff. ch." },
+	{ "Enable",						"Activer" },
+	{ "Ready.",						"Pr\xea""t." },
 
 	// File dialog box
 	{ "Quick find: ",					"Recherche rapide : " },
@@ -48,7 +49,7 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Web update",						"Mise \xe0"" jour web" },
 	{ "Patches",						"Patchs" },
 	{ "Patch editor",					"Editeur de patchs" },
-	{ "Variable monitor",					"Moniteur de variable" },
+	{ "Variable monitor",					"Moniteur de variables" },
 	{ "Performance",					"Performance" },
 	{ "New",						"Nouveau" },
 	{ "Load",						"Charger" },
@@ -69,10 +70,12 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Key (a-z):",						"Touche (a-z) :" },
 	{ "Add/update",						"Ajouter/mettre \xe0"" jour" },
 	{ "Auto build",						"Liste automatique" },
+	{ "Keyboard patch select",				"S\xe9""lection du patch clavier" },
 	
 	// IR settings
 	{ "IR remote control settings",				"Param\xe8""tres de la t\xe9""l\xe9""commande IR" },
 	{ "Key code:",						"Code touche :" },
+	{ "Select IR patch",					"S\xe9""lection du patch IR" },
 	
 	// Audio settings
 	{ "Audio settings",					"Param\xe8""tres audio" },
@@ -82,20 +85,24 @@ struct mtk_i18n_entry translation_french[] = {
 	
 	// MIDI settings
 	{ "MIDI settings",					"Param\xe8""tres MIDI" },
+	{ "Global parameters",					"Param\xe8""tres globaux" },
 	{ "Channel (0-15):",					"Canal (0-15) :" },
 	{ "Note:",						"Note :" },
 	{ "Controller mapping",					"Connexion des contr\xf4""leurs" },
 	{ "Latest active controller:",				"Dernier contr\xf4""leur actif :" },
+	{ "Select MIDI patch",					"S\xe9""lection du patch MIDI" },
 	
 	// OSC settings
 	{ "OSC settings",					"Param\xe8""tres OSC" },
 	{ "Number:",						"Num\xe9""ro :" },
+	{ "OSC patch select",					"S\xe9""lection du patch OSC" },
 	
 	// DMX settings
 	{ "DMX settings",					"Param\xe8""tres DMX" },
 	{ "Chain",						"Cha\xee""ner" },
 	{ "DMX spy",						"Espion DMX" },
 	{ "DMX desk",						"Table DMX" },
+	{ "Latest active channel:",				"Dernier canal actif :" },
 	
 	// Video input settings
 	{ "Video input settings",				"Param\xe8""tres" },
@@ -122,13 +129,67 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Update from web",					"Mise \xe0"" jour depuis le web" },
 	{ "Check versions",					"V\xe9rifier les versions" },
 	{ "Update from files",					"Mise \xe0"" jour depuis des fichiers" },
+	{ "Bitstream image (.FPG):",				"Image bitstream (.FPG) :" },
+	{ "BIOS image (.BIN):",					"Image BIOS (.BIN) :" },
+	{ "Application image (.FBI):",				"Image application (.FBI) :" },
+	{ "Flash",						"Flasher" },
+	{ "Patch pool:",					"Patchs partag\xe9""s :" },
+	{ "Open flash image",					"Choisir image \xe0"" flasher" },
 	
 	// Patch editor
+	{ "Open",						"Ouvrir" },
 	{ "Save As",						"Enregistrer Sous" },
 	{ "Run (F2)",						"Lancer (F2)" },
 	
 	// Performance
 	{ "Load performance",					"Charger une performance" },
+	{ "Mode:",						"Mode :" },
+	{ "Simple:",						"Simple :" },
+	{ "Display titles",					"Afficher les titres" },
+	{ "Auto switch",					"Changement automatique" },
+	{ "Configured",						"Configur\xe9" },
+	{ "Go!",						"D\xe9""marrer !" },
+	{ "Compiling patches...",				"Compilation des patchs..." },
+	{ "Select first patch",					"S\xe9""lection du premier patch" },
+	
+	// File manager
+	{ "Copy",						"Copier" },
+	{ "Move",						"D\xe9""p." },
+	{ "Name:",						"Nom :" },
+	{ "Rename",						"Renom." },
+	{ "Delete",						"Suppr." },
+	{ "Mkdir",						"Cr. rep." },
+	{ "Sure?",						"S\xfb""r?" },
+	
+	// System settings
+	{ "System settings",					"Param\xe8""tres du syst\xe8""me" },
+	{ "Desktop",						"Bureau" },
+	{ "Resolution:",					"R\xe9""solution :" },
+	{ "Wallpaper:",						"Papier peint :" },
+	{ "Select wallpaper",					"S\xe9""lection du papier peint" },
+	{ "Localization",					"Localisation" },
+	{ "Language:",						"Langue :" },
+	{ "Keyboard layout:",					"Clavier :" },
+	{ "English",						"Anglais" },
+	{ "French",						"Fran\xe7""ais" },
+	{ "German",						"Allemand" },
+	{ "US",							"US" },
+	{ "Network",						"R\xe9""seau" },
+	{ "DHCP client:",					"Client DHCP :" },
+	{ "IP address:",					"Adresse IP :" },
+	{ "Netmask:",						"Masque :" },
+	{ "Gateway:",						"Passerelle :" },
+	{ "DNS:",						"DNS :" },
+	{ "Remote access",					"Acc\xe8""s distant" },
+	{ "Login:",						"Nom :" },
+	{ "Pass:",						"MDP :" },
+	{ "Configured:",					"Configur\xe9 :" },
+	{ "Select autostart performance",			"S\xe9""lection du d\xe9""marrage automatique" },
+	
+	// Shutdown
+	{ "Do you want to power off or reboot the system?",	"Souhaitez-vous arr\xea""ter ou red\xe9""marrer le syst\xe8""me ?" },
+	{ "Power off",						"Arr\xea""ter" },
+	{ "Reboot",						"Red\xe9""marrer" },
 	
 	{ NULL, NULL }
 };

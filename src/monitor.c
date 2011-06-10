@@ -115,9 +115,9 @@ static void monitor_update(mtk_event *e, int count)
 			mtk_reqf(appid, str, sizeof(str), "var%d.text", i);
 			var = get_variable(str);
 			if(var == NULL)
-				mtk_cmdf(appid, "val%d.set(-text \"N/A\")", i);
+				mtk_cmdf(appid, "val%d.set(-text \"\e--\")", i);
 			else
-				mtk_cmdf(appid, "val%d.set(-text \"%.2f\")", i, *var);
+				mtk_cmdf(appid, "val%d.set(-text \"\e%.2f\")", i, *var);
 		}
 		next_update = t + UPDATE_PERIOD;
 	}
@@ -147,7 +147,7 @@ void init_monitor()
 		column = i > 3 ? 3 : 1;
 		brow = i & 3;
 		mtk_cmdf(appid, "var%d = new Entry()", i);
-		mtk_cmdf(appid, "val%d = new Label(-text \"N/A\")", i);
+		mtk_cmdf(appid, "val%d = new Label(-text \"\e--\")", i);
 		mtk_cmdf(appid, "g.place(var%d, -column %d -row %d)", i, column, 3*brow+1);
 		mtk_cmdf(appid, "g.place(val%d, -column %d -row %d)", i, column, 3*brow+2);
 		/* Put a horizontal separator everywhere except for the last row */

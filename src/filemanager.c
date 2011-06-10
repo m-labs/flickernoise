@@ -306,8 +306,8 @@ void init_filemanager()
 		"pc_g = new Grid()",
 		"pc_copy = new Button(-text \"Copy\" -state on)",
 		"pc_move = new Button(-text \"Move\")",
-		"pc_to = new Button(-text \"->\")",
-		"pc_from = new Button(-text \"<-\")",
+		"pc_to = new Button(-text \"\e->\")",
+		"pc_from = new Button(-text \"\e<-\")",
 		"pc_g.rowconfig(1, -weight 1)",
 		"pc_g.place(pc_copy, -row 2 -column 1)",
 		"pc_g.place(pc_move, -row 3 -column 1)",
@@ -348,7 +348,7 @@ void init_filemanager()
 		
 		"g.columnconfig(3, -size 0)",
 		
-		"w = new Window(-content g -title \"File manager\" -workh 350)",
+		"w = new Window(-content g -title \"File manager\" -workx 20 -workh 350)",
 	0);
 	
 	mtk_bind(appid, "pc_copy", "press", mode_callback, (void *)0);

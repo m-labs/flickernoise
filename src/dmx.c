@@ -189,13 +189,13 @@ void init_dmx()
 		0);
 
 	for(i=0;i<IDMX_COUNT;i++) {
-		mtk_cmdf(appid, "l_idmx%d = new Label(-text \"idmx%d\")", i, i+1);
+		mtk_cmdf(appid, "l_idmx%d = new Label(-text \"\eidmx%d\")", i, i+1);
 		mtk_cmdf(appid, "e_idmx%d = new Entry()", i);
 		mtk_cmdf(appid, "g_in.place(l_idmx%d, -column 1 -row %d)", i, i);
 		mtk_cmdf(appid, "g_in.place(e_idmx%d, -column 2 -row %d)", i, i);
 	}
 	for(i=0;i<DMX_COUNT;i++) {
-		mtk_cmdf(appid, "l_dmx%d = new Label(-text \"dmx%d\")", i, i+1);
+		mtk_cmdf(appid, "l_dmx%d = new Label(-text \"\edmx%d\")", i, i+1);
 		mtk_cmdf(appid, "e_dmx%d = new Entry()", i);
 		mtk_cmdf(appid, "g_out.place(l_dmx%d, -column 1 -row %d)", i, i);
 		mtk_cmdf(appid, "g_out.place(e_dmx%d, -column 2 -row %d)", i, i);

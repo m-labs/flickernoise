@@ -529,7 +529,7 @@ void init_midi()
 		0);
 
 	for(i=0;i<MIDI_COUNT;i++) {
-		mtk_cmdf(appid, "l_midi%d = new Label(-text \"midi%d\")", i, i+1);
+		mtk_cmdf(appid, "l_midi%d = new Label(-text \"\emidi%d\")", i, i+1);
 		mtk_cmdf(appid, "e_midi%d = new Entry()", i);
 		mtk_cmdf(appid, "g_vars.place(l_midi%d, -column 1 -row %d)", i, i);
 		mtk_cmdf(appid, "g_vars.place(e_midi%d, -column 2 -row %d)", i, i);

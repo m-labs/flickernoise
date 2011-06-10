@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,12 +33,12 @@ void init_messagebox()
 	appid = mtk_init_app("Messagebox");
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
-		"l = new Label(-text \"text\")",
+		"l = new Label(-text \"\etext\")",
 		"b_ok = new Button(-text \"OK\")",
 		"g.place(l, -column 1 -row 1)",
 		"g.rowconfig(1, -size 50)",
 		"g.place(b_ok, -column 1 -row 2)",
-		"w = new Window(-content g -title \"title\")",
+		"w = new Window(-content g -title \"\etitle\")",
 		0);
 
 	mtk_bind(appid, "b_ok", "commit", close_callback, NULL);

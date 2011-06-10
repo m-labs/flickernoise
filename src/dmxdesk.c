@@ -90,13 +90,13 @@ void init_dmxdesk()
 	mtk_cmd(appid, "g = new Grid()");
 
 	for(i=0;i<64;i++) {
-		mtk_cmdf(appid, "chanbtn%d = new Button(-text \"%d-%d\")", i, 8*i+1, 8*i+8);
+		mtk_cmdf(appid, "chanbtn%d = new Button(-text \"\e%d-%d\")", i, 8*i+1, 8*i+8);
 		mtk_cmdf(appid, "g.place(chanbtn%d, -column %d -row %d)", i, i % 8, i / 8);
 		mtk_bindf(appid, "chanbtn%d", "press", chanbtn_callback, (void *)i, i);
 	}
 	for(i=0;i<8;i++) {
 		mtk_cmdf(appid, "slide%d = new Scale(-from 0 -to 255 -value 255 -orient vertical)", i);
-		mtk_cmdf(appid, "label%d = new Label(-text \"%d\")", i, i+1);
+		mtk_cmdf(appid, "label%d = new Label(-text \"\e%d\")", i, i+1);
 		mtk_cmdf(appid, "g.place(slide%d, -column %d -row 8)", i, i);
 		mtk_cmdf(appid, "g.place(label%d, -column %d -row 9)", i, i);
 	}
