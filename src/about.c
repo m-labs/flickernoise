@@ -46,16 +46,16 @@ void init_about()
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
 
-		"flickernoise = new Label(-text \"Flickernoise "VERSION" (built on "__DATE__")\")",
-		"mtk = new Label(-text \"GUI toolkit: MTK "MTK_VERSION"\")",
-		"rtems = new Label(-text \"OS: RTEMS "RTEMS_VERSION"\")",
+		"flickernoise = new Label(-text \"\eFlickernoise "VERSION" (built on "__DATE__")\")",
+		"mtk = new Label(-text \"\eGUI toolkit: MTK "MTK_VERSION"\")",
+		"rtems = new Label(-text \"\eOS: RTEMS "RTEMS_VERSION"\")",
 		0);
 
-	mtk_cmdf(appid, "platform = new Label(-text \"Platform: Milkymist SoC %s\")", soc);
-	mtk_cmd(appid, "cpu = new Label(-text \"CPU: LatticeMico32\")");
-	mtk_cmdf(appid, "board = new Label(-text \"Board: %s (PCB rev. %s)\")", pcb, pcb_rev);
+	mtk_cmdf(appid, "platform = new Label(-text \"\ePlatform: Milkymist SoC %s\")", soc);
+	mtk_cmd(appid, "cpu = new Label(-text \"\eCPU: LatticeMico32\")");
+	mtk_cmdf(appid, "board = new Label(-text \"\eBoard: %s (PCB rev. %s)\")", pcb, pcb_rev);
 	mtk_cmd(appid, "sep1 = new Separator(-vertical no)");
-	mtk_cmdf(appid, "mac = new Label(-text \"Ethernet MAC: %02x:%02x:%02x:%02x:%02x:%02x\")", macadr[0], macadr[1], macadr[2], macadr[3], macadr[4], macadr[5]);
+	mtk_cmdf(appid, "mac = new Label(-text \"\eEthernet MAC: %02x:%02x:%02x:%02x:%02x:%02x\")", macadr[0], macadr[1], macadr[2], macadr[3], macadr[4], macadr[5]);
 	mtk_cmd_seq(appid, "sep2 = new Separator(-vertical no)",
 		"info = new Label(-text \"Flickernoise is free software, released under GNU GPL version 3.\n"
 		"Copyright (C) 2010, 2011 Flickernoise developers.\n"

@@ -35,7 +35,7 @@ struct mtk_i18n_entry translation_french[] = {
 
 	// Control panel
 	{ "Control panel",					"Panneau de contr\xf4""le" },
-	{ "Control panel [modified]",				"Panneau de contr\xf4""le [modifi\xe9""]" },
+	{ "Control panel *",					"Panneau de contr\xf4""le *" },
 	{ "Interfaces",						"Interfaces" },
 	{ "Keyboard",						"Clavier" },
 	{ "IR remote",						"T\xe9""l\xe9""commande IR" },
@@ -54,6 +54,7 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "New",						"Nouveau" },
 	{ "Load",						"Charger" },
 	{ "Save",						"Enregistrer" },
+	{ "Save performance",					"Enregistrer performance" },
 	{ "First patch",					"Premier patch" },
 	{ "Start",						"D\xe9""marrer" },
 	{ "Tools",						"Outils" },
@@ -70,7 +71,7 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Key (a-z):",						"Touche (a-z) :" },
 	{ "Add/update",						"Ajouter/mettre \xe0"" jour" },
 	{ "Auto build",						"Liste automatique" },
-	{ "Keyboard patch select",				"S\xe9""lection du patch clavier" },
+	{ "Select keyboard patch",				"S\xe9""lection du patch clavier" },
 	
 	// IR settings
 	{ "IR remote control settings",				"Param\xe8""tres de la t\xe9""l\xe9""commande IR" },
@@ -138,7 +139,7 @@ struct mtk_i18n_entry translation_french[] = {
 	
 	// Patch editor
 	{ "Open",						"Ouvrir" },
-	{ "Save As",						"Enregistrer Sous" },
+	{ "Save As",						"Enregistrer sous" },
 	{ "Run (F2)",						"Lancer (F2)" },
 	
 	// Performance

@@ -50,9 +50,9 @@ static void update_wintitle()
 		else
 			short_filename++;
 	}
-	mtk_cmdf(appid, "w.set(-title \"Patch editor [%s]%s\")",
+	mtk_cmdf(appid, "w.set(-title \"\e[%s]%s\")",
 		short_filename,
-		modified ? " [modified]" : "");
+		modified ? " *" : "");
 }
 
 static void new_callback(mtk_event *e, void *arg)
@@ -209,7 +209,7 @@ void init_patcheditor()
 		"status = new Label(-text \"Ready.\" -font \"title\")",
 		"g.place(status, -column 1 -row 3 -align \"nw\")",
 		"g.rowconfig(3, -size 0)",
-		"w = new Window(-content g -title \"Patch editor [untitled]\" -workw 400 -workh 300)",
+		"w = new Window(-content g -title \"\e[untitled]\" -workw 400 -workh 300)",
 		0);
 
 	fileopen_dlg = create_filedialog("Open patch", 0, "fnp", openok_callback, NULL, NULL, NULL);

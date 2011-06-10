@@ -521,20 +521,20 @@ void init_flash()
 		"g.place(l0, -column 1 -row 1 -align w)",
 
 		"g2 = new Grid()",
-		"l_socbios = new Label(-text \"SoC/BIOS:\")",
-		"l_flickernoise = new Label(-text \"Flickernoise:\")",
+		"l_socbios = new Label(-text \"\eSoC/BIOS:\")",
+		"l_flickernoise = new Label(-text \"\eFlickernoise:\")",
 		"l_patchpool = new Label(-text \"Patch pool:\")",
 		"l_installed = new Label(-text \"Installed\")",
 		"l_available = new Label(-text \"Available\")",
 		0);
 		
-	mtk_cmdf(appid, "l_socbios_i = new Label(-text \"%s\")", soc);
+	mtk_cmdf(appid, "l_socbios_i = new Label(-text \"\e%s\")", soc);
 	mtk_cmd_seq(appid,
 		"l_socbios_a = new Label(-text \"?\")",
-		"l_flickernoise_i = new Label(-text \""VERSION"\")",
-		"l_flickernoise_a = new Label(-text \"?\")",
-		"l_patchpool_i = new Label(-text \"?\")",
-		"l_patchpool_a = new Label(-text \"?\")",
+		"l_flickernoise_i = new Label(-text \"\e"VERSION"\")",
+		"l_flickernoise_a = new Label(-text \"\e?\")",
+		"l_patchpool_i = new Label(-text \"\e?\")",
+		"l_patchpool_a = new Label(-text \"\e?\")",
 		"g2.place(l_socbios, -column 1 -row 2)",
 		"g2.place(l_flickernoise, -column 1 -row 3)",
 		"g2.place(l_patchpool, -column 1 -row 4)",

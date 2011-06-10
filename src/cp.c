@@ -58,7 +58,7 @@ void cp_notify_changed()
 {
 	if(changed) return;
 	changed = 1;
-	mtk_cmd(appid, "w.set(-title \"Control panel [modified]\")");
+	mtk_cmd(appid, "w.set(-title \"Control panel *\")");
 }
 
 static void clear_changed()
