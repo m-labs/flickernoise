@@ -37,6 +37,7 @@
 #include "input.h"
 #include "flashvalid.h"
 #include "version.h"
+#include "sysconfig.h"
 
 #include "flash.h"
 
@@ -509,11 +510,14 @@ void init_flash()
 {
 	appid = mtk_init_app("Flash");
 
+	mtk_cmd(appid, "g = new Grid()");
+
+	if(sysconfig_is_rescue())
+		mtk_cmd(appid, "l0 = new Label(-text \"Click the 'Update from web' button to begin.\nSince you are in rescue mode, the new software will always be reinstalled,\neven if you already have the latest version.\")");
+	else
+		mtk_cmd(appid, "l0 = new Label(-text \"Click the 'Update from web' button to begin.\nIf your synthesizer does not restart after the update, don't panic!\nHold right (R) pushbutton during power-up to enable rescue mode.\")");
+
 	mtk_cmd_seq(appid,
-		"g = new Grid()",
-
-		"l0 = new Label(-text \"Click the 'Update from web' button to begin.\nIf your synthesizer does not restart after the update, don't panic!\nHold right (R) pushbutton during power-up to enable rescue mode.\")",
-
 		"g.place(l0, -column 1 -row 1 -align w)",
 
 		"g2 = new Grid()",
