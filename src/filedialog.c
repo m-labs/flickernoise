@@ -117,8 +117,8 @@ static void display_folder(struct filedialog *dlg, const char *folder)
 
 	mtk_cmdf(dlg->appid, "fd_g2_folders.set(-text \"%s\" -selection 0)", fmt_folders);
 	mtk_cmdf(dlg->appid, "fd_g2_files.set(-text \"%s\" -selection 0)", fmt_files);
-	mtk_cmdf(dlg->appid, "fd_g1_l.set(-text \"%s\")", folder);
-	mtk_cmdf(dlg->appid, "fd_selection.set(-text \"Selection: %s\")", folder);
+	mtk_cmdf(dlg->appid, "fd_g1_l.set(-text \"\e%s\")", folder);
+	mtk_cmdf(dlg->appid, "fd_selection.set(-text \"\e%s\")", folder);
 	mtk_cmd(dlg->appid, "fd_g2_foldersf.expose(0, 0)");
 	mtk_cmd(dlg->appid, "fd_g2_filesf.expose(0, 0)");
 }
@@ -128,6 +128,7 @@ static void refresh(struct filedialog *dlg)
 	char curfolder[384];
 
 	mtk_req(dlg->appid, curfolder, sizeof(curfolder), "fd_g1_l.text");
+	memmove(curfolder, curfolder+1, sizeof(curfolder)-1);
 	display_folder(dlg, curfolder);
 	mtk_cmd(dlg->appid, "fd_filename.set(-text \"\")");
 }
@@ -175,6 +176,7 @@ static void folder_selcommit_callback(mtk_event *e, void *arg)
 	char *selection;
 
 	mtk_req(dlg->appid, curfolder, sizeof(curfolder), "fd_g1_l.text");
+	memmove(curfolder, curfolder+1, sizeof(curfolder)-1);
 	mtk_req(dlg->appid, folderlist, sizeof(folderlist), "fd_g2_folders.text");
 	mtk_req(dlg->appid, num, sizeof(num), "fd_g2_folders.selection");
 	nselection = atoi(num);
@@ -262,7 +264,7 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 
 	mtk_cmd(dlg->appid, "fd_g1 = new Grid()");
 	mtk_cmd(dlg->appid, "fd_g1_s1 = new Separator(-vertical no)");
-	mtk_cmd(dlg->appid, "fd_g1_l = new Label(-text \"/\")");
+	mtk_cmd(dlg->appid, "fd_g1_l = new Label(-text \"\e/\")");
 	mtk_cmd(dlg->appid, "fd_g1_s2 = new Separator(-vertical no)");
 	mtk_cmd(dlg->appid, "fd_g1.place(fd_g1_s1, -column 1 -row 1)");
 	mtk_cmd(dlg->appid, "fd_g1.place(fd_g1_l, -column 2 -row 1)");
@@ -286,7 +288,11 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 	mtk_cmd(dlg->appid, "fd_g2.place(fd_g2_filesf, -column 2 -row 1)");
 	mtk_cmd(dlg->appid, "fd_g2.rowconfig(1, -size 200)");
 
-	mtk_cmd(dlg->appid, "fd_selection = new Label(-text \"Selection: /\")");
+	mtk_cmd(dlg->appid, "fd_g_selection = new Grid()");
+	mtk_cmd(dlg->appid, "fd_selection0 = new Label(-text \"Selection:\")"); 
+	mtk_cmd(dlg->appid, "fd_selection = new Label(-text \"\e/\")");
+	mtk_cmd(dlg->appid, "fd_g_selection.place(fd_selection0, -column 1 -row 1)");
+	mtk_cmd(dlg->appid, "fd_g_selection.place(fd_selection, -column 2 -row 1)");
 
 	mtk_cmd(dlg->appid, "fd_filename = new Entry()");
 
@@ -300,7 +306,7 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 	mtk_cmd(dlg->appid, "fd_g.place(fd_g1, -column 1 -row 1)");
 	mtk_cmd(dlg->appid, "fd_g.place(fd_gqf, -column 1 -row 2)");
 	mtk_cmd(dlg->appid, "fd_g.place(fd_g2, -column 1 -row 3)");
-	mtk_cmd(dlg->appid, "fd_g.place(fd_selection, -column 1 -row 4 -align \"w\")");
+	mtk_cmd(dlg->appid, "fd_g.place(fd_g_selection, -column 1 -row 4 -align \"w\")");
 	mtk_cmd(dlg->appid, "fd_g.place(fd_filename, -column 1 -row 5)");
 	mtk_cmd(dlg->appid, "fd_g.place(fd_g3, -column 1 -row 6)");
 	mtk_cmd(dlg->appid, "fd_g.rowconfig(4, -size 0)");
@@ -338,6 +344,7 @@ void get_filedialog_selection(struct filedialog *dlg, char *buffer, int buflen)
 	char *c;
 
 	mtk_req(dlg->appid, buffer, buflen, "fd_g1_l.text");
+	memmove(buffer, buffer+1, buflen-1);
 	mtk_req(dlg->appid, file, sizeof(file), "fd_filename.text");
 	strncat(buffer, file, buflen);
 	if(dlg->is_save) {

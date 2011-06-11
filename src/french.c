@@ -29,6 +29,15 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Enable",						"Activer" },
 	{ "Ready.",						"Pr\xea""t." },
 
+	// Main
+	{ "Rescue mode",					"Mode de secours" },
+	{ "You have booted in rescue mode.\n"
+	  "Your system will function as usual, using back-up software.\n"
+	  "From there, you can update the main software or perform\nother actions to fix the problem.\n",
+	  "Vous avez activ\xe9"" le mode de secours.\n"
+	  "Votre syst\xe8""me fonctionne normalement, en utilisant une copie de sauvegarde du logiciel.\n"
+	  "Vous pouvez effectuer une mise \xe0"" jour pour r\xe9""installer le logiciel principal\net tenter de corriger le probl\xe8""me.\n" },
+
 	// File dialog box
 	{ "Quick find: ",					"Recherche rapide : " },
 	{ "Selection:",						"S\xe9""lection :" },
@@ -106,14 +115,17 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Latest active channel:",				"Dernier canal actif :" },
 	
 	// Video input settings
-	{ "Video input settings",				"Param\xe8""tres" },
+	{ "Video input settings",				"Param\xe8""tres d'entr\xe9""e vid\xe9""o" },
 	{ "Brightness:",					"Luminosit\xe9"" :" },
 	{ "Contrast:",						"Contraste :" },
 	{ "Hue:",						"Teinte :" },
 	{ "Detected signal:",					"Signal d\xe9tect\xe9 :" },
+	{ "Preview",						"Pr\xe9""visualisation" },
 	{ "None",						"Aucun" },
+	{ "Unknown",						"Inconnu" },
 	
 	// RSS wall
+	{ "Wall:",						"Mur :" },
 	{ "RSS/ATOM wall",					"Mur RSS/ATOM" },
 	{ "RSS/ATOM URL:",					"URL RSS/ATOM" },
 	{ "Idle message:",					"Message d'inactivit\xe9"" :" },
@@ -124,11 +136,14 @@ struct mtk_i18n_entry translation_french[] = {
 	
 	// Update
 	{ "Update",						"Mise \xe0"" jour" },
-	// TODO: explanation text
+	{ "Click the 'Update from web' button to begin.\nSince you are in rescue mode, the new software will always be reinstalled,\neven if you already have the latest version.",
+	  "Cliquez sur le bouton 'Mise \xe0"" jour depuis le web' pour commencer.\nComme vous \xea""tes en mode de secours, le logiciel\nsera syst\xe0""matiquement r\xe0""install\xe0""." },
+	{ "Click the 'Update from web' button to begin.\nIf your synthesizer does not restart after the update, don't panic!\nHold right (R) pushbutton during power-up to enable rescue mode.",
+	  "Cliquez sur le bouton 'Mise \xe0"" jour depuis le web' pour commencer.\nEn cas de probl\xe8""me, appuyez sur le bouton de droite (R) pendant\nla mise en marche afin de passer en mode de secours." },
 	{ "Installed",						"Install\xe9" },
 	{ "Available",						"Disponible" },
 	{ "Update from web",					"Mise \xe0"" jour depuis le web" },
-	{ "Check versions",					"V\xe9rifier les versions" },
+	{ "Check versions",					"V\xe9""rifier les versions" },
 	{ "Update from files",					"Mise \xe0"" jour depuis des fichiers" },
 	{ "Bitstream image (.FPG):",				"Image bitstream (.FPG) :" },
 	{ "BIOS image (.BIN):",					"Image BIOS (.BIN) :" },
@@ -141,6 +156,9 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Open",						"Ouvrir" },
 	{ "Save As",						"Enregistrer sous" },
 	{ "Run (F2)",						"Lancer (F2)" },
+	{ "untitled",						"sans titre" },
+	{ "Open patch",						"Ouvrir un patch" },
+	{ "Save patch",						"Enregistrer le patch" },
 	
 	// Performance
 	{ "Load performance",					"Charger une performance" },
@@ -183,14 +201,27 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "DNS:",						"DNS :" },
 	{ "Remote access",					"Acc\xe8""s distant" },
 	{ "Login:",						"Nom :" },
-	{ "Pass:",						"MDP :" },
+	{ "Pass:",						"MdP :" },
+	{ "Autostart",						"D\xe9""marrage automatique" },
 	{ "Configured:",					"Configur\xe9 :" },
 	{ "Select autostart performance",			"S\xe9""lection du d\xe9""marrage automatique" },
+	
+	// About
+	{ "Flickernoise is free software, released under GNU GPL version 3.\n"
+	"Copyright (C) 2010, 2011 Flickernoise developers.\n"
+	"Milkymist is a trademark of S\xe9""bastien Bourdeauducq.\n"
+	"Web: www.milkymist.org",
+	 "Flickernoise est un logiciel libre, sous licence GNU GPL version 3.\n"
+	"Copyright (C) 2010, 2011 d\xe9""veloppeurs Flickernoise.\n"
+	"Milkymist est une marque de S\xe9""bastien Bourdeauducq.\n"
+	"Web: www.milkymist.org" },
 	
 	// Shutdown
 	{ "Do you want to power off or reboot the system?",	"Souhaitez-vous arr\xea""ter ou red\xe9""marrer le syst\xe8""me ?" },
 	{ "Power off",						"Arr\xea""ter" },
 	{ "Reboot",						"Red\xe9""marrer" },
+	
+	{ "Messagebox",						"Bo\xee""te de message" },
 	
 	{ NULL, NULL }
 };

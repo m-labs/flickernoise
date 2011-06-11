@@ -22,6 +22,7 @@
 
 #include <mtklib.h>
 #include <mtkeycodes.h>
+#include <mtki18n.h>
 
 #include "filedialog.h"
 #include "patcheditor.h"
@@ -42,7 +43,7 @@ static void update_wintitle()
 	const char *short_filename;
 
 	if(current_filename[0] == 0)
-		short_filename = "untitled";
+		short_filename = mtk_translate("untitled");
 	else {
 		short_filename = strrchr(current_filename, '/');
 		if(short_filename == NULL)
@@ -50,7 +51,7 @@ static void update_wintitle()
 		else
 			short_filename++;
 	}
-	mtk_cmdf(appid, "w.set(-title \"\e[%s]%s\")",
+	mtk_cmdf(appid, "w.set(-title \"\e%s%s\")",
 		short_filename,
 		modified ? " *" : "");
 }
@@ -209,7 +210,7 @@ void init_patcheditor()
 		"status = new Label(-text \"Ready.\" -font \"title\")",
 		"g.place(status, -column 1 -row 3 -align \"nw\")",
 		"g.rowconfig(3, -size 0)",
-		"w = new Window(-content g -title \"\e[untitled]\" -workw 400 -workh 300)",
+		"w = new Window(-content g -title \"untitled\" -workw 400 -workh 300)",
 		0);
 
 	fileopen_dlg = create_filedialog("Open patch", 0, "fnp", openok_callback, NULL, NULL, NULL);

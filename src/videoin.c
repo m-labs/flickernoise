@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -125,14 +125,14 @@ static char *fmt_video_signal(unsigned int status)
 {
 	if(!(status & 0x01)) return "None";
 	switch((status & 0x70) >> 4) {
-		case 0: return "NTSM-MJ";
-		case 1: return "NTSC-443";
-		case 2: return "PAL-M";
-		case 3: return "PAL-60";
-		case 4: return "PAL-B/G/H/I/D";
-		case 5: return "SECAM";
-		case 6: return "PAL-Combination N";
-		case 7: return "SECAM 525";
+		case 0: return "\eNTSM-MJ";
+		case 1: return "\eNTSC-443";
+		case 2: return "\ePAL-M";
+		case 3: return "\ePAL-60";
+		case 4: return "\ePAL-B/G/H/I/D";
+		case 5: return "\eSECAM";
+		case 6: return "\ePAL-Combination N";
+		case 7: return "\eSECAM 525";
 		default: return "Unknown";
 	}
 }

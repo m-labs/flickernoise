@@ -530,7 +530,7 @@ void init_flash()
 		
 	mtk_cmdf(appid, "l_socbios_i = new Label(-text \"\e%s\")", soc);
 	mtk_cmd_seq(appid,
-		"l_socbios_a = new Label(-text \"?\")",
+		"l_socbios_a = new Label(-text \"\e?\")",
 		"l_flickernoise_i = new Label(-text \"\e"VERSION"\")",
 		"l_flickernoise_a = new Label(-text \"\e?\")",
 		"l_patchpool_i = new Label(-text \"\e?\")",

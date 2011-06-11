@@ -184,7 +184,7 @@ static void addupdate_callback(mtk_event *e, void *arg)
 
 void init_ir()
 {
-	appid = mtk_init_app("IR");
+	appid = mtk_init_app("IR remote control settings");
 
 	mtk_cmd_seq(appid,
 		"g = new Grid()",

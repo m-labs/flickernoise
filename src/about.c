@@ -59,7 +59,7 @@ void init_about()
 	mtk_cmd_seq(appid, "sep2 = new Separator(-vertical no)",
 		"info = new Label(-text \"Flickernoise is free software, released under GNU GPL version 3.\n"
 		"Copyright (C) 2010, 2011 Flickernoise developers.\n"
-		"Milkymist is a trademark of Sebastien Bourdeauducq.\n"
+		"Milkymist is a trademark of S\xe9""bastien Bourdeauducq.\n"
 		"Web: www.milkymist.org\" -font \"monospaced\")",
 
 		"g.place(flickernoise, -column 1 -row 1)",

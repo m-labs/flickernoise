@@ -140,7 +140,7 @@ void init_monitor()
 	int column;
 	int brow;
 
-	appid = mtk_init_app("Monitor");
+	appid = mtk_init_app("Variable monitor");
 
 	mtk_cmd(appid, "g = new Grid()");
 	for(i=0;i<8;i++) {
