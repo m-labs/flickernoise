@@ -3,6 +3,5 @@ Flickernoise
 
 A end-user VJ application for Milkymist.
 
-(C) Copyright 2010 Sebastien Bourdeauducq.
-Licensed under GNU GPL v3. See file LICENSE.
-
+Most code is (C) Copyright 2010, 2011 Sebastien Bourdeauducq.
+All licensed under GNU GPL v3. See file LICENSE and headers in source code.
