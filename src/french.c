@@ -35,7 +35,7 @@ struct mtk_i18n_entry translation_french[] = {
 	  "Your system will function as usual, using back-up software.\n"
 	  "From there, you can update the main software or perform\nother actions to fix the problem.\n",
 	  "Vous avez activ\xe9"" le mode de secours.\n"
-	  "Votre syst\xe8""me fonctionne normalement, en utilisant une copie de sauvegarde du logiciel.\n"
+	  "Votre syst\xe8""me fonctionne normalement, en utilisant une copie\nde sauvegarde du logiciel.\n"
 	  "Vous pouvez effectuer une mise \xe0"" jour pour r\xe9""installer le logiciel principal\net tenter de corriger le probl\xe8""me.\n" },
 
 	// File dialog box
@@ -137,7 +137,7 @@ struct mtk_i18n_entry translation_french[] = {
 	// Update
 	{ "Update",						"Mise \xe0"" jour" },
 	{ "Click the 'Update from web' button to begin.\nSince you are in rescue mode, the new software will always be reinstalled,\neven if you already have the latest version.",
-	  "Cliquez sur le bouton 'Mise \xe0"" jour depuis le web' pour commencer.\nComme vous \xea""tes en mode de secours, le logiciel\nsera syst\xe0""matiquement r\xe0""install\xe0""." },
+	  "Cliquez sur le bouton 'Mise \xe0"" jour depuis le web' pour commencer.\nComme vous \xea""tes en mode de secours, le logiciel\nsera syst\xe9""matiquement r\xe9""install\xe9""." },
 	{ "Click the 'Update from web' button to begin.\nIf your synthesizer does not restart after the update, don't panic!\nHold right (R) pushbutton during power-up to enable rescue mode.",
 	  "Cliquez sur le bouton 'Mise \xe0"" jour depuis le web' pour commencer.\nEn cas de probl\xe8""me, appuyez sur le bouton de droite (R) pendant\nla mise en marche afin de passer en mode de secours." },
 	{ "Installed",						"Install\xe9" },
