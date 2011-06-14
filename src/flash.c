@@ -405,21 +405,21 @@ static void update_progress()
 			mtk_cmd(appid, "l_stat.set(-text \"Downloading bitstream...\")");
 			break;
 		case DOWNLOAD_STATE_ERROR_BITSTREAM:
-			mtk_cmd(appid, "l_stat.set(-text \"Failed to download bitstream .\")");
+			mtk_cmd(appid, "l_stat.set(-text \"Failed to download bitstream.\")");
 			input_delete_callback(refresh_callback);
 			break;
 		case DOWNLOAD_STATE_START_BIOS:
 			mtk_cmd(appid, "l_stat.set(-text \"Downloading BIOS...\")");
 			break;
 		case DOWNLOAD_STATE_ERROR_BIOS:
-			mtk_cmd(appid, "l_stat.set(-text \"Failed to download bitstream.\")");
+			mtk_cmd(appid, "l_stat.set(-text \"Failed to download BIOS.\")");
 			input_delete_callback(refresh_callback);
 			break;
 		case DOWNLOAD_STATE_START_APP:
 			mtk_cmd(appid, "l_stat.set(-text \"Downloading application...\")");
 			break;
 		case DOWNLOAD_STATE_ERROR_APP:
-			mtk_cmd(appid, "l_stat.set(-text \"Failed to download application .\")");
+			mtk_cmd(appid, "l_stat.set(-text \"Failed to download application.\")");
 			input_delete_callback(refresh_callback);
 			break;
 		case FLASH_STATE_SUCCESS:
