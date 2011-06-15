@@ -95,7 +95,7 @@ static void adjust_contrast(int amount)
 {
 	int contrast;
 
-	contrast = config_read_int("vin_contrast", 0);
+	contrast = config_read_int("vin_contrast", 0x80);
 	contrast += amount;
 	if(contrast < 0)
 		contrast = 0;
