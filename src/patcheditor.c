@@ -220,7 +220,7 @@ void init_patcheditor()
 	mtk_bind(appid, "b_open", "commit", openbtn_callback, NULL);
 	mtk_bind(appid, "b_save", "commit", save_callback, NULL);
 	mtk_bind(appid, "b_saveas", "commit", saveas_callback, NULL);
-	mtk_bind(appid, "b_run", "release", run_callback, NULL);
+	mtk_bind(appid, "b_run", "clack", run_callback, NULL);
 
 	mtk_bind(appid, "ed", "change", change_callback, NULL);
 
