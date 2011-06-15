@@ -47,6 +47,7 @@
 #include <curl/curl.h>
 
 #include "version.h"
+#include "videoinreconf.h"
 #include "shellext.h"
 #include "sysconfig.h"
 #include "fb.h"
@@ -172,6 +173,7 @@ rtems_task Init(rtems_task_argument argument)
 	mount("/dev/flash5", "/ssd", "yaffs", RTEMS_FILESYSTEM_READ_WRITE, "");
 	
 	init_version();
+	init_videoinreconf();
 
 	sysconfig_load();
 	rtems_bsdnet_initialize_network();

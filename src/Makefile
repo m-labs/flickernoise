@@ -29,7 +29,7 @@ ifeq ($(WITH_PDF),1)
 endif
 
 # renderer
-OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o
+OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o videoinreconf.o
 
 #
 

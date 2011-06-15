@@ -560,6 +560,8 @@ static rtems_task raster_task(rtems_task_argument argument)
 		if(frd == NULL)
 			break;
 		assert(frd->status == FRD_STATUS_EVALUATED);
+		
+		videoinreconf_do(video_fd);
 
 		/* Update brightness */
 		brightness_error += frd->decay;
