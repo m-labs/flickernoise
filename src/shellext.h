@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 #ifndef __SHELLEXT_H
 #define __SHELLEXT_H
 
-extern rtems_shell_cmd_t shell_usercmd;
-extern rtems_shell_cmd_t framebuffer_grab;
+extern rtems_shell_cmd_t shellext;
 
 #endif /* __SHELLEXT_H */

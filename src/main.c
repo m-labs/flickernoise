@@ -253,7 +253,7 @@ rtems_telnetd_config_table rtems_telnetd_config = {
 #define CONFIGURE_SHELL_COMMANDS_INIT
 #define CONFIGURE_SHELL_COMMANDS_ALL
 #define CONFIGURE_SHELL_COMMANDS_ALL_NETWORKING
-#define CONFIGURE_SHELL_USER_COMMANDS &shell_usercmd, &framebuffer_grab
+#define CONFIGURE_SHELL_USER_COMMANDS &shellext
 #include <rtems/shellconfig.h>
 
 #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
