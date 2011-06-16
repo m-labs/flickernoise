@@ -30,7 +30,6 @@
 #define UOE MTK_KEY_UOE
 #define UAE MTK_KEY_UAE
 #define MU  MTK_KEY_MU
-#define DI  MTK_KEY_DI
 #define S2  MTK_KEY_S2
 
 #define EA  MTK_KEY_EA
@@ -88,7 +87,7 @@ static int keyb_translation_table[3][112] = {
 /* 20 */ '3', '4', '5', '6', '7', '8', '9', '0',  NL, ESC, BSP, TAB, ' ',  ET, NIL,  UE,
 /* 30 */ '+', NIL, '#',  OE,  AE, '^', ',', '.', '-', CLC,  F1,  F2,  F3,  F4,  F5,  F6,
 /* 40 */  F7,  F8,  F9, F10, F11, F12, SRQ, SLC, PAU, INT, HME, PUP, DEL, END, PDW, RIT,
-/* 50 */ LFT, DWN,  UP, NLC,  DI, '*', '-', '+',  NL, '1', '2', '3', '4', '5', '6', '7',
+/* 50 */ LFT, DWN,  UP, NLC, '/', '*', '-', '+',  NL, '1', '2', '3', '4', '5', '6', '7',
 /* 60 */ '8', '9', '0', '.', '<', NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL,
 	},{			/* German layout 129 */
 /* 00 */ NIL, NIL, NIL, NIL, 'q', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
