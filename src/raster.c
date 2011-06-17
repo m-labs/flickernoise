@@ -37,6 +37,7 @@
 #include "wave.h"
 #include "line.h"
 #include "osd.h"
+#include "videoinreconf.h"
 
 #include "raster.h"
 
