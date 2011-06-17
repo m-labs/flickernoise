@@ -106,27 +106,18 @@ static void adjust_contrast(int amount)
 	cp_notify_changed();
 }
 
-static int wait_release;
-
 static void input_cb(mtk_event *e, int count)
 {
 	int i;
 
 	for(i=0;i<count;i++) {
-		if(wait_release != -1) {
-			if((e[i].type == EVENT_TYPE_RELEASE) && (e[i].press.code == wait_release)) {
-				guirender_stop();
-				mtk_input(&e[i+1], count-i-1);
-				return;
-			}
-		} else {
-			if(e[i].type == EVENT_TYPE_PRESS) {
-				if((e[i].press.code == MTK_KEY_ENTER)
-				|| (e[i].press.code == MTK_KEY_F2)
-				|| (e[i].press.code == MTK_BTN_LEFT)
-				|| (e[i].press.code == MTK_BTN_RIGHT))
-					wait_release = e[i].press.code;
-			}
+		if((e[i].type == EVENT_TYPE_PRESS) && 
+		  ((e[i].press.code == MTK_KEY_ENTER)
+		    || (e[i].press.code == MTK_KEY_F2)
+		    || (e[i].press.code == MTK_BTN_LEFT)
+		    || (e[i].press.code == MTK_BTN_RIGHT))) {
+			guirender_stop();
+			mtk_input(&e[i+1], count-i-1);
 		}
 		if(e[i].type == EVENT_TYPE_PRESS) {
 			switch(e[i].press.code) {
@@ -150,7 +141,6 @@ static void input_cb(mtk_event *e, int count)
 int guirender(int appid, struct patch *p, guirender_stop_callback cb)
 {
 	if(guirender_running) return 0;
-		guirender_running = 1;
 
 	if(!resmgr_acquire_multiple("renderer",
 	  RESOURCE_AUDIO,
@@ -160,10 +150,11 @@ int guirender(int appid, struct patch *p, guirender_stop_callback cb)
 	  RESOURCE_SAMPLER,
 	  INVALID_RESOURCE))
 		return 0;
+	
+	guirender_running = 1;
 
 	renderer_start(framebuffer_fd, p);
 
-	wait_release = -1;
 	stop_appid = appid;
 	input_delete_callback(mtk_input);
 	input_add_callback(input_cb);
