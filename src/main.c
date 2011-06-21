@@ -22,6 +22,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <netinet/in.h>
+#include <resolv.h>		/* those two head files for '_res.retry' */
+
 #include <mtklib.h>
 #include <rtems.h>
 #include <bsp/milkymist_usbinput.h>
@@ -148,10 +151,12 @@ static void start_memcard()
 	mount("/dev/memcard1", "/memcard", "dosfs", RTEMS_FILESYSTEM_READ_ONLY, "");
 }
 
+extern struct __res_state _res;
+
 rtems_task Init(rtems_task_argument argument)
 {
 	rtems_status_code sc;
-	
+
 	sc = rtems_shell_init(
 		"SHLL",
 		RTEMS_MINIMUM_STACK_SIZE * 8,
@@ -163,6 +168,13 @@ rtems_task Init(rtems_task_argument argument)
 	);
 	if(sc != RTEMS_SUCCESSFUL)
 		printf("Unable to start shell (error code %d)\n", sc);
+
+	/* FIXME:
+	 * alarm() should work anyway in gethostbyname().(for TIMEOUT in libcurl)
+	 * in the meantime we have a workaround,
+	 * make sure the gethostbyname() finished in 15 seconds
+	 */
+	_res.retry = 2;
 
 	/* FIXME: can this be moved into the initialization table? */
 	memcard_register();
