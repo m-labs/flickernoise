@@ -77,6 +77,8 @@ void fb_unblank()
 	if(blanked) {
 		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, sysconfig_get_resolution());
 		blanked = 0;
+		/* FIXME: work around "black screen" bug in MTK */
+		mtk_cmd(1, "screen.refresh()");
 	}
 }
 
