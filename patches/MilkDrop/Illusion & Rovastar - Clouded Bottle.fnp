@@ -15,8 +15,8 @@ zoom=0.970590
 rot=0.000000
 cx=2.000000
 cy=0.500000
-dx=0.020000
-dy=0.000000
+dx=0.0195
+dy=-0.0035
 warp=0.029800
 sx=1.000000
 sy=1.010000
@@ -37,14 +37,11 @@ ib_b=1.000000
 ib_a=0.000000
 nMotionVectorsX=8.000000
 nMotionVectorsY=1.920000
-mv_l=5.000000
+mv_l=3000
 mv_r=0.000000
 mv_g=1.000000
 mv_b=0.000000
 mv_a=0.500000
-per_frame=dx =dx -0.0005;
-per_frame=dy = dy-0.0035;
-per_frame=mv_l = 3000;
 per_frame=mv_r = 0.5 + 0.499*sin(time*1.12);
 per_frame=mv_g = 0.5 + 0.123*cos(time*1.83);
 per_frame=mv_b = 0.4 + 0.79*cos(time*0.45);
@@ -53,9 +50,9 @@ per_frame=decay = if(above(bass_effect,0),0.96,0.996);
 per_frame=wave_x = 0.6+0.3*sin(time*0.724);
 per_frame=warp = warp + (2*sin(0.75*time));
 per_frame=wrap_s = wrap_s +0.5*sin(0.1*time);
-per_frame=wave_r  = 0.5 + (sin(time/2) - cos(time*0.22))/2;
-per_frame=wave_g = 0.5 - sin(time*0.877)/2;
-per_frame=wave_b = 0.5 - cos(time)/2;
+per_frame=wave_r  = 0.5 + (sin(time*0.5) - cos(time*0.22))*0.5;
+per_frame=wave_g = 0.5 - sin(time*0.877)*0.5;
+per_frame=wave_b = 0.5 - cos(time)*0.5;
 per_frame=dx = dx + dx_residual;
 per_frame=dy = dy + dy_residual;
 per_frame=bass_thresh = above(bass_att,bass_thresh)*2 + (1-above(bass_att,bass_thresh))*((bass_thresh-1.3)*0.96+1.3);

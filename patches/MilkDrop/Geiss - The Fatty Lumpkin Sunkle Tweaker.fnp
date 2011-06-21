@@ -45,11 +45,11 @@ mv_r=1.000000
 mv_g=1.000000
 mv_b=1.000000
 mv_a=0.000000
-per_frame=wave_x = wave_x + 0.250*( 0.60*sin(2.121*time) + 0.40*sin(1.621*time) );
-per_frame=wave_y = wave_y + 0.250*( 0.60*sin(1.742*time) + 0.40*sin(2.322*time) );
-per_frame=wave_r = wave_r + 0.500*( 0.60*sin(0.823*time) + 0.40*sin(0.916*time) );
-per_frame=wave_g = wave_g + 0.500*( 0.60*sin(0.900*time) + 0.40*sin(1.023*time) );
-per_frame=wave_b = wave_b + 0.500*( 0.60*sin(0.808*time) + 0.40*sin(0.949*time) );
+per_frame=wave_x = wave_x + 0.40*sin(2.121*time)
+per_frame=wave_y = wave_y + 0.40*sin(1.742*time)
+per_frame=wave_r = wave_r + 0.60*sin(0.823*time)
+per_frame=wave_g = wave_g + 0.60*sin(0.900*time)
+per_frame=wave_b = wave_b + 0.60*sin(0.808*time)
 per_frame=zoom = zoom + 0.010*( 0.60*sin(0.339*time) + 0.40*sin(0.276*time) );
 per_frame=rot = rot + 0.035*( 0.60*sin(0.381*time) + 0.40*sin(0.539*time) );
 per_frame=cx = cx + 0.030*( 0.60*sin(0.374*time) + 0.40*sin(0.194*time) );
