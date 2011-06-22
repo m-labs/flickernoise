@@ -19,6 +19,6 @@
 #include <stdlib.h>
 
 struct mtk_i18n_entry translation_german[] = {
-	{ "Control panel",					"TODO" },
+	{ "Control panel",					"\xdf"" \xe4"" \xf6"" \xfc"" \xc4"" \xd6"" \xdc" }, // ss ae oe ue AE OE UE
 	{ NULL, NULL }
 };
