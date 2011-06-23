@@ -282,6 +282,7 @@ void init_keyboard()
 		"g_addedit1.place(e_filename, -column 2 -row 2)",
 		"g_addedit1.place(b_filename, -column 3 -row 2)",
 		"g_addedit1.place(b_filenameclear, -column 4 -row 2)",
+		"g_addedit1.columnconfig(2, -size 200)",
 		"g_addedit1.columnconfig(3, -size 0)",
 		"g_addedit1.columnconfig(4, -size 0)",
 		"b_addupdate = new Button(-text \"Add/update\")",

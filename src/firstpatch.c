@@ -81,7 +81,7 @@ void init_firstpatch()
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
-		"g_btn.columnconfig(1, -size 200)",
+		"g_btn.columnconfig(1, -size 350)",
 		"g_btn.place(b_ok, -column 2 -row 1)",
 		"g_btn.place(b_cancel, -column 3 -row 1)",
 

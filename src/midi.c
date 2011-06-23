@@ -473,6 +473,7 @@ void init_midi()
 		"g_addedit1.place(e_filename, -column 2 -row 2)",
 		"g_addedit1.place(b_filename, -column 3 -row 2)",
 		"g_addedit1.place(b_filenameclear, -column 4 -row 2)",
+		"g_addedit1.columnconfig(2, -size 135)",
 		"g_addedit1.columnconfig(3, -size 0)",
 		"g_addedit1.columnconfig(4, -size 0)",
 		"b_addupdate = new Button(-text \"Add/update\")",
@@ -525,7 +526,7 @@ void init_midi()
 		"g.rowconfig(4, -size 10)",
 		"g.place(g_btn, -column 1 -row 5)",
 
-		"w = new Window(-content g -title \"MIDI settings\")",
+		"w = new Window(-content g -title \"MIDI settings\" -workx 10)",
 		0);
 
 	for(i=0;i<MIDI_COUNT;i++) {

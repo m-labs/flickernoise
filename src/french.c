@@ -127,12 +127,12 @@ struct mtk_i18n_entry translation_french[] = {
 	// RSS wall
 	{ "Wall:",						"Mur :" },
 	{ "RSS/ATOM wall",					"Mur RSS/ATOM" },
-	{ "RSS/ATOM URL:",					"URL RSS/ATOM" },
+	{ "RSS/ATOM URL:",					"URL RSS/ATOM :" },
 	{ "Idle message:",					"Message d'inactivit\xe9"" :" },
-	{ "Refresh period:",					"P\xe9""riode de rafra\xee""chissement :" },
+	{ "Refresh period:",					"P\xe9""riode de\nrafra\xee""chissement :" },
 	{ "Idle period:",					"P\xe9""riode d'inactivit\xe9"" :" },
 	{ "seconds",						"secondes" },
-	{ "refreshes",						"rafra\xee""chissements" },
+	{ "refreshes",						"rafra\xee""ch." },
 	
 	// Update
 	{ "Update",						"Mise \xe0"" jour" },
@@ -187,6 +187,9 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Go!",						"D\xe9""marrer !" },
 	{ "Compiling patches...",				"Compilation des patchs..." },
 	{ "Select first patch",					"S\xe9""lection du premier patch" },
+	{ "Error",						"Erreur" },
+	{ "No first patch defined!",				"Pas de premier patch d\xe9""fini !" },
+	{ "No patches found!",					"Pas de patch trouv\xe9"" !" },
 	
 	// File manager
 	{ "Copy",						"Copier" },

@@ -155,7 +155,7 @@ void init_rsswall()
 		"g.rowconfig(2, -size 10)",
 		"g.place(g_btn, -column 1 -row 3)",
 
-		"w = new Window(-content g -title \"RSS/ATOM wall\")",
+		"w = new Window(-content g -title \"RSS/ATOM wall\" -workx 10)",
 		0);
 
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);

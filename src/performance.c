@@ -480,7 +480,7 @@ void start_performance(int simple, int dt, int as)
 	if(simple) {
 		add_simple_patches();
 		if(npatches < 1) {
-			messagebox("Error", "No patches found!\n");
+			messagebox("Error", "No patches found!");
 			started = 0;
 			fb_unblank();
 			return;
@@ -488,7 +488,7 @@ void start_performance(int simple, int dt, int as)
 	} else {
 		add_firstpatch();
 		if(npatches < 1) {
-			messagebox("Error", "No first patch defined!\n");
+			messagebox("Error", "No first patch defined!");
 			started = 0;
 			fb_unblank();
 			return;
