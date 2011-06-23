@@ -219,6 +219,8 @@ static void rename_callback(mtk_event *e, void *arg)
 	strncat(orig, selection, sizeof(orig));
 	free(selection);
 	mtk_reqf(appid, renamed+strlen(renamed), sizeof(renamed)-strlen(renamed), "p%d_name.text", panel);
+	if(renamed[strlen(renamed)-1] == '/')
+		renamed[strlen(renamed)-1] = 0;
 	call_mv(orig, renamed);
 	refresh(panel);
 }
