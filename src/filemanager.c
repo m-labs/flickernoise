@@ -117,6 +117,12 @@ static char *get_selection_panel(int panel)
 	return selection;
 }
 
+static void get_lfolder(char *buf, int size, int sel)
+{
+	mtk_reqf(appid, buf, size, "p%d_lfolder.text", sel);
+	memmove(buf, buf+1, size-1); /* remove \e */
+}
+
 static void copymove(int src, int dst)
 {
 	char orig[384];
@@ -124,8 +130,8 @@ static void copymove(int src, int dst)
 	char basename[384];
 	int last;
 	
-	mtk_reqf(appid, orig, sizeof(orig), "p%d_lfolder.text", src);
-	mtk_reqf(appid, copied, sizeof(copied), "p%d_lfolder.text", dst);
+	get_lfolder(orig, sizeof(orig), src);
+	get_lfolder(copied, sizeof(copied), dst);
 	mtk_reqf(appid, basename, sizeof(basename), "p%d_name.text", src);
 	last = strlen(basename)-1;
 	if(basename[last] == '/')
@@ -177,7 +183,7 @@ static void selcommit_callback(mtk_event *e, void *arg)
 	update_filename(panel);
 	mtk_reqf(appid, sel, sizeof(sel), "p%d_name.text", panel);
 	if(sel[strlen(sel)-1] == '/') {
-		mtk_reqf(appid, curfolder, sizeof(curfolder), "p%d_lfolder.text", panel);
+		get_lfolder(curfolder, sizeof(curfolder), panel);
 		if(strcmp(sel, "../") == 0) {
 			char *c;
 			if(strcmp(curfolder, "/") == 0) return;
@@ -201,7 +207,7 @@ static void clear_callback(mtk_event *e, void *arg)
 static void refresh(int panel)
 {
 	char curfolder[384];
-	mtk_reqf(appid, curfolder, sizeof(curfolder), "p%d_lfolder.text", panel);
+	get_lfolder(curfolder, sizeof(curfolder), panel);
 	display_folder(panel, curfolder);
 }
 
@@ -212,7 +218,7 @@ static void rename_callback(mtk_event *e, void *arg)
 	char renamed[384];
 	char *selection;
 	
-	mtk_reqf(appid, orig, sizeof(orig), "p%d_lfolder.text", panel);
+	get_lfolder(orig, sizeof(orig), panel);
 	strcpy(renamed, orig);
 	selection = get_selection_panel(panel);
 	if(selection == NULL) return;
@@ -234,7 +240,7 @@ static void delete_callback(mtk_event *e, void *arg)
 	int last;
 	
 	if(delete_confirm[panel]) {
-		mtk_reqf(appid, target, sizeof(target), "p%d_lfolder.text", panel);
+		get_lfolder(target, sizeof(target), panel);
 		mtk_reqf(appid, target+strlen(target), sizeof(target)-strlen(target), "p%d_name.text", panel);
 		last = strlen(target)-1;
 		if(target[last] == '/')
@@ -261,7 +267,7 @@ static void mkdir_callback(mtk_event *e, void *arg)
 	int panel = (int)arg;
 	char dirname[384];
 	
-	mtk_reqf(appid, dirname, sizeof(dirname), "p%d_lfolder.text", panel);
+	get_lfolder(dirname, sizeof(dirname), panel);
 	mtk_reqf(appid, dirname+strlen(dirname), sizeof(dirname)-strlen(dirname), "p%d_name.text", panel);
 	mkdir(dirname, 0777);
 	refresh(panel);
@@ -448,7 +454,7 @@ static void display_folder(int panel, const char *folder)
 		*c_list = 0;
 	}
 
-	mtk_cmdf(appid, "p%d_lfolder.set(-text \"%s\")", panel, folder);
+	mtk_cmdf(appid, "p%d_lfolder.set(-text \"\e%s\")", panel, folder);
 	mtk_cmdf(appid, "p%d_list.set(-text \"%s\" -selection 0)", panel, fmt_list);
 	mtk_cmdf(appid, "p%d_listf.expose(0, 0)", panel);
 }
