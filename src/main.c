@@ -132,7 +132,8 @@ static rtems_task gui_task(rtems_task_argument argument)
 
 static rtems_id gui_task_id;
 
-static void start_memcard()
+/* Disable memory card automount as the driver is not ready for end users yet */
+/*static void start_memcard()
 {
 	rtems_status_code sc;
 	rtems_bdpart_format format;
@@ -149,7 +150,7 @@ static void start_memcard()
 
 	mkdir("/memcard", 0777);
 	mount("/dev/memcard1", "/memcard", "dosfs", RTEMS_FILESYSTEM_READ_ONLY, "");
-}
+}*/
 
 extern struct __res_state _res;
 
@@ -180,7 +181,7 @@ rtems_task Init(rtems_task_argument argument)
 	memcard_register();
 
 	mkdir("/ramdisk", 0777);
-	start_memcard();
+	/*start_memcard();*/
 	mkdir("/ssd", 0777);
 	mount("/dev/flash5", "/ssd", "yaffs", RTEMS_FILESYSTEM_READ_WRITE, "");
 	
