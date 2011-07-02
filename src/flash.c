@@ -85,13 +85,13 @@ static int flash_state;
 static int flash_progress;
 static int flashvalid_val;
 
-static int installed_patches = -1;
+static int installed_patches;
 static char unknown_version[2] = "?";
 static char available_socbios_buf[32];
 static char available_application_buf[32];
-static char *available_socbios = unknown_version;
-static char *available_application = unknown_version;
-static int available_patches = -1;
+static char *available_socbios;
+static char *available_application;
+static int available_patches;
 
 static char bitstream_name[384];
 static char bios_name[384];
@@ -117,6 +117,7 @@ static int download(const char *url, const char *filename)
 	CURL *curl;
 	FILE *fp;
 	int ret = 0;
+	long http_code;
 
 	fp = fopen(filename, "wb");
 	if(fp == NULL) return 0;
@@ -134,8 +135,11 @@ static int download(const char *url, const char *filename)
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &d_progress);
 
-		if(curl_easy_perform(curl) == 0)
-			ret = 1;
+		if(curl_easy_perform(curl) == 0) {
+			curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+			if(http_code == 200)
+				ret = 1;
+		}
 
 		curl_easy_cleanup(curl);
 	}
@@ -170,6 +174,7 @@ static char *download_mem(const char *url)
 {
 	CURL *curl;
 	struct memory_struct chunk;
+	long http_code;
 
 	chunk.memory = malloc(1);
 	chunk.size = 0;
@@ -183,7 +188,13 @@ static char *download_mem(const char *url)
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_callback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
 
-		curl_easy_perform(curl);
+		if(curl_easy_perform(curl) != 0)
+			chunk.size = 0;
+		else {
+			curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+			if(http_code != 200)
+				chunk.size = 0;
+		}
 
 		curl_easy_cleanup(curl);
 	}
@@ -318,6 +329,7 @@ static void flash_terminate(int state)
 static void get_versions()
 {
 	char *b;
+	char *c;
 	
 	installed_patches = -1;
 	available_socbios = unknown_version;
@@ -329,7 +341,11 @@ static void get_versions()
 		flash_terminate(DOWNLOAD_STATE_ERROR_GET_VERSIONS);
 	strncpy(available_socbios_buf, b, sizeof(available_socbios_buf));
 	available_socbios_buf[sizeof(available_socbios_buf)-1] = 0;
+	c = strchr(available_socbios_buf, '\n');
+	if(c != NULL)
+		*c = 0;
 	available_socbios = available_socbios_buf; 
+	printf("SoC: %s\n", available_socbios);
 	free(b);
 	
 	b = download_mem(BASE_URL "version-app");
@@ -337,7 +353,11 @@ static void get_versions()
 		flash_terminate(DOWNLOAD_STATE_ERROR_GET_VERSIONS);
 	strncpy(available_application_buf, b, sizeof(available_application_buf));
 	available_application_buf[sizeof(available_application_buf)-1] = 0;
-	available_application = available_application_buf; 
+	c = strchr(available_application_buf, '\n');
+	if(c != NULL)
+		*c = 0;
+	available_application = available_application_buf;
+	printf("App: %s\n", available_application);
 	free(b);
 }
 
@@ -782,6 +802,10 @@ void open_flash_window(int automatic)
 	w_open = 1;
 	flash_state = FLASH_STATE_READY;
 	flash_progress = 0;
+	installed_patches = -1;
+	available_socbios = unknown_version;
+	available_application = unknown_version;
+	available_patches = -1;
 	update_progress();
 	mtk_cmd(appid, "w.open()");
 	if(automatic)
