@@ -161,6 +161,7 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Erasing application...",				"Effacement de l'application..." },
 	{ "Programming application...",				"Programmation de l'application..." },
 	{ "Failed to program application.",			"Erreur de programmation de l'application" },
+	{ "Failed to download version information.",		"Erreur de t\xe9""l\xe9""chargement des informations de version." },
 	{ "Downloading bitstream...",				"T\xe9""l\xe9""chargement du bitstream..." },
 	{ "Failed to download bitstream.",			"Erreur de t\xe9""l\xe9""chargement du bitstream." },
 	{ "Downloading BIOS...",				"T\xe9""l\xe9""chargement du BIOS..." },

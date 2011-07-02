@@ -66,6 +66,8 @@ enum {
 	FLASH_STATE_ERASE_APP,
 	FLASH_STATE_PROGRAM_APP,
 	FLASH_STATE_ERROR_APP,
+	
+	DOWNLOAD_STATE_ERROR_GET_VERSIONS,
 
 	DOWNLOAD_STATE_START_BITSTREAM,
 	DOWNLOAD_STATE_ERROR_BITSTREAM,
@@ -83,18 +85,28 @@ static int flash_state;
 static int flash_progress;
 static int flashvalid_val;
 
+static int installed_patches = -1;
+static char unknown_version[2] = "?";
+static char available_socbios_buf[32];
+static char available_application_buf[32];
+static char *available_socbios = unknown_version;
+static char *available_application = unknown_version;
+static int available_patches = -1;
+
 static char bitstream_name[384];
 static char bios_name[384];
 static char application_name[384];
 
 static double *d_progress;
+
 static int progress_callback(void *d_progress, double t, double d, double ultotal, double ulnow)
 {
 	flash_progress = (int) d/t*100;
 	return 0;
 }
 
-static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
 	size_t written;
 	written = fwrite(ptr, size, nmemb, stream);
 	return written;
@@ -110,7 +122,7 @@ static int download(const char *url, const char *filename)
 	if(fp == NULL) return 0;
 
 	curl = curl_easy_init();
-	if (curl) {
+	if(curl) {
 		curl_easy_setopt(curl, CURLOPT_URL, url);
 		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15);
 		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 180);
@@ -130,6 +142,59 @@ static int download(const char *url, const char *filename)
 
 	fclose(fp);
 	return ret;
+}
+
+struct memory_struct {
+	char *memory;
+	size_t size;
+};
+
+static size_t write_memory_callback(void *ptr, size_t size, size_t nmemb, void *data)
+{
+	size_t realsize = size * nmemb;
+	struct memory_struct *mem = (struct memory_struct *)data;
+
+	mem->memory = realloc(mem->memory, mem->size + realsize + 1);
+	if(mem->memory == NULL) {
+		printf("not enough memory (realloc returned NULL)\n");
+		return -1;
+	}
+
+	memcpy(&(mem->memory[mem->size]), ptr, realsize);
+	mem->size += realsize;
+
+	return realsize;
+}
+
+static char *download_mem(const char *url)
+{
+	CURL *curl;
+	struct memory_struct chunk;
+
+	chunk.memory = malloc(1);
+	chunk.size = 0;
+	
+	curl = curl_easy_init();
+	if(curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, url);
+		curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15);
+		curl_easy_setopt(curl, CURLOPT_TIMEOUT, 180);
+
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_callback);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+
+		curl_easy_perform(curl);
+
+		curl_easy_cleanup(curl);
+	}
+	
+	if(chunk.size == 0) {
+		free(chunk.memory);
+		return NULL;
+	} else {
+		chunk.memory[chunk.size] = 0;
+		return chunk.memory;
+	}
 }
 
 static int flash_erase(int fd, unsigned int len)
@@ -248,65 +313,112 @@ static void flash_terminate(int state)
 	rtems_task_delete(RTEMS_SELF);
 }
 
+#define BASE_URL "http://www.milkymist.org/updates/current/"
+
+static void get_versions()
+{
+	char *b;
+	
+	installed_patches = -1;
+	available_socbios = unknown_version;
+	available_application = unknown_version;
+	available_patches = -1;
+
+	b = download_mem(BASE_URL "version-soc");
+	if(b == NULL)
+		flash_terminate(DOWNLOAD_STATE_ERROR_GET_VERSIONS);
+	strncpy(available_socbios_buf, b, sizeof(available_socbios_buf));
+	available_socbios_buf[sizeof(available_socbios_buf)-1] = 0;
+	available_socbios = available_socbios_buf; 
+	free(b);
+	
+	b = download_mem(BASE_URL "version-app");
+	if(b == NULL)
+		flash_terminate(DOWNLOAD_STATE_ERROR_GET_VERSIONS);
+	strncpy(available_application_buf, b, sizeof(available_application_buf));
+	available_application_buf[sizeof(available_application_buf)-1] = 0;
+	available_application = available_application_buf; 
+	free(b);
+}
+
+static void download_images()
+{
+	if(strcmp(available_socbios, soc) != 0) {
+		strcpy(bitstream_name, "/ramdisk/soc.fpg");
+		strcpy(bios_name, "/ramdisk/bios.bin");
+	} else {
+		bitstream_name[0] = 0;
+		bios_name[0] = 0;
+	}
+	if(strcmp(available_application, VERSION) != 0)
+		strcpy(application_name, "/ramdisk/flickernoise.fbi");
+	else
+		application_name[0] = 0;
+
+	if(bitstream_name[0] != 0) {
+		flash_state = DOWNLOAD_STATE_START_BITSTREAM;
+		if(!download(BASE_URL "soc.fpg", bitstream_name))
+			flash_terminate(DOWNLOAD_STATE_ERROR_BITSTREAM);
+	}
+
+	if(bios_name[0] != 0) {
+		flash_state = DOWNLOAD_STATE_START_BIOS;
+		if(!download(BASE_URL "bios.bin", bios_name))
+			flash_terminate(DOWNLOAD_STATE_ERROR_BIOS);
+	}
+
+	if(application_name[0] != 0) {
+		flash_state = DOWNLOAD_STATE_START_APP;
+		if(!download(BASE_URL "flickernoise.fbi", application_name))
+			flash_terminate(DOWNLOAD_STATE_ERROR_APP);
+	}
+}
+
+static void flash_images()
+{
+	if(bitstream_name[0] != 0) {
+		flashvalid_val = flashvalid_bitstream(bitstream_name);
+		if(flashvalid_val != FLASHVALID_PASSED)
+			flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
+
+		if(!flash_file("/dev/flash1", bitstream_name,
+			       FLASH_STATE_ERASE_BITSTREAM, FLASH_STATE_PROGRAM_BITSTREAM))
+			flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
+	}
+	if(bios_name[0] != 0) {
+		flashvalid_val = flashvalid_bios(bios_name);
+		if(flashvalid_val != FLASHVALID_PASSED)
+			flash_terminate(FLASH_STATE_ERROR_BIOS);
+
+		if(!flash_file("/dev/flash2", bios_name,
+			       FLASH_STATE_ERASE_BIOS, FLASH_STATE_PROGRAM_BIOS))
+			flash_terminate(FLASH_STATE_ERROR_BIOS);
+	}
+	if(application_name[0] != 0) {
+		flashvalid_val = flashvalid_application(application_name);
+		if(flashvalid_val != FLASHVALID_PASSED)
+			flash_terminate(FLASH_STATE_ERROR_APP);
+
+		if(!flash_file("/dev/flash4", application_name,
+			       FLASH_STATE_ERASE_APP, FLASH_STATE_PROGRAM_APP))
+			flash_terminate(FLASH_STATE_ERROR_APP);
+	}
+}
+
 static rtems_task flash_task(rtems_task_argument argument)
 {
-	const char *s_url = "http://www.milkymist.org/snapshots/latest/soc.fpg";
-	const char *b_url = "http://www.milkymist.org/snapshots/latest/bios.bin";
-	const char *f_url = "http://www.milkymist.org/snapshots/latest/flickernoise.fbi";
-	const char *s = "/ramdisk/soc.fpg";
-	const char *b = "/ramdisk/bios.bin";
-	const char *f = "/ramdisk/flickernoise.fbi";
-
 	int task = (int)argument;
 
 	switch(task) {
+		case ARG_GET_VERSIONS:
 		case ARG_WEB_UPDATE:
-			flash_state = DOWNLOAD_STATE_START_BITSTREAM;
-			if(!download(s_url, s))
-				flash_terminate(DOWNLOAD_STATE_ERROR_BITSTREAM);
-			mtk_cmdf(appid, "e1.set(-text \"%s\")", s);
-			strcpy(bitstream_name, s);
-
-			flash_state = DOWNLOAD_STATE_START_BIOS;
-			if(!download(b_url, b))
-				flash_terminate(DOWNLOAD_STATE_ERROR_BIOS);
-			mtk_cmdf(appid, "e2.set(-text \"%s\")", b);
-			strcpy(bios_name, b);
-
-			flash_state = DOWNLOAD_STATE_START_APP;
-			if(!download(f_url, f))
-				flash_terminate(DOWNLOAD_STATE_ERROR_APP);
-			mtk_cmdf(appid, "e3.set(-text \"%s\")", f);
-			strcpy(application_name, f);
+			get_versions();
+			if(task == ARG_GET_VERSIONS)
+				break;
+			download_images();
 			/* fall through */
 		case ARG_FILE_UPDATE:
-			if(bitstream_name[0] != 0) {
-				flashvalid_val = flashvalid_bitstream(bitstream_name);
-				if(flashvalid_val != FLASHVALID_PASSED)
-					flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
-
-				if(!flash_file("/dev/flash1", bitstream_name,
-					       FLASH_STATE_ERASE_BITSTREAM, FLASH_STATE_PROGRAM_BITSTREAM))
-					flash_terminate(FLASH_STATE_ERROR_BITSTREAM);
-			}
-			if(bios_name[0] != 0) {
-				flashvalid_val = flashvalid_bios(bios_name);
-				if(flashvalid_val != FLASHVALID_PASSED)
-					flash_terminate(FLASH_STATE_ERROR_BIOS);
-
-				if(!flash_file("/dev/flash2", bios_name,
-					       FLASH_STATE_ERASE_BIOS, FLASH_STATE_PROGRAM_BIOS))
-					flash_terminate(FLASH_STATE_ERROR_BIOS);
-			}
-			if(application_name[0] != 0) {
-				flashvalid_val = flashvalid_application(application_name);
-				if(flashvalid_val != FLASHVALID_PASSED)
-					flash_terminate(FLASH_STATE_ERROR_APP);
-
-				if(!flash_file("/dev/flash4", application_name,
-					       FLASH_STATE_ERASE_APP, FLASH_STATE_PROGRAM_APP))
-					flash_terminate(FLASH_STATE_ERROR_APP);
-			}
+			flash_images();
 			break;
 	}
 
@@ -320,6 +432,7 @@ static int flash_busy()
 		case FLASH_STATE_ERROR_BITSTREAM:
 		case FLASH_STATE_ERROR_BIOS:
 		case FLASH_STATE_ERROR_APP:
+		case DOWNLOAD_STATE_ERROR_GET_VERSIONS:
 		case DOWNLOAD_STATE_ERROR_BITSTREAM:
 		case DOWNLOAD_STATE_ERROR_BIOS:
 		case DOWNLOAD_STATE_ERROR_APP:
@@ -359,8 +472,24 @@ static void display_flashvalid_message(const char *n)
 	}
 }
 
+static void update_done()
+{
+	input_delete_callback(refresh_callback);
+}
+
 static void update_progress()
 {
+	if(installed_patches < 0)
+		mtk_cmd(appid, "l_patchpool_i.set(-text \"\e?\")");
+	else
+		mtk_cmdf(appid, "l_patchpool_i.set(-text \"\e%d\")", installed_patches);
+	mtk_cmdf(appid, "l_socbios_a.set(-text \"\e%s\")", available_socbios);
+	mtk_cmdf(appid, "l_flickernoise_a.set(-text \"\e%s\")", available_application);
+	if(available_patches < 0)
+		mtk_cmd(appid, "l_patchpool_a.set(-text \"\e?\")");
+	else
+		mtk_cmdf(appid, "l_patchpool_a.set(-text \"\e%d\")", available_patches);
+
 	switch(flash_state) {
 		case FLASH_STATE_READY:
 			mtk_cmd(appid, "l_stat.set(-text \"Ready.\")");
@@ -377,7 +506,7 @@ static void update_progress()
 		case FLASH_STATE_ERROR_BITSTREAM:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to program bitstream.\")");
 			display_flashvalid_message("bitstream");
-			input_delete_callback(refresh_callback);
+			update_done();
 			break;
 		case FLASH_STATE_ERASE_BIOS:
 			mtk_cmd(appid, "l_stat.set(-text \"Erasing BIOS...\")");
@@ -388,7 +517,7 @@ static void update_progress()
 		case FLASH_STATE_ERROR_BIOS:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to program BIOS.\")");
 			display_flashvalid_message("BIOS");
-			input_delete_callback(refresh_callback);
+			update_done();
 			break;
 		case FLASH_STATE_ERASE_APP:
 			mtk_cmd(appid, "l_stat.set(-text \"Erasing application...\")");
@@ -399,34 +528,39 @@ static void update_progress()
 		case FLASH_STATE_ERROR_APP:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to program application.\")");
 			display_flashvalid_message("application");
-			input_delete_callback(refresh_callback);
+			update_done();
+			break;
+		case DOWNLOAD_STATE_ERROR_GET_VERSIONS:
+			mtk_cmd(appid, "l_stat.set(-text \"Failed to download version information.\")");
+			update_done();
 			break;
 		case DOWNLOAD_STATE_START_BITSTREAM:
 			mtk_cmd(appid, "l_stat.set(-text \"Downloading bitstream...\")");
 			break;
 		case DOWNLOAD_STATE_ERROR_BITSTREAM:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to download bitstream.\")");
-			input_delete_callback(refresh_callback);
+			update_done();
 			break;
 		case DOWNLOAD_STATE_START_BIOS:
 			mtk_cmd(appid, "l_stat.set(-text \"Downloading BIOS...\")");
 			break;
 		case DOWNLOAD_STATE_ERROR_BIOS:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to download BIOS.\")");
-			input_delete_callback(refresh_callback);
+			update_done();
 			break;
 		case DOWNLOAD_STATE_START_APP:
 			mtk_cmd(appid, "l_stat.set(-text \"Downloading application...\")");
 			break;
 		case DOWNLOAD_STATE_ERROR_APP:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to download application.\")");
-			input_delete_callback(refresh_callback);
+			update_done();
 			break;
 		case FLASH_STATE_SUCCESS:
 			mtk_cmd(appid, "l_stat.set(-text \"Completed successfully.\")");
-			input_delete_callback(refresh_callback);
- 			break;
+			update_done();
+			break;
 	}
+	
 	mtk_cmdf(appid, "p_stat.barconfig(load, -value %d)", flash_progress);
 }
 
@@ -444,16 +578,13 @@ static void run_callback(mtk_event *e, void *arg)
 		mtk_req(appid, application_name, sizeof(application_name), "e3.text");
 
 		/* Sanity checks */
-		if((bitstream_name[0] == 0) && (bios_name[0] == 0) &&(application_name[0] == 0)) {
+		if((bitstream_name[0] == 0) && (bios_name[0] == 0) && (application_name[0] == 0)) {
 			messagebox("Nothing to do!", "No flash images are specified.");
 			return;
 		}
-		/* prevent a race condition that could cause two flash tasks to start
-		 * if this function is called twice quickly.
-		 */
-		flash_state = FLASH_STATE_STARTING;
 	}
 
+	flash_state = FLASH_STATE_STARTING; /* < this state is here for race condition prevention purposes */
 	flash_progress = 0;
 
 	/* start flashing in the background */
