@@ -16,7 +16,7 @@ BINDIR=bin
 OBJS=version.o shellext.o sysconfig.o config.o fb.o input.o keymap.o fbgrab.o shortcuts.o osc.o png.o flashvalid.o main.o
 
 # GUI
-OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxdesk.o dmx.o videoin.o rsswall.o patcheditor.o monitor.o firstpatch.o filemanager.o sysettings.o about.o flash.o shutdown.o
+OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxdesk.o dmx.o videoin.o rsswall.o patcheditor.o monitor.o firstpatch.o filemanager.o sysettings.o about.o patchpool.o flash.o shutdown.o
 
 # translations
 OBJS+=french.o german.o

@@ -101,7 +101,7 @@ static double *d_progress;
 
 static int progress_callback(void *d_progress, double t, double d, double ultotal, double ulnow)
 {
-	flash_progress = (int) d/t*100;
+	flash_progress = (int)d/t*100;
 	return 0;
 }
 
@@ -160,7 +160,7 @@ static size_t write_memory_callback(void *ptr, size_t size, size_t nmemb, void *
 
 	mem->memory = realloc(mem->memory, mem->size + realsize + 1);
 	if(mem->memory == NULL) {
-		printf("not enough memory (realloc returned NULL)\n");
+		printf("flash.c: write_memory_callback: not enough memory (realloc returned NULL)\n");
 		return -1;
 	}
 
@@ -345,7 +345,6 @@ static void get_versions()
 	if(c != NULL)
 		*c = 0;
 	available_socbios = available_socbios_buf; 
-	printf("SoC: %s\n", available_socbios);
 	free(b);
 	
 	b = download_mem(BASE_URL "version-app");
@@ -357,7 +356,6 @@ static void get_versions()
 	if(c != NULL)
 		*c = 0;
 	available_application = available_application_buf;
-	printf("App: %s\n", available_application);
 	free(b);
 }
 
