@@ -105,7 +105,8 @@ static double *d_progress;
 
 static int progress_callback(void *d_progress, double t, double d, double ultotal, double ulnow)
 {
-	flash_progress = 100.0d*d/t;
+	if(t != 0.0d)
+		flash_progress = 100.0d*d/t;
 	return 0;
 }
 
