@@ -460,7 +460,7 @@ static void download_patches(struct patchpool *pp)
 	char target[384];
 	char *encoded;
 	
-	/* TODO: ensure that the patch pool directory exists. Issue #25 precludes a simple mkdir(). */
+	mkdir(SIMPLE_PATCHES_FOLDER, 0777);
 	
 	done = 0;
 	total = patchpool_count(pp);
