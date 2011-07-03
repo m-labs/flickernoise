@@ -151,7 +151,7 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Flash",						"Flasher" },
 	{ "Patch pool:",					"Patchs partag\xe9""s :" },
 	{ "Open flash image",					"Choisir image \xe0"" flasher" },
-	{ "Starting...",					"D\xe9""marrage..." },
+	{ "Working...",						"Traitement en cours..." },
 	{ "Erasing bitstream...",				"Effacement du bitstream..." },
 	{ "Programming bitstream...",				"Programmation du bitstream..." },
 	{ "Failed to program bitstream.",			"Erreur de programmation du bitstream." },
@@ -168,6 +168,7 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Failed to download BIOS.",				"Erreur de t\xe9""l\xe9""chargement du BIOS." },
 	{ "Downloading application...",				"T\xe9""l\xe9""chargement de l'application..." },
 	{ "Failed to download application.",			"Erreur de t\xe9""l\xe9""chargement de l'application." },
+	{ "Downloading patches...",				"T\xe9""l\xe9""chargement des patches..." },
 	{ "Completed successfully.",				"Termin\xe9"" avec succ\xe8""s." },
 	
 	// Patch editor

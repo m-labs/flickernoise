@@ -71,14 +71,16 @@ enum {
 	
 	DOWNLOAD_STATE_ERROR_GET_VERSIONS,
 
-	DOWNLOAD_STATE_START_BITSTREAM,
+	DOWNLOAD_STATE_BITSTREAM,
 	DOWNLOAD_STATE_ERROR_BITSTREAM,
 
-	DOWNLOAD_STATE_START_BIOS,
+	DOWNLOAD_STATE_BIOS,
 	DOWNLOAD_STATE_ERROR_BIOS,
 
-	DOWNLOAD_STATE_START_APP,
+	DOWNLOAD_STATE_APP,
 	DOWNLOAD_STATE_ERROR_APP,
+
+	DOWNLOAD_STATE_PATCHES,
 
 	FLASH_STATE_SUCCESS
 };
@@ -103,7 +105,7 @@ static double *d_progress;
 
 static int progress_callback(void *d_progress, double t, double d, double ultotal, double ulnow)
 {
-	flash_progress = (int)d/t*100;
+	flash_progress = 100.0d*d/t;
 	return 0;
 }
 
@@ -114,7 +116,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream)
 	return written;
 }
 
-static int download(const char *url, const char *filename)
+static int download(const char *url, const char *filename, int progress)
 {
 	CURL *curl;
 	FILE *fp;
@@ -133,9 +135,11 @@ static int download(const char *url, const char *filename)
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
-		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
-		curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &d_progress);
+		if(progress) {
+			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0);
+			curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+			curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &d_progress);
+		}
 
 		if(curl_easy_perform(curl) == 0) {
 			curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -338,6 +342,7 @@ static void get_versions(struct patchpool *local_patches, struct patchpool *remo
 	char *b;
 	char *c;
 	
+	flash_progress = 0;
 	installed_patches = -1;
 	available_socbios = unknown_version;
 	available_application = unknown_version;
@@ -345,6 +350,8 @@ static void get_versions(struct patchpool *local_patches, struct patchpool *remo
 
 	patchpool_add_files(local_patches, SIMPLE_PATCHES_FOLDER, "fnp");
 	installed_patches = patchpool_count(local_patches);
+
+	flash_progress = 25;
 
 	b = download_mem(BASE_URL "version-soc");
 	if(b == NULL)
@@ -357,6 +364,8 @@ static void get_versions(struct patchpool *local_patches, struct patchpool *remo
 	available_socbios = available_socbios_buf; 
 	free(b);
 	
+	flash_progress = 50;
+	
 	b = download_mem(BASE_URL "version-app");
 	if(b == NULL)
 		flash_terminate(DOWNLOAD_STATE_ERROR_GET_VERSIONS);
@@ -368,12 +377,16 @@ static void get_versions(struct patchpool *local_patches, struct patchpool *remo
 	available_application = available_application_buf;
 	free(b);
 	
+	flash_progress = 75;
+	
 	b = download_mem(BASE_URL "patchpool");
 	if(b == NULL)
 		flash_terminate(DOWNLOAD_STATE_ERROR_GET_VERSIONS);
 	patchpool_add_multi(remote_patches, b);
 	free(b);
 	available_patches = patchpool_count(remote_patches);
+	
+	flash_progress = 100;
 }
 
 static void download_images()
@@ -391,28 +404,47 @@ static void download_images()
 		application_name[0] = 0;
 
 	if(bitstream_name[0] != 0) {
-		flash_state = DOWNLOAD_STATE_START_BITSTREAM;
-		if(!download(BASE_URL "soc.fpg", bitstream_name))
+		flash_state = DOWNLOAD_STATE_BITSTREAM;
+		if(!download(BASE_URL "soc.fpg", bitstream_name, 1))
 			flash_terminate(DOWNLOAD_STATE_ERROR_BITSTREAM);
 	}
 
 	if(bios_name[0] != 0) {
-		flash_state = DOWNLOAD_STATE_START_BIOS;
-		if(!download(BASE_URL "bios.bin", bios_name))
+		flash_state = DOWNLOAD_STATE_BIOS;
+		if(!download(BASE_URL "bios.bin", bios_name, 1))
 			flash_terminate(DOWNLOAD_STATE_ERROR_BIOS);
 	}
 
 	if(application_name[0] != 0) {
-		flash_state = DOWNLOAD_STATE_START_APP;
-		if(!download(BASE_URL "flickernoise.fbi", application_name))
+		flash_state = DOWNLOAD_STATE_APP;
+		if(!download(BASE_URL "flickernoise.fbi", application_name, 1))
 			flash_terminate(DOWNLOAD_STATE_ERROR_APP);
 	}
 }
 
 static void download_patches(struct patchpool *pp)
 {
+	int done, total;
+	int i;
+	char url[384];
+	char target[384];
+	
 	/* TODO: ensure that the patch pool directory exists. Issue #25 precludes a simple mkdir(). */
-	/* TODO */
+	
+	flash_state = DOWNLOAD_STATE_PATCHES;
+	
+	done = 0;
+	total = patchpool_count(pp);
+	for(i=0;i<pp->alloc_size;i++) {
+		if(pp->names[i] != NULL) {
+			snprintf(url, sizeof(url), BASE_URL "patches/%s", pp->names[i]);
+			snprintf(target, sizeof(target), SIMPLE_PATCHES_FOLDER "%s", pp->names[i]);
+			printf("Downloading: %s -> %s\n", url, target);
+			download(url, target, 0);
+			done++;
+		}
+		flash_progress = 100*done/total;
+	}
 }
 
 static void flash_images()
@@ -547,7 +579,7 @@ static void update_progress()
 			mtk_cmd(appid, "l_stat.set(-text \"Ready.\")");
 			break;
 		case FLASH_STATE_STARTING:
-			mtk_cmd(appid, "l_stat.set(-text \"Starting...\")");
+			mtk_cmd(appid, "l_stat.set(-text \"Working...\")");
 			break;
 		case FLASH_STATE_ERASE_BITSTREAM:
 			mtk_cmd(appid, "l_stat.set(-text \"Erasing bitstream...\")");
@@ -586,26 +618,29 @@ static void update_progress()
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to download version information.\")");
 			update_done();
 			break;
-		case DOWNLOAD_STATE_START_BITSTREAM:
+		case DOWNLOAD_STATE_BITSTREAM:
 			mtk_cmd(appid, "l_stat.set(-text \"Downloading bitstream...\")");
 			break;
 		case DOWNLOAD_STATE_ERROR_BITSTREAM:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to download bitstream.\")");
 			update_done();
 			break;
-		case DOWNLOAD_STATE_START_BIOS:
+		case DOWNLOAD_STATE_BIOS:
 			mtk_cmd(appid, "l_stat.set(-text \"Downloading BIOS...\")");
 			break;
 		case DOWNLOAD_STATE_ERROR_BIOS:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to download BIOS.\")");
 			update_done();
 			break;
-		case DOWNLOAD_STATE_START_APP:
+		case DOWNLOAD_STATE_APP:
 			mtk_cmd(appid, "l_stat.set(-text \"Downloading application...\")");
 			break;
 		case DOWNLOAD_STATE_ERROR_APP:
 			mtk_cmd(appid, "l_stat.set(-text \"Failed to download application.\")");
 			update_done();
+			break;
+		case DOWNLOAD_STATE_PATCHES:
+			mtk_cmd(appid, "l_stat.set(-text \"Downloading patches...\")");
 			break;
 		case FLASH_STATE_SUCCESS:
 			mtk_cmd(appid, "l_stat.set(-text \"Completed successfully.\")");
