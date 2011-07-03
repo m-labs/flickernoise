@@ -422,12 +422,42 @@ static void download_images()
 	}
 }
 
+/* As often, standard adoration does a lot of damage and prevents people from
+ * writing software that just works by default.
+ * (http://curl.haxx.se/mail/lib-2009-08/0176.html)
+ */
+static char *curl_author_needs_to_take_a_dump(char *s)
+{
+	CURL *curl;
+	char *ret, *ret2;
+	
+	curl = curl_easy_init();
+	if(!curl) return NULL;
+	ret = curl_easy_escape(curl, s, 0);
+	if(!ret) {
+		curl_easy_cleanup(curl);
+		return NULL;
+	}
+	/* I'm not sure if the pointer is still valid after curl_easy_cleanup(),
+	 * and the curl doc doesn't say that.
+	 */
+	ret2 = strdup(ret);
+	curl_free(ret);
+	if(!ret2) {
+		curl_easy_cleanup(curl);
+		return NULL;
+	}
+	curl_easy_cleanup(curl);
+	return ret2;
+}
+
 static void download_patches(struct patchpool *pp)
 {
 	int done, total;
 	int i;
 	char url[384];
 	char target[384];
+	char *encoded;
 	
 	/* TODO: ensure that the patch pool directory exists. Issue #25 precludes a simple mkdir(). */
 	
@@ -437,9 +467,10 @@ static void download_patches(struct patchpool *pp)
 	total = patchpool_count(pp);
 	for(i=0;i<pp->alloc_size;i++) {
 		if(pp->names[i] != NULL) {
-			snprintf(url, sizeof(url), BASE_URL "patches/%s", pp->names[i]);
+			encoded = curl_author_needs_to_take_a_dump(pp->names[i]);
+			snprintf(url, sizeof(url), BASE_URL "patches/%s", encoded);
+			free(encoded);
 			snprintf(target, sizeof(target), SIMPLE_PATCHES_FOLDER "%s", pp->names[i]);
-			printf("Downloading: %s -> %s\n", url, target);
 			download(url, target, 0);
 			done++;
 		}
