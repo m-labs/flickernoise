@@ -38,6 +38,8 @@
 #include "flashvalid.h"
 #include "version.h"
 #include "sysconfig.h"
+#include "performance.h"
+#include "patchpool.h"
 
 #include "flash.h"
 
@@ -145,6 +147,11 @@ static int download(const char *url, const char *filename)
 	}
 
 	fclose(fp);
+	
+	/* delete failed downloads */
+	if(!ret)
+		unlink(filename);
+	
 	return ret;
 }
 
@@ -326,7 +333,7 @@ static void flash_terminate(int state)
 
 #define BASE_URL "http://www.milkymist.org/updates/current/"
 
-static void get_versions()
+static void get_versions(struct patchpool *local_patches, struct patchpool *remote_patches)
 {
 	char *b;
 	char *c;
@@ -335,6 +342,9 @@ static void get_versions()
 	available_socbios = unknown_version;
 	available_application = unknown_version;
 	available_patches = -1;
+
+	patchpool_add_files(local_patches, SIMPLE_PATCHES_FOLDER, "fnp");
+	installed_patches = patchpool_count(local_patches);
 
 	b = download_mem(BASE_URL "version-soc");
 	if(b == NULL)
@@ -357,6 +367,13 @@ static void get_versions()
 		*c = 0;
 	available_application = available_application_buf;
 	free(b);
+	
+	b = download_mem(BASE_URL "patchpool");
+	if(b == NULL)
+		flash_terminate(DOWNLOAD_STATE_ERROR_GET_VERSIONS);
+	patchpool_add_multi(remote_patches, b);
+	free(b);
+	available_patches = patchpool_count(remote_patches);
 }
 
 static void download_images()
@@ -390,6 +407,12 @@ static void download_images()
 		if(!download(BASE_URL "flickernoise.fbi", application_name))
 			flash_terminate(DOWNLOAD_STATE_ERROR_APP);
 	}
+}
+
+static void download_patches(struct patchpool *pp)
+{
+	/* TODO: ensure that the patch pool directory exists. Issue #25 precludes a simple mkdir(). */
+	/* TODO */
 }
 
 static void flash_images()
@@ -426,14 +449,25 @@ static void flash_images()
 static rtems_task flash_task(rtems_task_argument argument)
 {
 	int task = (int)argument;
+	struct patchpool local_patches;
+	struct patchpool remote_patches;
 
 	switch(task) {
 		case ARG_GET_VERSIONS:
 		case ARG_WEB_UPDATE:
-			get_versions();
-			if(task == ARG_GET_VERSIONS)
+			patchpool_init(&local_patches);
+			patchpool_init(&remote_patches);
+			get_versions(&local_patches, &remote_patches);
+			if(task == ARG_GET_VERSIONS) {
+				patchpool_free(&local_patches);
+				patchpool_free(&remote_patches);
 				break;
+			}
 			download_images();
+			patchpool_diff(&remote_patches, &local_patches);
+			download_patches(&remote_patches);
+			patchpool_free(&local_patches);
+			patchpool_free(&remote_patches);
 			/* fall through */
 		case ARG_FILE_UPDATE:
 			flash_images();

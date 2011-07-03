@@ -107,8 +107,10 @@ void patchpool_add_multi(struct patchpool *pp, const char *entry)
 		offset = 0;
 		while((entry[offset] != '\n') && (entry[offset] != 0))
 			offset++;
-		e = strndup(entry, offset);
-		patchpool_add(pp, e);
+		if(offset != 0) {
+			e = strndup(entry, offset);
+			patchpool_add(pp, e);
+		}
 		if(entry[offset] == 0)
 			break;
 		else
@@ -134,7 +136,7 @@ void patchpool_add_files(struct patchpool *pp, const char *folder, const char *e
 		if(!S_ISDIR(s.st_mode)) {
 			c = strrchr(entry->d_name, '.');
 			if((c != NULL) && (strcmp(extension, c+1) == 0))
-				patchpool_add(pp, entry->d_name);
+				patchpool_add(pp, strdup(entry->d_name));
 		}
 	}
 	closedir(d);
