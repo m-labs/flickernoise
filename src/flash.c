@@ -461,10 +461,11 @@ static void download_patches(struct patchpool *pp)
 	
 	/* TODO: ensure that the patch pool directory exists. Issue #25 precludes a simple mkdir(). */
 	
-	flash_state = DOWNLOAD_STATE_PATCHES;
-	
 	done = 0;
 	total = patchpool_count(pp);
+	if(total == 0)
+		return;
+	flash_state = DOWNLOAD_STATE_PATCHES;
 	for(i=0;i<pp->alloc_size;i++) {
 		if(pp->names[i] != NULL) {
 			encoded = curl_author_needs_to_take_a_dump(pp->names[i]);
