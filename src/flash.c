@@ -472,7 +472,7 @@ static void download_patches(struct patchpool *pp)
 			encoded = curl_author_needs_to_take_a_dump(pp->names[i]);
 			snprintf(url, sizeof(url), BASE_URL "patches/%s", encoded);
 			free(encoded);
-			snprintf(target, sizeof(target), SIMPLE_PATCHES_FOLDER "%s", pp->names[i]);
+			snprintf(target, sizeof(target), SIMPLE_PATCHES_FOLDER "/%s", pp->names[i]);
 			download(url, target, 0);
 			done++;
 		}

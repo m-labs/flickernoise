@@ -372,8 +372,7 @@ static void autobuild(int sn, char *folder)
 	n_files = 0;
 	while((entry = readdir(d))) {
 		if(entry->d_name[0] == '.') continue;
-		strncpy(fullname, folder, sizeof(fullname));
-		strncat(fullname, entry->d_name, sizeof(fullname));
+		snprintf(fullname, sizeof(fullname), "%s/%s", folder, entry->d_name);
 		lstat(fullname, &s);
 		if(!S_ISDIR(s.st_mode)) {
 			c = strrchr(entry->d_name, '.');
@@ -400,6 +399,7 @@ static void autobuild_callback(mtk_event *e, void *arg)
 	char note[8];
 	int notecode;
 	char filename[384];
+	int i;
 
 	mtk_req(appid, note, sizeof(note), "e_note.text");
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
@@ -412,6 +412,9 @@ static void autobuild_callback(mtk_event *e, void *arg)
 		messagebox("Auto build failed", "Invalid starting note");
 		return;
 	}
+	i = strlen(filename);
+	if(filename[i-1] == '/')
+		filename[i-1] = 0x00;
 	autobuild(notecode, filename);
 	update_list();
 }

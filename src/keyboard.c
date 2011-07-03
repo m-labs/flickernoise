@@ -193,8 +193,7 @@ static void autobuild(int sk, char *folder)
 	n_files = 0;
 	while((entry = readdir(d))) {
 		if(entry->d_name[0] == '.') continue;
-		strncpy(fullname, folder, sizeof(fullname));
-		strncat(fullname, entry->d_name, sizeof(fullname));
+		snprintf(fullname, sizeof(fullname), "%s/%s", folder, entry->d_name);
 		lstat(fullname, &s);
 		if(!S_ISDIR(s.st_mode)) {
 			c = strrchr(entry->d_name, '.');

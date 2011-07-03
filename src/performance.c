@@ -159,7 +159,7 @@ static void add_simple_patches()
 		return;
 	while((entry = readdir(d))) {
 		if(entry->d_name[0] == '.') continue;
-		strncpy(fullname, SIMPLE_PATCHES_FOLDER, sizeof(fullname));
+		strncpy(fullname, SIMPLE_PATCHES_FOLDER"/", sizeof(fullname));
 		strncat(fullname, entry->d_name, sizeof(fullname));
 		lstat(fullname, &s);
 		if(!S_ISDIR(s.st_mode)) {
