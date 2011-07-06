@@ -1,7 +1,19 @@
 Flickernoise
 ============
 
-A end-user VJ application for Milkymist.
+Flickernoise is the user-friendly VJ application optimized for
+the Milkymist One and the Milkymist SoC. It renders hardware-accelerated
+visual effects comparable (and, to some extent, compatible) with
+those of MilkDrop 1.x, the popular audio visualization plug-in for Winamp.
+
+Flickernoise allows the creation of visual patches and their connection
+with all the interfaces that the Milkymist One provides thanks to an easy
+to use graphical user interface. Let the visuals react to sound and MIDI
+events, connect a camera and create live phantasmagoric images of yourself...
+
+Links:
+  http://milkymist.org/flickernoise.html
+  http://www.milkymist.org/wiki/index.php?title=Flickernoise_build_instructions
 
 Most code is (C) Copyright 2010, 2011 Sebastien Bourdeauducq.
 All licensed under GNU GPL v3. See file LICENSE and headers in source code.
