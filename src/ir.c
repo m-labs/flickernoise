@@ -16,9 +16,13 @@
  */
 
 #include <bsp.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
+#include <unistd.h>
 #include <mtklib.h>
 
 #include "util.h"
@@ -27,6 +31,7 @@
 #include "cp.h"
 #include "messagebox.h"
 #include "filedialog.h"
+#include "performance.h"
 
 #include "ir.h"
 
@@ -182,6 +187,80 @@ static void addupdate_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "e_filename.set(-text \"\")");
 }
 
+static int cmpstringp(const void *p1, const void *p2)
+{
+	return strcmp(*(char * const *)p1, *(char * const *)p2);
+}
+
+static void autobuild(int sk, char *folder)
+{
+	DIR *d;
+	struct dirent *entry;
+	struct stat s;
+	char fullname[384];
+	char *c;
+	char *files[384];
+	int n_files;
+	int max_files = 64 - sk;
+	int i;
+
+	d = opendir(folder);
+	if(!d) {
+		messagebox("Auto build failed", "Unable to open directory");
+		return;
+	}
+	n_files = 0;
+	while((entry = readdir(d))) {
+		if(entry->d_name[0] == '.') continue;
+		snprintf(fullname, sizeof(fullname), "%s/%s", folder, entry->d_name);
+		lstat(fullname, &s);
+		if(!S_ISDIR(s.st_mode)) {
+			c = strrchr(entry->d_name, '.');
+			if((c != NULL) && (strcmp(c, ".fnp") == 0)) {
+				if(n_files < 384) {
+					files[n_files] = strdup(entry->d_name);
+					n_files++;
+				}
+			}
+		}
+	}
+	closedir(d);
+
+	qsort(files, n_files, sizeof(char *), cmpstringp);
+
+	for(i=0;i<n_files;i++) {
+		if(i < max_files)
+			sprintf(key_bindings[i+sk], "%s/%s", folder, files[i]);
+		free(files[i]);
+	}
+}
+
+static void autobuild_callback(mtk_event *e, void *arg)
+{
+	char key[8];
+	char filename[384];
+	char *c;
+	int i, index;
+
+	mtk_req(appid, key, sizeof(key), "e_key.text");
+	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
+	index = strtol(key, &c, 0);
+	if((*c != 0x00) || (index < 0) || (index > 63)) {
+		messagebox("Auto build failed",
+			   "Invalid key code.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
+		return;
+	}
+
+	if(filename[0] == 0x00)
+		strcpy(filename, SIMPLE_PATCHES_FOLDER);
+	i = strlen(filename);
+	if(filename[i-1] == '/')
+		filename[i-1] = 0x00;
+
+	autobuild(index, filename);
+	update_list();
+}
+
 void init_ir()
 {
 	appid = mtk_init_app("IR remote control settings");
@@ -224,6 +303,7 @@ void init_ir()
 		"g_addedit1.columnconfig(3, -size 0)",
 		"g_addedit1.columnconfig(4, -size 0)",
 		"b_addupdate = new Button(-text \"Add/update\")",
+		"b_autobuild = new Button(-text \"Auto build\")",
 
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
@@ -238,8 +318,9 @@ void init_ir()
 		"g.place(g_addedit0, -column 1 -row 3)",
 		"g.place(g_addedit1, -column 1 -row 4)",
 		"g.place(b_addupdate, -column 1 -row 5)",
-		"g.rowconfig(6, -size 10)",
-		"g.place(g_btn, -column 1 -row 7)",
+		"g.place(b_autobuild, -column 1 -row 6)",
+		"g.rowconfig(7, -size 10)",
+		"g.place(g_btn, -column 1 -row 8)",
 
 		"w = new Window(-content g -title \"IR remote control settings\")",
 		0);
@@ -249,6 +330,7 @@ void init_ir()
 	mtk_bind(appid, "b_filename", "commit", browse_callback, NULL);
 	mtk_bind(appid, "b_filenameclear", "commit", clear_callback, NULL);
 	mtk_bind(appid, "b_addupdate", "commit", addupdate_callback, NULL);
+	mtk_bind(appid, "b_autobuild", "commit", autobuild_callback, NULL);
 
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
