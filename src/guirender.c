@@ -112,8 +112,7 @@ static void input_cb(mtk_event *e, int count)
 
 	for(i=0;i<count;i++) {
 		if((e[i].type == EVENT_TYPE_PRESS) && 
-		  ((e[i].press.code == MTK_KEY_ENTER)
-		    || (e[i].press.code == MTK_KEY_F2)
+		  ((e[i].press.code == MTK_KEY_ESC)
 		    || (e[i].press.code == MTK_BTN_LEFT)
 		    || (e[i].press.code == MTK_BTN_RIGHT))) {
 			guirender_stop();
