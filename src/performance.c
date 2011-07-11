@@ -365,8 +365,12 @@ static void event_callback(mtk_event *e, int count)
 	if(simple_mode) {
 		next = 0;
 		for(i=0;i<count;i++) {
-			if((e[i].type == EVENT_TYPE_PRESS) && (e[i].press.code == MTK_KEY_F11))
-				next = 1;
+			if(e[i].type == EVENT_TYPE_PRESS) {
+				if (e[i].press.code == MTK_KEY_F11)
+					next = 1;
+				if (e[i].press.code == MTK_KEY_F9)
+					next = -1;
+			}
 		}
 		if(as_mode) {
 			t = rtems_clock_get_ticks_since_boot();
@@ -376,9 +380,11 @@ static void event_callback(mtk_event *e, int count)
 			}
 		}
 		if(next) {
-			current_patch++;
+			current_patch += next;
 			if(current_patch == npatches)
 				current_patch = 0;
+			if(current_patch < 0)
+				current_patch = npatches - 1;
 			index = current_patch;
 		}
 		if(dt_mode && (index != -1))
