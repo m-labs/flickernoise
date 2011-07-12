@@ -181,7 +181,8 @@ void init_sysettings()
 		"l_language = new Label(-text \"Language:\")",
 		"b_lang_english = new Button(-text \"English\")",
 		"b_lang_french = new Button(-text \"French\")",
-		"b_lang_german = new Button(-text \"German\")",
+		// Wolfgang's slowness is amazing at times ...
+		//"b_lang_german = new Button(-text \"German\")",
 		"l_layout = new Label(-text \"Keyboard layout:\")",
 		"b_kbd_us = new Button(-text \"US\")",
 		"b_kbd_french = new Button(-text \"French\")",
@@ -189,7 +190,7 @@ void init_sysettings()
 		"g_localization.place(l_language, -column 1 -row 1)",
 		"g_localization.place(b_lang_english, -column 2 -row 1)",
 		"g_localization.place(b_lang_french, -column 3 -row 1)",
-		"g_localization.place(b_lang_german, -column 4 -row 1)",
+		//"g_localization.place(b_lang_german, -column 4 -row 1)",
 		"g_localization.place(l_layout, -column 1 -row 2)",
 		"g_localization.place(b_kbd_us, -column 2 -row 2)",
 		"g_localization.place(b_kbd_french, -column 3 -row 2)",
@@ -306,7 +307,7 @@ void init_sysettings()
 
 	mtk_bind(appid, "b_lang_english", "press", language_callback, (void *)SC_LANGUAGE_ENGLISH);
 	mtk_bind(appid, "b_lang_french", "press", language_callback, (void *)SC_LANGUAGE_FRENCH);
-	mtk_bind(appid, "b_lang_german", "press", language_callback, (void *)SC_LANGUAGE_GERMAN);
+	//mtk_bind(appid, "b_lang_german", "press", language_callback, (void *)SC_LANGUAGE_GERMAN);
 
 	mtk_bind(appid, "b_kbd_us", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_US);
 	mtk_bind(appid, "b_kbd_french", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_FRENCH);
@@ -357,7 +358,7 @@ static void update_language()
 	
 	mtk_cmdf(appid, "b_lang_english.set(-state %s)", language == SC_LANGUAGE_ENGLISH ? "on" : "off");
 	mtk_cmdf(appid, "b_lang_french.set(-state %s)", language == SC_LANGUAGE_FRENCH ? "on" : "off");
-	mtk_cmdf(appid, "b_lang_german.set(-state %s)", language == SC_LANGUAGE_GERMAN ? "on" : "off");
+	//mtk_cmdf(appid, "b_lang_german.set(-state %s)", language == SC_LANGUAGE_GERMAN ? "on" : "off");
 }
 
 static void update_layout()
