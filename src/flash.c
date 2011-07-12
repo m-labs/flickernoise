@@ -392,14 +392,18 @@ static void get_versions(struct patchpool *local_patches, struct patchpool *remo
 
 static void download_images()
 {
-	if(strcmp(available_socbios, soc) != 0) {
+	int rescue;
+	
+	rescue = sysconfig_is_rescue();
+	
+	if(rescue || (strcmp(available_socbios, soc) != 0)) {
 		strcpy(bitstream_name, "/ramdisk/soc.fpg");
 		strcpy(bios_name, "/ramdisk/bios.bin");
 	} else {
 		bitstream_name[0] = 0;
 		bios_name[0] = 0;
 	}
-	if(strcmp(available_application, VERSION) != 0)
+	if(rescue || (strcmp(available_application, VERSION) != 0))
 		strcpy(application_name, "/ramdisk/flickernoise.fbi");
 	else
 		application_name[0] = 0;
@@ -828,7 +832,7 @@ void init_flash()
 		"g.rowconfig(2, -size 0)",
 		"g.rowconfig(3, -size 0)",
 
-		"w = new Window(-content g -title \"Update\")",
+		"w = new Window(-content g -title \"Update\" -workx 10)",
 		
 		"gfiles = new Grid()",
 		
