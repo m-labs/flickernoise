@@ -99,7 +99,7 @@ int flashvalid_application(const char *filename)
 	}
 
 	length = 0;
-	crc = crc32(0L, Z_NULL, 0);
+	crc = z_crc32(0L, Z_NULL, 0);
 
 	while(1) {
 		r = read(fd, buf, sizeof(buf));
@@ -108,7 +108,7 @@ int flashvalid_application(const char *filename)
 			return FLASHVALID_ERROR_IO;
 		}
 		if(r == 0) break;
-		crc = crc32(crc, buf, r);
+		crc = z_crc32(crc, buf, r);
 		length += r;
 	}
 	
