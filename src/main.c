@@ -295,7 +295,7 @@ rtems_telnetd_config_table rtems_telnetd_config = {
 const rtems_filesystem_table_t rtems_filesystem_table[] = {
 	{ RTEMS_FILESYSTEM_TYPE_IMFS, IMFS_initialize },
 	{ RTEMS_FILESYSTEM_TYPE_DOSFS, rtems_dosfs_initialize },
-	{ RTEMS_FILESYSTEM_TYPE_NFS, rtems_nfsfs_initialize },
+	{ RTEMS_FILESYSTEM_TYPE_NFS, rtems_nfs_initialize },
 	{ "yaffs", yaffs_initialize },
 	{ NULL, NULL }
 };
