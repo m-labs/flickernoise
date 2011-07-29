@@ -18,7 +18,7 @@
 #ifndef __VERSION_H
 #define __VERSION_H
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 extern char soc[];
 extern char pcb[];
