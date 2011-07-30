@@ -46,9 +46,10 @@
 #include <rtems/rtems_bsdnet.h>
 #include <rtems/ftpd.h>
 #include <rtems/telnetd.h>
-#include <yaffs.h>
+#include <yaffs/rtems_yaffs.h>
 #include <curl/curl.h>
 
+#include "yaffs.h"
 #include "version.h"
 #include "videoinreconf.h"
 #include "shellext.h"
@@ -296,7 +297,7 @@ const rtems_filesystem_table_t rtems_filesystem_table[] = {
 	{ RTEMS_FILESYSTEM_TYPE_IMFS, IMFS_initialize },
 	{ RTEMS_FILESYSTEM_TYPE_DOSFS, rtems_dosfs_initialize },
 	{ RTEMS_FILESYSTEM_TYPE_NFS, rtems_nfs_initialize },
-	{ "yaffs", yaffs_initialize },
+	{ RTEMS_FILESYSTEM_TYPE_YAFFS, yaffs_initialize },
 	{ NULL, NULL }
 };
 
