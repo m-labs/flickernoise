@@ -28,7 +28,6 @@
 #include <bsp/milkymist_flash.h>
 
 #include <curl/curl.h>
-#include <curl/types.h>
 #include <curl/easy.h>
 #include <mtklib.h>
 
