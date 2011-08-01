@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <rtems.h>
 #include <rtems/libio.h>
 #include <rtems/seterr.h>
@@ -176,12 +177,16 @@ static int initialise(struct yaffs_dev *dev)
 	return YAFFS_OK;
 }
 
+static int mount_sema_created;
+static rtems_id mount_sema;
 static struct yaffs_softc *current_mounts[MAXIMUM_YAFFS_MOUNTS];
 
 static void unmount_handler(struct yaffs_dev *dev, void *os_context)
 {
 	struct yaffs_softc *softc = dev->driver_context;
 	int i;
+	
+	rtems_semaphore_obtain(mount_sema, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
 	
 	for(i=0;i<MAXIMUM_YAFFS_MOUNTS;i++) {
 		if(current_mounts[i] == softc) {
@@ -195,6 +200,33 @@ static void unmount_handler(struct yaffs_dev *dev, void *os_context)
 	softc->free_os_context(dev, os_context);
 	free(softc);
 	free(dev);
+	
+	rtems_semaphore_release(mount_sema);
+}
+
+static int flush_task_running;
+static rtems_id flush_task_id;
+
+static rtems_task flush_task(rtems_task_argument argument)
+{
+	int i;
+	struct yaffs_softc *sc;
+	rtems_yaffs_default_os_context *os_context;
+	
+	while(1) {
+		rtems_task_wake_after(10*100);
+		rtems_semaphore_obtain(mount_sema, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
+		for(i=0;i<MAXIMUM_YAFFS_MOUNTS;i++) {
+			sc = current_mounts[i];
+			if(sc != NULL) {
+				os_context = sc->dev->os_context;
+				os_context->os_context.lock(sc->dev, os_context);
+				yaffs_flush_whole_cache(sc->dev);
+				os_context->os_context.unlock(sc->dev, os_context);
+			}
+		}
+		rtems_semaphore_release(mount_sema);
+	}
 }
 
 int yaffs_initialize(rtems_filesystem_mount_table_entry_t *mt_entry, const void *data)
@@ -210,6 +242,25 @@ int yaffs_initialize(rtems_filesystem_mount_table_entry_t *mt_entry, const void 
 	rtems_status_code sc1, sc2;
 	int r;
 	
+	if(!mount_sema_created) {
+		sc1 = rtems_semaphore_create(
+			rtems_build_name('Y', 'A', 'F', 'M'),
+			1,
+			RTEMS_LOCAL
+				| RTEMS_BINARY_SEMAPHORE
+				| RTEMS_INHERIT_PRIORITY
+				| RTEMS_PRIORITY,
+			0,
+			&mount_sema
+		);
+		if(sc1 != RTEMS_SUCCESSFUL) {
+			errno = ENOMEM;
+			return -1;
+		}
+		mount_sema_created = 1;
+	}
+	
+	rtems_semaphore_obtain(mount_sema, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
 	index = -1;
 	for(i=0;i<MAXIMUM_YAFFS_MOUNTS;i++) {
 		if(current_mounts[i] == NULL) {
@@ -217,6 +268,7 @@ int yaffs_initialize(rtems_filesystem_mount_table_entry_t *mt_entry, const void 
 			break;
 		}
 	}
+	rtems_semaphore_release(mount_sema);
 	if(index == -1) {
 		errno = ENOMEM;
 		return -1;
@@ -307,6 +359,15 @@ int yaffs_initialize(rtems_filesystem_mount_table_entry_t *mt_entry, const void 
 	}
 	
 	current_mounts[index] = softc;
+	if(!flush_task_running) {
+		sc1 = rtems_task_create(rtems_build_name('F', 'L', 'S', 'H'), 220, 256*1024,
+			RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
+			0, &flush_task_id);
+		assert(sc1 == RTEMS_SUCCESSFUL);
+		sc1 = rtems_task_start(flush_task_id, flush_task, 0);
+		assert(sc1 == RTEMS_SUCCESSFUL);
+		flush_task_running = 1;
+	}
 	
 	return 0;
 }
