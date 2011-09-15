@@ -20,9 +20,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <mtklib.h>
 #include <mtkeycodes.h>
+#include <bsp/milkymist_video.h>
 
 #include "input.h"
 #include "fb.h"
@@ -49,6 +52,7 @@ static struct patch_info patches[MAX_PATCHES];
 static int simple_mode;
 static int dt_mode;
 static int as_mode;
+static int input_video;
 
 static int add_patch(const char *filename)
 {
@@ -351,6 +355,23 @@ static int keycode_to_index(int keycode)
 	}
 }
 
+static int check_input_require()
+{
+	int video_fd;
+	unsigned int status;
+
+	video_fd = open("/dev/video", O_RDWR);
+	if(video_fd == -1) {
+		perror("Unable to open video device");
+		return 1;
+	}
+
+	ioctl(video_fd, VIDEO_GET_SIGNAL, &status);
+	if(!(status & 0x01)) input_video = 0;
+
+	return 0;
+}
+
 static rtems_interval next_as_time;
 #define AUTOSWITCH_PERIOD 3000
 
@@ -441,6 +462,13 @@ static void refresh_callback(mtk_event *e, int count)
 				next_as_time = t + AUTOSWITCH_PERIOD;
 				input_add_callback(event_callback);
 				mtk_cmd(appid, "l_status.set(-text \"Ready.\")");
+
+				if(!input_video && (patches[current_patch].p->require & REQUIRE_VIDEO)) {
+					current_patch++;
+					if(current_patch == npatches)
+						current_patch = 0;
+				}
+
 				if(!guirender(appid, patches[current_patch].p, stop_callback))
 					stop_callback();
 				return;
@@ -475,6 +503,8 @@ void start_performance(int simple, int dt, int as)
 	if(started) return;
 	started = 1;
 
+	input_video = 1;
+
 	simple_mode = simple;
 	dt_mode = dt;
 	as_mode = as;
@@ -484,6 +514,7 @@ void start_performance(int simple, int dt, int as)
 	npatches = 0;
 	current_patch = 0;
 	if(simple) {
+		check_input_require();
 		add_simple_patches();
 		if(npatches < 1) {
 			messagebox("Error", "No patches found!");

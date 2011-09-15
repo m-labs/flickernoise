@@ -161,11 +161,19 @@ static const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
 	"video_a"
 };
 
-static int pfv_from_name(const char *name)
+static int pfv_from_name(struct compiler_sc *sc, const char *name)
 {
 	int i;
-	for(i=0;i<COMP_PFV_COUNT;i++)
-		if(strcmp(pfv_names[i], name) == 0) return i;
+	for(i=0;i<COMP_PFV_COUNT;i++) {
+		if(strcmp(pfv_names[i], name) == 0) {
+			if(i >= pfv_dmx1 && i <= pfv_idmx8)	sc->p->require |= REQUIRE_DMX;
+			if(i >= pfv_osc1 && i <= pfv_osc4)	sc->p->require |= REQUIRE_OSC;
+			if(i >= pfv_midi1 && i <= pfv_midi8)	sc->p->require |= REQUIRE_MIDI;
+			if(i == pfv_video_a)			sc->p->require |= REQUIRE_VIDEO;
+			return i;
+		}
+	}
+
 	if(strcmp(name, "fDecay") == 0) return pfv_decay;
 	if(strcmp(name, "nWaveMode") == 0) return pfv_wave_mode;
 	if(strcmp(name, "fWaveScale") == 0) return pfv_wave_scale;
@@ -180,6 +188,8 @@ static int pfv_from_name(const char *name)
 static void load_defaults(struct compiler_sc *sc)
 {
 	int i;
+
+	sc->p->require = 0;
 
 	for(i=0;i<COMP_PFV_COUNT;i++)
 		sc->p->pfv_initial[i] = 0.0;
@@ -552,7 +562,7 @@ static bool process_top_assign(struct compiler_sc *sc, char *left, char *right)
 	while(*right == ' ') right++;
 	if(*right == 0) return true;
 
-	pfv = pfv_from_name(left);
+	pfv = pfv_from_name(sc, left);
 	if(pfv >= 0) {
 		/* patch initial condition or global parameter */
 		set_initial(sc, pfv, atof(right));
