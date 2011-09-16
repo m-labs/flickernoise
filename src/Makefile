@@ -68,9 +68,13 @@ $(BINDIR)/flickernoise.fbiz: $(BINDIR)/flickernoise.lzma
 load: $(BINDIR)/flickernoise.bin
 	cp $< /var/lib/tftpboot/boot.bin
 
+flash:
+	(cd ../flash && ./flash.sh rescue)
+	(cd ../flash && ./flash.sh)
+
 clean:
 	rm -f $(BINDIR)/flickernoise $(BINDIR)/flickernoise.bin 
 	rm -f $(BINDIR)/flickernoise.lzma $(BINDIR)/flickernoise.fbi $(BINDIR)/flickernoise.fbiz 
 	rm -f $(POBJS)
 
-.PHONY: clean load
+.PHONY: clean load flash
