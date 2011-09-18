@@ -192,13 +192,13 @@ enum {
 	COMP_PVV_COUNT /* must be last */
 };
 
-#define  REQUIRE_DMX	(1 << 3)
-#define  REQUIRE_OSC	(1 << 2)
-#define  REQUIRE_MIDI	(1 << 1)
-#define  REQUIRE_VIDEO	(1 << 0)
+#define REQUIRE_DMX	(1 << 0)
+#define REQUIRE_OSC	(1 << 1)
+#define REQUIRE_MIDI	(1 << 2)
+#define REQUIRE_VIDEO	(1 << 3)
 
 struct patch {
-	unsigned int require;				/* bit: dmx, osc, midi, video */
+	unsigned int require;				/* < bitmask: dmx, osc, midi, video */
 	/* per-frame */
 	float pfv_initial[COMP_PFV_COUNT]; 		/* < patch initial conditions */
 	int pfv_allocation[COMP_PFV_COUNT];		/* < where per-frame variables are mapped in PFPU regf, -1 if unmapped */
@@ -218,4 +218,3 @@ struct patch *patch_compile(const char *patch_code, report_message rmc);
 void patch_free(struct patch *p);
 
 #endif /* __COMPILER_H */
-

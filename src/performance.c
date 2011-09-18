@@ -21,6 +21,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <mtklib.h>
@@ -355,25 +356,20 @@ static int keycode_to_index(int keycode)
 	}
 }
 
-static int check_input_require()
-{
-	int video_fd;
-	unsigned int status;
-
-	video_fd = open("/dev/video", O_RDWR);
-	if(video_fd == -1) {
-		perror("Unable to open video device");
-		return 1;
-	}
-
-	ioctl(video_fd, VIDEO_GET_SIGNAL, &status);
-	if(!(status & 0x01)) input_video = 0;
-
-	return 0;
-}
-
 static rtems_interval next_as_time;
 #define AUTOSWITCH_PERIOD 3000
+
+static int suitable_for_simple(struct patch *p)
+{
+	int suitable;
+	
+	suitable = 1;
+	if(p->require & REQUIRE_DMX) suitable = 0;
+	if(p->require & REQUIRE_OSC) suitable = 0;
+	if(p->require & REQUIRE_MIDI) suitable = 0;
+	if((p->require & REQUIRE_VIDEO) && !input_video) suitable = 0;
+	return suitable;
+}
 
 static void event_callback(mtk_event *e, int count)
 {
@@ -381,6 +377,7 @@ static void event_callback(mtk_event *e, int count)
 	int index;
 	int next;
 	rtems_interval t;
+	int looped;
 
 	index = -1;
 	if(simple_mode) {
@@ -401,11 +398,14 @@ static void event_callback(mtk_event *e, int count)
 			}
 		}
 		if(next) {
-			current_patch += next;
-			if(current_patch == npatches)
-				current_patch = 0;
-			if(current_patch < 0)
-				current_patch = npatches - 1;
+			looped = current_patch;
+			do {
+				current_patch += next;
+				if(current_patch == npatches)
+					current_patch = 0;
+				if(current_patch < 0)
+					current_patch = npatches - 1;
+			} while(!suitable_for_simple(patches[current_patch].p) && (looped != current_patch));
 			index = current_patch;
 		}
 		if(dt_mode && (index != -1))
@@ -451,6 +451,7 @@ static void stop_callback()
 static void refresh_callback(mtk_event *e, int count)
 {
 	rtems_interval t;
+	int looped;
 	
 	t = rtems_clock_get_ticks_since_boot();
 	if(t >= next_update) {
@@ -463,10 +464,13 @@ static void refresh_callback(mtk_event *e, int count)
 				input_add_callback(event_callback);
 				mtk_cmd(appid, "l_status.set(-text \"Ready.\")");
 
-				if(!input_video && (patches[current_patch].p->require & REQUIRE_VIDEO)) {
+				looped = current_patch;
+				while(!suitable_for_simple(patches[current_patch].p)) {
 					current_patch++;
 					if(current_patch == npatches)
 						current_patch = 0;
+					if(looped == current_patch)
+						break;
 				}
 
 				if(!guirender(appid, patches[current_patch].p, stop_callback))
@@ -496,6 +500,22 @@ void open_performance_window()
 
 static rtems_id comp_task_id;
 
+static int check_input_video()
+{
+	int fd;
+	unsigned int status;
+
+	fd = open("/dev/video", O_RDWR);
+	if(fd == -1) {
+		perror("Unable to open video device");
+		return 0;
+	}
+	ioctl(fd, VIDEO_GET_SIGNAL, &status);
+	status &= 0x01;
+	close(fd);
+	return status;
+}
+
 void start_performance(int simple, int dt, int as)
 {
 	rtems_status_code sc;
@@ -503,18 +523,16 @@ void start_performance(int simple, int dt, int as)
 	if(started) return;
 	started = 1;
 
-	input_video = 1;
-
 	simple_mode = simple;
 	dt_mode = dt;
 	as_mode = as;
+	input_video = check_input_video();
 	open_performance_window();
 
 	/* build patch list */
 	npatches = 0;
 	current_patch = 0;
 	if(simple) {
-		check_input_require();
 		add_simple_patches();
 		if(npatches < 1) {
 			messagebox("Error", "No patches found!");
