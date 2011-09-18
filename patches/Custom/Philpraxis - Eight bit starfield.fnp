@@ -6,7 +6,6 @@ nWaveMode=2
 bAdditiveWaves=0
 bMaximizeWaveColor=1
 bTexWrap=1
-bMotionVectorsOn=1
 nMotionVectorsX=12
 nMotionVectorsY=9
 fWaveAlpha=8.200001
