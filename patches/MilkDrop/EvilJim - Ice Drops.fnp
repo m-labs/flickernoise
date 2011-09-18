@@ -7,7 +7,6 @@ bAdditiveWaves=0
 bWaveDots=0
 bMaximizeWaveColor=0
 bTexWrap=0
-bMotionVectorsOn=0
 nMotionVectorsX=12
 nMotionVectorsY=9
 fWaveAlpha=100.000000
