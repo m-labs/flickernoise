@@ -523,16 +523,17 @@ void start_performance(int simple, int dt, int as)
 	if(started) return;
 	started = 1;
 
+	input_video = 1;
 	simple_mode = simple;
 	dt_mode = dt;
 	as_mode = as;
-	input_video = check_input_video();
 	open_performance_window();
 
 	/* build patch list */
 	npatches = 0;
 	current_patch = 0;
 	if(simple) {
+		input_video = check_input_video();
 		add_simple_patches();
 		if(npatches < 1) {
 			messagebox("Error", "No patches found!");
