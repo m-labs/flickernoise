@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include <fpvm/fpvm.h>
-#include <fpvm/gfpus.h>
+#include <fpvm/schedulers.h>
 #include <fpvm/pfpu.h>
 
 #include "compiler.h"
@@ -284,7 +284,7 @@ fail_fpvm:
 
 static bool schedule_pfv(struct compiler_sc *sc)
 {
-	sc->p->perframe_prog_length = gfpus_schedule(&sc->pfv_fragment,
+	sc->p->perframe_prog_length = fpvm_default_schedule(&sc->pfv_fragment,
 		(unsigned int *)sc->p->perframe_prog, (unsigned int *)sc->p->perframe_regs);
 	if(sc->p->perframe_prog_length < 0) {
 		comp_report(sc, "per-frame VLIW scheduling failed");
@@ -477,7 +477,7 @@ fail_finalize:
 
 static bool schedule_pvv(struct compiler_sc *sc)
 {
-	sc->p->pervertex_prog_length = gfpus_schedule(&sc->pvv_fragment,
+	sc->p->pervertex_prog_length = fpvm_default_schedule(&sc->pvv_fragment,
 		(unsigned int *)sc->p->pervertex_prog, (unsigned int *)sc->p->pervertex_regs);
 	if(sc->p->pervertex_prog_length < 0) {
 		comp_report(sc, "per-vertex VLIW scheduling failed");
