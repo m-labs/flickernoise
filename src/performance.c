@@ -561,7 +561,7 @@ void start_performance(int simple, int dt, int as)
 	mtk_cmd(appid, "progress.barconfig(load, -value 0)");
 	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
 	input_add_callback(refresh_callback);
-	sc = rtems_task_create(rtems_build_name('C', 'O', 'M', 'P'), 20, 64*1024,
+	sc = rtems_task_create(rtems_build_name('C', 'O', 'M', 'P'), 20, 300*1024,
 		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
 		0, &comp_task_id);
 	assert(sc == RTEMS_SUCCESSFUL);
