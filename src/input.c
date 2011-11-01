@@ -67,10 +67,7 @@ static int handle_mouse_event(mtk_event *e, unsigned char *msg)
 	unsigned int mstate;
 	int n;
 
-	mstate = ((unsigned int)msg[0] << 24)
-		|((unsigned int)msg[1] << 16)
-		|((unsigned int)msg[2] << 8)
-		|((unsigned int)msg[3]);
+	mstate = (msg[0] << 24) | (msg[1] << 16) | (msg[2] << 8) | msg[3];
 
 	n = 0;
 	/* left mouse button pressed */
@@ -237,19 +234,19 @@ static int handle_ir_event(mtk_event *e, unsigned char *msg)
 
 static int handle_midi_msg(mtk_event *e, unsigned char *msg)
 {
-	e->press.code = ((unsigned int)(msg[0]) & 0x0f) << 16; /* set channel */
+	e->press.code = (msg[0] & 0x0f) << 16; /* set channel */
 	switch(msg[0] & 0xf0) {
 		case 0x90: /* Note On */
 			e->type = EVENT_TYPE_MIDI_NOTEON;
-			e->press.code |= (unsigned int)msg[1];
+			e->press.code |= msg[1];
 			return 1;
 		case 0xb0: /* Controller */
 			e->type = EVENT_TYPE_MIDI_CONTROLLER;
-			e->press.code |= ((unsigned int)msg[1] << 8) | (unsigned int)msg[2];
+			e->press.code |= (msg[1] << 8) | msg[2];
 			return 1;
 		case 0xe0: /* Pitch */
 			e->type = EVENT_TYPE_MIDI_PITCH;
-			e->press.code |= (unsigned int)msg[2];
+			e->press.code |= msg[2];
 			return 1;
 		default:
 			return 0;
