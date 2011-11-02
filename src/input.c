@@ -255,7 +255,7 @@ static int handle_midi_msg(mtk_event *e, unsigned char *msg)
 
 #define MIDI_TIMEOUT 20
 
-static int midi_p;
+static unsigned char *midi_p = NULL;
 static rtems_interval midi_last;
 static unsigned char midi_msg[3];
 
@@ -269,13 +269,21 @@ static int handle_midi_event(mtk_event *e, unsigned char *msg)
 		midi_p = 0;
 	midi_last = t;
 
-	midi_msg[midi_p] = msg[0];
-	midi_p++;
+	if ((*msg & 0xf8) == 0xf8)
+		return 0; /* ignore system real-time */
 
-	if(midi_p == 3) {
+	if (*msg & 0x80)
+		midi_p = midi_msg; /* status byte */
+
+	if (!midi_p)
+		return 0; /* ignore extra or unsynchronized data */
+
+	*midi_p++ = *msg;
+
+	if(midi_p == midi_msg+3) {
 		/* received a complete MIDI message */
 		r = handle_midi_msg(e, midi_msg);
-		midi_p = 0;
+		midi_p = NULL;
 		return r;
 	}
 	
