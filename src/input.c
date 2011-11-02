@@ -253,29 +253,20 @@ static int handle_midi_msg(mtk_event *e, unsigned char *msg)
 	}
 }
 
-#define MIDI_TIMEOUT 20
-
 static unsigned char *midi_p = NULL;
-static rtems_interval midi_last;
 static unsigned char midi_msg[3];
 
 static int handle_midi_event(mtk_event *e, unsigned char *msg)
 {
-	rtems_interval t;
 	int r;
 
-	t = rtems_clock_get_ticks_since_boot();
-	if(t > (midi_last + MIDI_TIMEOUT))
-		midi_p = 0;
-	midi_last = t;
-
-	if ((*msg & 0xf8) == 0xf8)
+	if((*msg & 0xf8) == 0xf8)
 		return 0; /* ignore system real-time */
 
-	if (*msg & 0x80)
+	if(*msg & 0x80)
 		midi_p = midi_msg; /* status byte */
 
-	if (!midi_p)
+	if(!midi_p)
 		return 0; /* ignore extra or unsynchronized data */
 
 	*midi_p++ = *msg;
