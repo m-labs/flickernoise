@@ -271,9 +271,8 @@ static void note_event(int code)
 static void controller_event(int controller, int value)
 {
 	mtk_cmdf(appid, "l_lastctl.set(-text \"%d (%d)\")", controller, value);
-	if (learn != -1)
-		mtk_cmdf(appid, "e_midi%d.set(-text \"%d\")",
-		    learn, controller);
+	if(learn != -1)
+		mtk_cmdf(appid, "e_midi%d.set(-text \"%d\")", learn, controller);
 }
 
 static void midi_event(mtk_event *e, int count)
@@ -354,7 +353,7 @@ static void addupdate_callback(mtk_event *e, void *arg)
 
 static void press_callback(mtk_event *e, void *arg)
 {
-	learn = (long) arg;
+	learn = (int)arg;
 	assert(learn >= 0 && learn < MIDI_COUNT);
 }
 
@@ -549,15 +548,12 @@ void init_midi()
 		0);
 
 	for(i=0;i<MIDI_COUNT;i++) {
-		char tmp[20];
-
 		mtk_cmdf(appid, "l_midi%d = new Label(-text \"\emidi%d\")", i, i+1);
 		mtk_cmdf(appid, "e_midi%d = new Entry()", i);
 		mtk_cmdf(appid, "g_vars.place(l_midi%d, -column 1 -row %d)", i, i);
 		mtk_cmdf(appid, "g_vars.place(e_midi%d, -column 2 -row %d)", i, i);
-		snprintf(tmp, sizeof(tmp), "l_midi%d", i);
-		mtk_bind(appid, tmp, "press", press_callback, (void *) i);
-		mtk_bind(appid, tmp, "release", release_callback, NULL);
+		mtk_bindf(appid, "l_midi%d", "press", press_callback, (void *)i, i);
+		mtk_bindf(appid, "l_midi%d", "release", release_callback, NULL, i);
 	}
 
 	mtk_bind(appid, "lst_existing", "selchange", selchange_callback, NULL);
