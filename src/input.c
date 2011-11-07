@@ -430,7 +430,7 @@ void input_eventloop()
 			} else if(m.fd == btn_fd) {
 				n = handle_btn_event(&e[total], m.data);
 			} else if(m.fd == -1) {
-				n = handle_midi_event(&e[total], m.data);
+				n = handle_midi_msg(&e[total], m.data);
 			} else if(m.fd == -2) {
 				/* injected OSC */
 				e[total].type = EVENT_TYPE_OSC;
