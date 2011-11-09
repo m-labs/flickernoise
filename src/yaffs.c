@@ -195,8 +195,6 @@ static void unmount_handler(struct yaffs_dev *dev, void *os_context)
 		}
 	}
 	
-	yaffs_flush_whole_cache(dev);
-	yaffs_deinitialise(dev);
 	softc->free_os_context(dev, os_context);
 	free(softc);
 	free(dev);
