@@ -231,7 +231,11 @@ static void file_selcommit_callback(mtk_event *e, void *arg)
 static void dlg_ok_callback(mtk_event *e, void *arg)
 {
 	struct filedialog *dlg = arg;
-	
+	char file[384];
+
+	mtk_req(dlg->appid, file, sizeof(file), "fd_filename.text");
+	if(strcmp(file, "") == 0)
+		return;
 	close_filedialog(dlg);
 	if(dlg->ok_callback)
 		dlg->ok_callback(dlg->ok_callback_arg);
