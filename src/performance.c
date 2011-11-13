@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <rtems.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -357,7 +358,15 @@ static int keycode_to_index(int keycode)
 }
 
 static rtems_interval next_as_time;
-#define AUTOSWITCH_PERIOD 3000
+#define AUTOSWITCH_PERIOD_MIN (2*60*100)
+#define AUTOSWITCH_PERIOD_MAX (4*60*100)
+static void update_next_as_time()
+{
+	rtems_interval t;
+	
+	t = rtems_clock_get_ticks_since_boot();
+	next_as_time = t + AUTOSWITCH_PERIOD_MIN + (rand() % (AUTOSWITCH_PERIOD_MAX - AUTOSWITCH_PERIOD_MIN));
+}
 
 static int suitable_for_simple(struct patch *p)
 {
@@ -384,18 +393,16 @@ static void event_callback(mtk_event *e, int count)
 		next = 0;
 		for(i=0;i<count;i++) {
 			if(e[i].type == EVENT_TYPE_PRESS) {
-				if (e[i].press.code == MTK_KEY_F11)
+				if(e[i].press.code == MTK_KEY_F11)
 					next = 1;
-				if (e[i].press.code == MTK_KEY_F9)
+				if(e[i].press.code == MTK_KEY_F9)
 					next = -1;
 			}
 		}
 		if(as_mode) {
 			t = rtems_clock_get_ticks_since_boot();
-			if(t >= next_as_time) {
+			if(t >= next_as_time)
 				next = 1;
-				next_as_time = t + AUTOSWITCH_PERIOD;
-			}
 		}
 		if(next) {
 			looped = current_patch;
@@ -407,6 +414,8 @@ static void event_callback(mtk_event *e, int count)
 					current_patch = npatches - 1;
 			} while(!suitable_for_simple(patches[current_patch].p) && (looped != current_patch));
 			index = current_patch;
+			if(as_mode)
+				update_next_as_time();
 		}
 		if(dt_mode && (index != -1))
 			osd_event(patches[index].filename);
@@ -460,7 +469,7 @@ static void refresh_callback(mtk_event *e, int count)
 			if(compiled_patches == npatches) {
 				/* All patches compiled. Start rendering. */
 				input_delete_callback(refresh_callback);
-				next_as_time = t + AUTOSWITCH_PERIOD;
+				update_next_as_time();
 				input_add_callback(event_callback);
 				mtk_cmd(appid, "l_status.set(-text \"Ready.\")");
 
