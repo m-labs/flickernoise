@@ -363,6 +363,7 @@ static void event_callback(mtk_event *e, int count)
 
 	index = -1;
 	if(simple_mode) {
+		t = rtems_clock_get_ticks_since_boot();
 		next = 0;
 		for(i=0;i<count;i++) {
 			if(e[i].type == EVENT_TYPE_PRESS) {
@@ -373,11 +374,8 @@ static void event_callback(mtk_event *e, int count)
 			}
 		}
 		if(as_mode) {
-			t = rtems_clock_get_ticks_since_boot();
-			if(t >= next_as_time) {
+			if(t >= next_as_time)
 				next = 1;
-				next_as_time = t + AUTOSWITCH_PERIOD;
-			}
 		}
 		if(next) {
 			current_patch += next;
@@ -386,6 +384,7 @@ static void event_callback(mtk_event *e, int count)
 			if(current_patch < 0)
 				current_patch = npatches - 1;
 			index = current_patch;
+			next_as_time = t + AUTOSWITCH_PERIOD;
 		}
 		if(dt_mode && (index != -1))
 			osd_event(patches[index].filename);
