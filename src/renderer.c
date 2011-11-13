@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,8 @@ int renderer_vmeshlast;
 int renderer_squarew;
 int renderer_squareh;
 
+static int mashup_en;
+static struct patch *mashup_head;
 static struct patch *current_patch;
 static rtems_id patch_lock;
 
@@ -48,29 +50,108 @@ void renderer_unlock_patch()
 	rtems_semaphore_release(patch_lock);
 }
 
-void renderer_set_patch(struct patch *p)
+static struct patch *copy_patch(struct patch *p)
 {
 	struct patch *new_patch;
-	struct patch *old_patch;
-
+	
 	/* Copy memory as the patch will be modified
 	 * by the evaluator (current regs).
 	 */
-
-	old_patch = current_patch;
 	new_patch = malloc(sizeof(struct patch));
 	assert(new_patch != NULL);
 	memcpy(new_patch, p, sizeof(struct patch));
-
-	renderer_lock_patch();
-	current_patch = new_patch;
-	renderer_unlock_patch();
-
-	free(old_patch);
+	new_patch->original = p;
+	new_patch->next = NULL;
+	return new_patch;
 }
 
-struct patch *renderer_get_patch()
+void renderer_pulse_patch(struct patch *p)
 {
+	struct patch *oldpatch;
+	
+	renderer_lock_patch();
+	if(!mashup_en && (mashup_head->next == NULL)) {
+		oldpatch = mashup_head;
+		mashup_head = copy_patch(p);
+		current_patch = mashup_head;
+		free(oldpatch);
+	}
+	renderer_unlock_patch();
+}
+
+void renderer_add_patch(struct patch *p)
+{
+	struct patch *p1;
+	struct patch *new_patch;
+	
+	renderer_lock_patch();
+	p1 = mashup_head;
+	while(p1 != NULL) {
+		if(p1->original == p) {
+			renderer_unlock_patch();
+			return;
+		}
+		p1 = p1->next;
+	}
+	new_patch = copy_patch(p);
+	if(!mashup_en) {
+		p1 = mashup_head;
+		mashup_head = new_patch;
+		current_patch = mashup_head;
+		free(p1);
+	} else {
+		new_patch->next = mashup_head;
+		mashup_head = new_patch;
+	}
+	mashup_en++;
+	renderer_unlock_patch();
+}
+
+void renderer_del_patch(struct patch *p)
+{
+	struct patch *p1, *p2;
+	
+	renderer_lock_patch();
+	mashup_en--;
+	if(mashup_en < 0)
+		mashup_en = 0;
+	/* Never delete the only patch */
+	if(mashup_head->next == NULL) {
+		renderer_unlock_patch();
+		return;
+	}
+	if(mashup_head->original == p) {
+		if(mashup_head == current_patch)
+			renderer_get_patch(1);
+		p1 = mashup_head->next;
+		free(mashup_head);
+		mashup_head = p1;
+	} else {
+		p1 = mashup_head;
+		while((p1->next != NULL) && (p1->next->original != p))
+			p1 = p1->next;
+		if(p1->next == NULL) {
+			/* not found */
+			renderer_unlock_patch();
+			return;
+		}
+		if(p1->next == current_patch)
+			renderer_get_patch(1);
+		p2 = p1->next->next;
+		free(p1->next);
+		p1->next = p2;
+	}
+	renderer_unlock_patch();
+}
+
+struct patch *renderer_get_patch(int spin)
+{
+	if(spin) {
+		if(current_patch->next == NULL)
+			current_patch = mashup_head;
+		else
+			current_patch = current_patch->next;
+	}
 	return current_patch;
 }
 
@@ -87,7 +168,10 @@ void renderer_start(int framebuffer_fd, struct patch *p)
 	);
 	assert(sc == RTEMS_SUCCESSFUL);
 
-	renderer_set_patch(p);
+	assert(mashup_head == NULL);
+	mashup_head = copy_patch(p);
+	current_patch = mashup_head;
+	mashup_en = 0;
 
 	renderer_texsize = 512;
 	renderer_hmeshlast = 32;
@@ -104,12 +188,17 @@ void renderer_start(int framebuffer_fd, struct patch *p)
 
 void renderer_stop()
 {
+	struct patch *p;
+	
 	rsswall_stop();
 	sampler_stop();
 	eval_stop();
 	raster_stop();
 
-	free(current_patch);
-	current_patch = NULL;
+	while(mashup_head != NULL) {
+		p = mashup_head->next;
+		free(mashup_head);
+		mashup_head = p;
+	}
 	rtems_semaphore_delete(patch_lock);
 }

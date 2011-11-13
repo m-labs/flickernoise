@@ -49,9 +49,9 @@ struct patch_info {
 };
 
 static int npatches;
-static int current_patch;
 static struct patch_info patches[MAX_PATCHES];
 static int simple_mode;
+static int simple_mode_current;
 static int dt_mode;
 static int as_mode;
 static int input_video;
@@ -82,7 +82,7 @@ static void add_firstpatch()
 
 	filename = config_read_string("firstpatch");
 	if(filename == NULL) return;
-	current_patch = add_patch(filename);
+	add_patch(filename);
 }
 
 static void add_keyboard_patches()
@@ -393,6 +393,8 @@ static void event_callback(mtk_event *e, int count)
 		next = 0;
 		for(i=0;i<count;i++) {
 			if(e[i].type == EVENT_TYPE_PRESS) {
+				if(e[i].press.code == MTK_KEY_F1)
+					osd_event(patches[simple_mode_current].filename);
 				if(e[i].press.code == MTK_KEY_F11)
 					next = 1;
 				if(e[i].press.code == MTK_KEY_F9)
@@ -405,15 +407,15 @@ static void event_callback(mtk_event *e, int count)
 				next = 1;
 		}
 		if(next) {
-			looped = current_patch;
+			looped = simple_mode_current;
 			do {
-				current_patch += next;
-				if(current_patch == npatches)
-					current_patch = 0;
-				if(current_patch < 0)
-					current_patch = npatches - 1;
-			} while(!suitable_for_simple(patches[current_patch].p) && (looped != current_patch));
-			index = current_patch;
+				simple_mode_current += next;
+				if(simple_mode_current == npatches)
+					simple_mode_current = 0;
+				if(simple_mode_current < 0)
+					simple_mode_current = npatches - 1;
+			} while(!suitable_for_simple(patches[simple_mode_current].p) && (looped != simple_mode_current));
+			renderer_pulse_patch(patches[simple_mode_current].p);
 			if(as_mode)
 				update_next_as_time();
 		}
@@ -423,30 +425,42 @@ static void event_callback(mtk_event *e, int count)
 		for(i=0;i<count;i++) {
 			if(e[i].type == EVENT_TYPE_PRESS) {
 				index = keycode_to_index(e[i].press.code);
-				if(index != -1)
+				if(index != -1) {
 					index = keyboard_patches[index];
+					renderer_add_patch(patches[index].p);
+				}
+			} else if(e[i].type == EVENT_TYPE_RELEASE) {
+				index = keycode_to_index(e[i].release.code);
+				if(index != -1) {
+					index = keyboard_patches[index];
+					renderer_del_patch(patches[index].p);
+				}
 			} else if(e[i].type == EVENT_TYPE_IR) {
 				index = e[i].press.code;
 				index = ir_patches[index];
+				if(index != -1)
+					renderer_pulse_patch(patches[index].p);
 			} else if(e[i].type == EVENT_TYPE_MIDI_NOTEON) {
 				if(((e[i].press.code & 0x0f0000) >> 16) == midi_channel) {
 					index = e[i].press.code & 0x7f;
 					index = midi_patches[index];
+					if(index != -1)
+						renderer_add_patch(patches[index].p);
+				}
+			} else if(e[i].type == EVENT_TYPE_MIDI_NOTEOFF) {
+				if(((e[i].press.code & 0x0f0000) >> 16) == midi_channel) {
+					index = e[i].press.code & 0x7f;
+					index = midi_patches[index];
+					if(index != -1)
+						renderer_del_patch(patches[index].p);
 				}
 			} else if(e[i].type == EVENT_TYPE_OSC) {
 				index = e[i].press.code & 0x3f;
 				index = osc_patches[index];
+				if(index != -1)
+					renderer_pulse_patch(patches[index].p);
 			}
 		}
-	}
-	if(index != -1) {
-		current_patch = index;
-		renderer_set_patch(patches[current_patch].p);
-	}
-
-	for(i=0;i<count;i++) {
-		if((e[i].type == EVENT_TYPE_PRESS) && (e[i].press.code == MTK_KEY_F1))
-			osd_event(patches[current_patch].filename);
 	}
 }
 
@@ -461,6 +475,7 @@ static void refresh_callback(mtk_event *e, int count)
 {
 	rtems_interval t;
 	int looped;
+	int index;
 	
 	t = rtems_clock_get_ticks_since_boot();
 	if(t >= next_update) {
@@ -472,17 +487,21 @@ static void refresh_callback(mtk_event *e, int count)
 				update_next_as_time();
 				input_add_callback(event_callback);
 				mtk_cmd(appid, "l_status.set(-text \"Ready.\")");
+				
+				if(simple_mode) {
+					looped = simple_mode_current;
+					while(!suitable_for_simple(patches[simple_mode_current].p)) {
+						simple_mode_current++;
+						if(simple_mode_current == npatches)
+							simple_mode_current = 0;
+						if(looped == simple_mode_current)
+							break;
+					}
+					index = simple_mode_current;
+				} else
+					index = 0;
 
-				looped = current_patch;
-				while(!suitable_for_simple(patches[current_patch].p)) {
-					current_patch++;
-					if(current_patch == npatches)
-						current_patch = 0;
-					if(looped == current_patch)
-						break;
-				}
-
-				if(!guirender(appid, patches[current_patch].p, stop_callback))
+				if(!guirender(appid, patches[index].p, stop_callback))
 					stop_callback();
 				return;
 			}
@@ -540,7 +559,7 @@ void start_performance(int simple, int dt, int as)
 
 	/* build patch list */
 	npatches = 0;
-	current_patch = 0;
+	simple_mode_current = 0;
 	if(simple) {
 		input_video = check_input_video();
 		add_simple_patches();

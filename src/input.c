@@ -240,6 +240,10 @@ static int handle_midi_msg(mtk_event *e, unsigned char *msg)
 			e->type = EVENT_TYPE_MIDI_NOTEON;
 			e->press.code |= msg[1];
 			return 1;
+		case 0x80: /* Note Off */
+			e->type = EVENT_TYPE_MIDI_NOTEOFF;
+			e->press.code |= msg[1];
+			return 1;
 		case 0xb0: /* Controller */
 			e->type = EVENT_TYPE_MIDI_CONTROLLER;
 			e->press.code |= (msg[1] << 8) | msg[2];

@@ -198,7 +198,6 @@ enum {
 #define REQUIRE_VIDEO	(1 << 3)
 
 struct patch {
-	unsigned int require;				/* < bitmask: dmx, osc, midi, video */
 	/* per-frame */
 	float pfv_initial[COMP_PFV_COUNT]; 		/* < patch initial conditions */
 	int pfv_allocation[COMP_PFV_COUNT];		/* < where per-frame variables are mapped in PFPU regf, -1 if unmapped */
@@ -210,6 +209,11 @@ struct patch {
 	int pervertex_prog_length;			/* < how many instructions in pervertex_prog */
 	unsigned int pervertex_prog[PFPU_PROGSIZE];	/* < PFPU per-vertex microcode */
 	float pervertex_regs[PFPU_REG_COUNT];		/* < PFPU initial per-vertex regf */
+	/* meta */
+	unsigned int require;				/* < bitmask: dmx, osc, midi, video */
+	void *original;					/* < original patch (with initial register values) */
+	struct patch *next;				/* < used when chaining patches in mashups */
+
 };
 
 typedef void (*report_message)(const char *);

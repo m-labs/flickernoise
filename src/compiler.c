@@ -189,8 +189,6 @@ static void load_defaults(struct compiler_sc *sc)
 {
 	int i;
 
-	sc->p->require = 0;
-
 	for(i=0;i<COMP_PFV_COUNT;i++)
 		sc->p->pfv_initial[i] = 0.0;
 	sc->p->pfv_initial[pfv_sx] = 1.0;
@@ -650,6 +648,9 @@ struct patch *patch_compile(const char *patch_code, report_message rmc)
 		free(sc);
 		return NULL;
 	}
+	sc->p->require = 0;
+	sc->p->original = NULL;
+	sc->p->next = NULL;
 
 	sc->rmc = rmc;
 	sc->linenr = 0;

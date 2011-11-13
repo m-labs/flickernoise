@@ -293,7 +293,7 @@ static rtems_task eval_task(rtems_task_argument argument)
 
 		renderer_lock_patch();
 
-		p = renderer_get_patch();
+		p = renderer_get_patch(1);
 
 		reinit_all_pfv(p);
 		set_pfv_from_frd(p, frd);

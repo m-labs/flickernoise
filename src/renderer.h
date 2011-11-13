@@ -26,11 +26,21 @@ extern int renderer_vmeshlast;
 extern int renderer_squarew;
 extern int renderer_squareh;
 
+/*
+ * Synchronization:
+ * 1. call renderer_lock_patch()
+ * 2. call renderer_get_patch()
+ * 3. use the returned patch
+ * 4. call renderer_unlock_patch()
+ */
+
 void renderer_lock_patch();
 void renderer_unlock_patch();
 
-void renderer_set_patch(struct patch *p);
-struct patch *renderer_get_patch();
+void renderer_pulse_patch(struct patch *p);
+void renderer_add_patch(struct patch *p);
+void renderer_del_patch(struct patch *p);
+struct patch *renderer_get_patch(int spin);
 
 void renderer_start(int framebuffer_fd, struct patch *p);
 void renderer_stop();
