@@ -18,7 +18,7 @@
 #ifndef __GUIRENDER_H
 #define __GUIRENDER_H
 
-#include "compiler.h"
+#include "../renderer/compiler.h"
 
 typedef void (*guirender_stop_callback)();
 

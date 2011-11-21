@@ -25,50 +25,47 @@
 #include <unistd.h>
 #include <mtklib.h>
 
-#include "util.h"
-#include "input.h"
-#include "config.h"
+#include "../util.h"
+#include "../config.h"
 #include "cp.h"
 #include "messagebox.h"
 #include "filedialog.h"
 #include "performance.h"
 
-#include "ir.h"
+#include "oscsettings.h"
 
 static int appid;
 static struct filedialog *browse_dlg;
 
 static int w_open;
 
-static char key_bindings[64][384];
+static char osc_bindings[64][384];
 
 static void load_config()
 {
-	char config_key[6];
+	char config_key[7];
 	int i;
 	const char *val;
 
-	strcpy(config_key, "ir_");
 	for(i=0;i<64;i++) {
-		sprintf(&config_key[3], "%02x", i);
+		sprintf(config_key, "osc_%02x", i);
 		val = config_read_string(config_key);
 		if(val != NULL)
-			strcpy(key_bindings[i], val);
+			strcpy(osc_bindings[i], val);
 		else
-			key_bindings[i][0] = 0;
+			osc_bindings[i][0] = 0;
 	}
 }
 
 static void set_config()
 {
-	char config_key[6];
+	char config_key[7];
 	int i;
 
-	strcpy(config_key, "ir_");
 	for(i=0;i<64;i++) {
-		sprintf(&config_key[3], "%02x", i);
-		if(key_bindings[i][0] != 0)
-			config_write_string(config_key, key_bindings[i]);
+		sprintf(config_key, "osc_%02x", i);
+		if(osc_bindings[i][0] != 0)
+			config_write_string(config_key, osc_bindings[i]);
 		else
 			config_delete(config_key);
 	}
@@ -83,8 +80,8 @@ static void update_list()
 	str[0] = 0;
 	p = str;
 	for(i=0;i<64;i++) {
-		if(key_bindings[i][0] != 0)
-			p += sprintf(p, "0x%02x: %s\n", i, key_bindings[i]);
+		if(osc_bindings[i][0] != 0)
+			p += sprintf(p, "%d: %s\n", i, osc_bindings[i]);
 	}
 	/* remove last \n */
 	if(p != str) {
@@ -103,7 +100,7 @@ static void selchange_callback(mtk_event *e, void *arg)
 	sel = mtk_req_i(appid, "lst_existing.selection");
 	count = 0;
 	for(i=0;i<64;i++) {
-		if(key_bindings[i][0] != 0) {
+		if(osc_bindings[i][0] != 0) {
 			if(count == sel) {
 				count++;
 				break;
@@ -112,27 +109,14 @@ static void selchange_callback(mtk_event *e, void *arg)
 		}
 	}
 	if(count != 0) {
-		mtk_cmdf(appid, "e_key.set(-text \"0x%02x\")", i);
-		mtk_cmdf(appid, "e_filename.set(-text \"%s\")", key_bindings[i]);
-	}
-}
-
-static void ir_event(mtk_event *e, int count)
-{
-	int i;
-
-	for(i=0;i<count;i++) {
-		if(e[i].type == EVENT_TYPE_IR) {
-			mtk_cmdf(appid, "e_key.set(-text \"0x%02x\")", e[i].press.code);
-			break;
-		}
+		mtk_cmdf(appid, "e_number.set(-text \"%d\")", i);
+		mtk_cmdf(appid, "e_filename.set(-text \"%s\")", osc_bindings[i]);
 	}
 }
 
 static void close_window()
 {
 	mtk_cmd(appid, "w.close()");
-	input_delete_callback(ir_event);
 	w_open = 0;
 	close_filedialog(browse_dlg);
 }
@@ -174,16 +158,16 @@ static void addupdate_callback(mtk_event *e, void *arg)
 	char *c;
 	char filename[384];
 
-	mtk_req(appid, key, sizeof(key), "e_key.text");
+	mtk_req(appid, key, sizeof(key), "e_number.text");
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
 	index = strtol(key, &c, 0);
 	if((*c != 0x00) || (index < 0) || (index > 63)) {
-		messagebox("Error", "Invalid key code.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
+		messagebox("Error", "Invalid number.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
 		return;
 	}
-	strcpy(key_bindings[index], filename);
+	strcpy(osc_bindings[index], filename);
 	update_list();
-	mtk_cmd(appid, "e_key.set(-text \"\")");
+	mtk_cmd(appid, "e_number.set(-text \"\")");
 	mtk_cmd(appid, "e_filename.set(-text \"\")");
 }
 
@@ -192,7 +176,7 @@ static int cmpstringp(const void *p1, const void *p2)
 	return strcmp(*(char * const *)p1, *(char * const *)p2);
 }
 
-static void autobuild(int sk, char *folder)
+static void autobuild(int si, char *folder)
 {
 	DIR *d;
 	struct dirent *entry;
@@ -201,7 +185,7 @@ static void autobuild(int sk, char *folder)
 	char *c;
 	char *files[384];
 	int n_files;
-	int max_files = 64 - sk;
+	int max_files = 64 - si;
 	int i;
 
 	d = opendir(folder);
@@ -230,7 +214,7 @@ static void autobuild(int sk, char *folder)
 
 	for(i=0;i<n_files;i++) {
 		if(i < max_files)
-			sprintf(key_bindings[i+sk], "%s/%s", folder, files[i]);
+			sprintf(osc_bindings[si+i], "%s/%s", folder, files[i]);
 		free(files[i]);
 	}
 }
@@ -238,32 +222,33 @@ static void autobuild(int sk, char *folder)
 static void autobuild_callback(mtk_event *e, void *arg)
 {
 	char key[8];
-	char filename[384];
+	int sindex;
 	char *c;
-	int i, index;
+	char filename[384];
+	int i;
 
-	mtk_req(appid, key, sizeof(key), "e_key.text");
+	mtk_req(appid, key, sizeof(key), "e_number.text");
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
-	index = strtol(key, &c, 0);
-	if((*c != 0x00) || (index < 0) || (index > 63)) {
-		messagebox("Auto build failed",
-			   "Invalid key code.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
+	sindex = strtol(key, &c, 0);
+	if((*c != 0x00) || (sindex < 0) || (sindex > 63)) {
+		messagebox("Error", "Invalid start number.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
 		return;
 	}
 
 	if(filename[0] == 0x00)
 		strcpy(filename, SIMPLE_PATCHES_FOLDER);
+
 	i = strlen(filename);
 	if(filename[i-1] == '/')
 		filename[i-1] = 0x00;
 
-	autobuild(index, filename);
+	autobuild(sindex, filename);
 	update_list();
 }
 
-void init_ir()
+void init_oscsettings()
 {
-	appid = mtk_init_app("IR remote control settings");
+	appid = mtk_init_app("OSC");
 
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
@@ -285,12 +270,12 @@ void init_ir()
 		"g_addedit0.place(s_addedit1, -column 1 -row 1)",
 		"g_addedit0.place(l_addedit, -column 2 -row 1)",
 		"g_addedit0.place(s_addedit2, -column 3 -row 1)",
-		
+
 		"g_addedit1 = new Grid()",
-		"l_key = new Label(-text \"Key code:\")",
-		"e_key = new Entry()",
-		"g_addedit1.place(l_key, -column 1 -row 1)",
-		"g_addedit1.place(e_key, -column 2 -row 1)",
+		"l_number = new Label(-text \"Number:\")",
+		"e_number = new Entry()",
+		"g_addedit1.place(l_number, -column 1 -row 1)",
+		"g_addedit1.place(e_number, -column 2 -row 1)",
 		"l_filename = new Label(-text \"Filename:\")",
 		"e_filename = new Entry()",
 		"b_filename = new Button(-text \"Browse\")",
@@ -304,7 +289,6 @@ void init_ir()
 		"g_addedit1.columnconfig(4, -size 0)",
 		"b_addupdate = new Button(-text \"Add/update\")",
 		"b_autobuild = new Button(-text \"Auto build\")",
-
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
@@ -322,7 +306,7 @@ void init_ir()
 		"g.rowconfig(7, -size 10)",
 		"g.place(g_btn, -column 1 -row 8)",
 
-		"w = new Window(-content g -title \"IR remote control settings\")",
+		"w = new Window(-content g -title \"OSC settings\")",
 		0);
 
 	mtk_bind(appid, "lst_existing", "selchange", selchange_callback, NULL);
@@ -331,21 +315,19 @@ void init_ir()
 	mtk_bind(appid, "b_filenameclear", "commit", clear_callback, NULL);
 	mtk_bind(appid, "b_addupdate", "commit", addupdate_callback, NULL);
 	mtk_bind(appid, "b_autobuild", "commit", autobuild_callback, NULL);
-
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 
-	browse_dlg = create_filedialog("Select IR patch", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
+	browse_dlg = create_filedialog("OSC patch select", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
 }
 
-void open_ir_window()
+void open_oscsettings_window()
 {
 	if(w_open) return;
 	w_open = 1;
 	load_config();
 	update_list();
 	mtk_cmd(appid, "w.open()");
-	input_add_callback(ir_event);
 }

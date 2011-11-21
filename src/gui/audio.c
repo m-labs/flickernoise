@@ -26,10 +26,10 @@
 #include <mtklib.h>
 #include <bsp/milkymist_ac97.h>
 
-#include "config.h"
+#include "../config.h"
 #include "cp.h"
-#include "util.h"
-#include "version.h"
+#include "../util.h"
+#include "../version.h"
 #include "flash.h"
 #include "about.h"
 #include "audio.h"

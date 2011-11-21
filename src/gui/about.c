@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <mtklib.h>
 
-#include "version.h"
+#include "../version.h"
 #include "flash.h"
 #include "about.h"
 

@@ -28,10 +28,10 @@
 
 #include <mtklib.h>
 
-#include "config.h"
-#include "framedescriptor.h"
+#include "../config.h"
+#include "../renderer/framedescriptor.h"
 #include "cp.h"
-#include "util.h"
+#include "../util.h"
 #include "resmgr.h"
 #include "monitor.h"
 #include "dmxspy.h"

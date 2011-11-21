@@ -29,11 +29,11 @@
 #include <bsp/milkymist_tmu.h>
 #include <bsp/milkymist_video.h>
 
-#include "config.h"
-#include "fb.h"
+#include "../config.h"
+#include "../fb.h"
 #include "framedescriptor.h"
 #include "renderer.h"
-#include "color.h"
+#include "../color.h"
 #include "wave.h"
 #include "line.h"
 #include "osd.h"

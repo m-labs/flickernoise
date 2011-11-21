@@ -19,26 +19,28 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <mtklib.h>
 
-#include "util.h"
-#include "config.h"
+#include "../util.h"
+#include "../input.h"
+#include "../config.h"
 #include "cp.h"
 #include "messagebox.h"
 #include "filedialog.h"
 #include "performance.h"
 
-#include "keyboard.h"
+#include "ir.h"
 
 static int appid;
 static struct filedialog *browse_dlg;
 
 static int w_open;
 
-static char key_bindings[26][384];
+static char key_bindings[64][384];
 
 static void load_config()
 {
@@ -46,10 +48,9 @@ static void load_config()
 	int i;
 	const char *val;
 
-	strcpy(config_key, "key_");
-	config_key[5] = 0;
-	for(i=0;i<26;i++) {
-		config_key[4] = 'a' + i;
+	strcpy(config_key, "ir_");
+	for(i=0;i<64;i++) {
+		sprintf(&config_key[3], "%02x", i);
 		val = config_read_string(config_key);
 		if(val != NULL)
 			strcpy(key_bindings[i], val);
@@ -63,10 +64,9 @@ static void set_config()
 	char config_key[6];
 	int i;
 
-	strcpy(config_key, "key_");
-	config_key[5] = 0;
-	for(i=0;i<26;i++) {
-		config_key[4] = 'a' + i;
+	strcpy(config_key, "ir_");
+	for(i=0;i<64;i++) {
+		sprintf(&config_key[3], "%02x", i);
 		if(key_bindings[i][0] != 0)
 			config_write_string(config_key, key_bindings[i]);
 		else
@@ -82,9 +82,9 @@ static void update_list()
 
 	str[0] = 0;
 	p = str;
-	for(i=0;i<26;i++) {
+	for(i=0;i<64;i++) {
 		if(key_bindings[i][0] != 0)
-			p += sprintf(p, "%c: %s\n", 'a' + i, key_bindings[i]);
+			p += sprintf(p, "0x%02x: %s\n", i, key_bindings[i]);
 	}
 	/* remove last \n */
 	if(p != str) {
@@ -102,7 +102,7 @@ static void selchange_callback(mtk_event *e, void *arg)
 
 	sel = mtk_req_i(appid, "lst_existing.selection");
 	count = 0;
-	for(i=0;i<26;i++) {
+	for(i=0;i<64;i++) {
 		if(key_bindings[i][0] != 0) {
 			if(count == sel) {
 				count++;
@@ -112,28 +112,44 @@ static void selchange_callback(mtk_event *e, void *arg)
 		}
 	}
 	if(count != 0) {
-		mtk_cmdf(appid, "e_key.set(-text \"%c\")", 'a'+i);
+		mtk_cmdf(appid, "e_key.set(-text \"0x%02x\")", i);
 		mtk_cmdf(appid, "e_filename.set(-text \"%s\")", key_bindings[i]);
 	}
 }
 
-static void ok_callback(mtk_event *e, void *arg)
+static void ir_event(mtk_event *e, int count)
+{
+	int i;
+
+	for(i=0;i<count;i++) {
+		if(e[i].type == EVENT_TYPE_IR) {
+			mtk_cmdf(appid, "e_key.set(-text \"0x%02x\")", e[i].press.code);
+			break;
+		}
+	}
+}
+
+static void close_window()
 {
 	mtk_cmd(appid, "w.close()");
+	input_delete_callback(ir_event);
 	w_open = 0;
+	close_filedialog(browse_dlg);
+}
+
+static void ok_callback(mtk_event *e, void *arg)
+{
 	set_config();
 	cp_notify_changed();
-	close_filedialog(browse_dlg);
+	close_window();
 }
 
 static void cancel_callback(mtk_event *e, void *arg)
 {
-	mtk_cmd(appid, "w.close()");
-	w_open = 0;
-	close_filedialog(browse_dlg);
+	close_window();
 }
 
-static void browse_ok_callback()
+static void browse_ok_callback(void *arg)
 {
 	char filename[384];
 
@@ -153,16 +169,19 @@ static void clear_callback(mtk_event *e, void *arg)
 
 static void addupdate_callback(mtk_event *e, void *arg)
 {
-	char key[4];
+	char key[8];
+	int index;
+	char *c;
 	char filename[384];
 
 	mtk_req(appid, key, sizeof(key), "e_key.text");
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
-	if((key[1] != 0x00) || (key[0] < 'a') || (key[0] > 'z')) {
-		messagebox("Error", "Invalid key. Use only one lower case letter from 'a' to 'z'.");
+	index = strtol(key, &c, 0);
+	if((*c != 0x00) || (index < 0) || (index > 63)) {
+		messagebox("Error", "Invalid key code.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
 		return;
 	}
-	strcpy(key_bindings[key[0] - 'a'], filename);
+	strcpy(key_bindings[index], filename);
 	update_list();
 	mtk_cmd(appid, "e_key.set(-text \"\")");
 	mtk_cmd(appid, "e_filename.set(-text \"\")");
@@ -182,9 +201,9 @@ static void autobuild(int sk, char *folder)
 	char *c;
 	char *files[384];
 	int n_files;
-	int max_files = 26 - sk;
+	int max_files = 64 - sk;
 	int i;
-	
+
 	d = opendir(folder);
 	if(!d) {
 		messagebox("Auto build failed", "Unable to open directory");
@@ -208,7 +227,7 @@ static void autobuild(int sk, char *folder)
 	closedir(d);
 
 	qsort(files, n_files, sizeof(char *), cmpstringp);
-	
+
 	for(i=0;i<n_files;i++) {
 		if(i < max_files)
 			sprintf(key_bindings[i+sk], "%s/%s", folder, files[i]);
@@ -218,34 +237,33 @@ static void autobuild(int sk, char *folder)
 
 static void autobuild_callback(mtk_event *e, void *arg)
 {
-	char key[4];
+	char key[8];
 	char filename[384];
-	int sk;
-	int i;
+	char *c;
+	int i, index;
 
 	mtk_req(appid, key, sizeof(key), "e_key.text");
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
-	if(key[0] == 0x00) {
-		key[0] = 'a';
-		key[1] = 0x00;
-	}
-	if(filename[0] == 0x00)
-		strcpy(filename, SIMPLE_PATCHES_FOLDER);
-	if((key[1] != 0x00) || (key[0] < 'a') || (key[0] > 'z')) {
-		messagebox("Auto build failed", "Invalid starting key. Use only one lower case letter from 'a' to 'z'.");
+	index = strtol(key, &c, 0);
+	if((*c != 0x00) || (index < 0) || (index > 63)) {
+		messagebox("Auto build failed",
+			   "Invalid key code.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
 		return;
 	}
+
+	if(filename[0] == 0x00)
+		strcpy(filename, SIMPLE_PATCHES_FOLDER);
 	i = strlen(filename);
 	if(filename[i-1] == '/')
 		filename[i-1] = 0x00;
-	sk = key[0] - 'a';
-	autobuild(sk, filename);
+
+	autobuild(index, filename);
 	update_list();
 }
 
-void init_keyboard()
+void init_ir()
 {
-	appid = mtk_init_app("Keyboard");
+	appid = mtk_init_app("IR remote control settings");
 
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
@@ -269,7 +287,7 @@ void init_keyboard()
 		"g_addedit0.place(s_addedit2, -column 3 -row 1)",
 		
 		"g_addedit1 = new Grid()",
-		"l_key = new Label(-text \"Key (a-z):\")",
+		"l_key = new Label(-text \"Key code:\")",
 		"e_key = new Entry()",
 		"g_addedit1.place(l_key, -column 1 -row 1)",
 		"g_addedit1.place(e_key, -column 2 -row 1)",
@@ -304,7 +322,7 @@ void init_keyboard()
 		"g.rowconfig(7, -size 10)",
 		"g.place(g_btn, -column 1 -row 8)",
 
-		"w = new Window(-content g -title \"Keyboard settings\")",
+		"w = new Window(-content g -title \"IR remote control settings\")",
 		0);
 
 	mtk_bind(appid, "lst_existing", "selchange", selchange_callback, NULL);
@@ -319,14 +337,15 @@ void init_keyboard()
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 
-	browse_dlg = create_filedialog("Select keyboard patch", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
+	browse_dlg = create_filedialog("Select IR patch", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
 }
 
-void open_keyboard_window()
+void open_ir_window()
 {
 	if(w_open) return;
 	w_open = 1;
 	load_config();
 	update_list();
 	mtk_cmd(appid, "w.open()");
+	input_add_callback(ir_event);
 }

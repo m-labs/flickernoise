@@ -28,9 +28,9 @@
 
 #include "framedescriptor.h"
 #include "analyzer.h"
-#include "osc.h"
-#include "config.h"
-#include "input.h"
+#include "../osc.h"
+#include "../config.h"
+#include "../input.h"
 #include "sampler.h"
 
 struct snd_history {

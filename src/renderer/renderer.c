@@ -25,7 +25,7 @@
 #include "eval.h"
 #include "raster.h"
 #include "osd.h"
-#include "rsswall.h"
+#include "../gui/rsswall.h"
 
 #include "renderer.h"
 

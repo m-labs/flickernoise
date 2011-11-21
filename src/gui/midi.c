@@ -26,14 +26,14 @@
 #include <assert.h>
 #include <mtklib.h>
 
-#include "util.h"
-#include "input.h"
-#include "config.h"
+#include "../util.h"
+#include "../input.h"
+#include "../config.h"
 #include "cp.h"
 #include "messagebox.h"
 #include "filedialog.h"
 #include "performance.h"
-#include "framedescriptor.h"
+#include "../renderer/framedescriptor.h"
 
 #include "midi.h"
 

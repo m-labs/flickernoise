@@ -26,9 +26,9 @@
 
 #include "filedialog.h"
 #include "patcheditor.h"
-#include "framedescriptor.h"
-#include "compiler.h"
-#include "input.h"
+#include "../renderer/framedescriptor.h"
+#include "../renderer/compiler.h"
+#include "../input.h"
 #include "guirender.h"
 
 static int appid;

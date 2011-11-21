@@ -22,7 +22,7 @@
 #include "performance.h"
 #include "keyboard.h"
 #include "ir.h"
-#include "fb.h"
+#include "../fb.h"
 #include "audio.h"
 #include "midi.h"
 #include "oscsettings.h"
@@ -41,10 +41,10 @@
 #include "flash.h"
 #include "shutdown.h"
 
-#include "config.h"
+#include "../config.h"
 #include "filedialog.h"
 #include "messagebox.h"
-#include "sysconfig.h"
+#include "../sysconfig.h"
 
 #include "cp.h"
 

@@ -21,7 +21,7 @@
 #include <math.h>
 
 #include "line.h"
-#include "color.h"
+#include "../color.h"
 #include "wave.h"
 #include "renderer.h"
 

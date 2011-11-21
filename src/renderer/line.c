@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "color.h"
+#include "../color.h"
 #include "line.h"
 
 #define likely(x)      __builtin_expect(!!(x), 1)

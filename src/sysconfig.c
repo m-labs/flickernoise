@@ -37,7 +37,7 @@
 #include "version.h"
 #include "pixbuf/pixbuf.h"
 #include "fb.h"
-#include "languages.h"
+#include "translations/languages.h"
 #include "sysconfig.h"
 
 static struct rtems_bsdnet_ifconfig netdriver_config = {

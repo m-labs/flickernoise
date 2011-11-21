@@ -26,11 +26,11 @@
 #include <mtklib.h>
 #include <bsp/milkymist_video.h>
 
-#include "config.h"
+#include "../config.h"
 #include "resmgr.h"
-#include "util.h"
+#include "../util.h"
 #include "cp.h"
-#include "input.h"
+#include "../input.h"
 #include "videoin.h"
 
 static int appid;

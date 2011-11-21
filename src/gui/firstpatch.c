@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <mtklib.h>
 
-#include "config.h"
+#include "../config.h"
 #include "cp.h"
 #include "filedialog.h"
 

@@ -29,15 +29,15 @@
 #include <mtkeycodes.h>
 #include <bsp/milkymist_video.h>
 
-#include "input.h"
-#include "fb.h"
+#include "../input.h"
+#include "../fb.h"
 #include "messagebox.h"
-#include "config.h"
-#include "compiler.h"
-#include "renderer.h"
+#include "../config.h"
+#include "../renderer/compiler.h"
+#include "../renderer/renderer.h"
 #include "guirender.h"
 #include "performance.h"
-#include "osd.h"
+#include "../renderer/osd.h"
 
 #define FILENAME_LEN 384
 

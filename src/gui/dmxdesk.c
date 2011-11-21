@@ -24,7 +24,7 @@
 
 #include <mtklib.h>
 
-#include "util.h"
+#include "../util.h"
 #include "resmgr.h"
 #include "dmxdesk.h"
 

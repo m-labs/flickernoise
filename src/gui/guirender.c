@@ -25,14 +25,14 @@
 #include <mtkeycodes.h>
 #include <bsp/milkymist_video.h>
 
-#include "compiler.h"
-#include "renderer.h"
+#include "../renderer/compiler.h"
+#include "../renderer/renderer.h"
 #include "resmgr.h"
-#include "fb.h"
-#include "input.h"
-#include "config.h"
+#include "../fb.h"
+#include "../input.h"
+#include "../config.h"
 #include "cp.h"
-#include "videoinreconf.h"
+#include "../renderer/videoinreconf.h"
 
 #include "guirender.h"
 

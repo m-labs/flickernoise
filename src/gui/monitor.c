@@ -20,10 +20,10 @@
 #include <rtems.h>
 #include <mtklib.h>
 
-#include "input.h"
+#include "../input.h"
 #include "resmgr.h"
-#include "framedescriptor.h"
-#include "sampler.h"
+#include "../renderer/framedescriptor.h"
+#include "../renderer/sampler.h"
 
 #include "monitor.h"
 

@@ -20,8 +20,8 @@
 #include <arpa/inet.h>
 #include <mtklib.h>
 
-#include "input.h"
-#include "sysconfig.h"
+#include "../input.h"
+#include "../sysconfig.h"
 #include "filedialog.h"
 #include "sysettings.h"
 

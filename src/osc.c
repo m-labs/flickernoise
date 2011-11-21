@@ -27,8 +27,8 @@
 #include <lop/lop_lowlevel.h>
 
 #include "input.h"
-#include "framedescriptor.h"
-#include "osd.h"
+#include "renderer/framedescriptor.h"
+#include "renderer/osd.h"
 
 #include "osc.h"
 

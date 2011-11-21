@@ -19,53 +19,56 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <mtklib.h>
 
-#include "util.h"
-#include "config.h"
+#include "../util.h"
+#include "../config.h"
 #include "cp.h"
 #include "messagebox.h"
 #include "filedialog.h"
 #include "performance.h"
 
-#include "oscsettings.h"
+#include "keyboard.h"
 
 static int appid;
 static struct filedialog *browse_dlg;
 
 static int w_open;
 
-static char osc_bindings[64][384];
+static char key_bindings[26][384];
 
 static void load_config()
 {
-	char config_key[7];
+	char config_key[6];
 	int i;
 	const char *val;
 
-	for(i=0;i<64;i++) {
-		sprintf(config_key, "osc_%02x", i);
+	strcpy(config_key, "key_");
+	config_key[5] = 0;
+	for(i=0;i<26;i++) {
+		config_key[4] = 'a' + i;
 		val = config_read_string(config_key);
 		if(val != NULL)
-			strcpy(osc_bindings[i], val);
+			strcpy(key_bindings[i], val);
 		else
-			osc_bindings[i][0] = 0;
+			key_bindings[i][0] = 0;
 	}
 }
 
 static void set_config()
 {
-	char config_key[7];
+	char config_key[6];
 	int i;
 
-	for(i=0;i<64;i++) {
-		sprintf(config_key, "osc_%02x", i);
-		if(osc_bindings[i][0] != 0)
-			config_write_string(config_key, osc_bindings[i]);
+	strcpy(config_key, "key_");
+	config_key[5] = 0;
+	for(i=0;i<26;i++) {
+		config_key[4] = 'a' + i;
+		if(key_bindings[i][0] != 0)
+			config_write_string(config_key, key_bindings[i]);
 		else
 			config_delete(config_key);
 	}
@@ -79,9 +82,9 @@ static void update_list()
 
 	str[0] = 0;
 	p = str;
-	for(i=0;i<64;i++) {
-		if(osc_bindings[i][0] != 0)
-			p += sprintf(p, "%d: %s\n", i, osc_bindings[i]);
+	for(i=0;i<26;i++) {
+		if(key_bindings[i][0] != 0)
+			p += sprintf(p, "%c: %s\n", 'a' + i, key_bindings[i]);
 	}
 	/* remove last \n */
 	if(p != str) {
@@ -99,8 +102,8 @@ static void selchange_callback(mtk_event *e, void *arg)
 
 	sel = mtk_req_i(appid, "lst_existing.selection");
 	count = 0;
-	for(i=0;i<64;i++) {
-		if(osc_bindings[i][0] != 0) {
+	for(i=0;i<26;i++) {
+		if(key_bindings[i][0] != 0) {
 			if(count == sel) {
 				count++;
 				break;
@@ -109,31 +112,28 @@ static void selchange_callback(mtk_event *e, void *arg)
 		}
 	}
 	if(count != 0) {
-		mtk_cmdf(appid, "e_number.set(-text \"%d\")", i);
-		mtk_cmdf(appid, "e_filename.set(-text \"%s\")", osc_bindings[i]);
+		mtk_cmdf(appid, "e_key.set(-text \"%c\")", 'a'+i);
+		mtk_cmdf(appid, "e_filename.set(-text \"%s\")", key_bindings[i]);
 	}
 }
 
-static void close_window()
+static void ok_callback(mtk_event *e, void *arg)
+{
+	mtk_cmd(appid, "w.close()");
+	w_open = 0;
+	set_config();
+	cp_notify_changed();
+	close_filedialog(browse_dlg);
+}
+
+static void cancel_callback(mtk_event *e, void *arg)
 {
 	mtk_cmd(appid, "w.close()");
 	w_open = 0;
 	close_filedialog(browse_dlg);
 }
 
-static void ok_callback(mtk_event *e, void *arg)
-{
-	set_config();
-	cp_notify_changed();
-	close_window();
-}
-
-static void cancel_callback(mtk_event *e, void *arg)
-{
-	close_window();
-}
-
-static void browse_ok_callback(void *arg)
+static void browse_ok_callback()
 {
 	char filename[384];
 
@@ -153,21 +153,18 @@ static void clear_callback(mtk_event *e, void *arg)
 
 static void addupdate_callback(mtk_event *e, void *arg)
 {
-	char key[8];
-	int index;
-	char *c;
+	char key[4];
 	char filename[384];
 
-	mtk_req(appid, key, sizeof(key), "e_number.text");
+	mtk_req(appid, key, sizeof(key), "e_key.text");
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
-	index = strtol(key, &c, 0);
-	if((*c != 0x00) || (index < 0) || (index > 63)) {
-		messagebox("Error", "Invalid number.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
+	if((key[1] != 0x00) || (key[0] < 'a') || (key[0] > 'z')) {
+		messagebox("Error", "Invalid key. Use only one lower case letter from 'a' to 'z'.");
 		return;
 	}
-	strcpy(osc_bindings[index], filename);
+	strcpy(key_bindings[key[0] - 'a'], filename);
 	update_list();
-	mtk_cmd(appid, "e_number.set(-text \"\")");
+	mtk_cmd(appid, "e_key.set(-text \"\")");
 	mtk_cmd(appid, "e_filename.set(-text \"\")");
 }
 
@@ -176,7 +173,7 @@ static int cmpstringp(const void *p1, const void *p2)
 	return strcmp(*(char * const *)p1, *(char * const *)p2);
 }
 
-static void autobuild(int si, char *folder)
+static void autobuild(int sk, char *folder)
 {
 	DIR *d;
 	struct dirent *entry;
@@ -185,9 +182,9 @@ static void autobuild(int si, char *folder)
 	char *c;
 	char *files[384];
 	int n_files;
-	int max_files = 64 - si;
+	int max_files = 26 - sk;
 	int i;
-
+	
 	d = opendir(folder);
 	if(!d) {
 		messagebox("Auto build failed", "Unable to open directory");
@@ -211,44 +208,44 @@ static void autobuild(int si, char *folder)
 	closedir(d);
 
 	qsort(files, n_files, sizeof(char *), cmpstringp);
-
+	
 	for(i=0;i<n_files;i++) {
 		if(i < max_files)
-			sprintf(osc_bindings[si+i], "%s/%s", folder, files[i]);
+			sprintf(key_bindings[i+sk], "%s/%s", folder, files[i]);
 		free(files[i]);
 	}
 }
 
 static void autobuild_callback(mtk_event *e, void *arg)
 {
-	char key[8];
-	int sindex;
-	char *c;
+	char key[4];
 	char filename[384];
+	int sk;
 	int i;
 
-	mtk_req(appid, key, sizeof(key), "e_number.text");
+	mtk_req(appid, key, sizeof(key), "e_key.text");
 	mtk_req(appid, filename, sizeof(filename), "e_filename.text");
-	sindex = strtol(key, &c, 0);
-	if((*c != 0x00) || (sindex < 0) || (sindex > 63)) {
-		messagebox("Error", "Invalid start number.\nUse a decimal or hexadecimal (0x...) number between 0 and 63.");
-		return;
+	if(key[0] == 0x00) {
+		key[0] = 'a';
+		key[1] = 0x00;
 	}
-
 	if(filename[0] == 0x00)
 		strcpy(filename, SIMPLE_PATCHES_FOLDER);
-
+	if((key[1] != 0x00) || (key[0] < 'a') || (key[0] > 'z')) {
+		messagebox("Auto build failed", "Invalid starting key. Use only one lower case letter from 'a' to 'z'.");
+		return;
+	}
 	i = strlen(filename);
 	if(filename[i-1] == '/')
 		filename[i-1] = 0x00;
-
-	autobuild(sindex, filename);
+	sk = key[0] - 'a';
+	autobuild(sk, filename);
 	update_list();
 }
 
-void init_oscsettings()
+void init_keyboard()
 {
-	appid = mtk_init_app("OSC");
+	appid = mtk_init_app("Keyboard");
 
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
@@ -270,12 +267,12 @@ void init_oscsettings()
 		"g_addedit0.place(s_addedit1, -column 1 -row 1)",
 		"g_addedit0.place(l_addedit, -column 2 -row 1)",
 		"g_addedit0.place(s_addedit2, -column 3 -row 1)",
-
+		
 		"g_addedit1 = new Grid()",
-		"l_number = new Label(-text \"Number:\")",
-		"e_number = new Entry()",
-		"g_addedit1.place(l_number, -column 1 -row 1)",
-		"g_addedit1.place(e_number, -column 2 -row 1)",
+		"l_key = new Label(-text \"Key (a-z):\")",
+		"e_key = new Entry()",
+		"g_addedit1.place(l_key, -column 1 -row 1)",
+		"g_addedit1.place(e_key, -column 2 -row 1)",
 		"l_filename = new Label(-text \"Filename:\")",
 		"e_filename = new Entry()",
 		"b_filename = new Button(-text \"Browse\")",
@@ -289,6 +286,7 @@ void init_oscsettings()
 		"g_addedit1.columnconfig(4, -size 0)",
 		"b_addupdate = new Button(-text \"Add/update\")",
 		"b_autobuild = new Button(-text \"Auto build\")",
+
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
@@ -306,7 +304,7 @@ void init_oscsettings()
 		"g.rowconfig(7, -size 10)",
 		"g.place(g_btn, -column 1 -row 8)",
 
-		"w = new Window(-content g -title \"OSC settings\")",
+		"w = new Window(-content g -title \"Keyboard settings\")",
 		0);
 
 	mtk_bind(appid, "lst_existing", "selchange", selchange_callback, NULL);
@@ -315,15 +313,16 @@ void init_oscsettings()
 	mtk_bind(appid, "b_filenameclear", "commit", clear_callback, NULL);
 	mtk_bind(appid, "b_addupdate", "commit", addupdate_callback, NULL);
 	mtk_bind(appid, "b_autobuild", "commit", autobuild_callback, NULL);
+
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", cancel_callback, NULL);
 
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 
-	browse_dlg = create_filedialog("OSC patch select", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
+	browse_dlg = create_filedialog("Select keyboard patch", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
 }
 
-void open_oscsettings_window()
+void open_keyboard_window()
 {
 	if(w_open) return;
 	w_open = 1;

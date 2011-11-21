@@ -22,13 +22,13 @@
 #include <mtklib.h>
 
 #include "input.h"
-#include "shutdown.h"
+#include "gui/shutdown.h"
 #include "fbgrab.h"
 #include "sysconfig.h"
-#include "sysettings.h"
+#include "gui/sysettings.h"
 #include "fb.h"
-#include "guirender.h"
-#include "flash.h"
+#include "gui/guirender.h"
+#include "gui/flash.h"
 
 static int ctrl, alt;
 static int f9_pressed;

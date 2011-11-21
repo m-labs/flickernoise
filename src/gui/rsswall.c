@@ -25,11 +25,11 @@
 #include <expat.h>
 #include <mtklib.h>
 
-#include "version.h"
-#include "util.h"
-#include "osd.h"
+#include "../version.h"
+#include "../util.h"
+#include "../renderer/osd.h"
 #include "cp.h"
-#include "config.h"
+#include "../config.h"
 #include "rsswall.h"
 
 static int appid;

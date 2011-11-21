@@ -21,7 +21,7 @@
 #include <rtems.h>
 #include <bsp/milkymist_ac97.h>
 
-#include "pixbuf/pixbuf.h"
+#include "../pixbuf/pixbuf.h"
 
 #define FPS			24
 #define FRD_COUNT 		(4)

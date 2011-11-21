@@ -33,12 +33,12 @@
 
 #include "filedialog.h"
 #include "messagebox.h"
-#include "input.h"
-#include "flashvalid.h"
-#include "version.h"
-#include "sysconfig.h"
+#include "../input.h"
+#include "../flashvalid.h"
+#include "../version.h"
+#include "../sysconfig.h"
 #include "performance.h"
-#include "patchpool.h"
+#include "../patchpool.h"
 
 #include "flash.h"
 

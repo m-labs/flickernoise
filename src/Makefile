@@ -12,29 +12,16 @@ LIBS=-lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lcurl -lexpat -lz
 OBJDIR=obj
 BINDIR=bin
 
-# base
-OBJS=yaffs.o version.o shellext.o sysconfig.o config.o fb.o input.o keymap.o fbgrab.o shortcuts.o osc.o pngwrite.o flashvalid.o main.o
-
-# pixbuf
-OBJS+=pixbuf/dither.o pixbuf/loaderjpeg.o pixbuf/loaderpng.o pixbuf/manager.o
-
-# GUI
-OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxdesk.o dmx.o videoin.o rsswall.o patcheditor.o monitor.o firstpatch.o filemanager.o sysettings.o about.o patchpool.o flash.o shutdown.o
-
-# translations
-OBJS+=french.o german.o
-
-# PDF
+OBJS=yaffs.o version.o shellext.o sysconfig.o config.o fb.o input.o keymap.o fbgrab.o shortcuts.o osc.o pngwrite.o patchpool.o flashvalid.o main.o
+OBJS+=$(addprefix pixbuf/,dither.o loaderjpeg.o loaderpng.o manager.o)
+OBJS+=$(addprefix gui/,messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxdesk.o dmx.o videoin.o rsswall.o patcheditor.o monitor.o firstpatch.o filemanager.o sysettings.o about.o flash.o shutdown.o)
 ifeq ($(WITH_PDF),1)
-	OBJS+=pdfreader.o
+	OBJS+=$(addprefix gui/,pdfreader.o)
 	CFLAGS+=-DWITH_PDF
 	LIBS:=-lmupdf -lfreetype -ljbig2dec -lopenjpeg -ljpeg $(LIBS)
 endif
-
-# renderer
-OBJS+=framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o videoinreconf.o
-
-#
+OBJS+=$(addprefix translations/,french.o german.o)
+OBJS+=$(addprefix renderer/,framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o videoinreconf.o)
 
 POBJS=$(addprefix $(OBJDIR)/,$(OBJS))
 
