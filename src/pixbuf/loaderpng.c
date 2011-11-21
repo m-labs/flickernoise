@@ -23,6 +23,7 @@
 
 #include "pixbuf.h"
 #include "loaders.h"
+#include "dither.h"
 
 #ifdef PNG_FLOATING_ARITHMETIC_SUPPORTED
 #warning Floating point PNG is slow
@@ -81,7 +82,7 @@ struct pixbuf *pixbuf_load_png(char *filename)
 	ret = pixbuf_new(width, height);
 	if(ret == NULL) goto free4;
 	ret->filename = strdup(filename);
-	if(!dither(ret->pixels, row_pointers, width, height)) {
+	if(!pixbuf_dither(ret->pixels, row_pointers, width, height)) {
 		pixbuf_dec_ref(ret);
 		ret = NULL;
 		goto free4;

@@ -13,7 +13,10 @@ OBJDIR=obj
 BINDIR=bin
 
 # base
-OBJS=yaffs.o version.o shellext.o sysconfig.o config.o fb.o input.o keymap.o fbgrab.o shortcuts.o osc.o png.o flashvalid.o main.o
+OBJS=yaffs.o version.o shellext.o sysconfig.o config.o fb.o input.o keymap.o fbgrab.o shortcuts.o osc.o pngwrite.o flashvalid.o main.o
+
+# pixbuf
+OBJS+=pixbuf/dither.o pixbuf/loaderjpeg.o pixbuf/loaderpng.o pixbuf/manager.o
 
 # GUI
 OBJS+=messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxdesk.o dmx.o videoin.o rsswall.o patcheditor.o monitor.o firstpatch.o filemanager.o sysettings.o about.o patchpool.o flash.o shutdown.o

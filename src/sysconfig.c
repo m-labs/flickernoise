@@ -35,7 +35,7 @@
 #include <mtki18n.h>
 
 #include "version.h"
-#include "png.h"
+#include "pixbuf/pixbuf.h"
 #include "fb.h"
 #include "languages.h"
 #include "sysconfig.h"
@@ -410,15 +410,18 @@ void sysconfig_set_resolution(int resolution)
 
 void sysconfig_set_mtk_wallpaper()
 {
-	unsigned short *bitmap;
-	unsigned int w, h;
+	struct pixbuf *p;
 	
-	if(strcmp(sysconfig.wallpaper, "") != 0)
-		bitmap = png_load(sysconfig.wallpaper, &w, &h);
-	else
-		bitmap = NULL;
-	mtk_config_set_wallpaper(bitmap, w, h);
-	free(bitmap);
+	if(strcmp(sysconfig.wallpaper, "") != 0) {
+		p = pixbuf_get(sysconfig.wallpaper);
+		if(p == NULL) {
+			mtk_config_set_wallpaper(NULL, 0, 0);
+			return;
+		}
+		mtk_config_set_wallpaper(p->pixels, p->width, p->height);
+		pixbuf_dec_ref(p);
+	} else
+		mtk_config_set_wallpaper(NULL, 0, 0);
 }
 
 void sysconfig_set_wallpaper(char *wallpaper)

@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "pixbuf.h"
+#include "loaders.h"
 
 static struct pixbuf *head;
 
@@ -59,19 +60,21 @@ void pixbuf_dec_ref(struct pixbuf *p)
 {
 	struct pixbuf *prev;
 	
-	p->refcnt--;
-	if(p->refcnt == 0) {
-		if(p == head) {
-			head = head->next;
-			free(p->filename);
-			free(p);
-		} else {
-			prev = head;
-			while(prev->next != p)
-				prev = prev->next;
-			prev->next = p->next;
-			free(p->filename);
-			free(p);
+	if(p != NULL) {
+		p->refcnt--;
+		if(p->refcnt == 0) {
+			if(p == head) {
+				head = head->next;
+				free(p->filename);
+				free(p);
+			} else {
+				prev = head;
+				while(prev->next != p)
+					prev = prev->next;
+				prev->next = p->next;
+				free(p->filename);
+				free(p);
+			}
 		}
 	}
 }

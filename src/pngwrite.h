@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,10 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __PNGLOAD_H
-#define __PNGLOAD_H
+#ifndef __PNGWRITE_H
+#define __PNGWRITE_H
 
-unsigned short *png_load(const char *filename, unsigned int *w, unsigned int *h);
 int png_write(unsigned char *outbuffer, const char *filename,
 	      int width, int height, int interlace);
-#endif /* __PNGLOAD_H */
+
+#endif /* __PNGWRITE_H */

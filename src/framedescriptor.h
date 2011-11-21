@@ -21,6 +21,8 @@
 #include <rtems.h>
 #include <bsp/milkymist_ac97.h>
 
+#include "pixbuf/pixbuf.h"
+
 #define FPS			24
 #define FRD_COUNT 		(4)
 #define FRD_AUDIO_NSAMPLES	(48000/FPS)
@@ -33,10 +35,11 @@ enum {
 	FRD_STATUS_USED
 };
 
-#define IDMX_COUNT 8
-#define OSC_COUNT 4
-#define MIDI_COUNT 8
-#define DMX_COUNT 8
+#define IDMX_COUNT	8
+#define OSC_COUNT	4
+#define MIDI_COUNT	8
+#define DMX_COUNT	8
+#define IMAGE_COUNT	2
 
 struct frame_descriptor {
 	int status;
@@ -72,6 +75,10 @@ struct frame_descriptor {
 	float vecho_orientation;
 	float dmx[DMX_COUNT];
 	float video_a;
+	struct pixbuf *images[IMAGE_COUNT];
+	float image_a[IMAGE_COUNT];
+	float image_x[IMAGE_COUNT], image_y[IMAGE_COUNT];
+	float image_zoom[IMAGE_COUNT];
 	struct tmu_vertex *vertices;
 };
 
