@@ -8,7 +8,7 @@ OBJCOPY=lm32-rtems$(RTEMS_VERSION)-objcopy
 
 CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(RTEMS_MAKEFILE_PATH)/lib/include -g
 LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
-LIBS=-lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -lcurl -lexpat -lz -lm
+LIBS=-lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -ljpeg -lcurl -lexpat -lz -lm
 OBJDIR=obj
 BINDIR=bin
 
@@ -18,7 +18,7 @@ OBJS+=$(addprefix gui/,messagebox.o filedialog.o resmgr.o guirender.o performanc
 ifeq ($(WITH_PDF),1)
 	OBJS+=$(addprefix gui/,pdfreader.o)
 	CFLAGS+=-DWITH_PDF
-	LIBS:=-lmupdf -lfreetype -ljbig2dec -lopenjpeg -ljpeg $(LIBS)
+	LIBS:=-lmupdf -lfreetype -ljbig2dec -lopenjpeg $(LIBS)
 endif
 OBJS+=$(addprefix translations/,french.o german.o)
 OBJS+=$(addprefix renderer/,framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o videoinreconf.o)
