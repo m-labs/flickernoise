@@ -17,18 +17,31 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <setjmp.h>
 #include <jpeglib.h>
 
 #include "pixbuf.h"
 #include "dither.h"
 #include "loaders.h"
 
+struct my_error_mgr {
+	struct jpeg_error_mgr pub;
+	jmp_buf setjmp_buffer;
+};
+
+static void my_error_exit(j_common_ptr cinfo)
+{
+	struct my_error_mgr * myerr = (struct my_error_mgr *)cinfo->err;
+	(*cinfo->err->output_message) (cinfo);
+	longjmp(myerr->setjmp_buffer, 1);
+}
+
 struct pixbuf *pixbuf_load_jpeg(char *filename)
 {
 	struct pixbuf *ret;
 	FILE *fd;
 	struct jpeg_decompress_struct cinfo;
-	struct jpeg_error_mgr jerr;
+	struct my_error_mgr jerr;
 	unsigned char *pixels;
 	int i;
 	unsigned char **row_pointers;
@@ -37,7 +50,9 @@ struct pixbuf *pixbuf_load_jpeg(char *filename)
 	fd = fopen(filename, "rb");
 	if(fd == NULL) goto free0;
 	
-	cinfo.err = jpeg_std_error(&jerr); // TODO: get rid of the exit() code
+	cinfo.err = jpeg_std_error((struct jpeg_error_mgr *)&jerr);
+	jerr.pub.error_exit = my_error_exit;
+	if(setjmp(jerr.setjmp_buffer)) goto free2;
 	jpeg_create_decompress(&cinfo);
 	jpeg_stdio_src(&cinfo, fd);
 	jpeg_read_header(&cinfo, TRUE);
@@ -53,12 +68,13 @@ struct pixbuf *pixbuf_load_jpeg(char *filename)
 	for(i=0;i<cinfo.image_height;i++)
 		row_pointers[i] = &pixels[i*3*cinfo.image_width];
 
+	if(setjmp(jerr.setjmp_buffer)) goto free4;
 	jpeg_start_decompress(&cinfo);
 	while(cinfo.output_scanline < cinfo.output_height)
 		jpeg_read_scanlines(&cinfo, &row_pointers[cinfo.output_scanline], 1);
+
 	ret = pixbuf_new(cinfo.image_width, cinfo.image_height);
 	if(ret == NULL) goto free5;
-	
 	if(!pixbuf_dither(ret->pixels, row_pointers, cinfo.image_width, cinfo.image_height)) {
 		pixbuf_dec_ref(ret);
 		ret = NULL;
@@ -73,7 +89,6 @@ free3:
 	free(pixels);
 free2:
 	jpeg_destroy_decompress(&cinfo);
-free1:
 	fclose(fd);
 free0:
 	return ret;
