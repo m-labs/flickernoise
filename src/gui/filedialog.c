@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
+#include <strings.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -72,12 +73,16 @@ static void display_folder(struct filedialog *dlg, const char *folder)
 				}
 			}
 		} else {
-			/* hide files without the extension we are looking for
+			/* hide files without the extensions we are looking for
 			 * and those which do not match the quickfind entry (if any).
 			 */
 			c = strrchr(entry->d_name, '.');
-			if(((dlg->extfilter[0] == 0) || ((c != NULL) && (strcmp(dlg->extfilter, c+1) == 0)))
-			  && ((quickfind[0] == 0) || (strcasestr(entry->d_name, quickfind) != NULL))) {
+			if(
+			  (((dlg->extfilter[0] == 0) || ((c != NULL) && (strcasecmp(dlg->extfilter, c+1) == 0)))
+			   || ((dlg->extfilter2[0] != 0) && (c != NULL) && (strcasecmp(dlg->extfilter2, c+1) == 0))
+			   || ((dlg->extfilter3[0] != 0) && (c != NULL) && (strcasecmp(dlg->extfilter3, c+1) == 0)))
+			  && ((quickfind[0] == 0) || (strcasestr(entry->d_name, quickfind) != NULL))
+			) {
 				if(n_files < 384) {
 					files[n_files] = strdup(entry->d_name);
 					n_files++;
@@ -259,6 +264,8 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 	dlg->appid = mtk_init_app(name);
 	dlg->is_save = is_save;
 	dlg->extfilter = extfilter;
+	dlg->extfilter2 = "";
+	dlg->extfilter3 = "";
 	dlg->ok_callback = ok_callback;
 	dlg->ok_callback_arg = ok_callback_arg;
 	dlg->cancel_callback = cancel_callback;
@@ -329,6 +336,12 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 	mtk_bind(dlg->appid, "fd", "close", dlg_close_callback, (void *)dlg);
 
 	return dlg;
+}
+
+void filedialog_extfilterex(struct filedialog *dlg, const char *extfilter2, const char *extfilter3)
+{
+	dlg->extfilter2 = extfilter2;
+	dlg->extfilter3 = extfilter3;
 }
 
 void open_filedialog(struct filedialog *dlg)

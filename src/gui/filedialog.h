@@ -22,6 +22,8 @@ struct filedialog {
 	int appid;
 	int is_save;
 	const char *extfilter;
+	const char *extfilter2;
+	const char *extfilter3;
 	void (*ok_callback)(void *);
 	void *ok_callback_arg;
 	void (*cancel_callback)(void *);
@@ -29,6 +31,7 @@ struct filedialog {
 };
 
 struct filedialog *create_filedialog(const char *name, int is_save, const char *extfilter, void (*ok_callback)(void *), void *ok_callback_arg, void (*cancel_callback)(void *), void *cancel_callback_arg);
+void filedialog_extfilterex(struct filedialog *dlg, const char *extfilter2, const char *extfilter3);
 void open_filedialog(struct filedialog *dlg);
 void close_filedialog(struct filedialog *dlg);
 void get_filedialog_selection(struct filedialog *dlg, char *buffer, int buflen);
