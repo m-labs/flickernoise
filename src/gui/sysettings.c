@@ -328,6 +328,7 @@ void init_sysettings()
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 
 	browse_wallpaper_dlg = create_filedialog("Select wallpaper", 0, "png", wallpaper_ok_callback, NULL, NULL, NULL);
+	filedialog_extfilterex(browse_wallpaper_dlg, "jpg", "jpeg");
 	browse_autostart_dlg = create_filedialog("Select autostart performance", 0, "per", autostart_ok_callback, NULL, NULL, NULL);
 }
 
