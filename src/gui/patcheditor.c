@@ -152,7 +152,7 @@ static void run_callback(mtk_event *e, void *arg)
 
 	mtk_cmd(appid, "status.set(-text \"Ready.\")");
 	mtk_req(appid, code, 32768, "ed.text");
-	p = patch_compile(code, rmc);
+	p = patch_compile_filename(current_filename, code, rmc);
 	if(p == NULL)
 		return;
 

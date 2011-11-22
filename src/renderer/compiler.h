@@ -21,6 +21,9 @@
 #include <rtems.h>
 #include <bsp/milkymist_pfpu.h>
 
+#include "framedescriptor.h"
+#include "../pixbuf/pixbuf.h"
+
 enum {
 	pfv_sx = 0,
 	pfv_sy,
@@ -199,6 +202,7 @@ enum {
 
 struct patch {
 	/* per-frame */
+	struct pixbuf *images[IMAGE_COUNT];		/* < images used in this patch */
 	float pfv_initial[COMP_PFV_COUNT]; 		/* < patch initial conditions */
 	int pfv_allocation[COMP_PFV_COUNT];		/* < where per-frame variables are mapped in PFPU regf, -1 if unmapped */
 	int perframe_prog_length;			/* < how many instructions in perframe_prog */
@@ -213,12 +217,13 @@ struct patch {
 	unsigned int require;				/* < bitmask: dmx, osc, midi, video */
 	void *original;					/* < original patch (with initial register values) */
 	struct patch *next;				/* < used when chaining patches in mashups */
-
 };
 
 typedef void (*report_message)(const char *);
 
-struct patch *patch_compile(const char *patch_code, report_message rmc);
+struct patch *patch_compile(const char *basedir, const char *patch_code, report_message rmc);
+struct patch *patch_compile_filename(const char *filename, const char *patch_code, report_message rmc);
+struct patch *patch_copy(struct patch *p);
 void patch_free(struct patch *p);
 
 #endif /* __COMPILER_H */

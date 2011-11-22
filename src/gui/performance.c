@@ -298,7 +298,7 @@ static struct patch *compile_patch(const char *filename)
 	buf[r] = 0;
 	fclose(fd);
 
-	return patch_compile(buf, dummy_rmc);
+	return patch_compile_filename(filename, buf, dummy_rmc);
 }
 
 static rtems_task comp_task(rtems_task_argument argument)

@@ -50,20 +50,9 @@ void renderer_unlock_patch()
 	rtems_semaphore_release(patch_lock);
 }
 
-static struct patch *copy_patch(struct patch *p)
-{
-	struct patch *new_patch;
-	
-	/* Copy memory as the patch will be modified
-	 * by the evaluator (current regs).
-	 */
-	new_patch = malloc(sizeof(struct patch));
-	assert(new_patch != NULL);
-	memcpy(new_patch, p, sizeof(struct patch));
-	new_patch->original = p;
-	new_patch->next = NULL;
-	return new_patch;
-}
+/* Copy patches as they will be modified
+ * by the evaluator (current regs).
+ */
 
 void renderer_pulse_patch(struct patch *p)
 {
@@ -72,9 +61,9 @@ void renderer_pulse_patch(struct patch *p)
 	renderer_lock_patch();
 	if(!mashup_en && (mashup_head->next == NULL)) {
 		oldpatch = mashup_head;
-		mashup_head = copy_patch(p);
+		mashup_head = patch_copy(p);
 		current_patch = mashup_head;
-		free(oldpatch);
+		patch_free(oldpatch);
 	}
 	renderer_unlock_patch();
 }
@@ -93,12 +82,12 @@ void renderer_add_patch(struct patch *p)
 		}
 		p1 = p1->next;
 	}
-	new_patch = copy_patch(p);
+	new_patch = patch_copy(p);
 	if(!mashup_en) {
 		p1 = mashup_head;
 		mashup_head = new_patch;
 		current_patch = mashup_head;
-		free(p1);
+		patch_free(p1);
 	} else {
 		new_patch->next = mashup_head;
 		mashup_head = new_patch;
@@ -124,7 +113,7 @@ void renderer_del_patch(struct patch *p)
 		if(mashup_head == current_patch)
 			renderer_get_patch(1);
 		p1 = mashup_head->next;
-		free(mashup_head);
+		patch_free(mashup_head);
 		mashup_head = p1;
 	} else {
 		p1 = mashup_head;
@@ -138,7 +127,7 @@ void renderer_del_patch(struct patch *p)
 		if(p1->next == current_patch)
 			renderer_get_patch(1);
 		p2 = p1->next->next;
-		free(p1->next);
+		patch_free(p1->next);
 		p1->next = p2;
 	}
 	renderer_unlock_patch();
@@ -169,7 +158,7 @@ void renderer_start(int framebuffer_fd, struct patch *p)
 	assert(sc == RTEMS_SUCCESSFUL);
 
 	assert(mashup_head == NULL);
-	mashup_head = copy_patch(p);
+	mashup_head = patch_copy(p);
 	current_patch = mashup_head;
 	mashup_en = 0;
 
@@ -197,7 +186,7 @@ void renderer_stop()
 
 	while(mashup_head != NULL) {
 		p = mashup_head->next;
-		free(mashup_head);
+		patch_free(mashup_head);
 		mashup_head = p;
 	}
 	rtems_semaphore_delete(patch_lock);

@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -24,11 +25,13 @@
 #include <fpvm/schedulers.h>
 #include <fpvm/pfpu.h>
 
+#include "../pixbuf/pixbuf.h"
 #include "compiler.h"
 
 struct compiler_sc {
 	struct patch *p;
 
+	const char *basedir;
 	report_message rmc;
 	int linenr;
 
@@ -559,6 +562,24 @@ static bool process_top_assign(struct compiler_sc *sc, char *left, char *right)
 
 	while(*right == ' ') right++;
 	if(*right == 0) return true;
+	
+	if(strncmp(left, "imagefile", 9) == 0) {
+		int image_n;
+		char *totalname;
+		
+		image_n = atoi(left+9);
+		if((image_n < 1) || (image_n > IMAGE_COUNT)) {
+			comp_report(sc, "warning l.%d: ignoring image with out of bounds number %d", sc->linenr, image_n);
+			return true;
+		}
+		totalname = malloc(strlen(sc->basedir) + strlen(right) + 0);
+		if(totalname == NULL) return true;
+		strcpy(totalname, sc->basedir);
+		strcat(totalname, right);
+		pixbuf_dec_ref(sc->p->images[image_n]);
+		sc->p->images[image_n] = pixbuf_get(totalname);
+		free(totalname);
+	}
 
 	pfv = pfv_from_name(sc, left);
 	if(pfv >= 0) {
@@ -631,11 +652,12 @@ static bool parse_patch(struct compiler_sc *sc, char *patch_code)
 	return true;
 }
 
-struct patch *patch_compile(const char *patch_code, report_message rmc)
+struct patch *patch_compile(const char *basedir, const char *patch_code, report_message rmc)
 {
 	struct compiler_sc *sc;
 	struct patch *p;
 	char *patch_code_copy;
+	int i;
 
 	sc = malloc(sizeof(struct compiler_sc));
 	if(sc == NULL) {
@@ -648,10 +670,13 @@ struct patch *patch_compile(const char *patch_code, report_message rmc)
 		free(sc);
 		return NULL;
 	}
+	for(i=0;i<IMAGE_COUNT;i++)
+		sc->p->images[i] = NULL;
 	sc->p->require = 0;
 	sc->p->original = NULL;
 	sc->p->next = NULL;
 
+	sc->basedir = basedir;
 	sc->rmc = rmc;
 	sc->linenr = 0;
 
@@ -683,7 +708,45 @@ fail:
 	return NULL;
 }
 
+struct patch *patch_compile_filename(const char *filename, const char *patch_code, report_message rmc)
+{
+	char *basedir;
+	char *c;
+	struct patch *p;
+	
+	basedir = strdup(filename);
+	if(basedir == NULL) return NULL;
+	c = strrchr(basedir, '/');
+	if(c != NULL) {
+		c++;
+		*c = 0;
+		p = patch_compile(basedir, patch_code, rmc);
+	} else
+		p = patch_compile("/", patch_code, rmc);
+	free(basedir);
+	return p;
+}
+
+struct patch *patch_copy(struct patch *p)
+{
+	struct patch *new_patch;
+	int i;
+	
+	new_patch = malloc(sizeof(struct patch));
+	assert(new_patch != NULL);
+	memcpy(new_patch, p, sizeof(struct patch));
+	new_patch->original = p;
+	new_patch->next = NULL;
+	for(i=0;i<IMAGE_COUNT;i++)
+		pixbuf_inc_ref(new_patch->images[i]);
+	return new_patch;
+}
+
 void patch_free(struct patch *p)
 {
+	int i;
+	
+	for(i=0;i<IMAGE_COUNT;i++)
+		pixbuf_dec_ref(p->images[i]);
 	free(p);
 }

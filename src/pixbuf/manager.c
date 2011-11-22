@@ -53,7 +53,8 @@ struct pixbuf *pixbuf_search(char *filename)
 
 void pixbuf_inc_ref(struct pixbuf *p)
 {
-	p->refcnt++;
+	if(p != NULL)
+		p->refcnt++;
 }
 
 void pixbuf_dec_ref(struct pixbuf *p)
