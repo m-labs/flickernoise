@@ -128,6 +128,15 @@ enum {
 	pfv_midi8,
 
 	pfv_video_a,
+	
+	pfv_image1_a,
+	pfv_image1_x,
+	pfv_image1_y,
+	pfv_image1_zoom,
+	pfv_image2_a,
+	pfv_image2_x,
+	pfv_image2_y,
+	pfv_image2_zoom,
 
 	COMP_PFV_COUNT /* must be last */
 };

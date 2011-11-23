@@ -365,7 +365,7 @@ static void compute_wave_vertices(struct frame_descriptor *frd, struct wave_para
 	}
 }
 
-static void draw(unsigned short *fb, struct frame_descriptor *frd, struct wave_params *params, struct wave_vertex *vertices, int nvertices)
+static void software_draw(unsigned short *fb, struct frame_descriptor *frd, struct wave_params *params, struct wave_vertex *vertices, int nvertices)
 {
 	draw_motion_vectors(fb, frd);
 	draw_borders(fb, frd);
@@ -488,6 +488,83 @@ static void video(unsigned short *tex_backbuffer, struct frame_descriptor *frd, 
 	ioctl(video_fd, VIDEO_BUFFER_UNLOCK, videoframe);
 }
 
+static void images(unsigned short *tex_backbuffer, struct frame_descriptor *frd, int tmu_fd, struct tmu_vertex *scale_vertices)
+{
+	int i;
+	struct tmu_td td;
+	int alpha;
+	float ftexsize;
+	int dx, dy;
+	int sx, sy;
+	
+	for(i=0;i<IMAGE_COUNT;i++) {
+		if((frd->images[i] != NULL) && (frd->image_a[i] != 0.0)) {
+			alpha = 64.0*frd->image_a[i];
+			alpha--;
+			if(alpha > TMU_ALPHA_MAX)
+				alpha = TMU_ALPHA_MAX;
+			if(alpha <= 0)
+				continue;
+			
+			ftexsize = (float)renderer_texsize;
+			dx = ftexsize*frd->image_x[i];
+			dx = ftexsize*frd->image_y[i];
+			sx = ((float)frd->images[i]->width)*frd->image_zoom[i];
+			sy = ((float)frd->images[i]->height)*frd->image_zoom[i];
+			
+			scale_vertices[0].x = 0;
+			scale_vertices[0].y = 0;
+			scale_vertices[1].x = frd->images[i]->width << TMU_FIXEDPOINT_SHIFT;
+			scale_vertices[1].y = 0;
+			scale_vertices[TMU_MESH_MAXSIZE].x = 0;
+			scale_vertices[TMU_MESH_MAXSIZE].y = frd->images[i]->height << TMU_FIXEDPOINT_SHIFT;
+			scale_vertices[TMU_MESH_MAXSIZE+1].x = frd->images[i]->width << TMU_FIXEDPOINT_SHIFT;
+			scale_vertices[TMU_MESH_MAXSIZE+1].y = frd->images[i]->height << TMU_FIXEDPOINT_SHIFT;
+			
+			td.flags = 0;
+			td.hmeshlast = 1;
+			td.vmeshlast = 1;
+			td.brightness = TMU_BRIGHTNESS_MAX;
+			td.chromakey = 0;
+			td.vertices = scale_vertices;
+			td.texfbuf = frd->images[i]->pixels;
+			td.texhres = frd->images[i]->width;
+			td.texvres = frd->images[i]->height;
+			td.texhmask = TMU_MASK_FULL;
+			td.texvmask = TMU_MASK_FULL;
+			td.dstfbuf = tex_backbuffer;
+			td.dsthres = renderer_texsize;
+			td.dstvres = renderer_texsize;
+			td.dsthoffset = dx - (sx >> 1);
+			td.dstvoffset = dy - (sy >> 1);
+			td.dstsquarew = sx;
+			td.dstsquareh = sy;
+			td.alpha = alpha;
+			td.invalidate_before = false;
+			td.invalidate_after = false;
+
+			ioctl(tmu_fd, TMU_EXECUTE, &td);
+		}
+	}
+}
+
+static void update_dmx_outputs(int dmx_fd, struct frame_descriptor *frd, int *dmx_map)
+{
+	int i;
+	unsigned char dmx_val;
+	
+	for(i=0;i<DMX_COUNT;i++) {
+		lseek(dmx_fd, dmx_map[i], SEEK_SET);
+		if(frd->dmx[i] > 1.0)
+			dmx_val = 255;
+		else if(frd->dmx[i] < 0.0)
+			dmx_val = 0;
+		else
+			dmx_val = frd->dmx[i]*255.0;
+		write(dmx_fd, &dmx_val, 1);
+	}
+}
+
 struct raster_task_param {
 	int framebuffer_fd;
 	int dmx_map[DMX_COUNT];
@@ -518,8 +595,6 @@ static rtems_task raster_task(rtems_task_argument argument)
 	struct wave_vertex vertices[256];
 	int nvertices;
 	int vecho_alpha;
-	int i;
-	unsigned char dmx_val;
 
 	status = posix_memalign((void **)&tex_frontbuffer, 32,
 		2*renderer_texsize*renderer_texsize);
@@ -576,8 +651,9 @@ static rtems_task raster_task(rtems_task_argument argument)
 		warp(tmu_fd, tex_frontbuffer, tex_backbuffer, frd->vertices, frd->tex_wrap, ibrightness);
 		compute_wave_vertices(frd, &params, vertices, &nvertices);
 		ioctl(tmu_fd, TMU_EXECUTE_WAIT);
-		draw(tex_backbuffer, frd, &params, vertices, nvertices);
+		software_draw(tex_backbuffer, frd, &params, vertices, nvertices);
 		video(tex_backbuffer, frd, tmu_fd, video_fd, scale_vertices);
+		images(tex_backbuffer, frd, tmu_fd, scale_vertices);
 
 		/* Scale and send to screen */
 		screen_backbuffer = get_screen_backbuffer(param->framebuffer_fd);
@@ -595,16 +671,7 @@ static rtems_task raster_task(rtems_task_argument argument)
 		ioctl(param->framebuffer_fd, FBIOSWAPBUFFERS);
 
 		/* Update DMX outputs */
-		for(i=0;i<DMX_COUNT;i++) {
-			lseek(dmx_fd, param->dmx_map[i], SEEK_SET);
-			if(frd->dmx[i] > 1.0)
-				dmx_val = 255;
-			else if(frd->dmx[i] < 0.0)
-				dmx_val = 0;
-			else
-				dmx_val = frd->dmx[i]*255.0;
-			write(dmx_fd, &dmx_val, 1);
-		}
+		update_dmx_outputs(dmx_fd, frd, param->dmx_map);
 
 		/* Swap texture buffers */
 		p = tex_frontbuffer;

@@ -27,6 +27,7 @@
 #include <bsp/milkymist_pfpu.h>
 #include <bsp/milkymist_tmu.h>
 
+#include "../pixbuf/pixbuf.h"
 #include "compiler.h"
 #include "framedescriptor.h"
 #include "renderer.h"
@@ -221,6 +222,15 @@ static void set_frd_from_pfv(struct patch *p, struct frame_descriptor *frd)
 	frd->dmx[7] = read_pfv(p, pfv_dmx8);
 
 	frd->video_a = read_pfv(p, pfv_video_a);
+	
+	frd->image_a[0] = read_pfv(p, pfv_image1_a);
+	frd->image_x[0] = read_pfv(p, pfv_image1_x);
+	frd->image_y[0] = read_pfv(p, pfv_image1_y);
+	frd->image_zoom[0] = read_pfv(p, pfv_image1_zoom);
+	frd->image_a[1] = read_pfv(p, pfv_image2_a);
+	frd->image_x[1] = read_pfv(p, pfv_image2_x);
+	frd->image_y[1] = read_pfv(p, pfv_image2_y);
+	frd->image_zoom[1] = read_pfv(p, pfv_image2_zoom);
 }
 
 static unsigned int pfpudummy[2] __attribute__((aligned(sizeof(struct tmu_vertex))));
@@ -278,6 +288,7 @@ static rtems_task eval_task(rtems_task_argument argument)
 
 	while(1) {
 		struct patch *p;
+		int i;
 
 		rtems_message_queue_receive(
 			eval_q,
@@ -294,7 +305,13 @@ static rtems_task eval_task(rtems_task_argument argument)
 		renderer_lock_patch();
 
 		p = renderer_get_patch(1);
-
+		
+		/* NB: we do not increment reference count and assume pixbufs
+		 * will be valid until the renderer has fully stopped.
+		 */
+		for(i=0;i<IMAGE_COUNT;i++)
+			frd->images[i] = p->images[i];
+		
 		reinit_all_pfv(p);
 		set_pfv_from_frd(p, frd);
 		eval_pfv(p, pfpu_fd);

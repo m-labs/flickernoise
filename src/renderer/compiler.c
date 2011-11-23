@@ -161,7 +161,16 @@ static const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
 	"midi7",
 	"midi8",
 
-	"video_a"
+	"video_a",
+	
+	"image1_a",
+	"image1_x",
+	"image1_y",
+	"image1_zoom",
+	"image2_a",
+	"image2_x",
+	"image2_y",
+	"image2_zoom"
 };
 
 static int pfv_from_name(struct compiler_sc *sc, const char *name)
@@ -216,6 +225,11 @@ static void load_defaults(struct compiler_sc *sc)
 	sc->p->pfv_initial[pfv_mv_l] = 1.0;
 
 	sc->p->pfv_initial[pfv_warp_scale] = 1.0;
+	
+	sc->p->pfv_initial[pfv_video_echo_zoom] = 1.0;
+	
+	sc->p->pfv_initial[pfv_image1_zoom] = 1.0;
+	sc->p->pfv_initial[pfv_image2_zoom] = 1.0;
 }
 
 static void set_initial(struct compiler_sc *sc, int pfv, float x)
