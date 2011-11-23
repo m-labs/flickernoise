@@ -508,7 +508,7 @@ static void images(unsigned short *tex_backbuffer, struct frame_descriptor *frd,
 			
 			ftexsize = (float)renderer_texsize;
 			dx = ftexsize*frd->image_x[i];
-			dx = ftexsize*frd->image_y[i];
+			dy = ftexsize*frd->image_y[i];
 			sx = ((float)frd->images[i]->width)*frd->image_zoom[i];
 			sy = ((float)frd->images[i]->height)*frd->image_zoom[i];
 			
@@ -521,7 +521,7 @@ static void images(unsigned short *tex_backbuffer, struct frame_descriptor *frd,
 			scale_vertices[TMU_MESH_MAXSIZE+1].x = frd->images[i]->width << TMU_FIXEDPOINT_SHIFT;
 			scale_vertices[TMU_MESH_MAXSIZE+1].y = frd->images[i]->height << TMU_FIXEDPOINT_SHIFT;
 			
-			td.flags = 0;
+			td.flags = TMU_FLAG_ADDITIVE;
 			td.hmeshlast = 1;
 			td.vmeshlast = 1;
 			td.brightness = TMU_BRIGHTNESS_MAX;

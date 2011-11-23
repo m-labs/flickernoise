@@ -228,7 +228,11 @@ static void load_defaults(struct compiler_sc *sc)
 	
 	sc->p->pfv_initial[pfv_video_echo_zoom] = 1.0;
 	
+	sc->p->pfv_initial[pfv_image1_x] = 0.5;
+	sc->p->pfv_initial[pfv_image1_y] = 0.5;
 	sc->p->pfv_initial[pfv_image1_zoom] = 1.0;
+	sc->p->pfv_initial[pfv_image2_x] = 0.5;
+	sc->p->pfv_initial[pfv_image2_y] = 0.5;
 	sc->p->pfv_initial[pfv_image2_zoom] = 1.0;
 }
 
@@ -586,13 +590,19 @@ static bool process_top_assign(struct compiler_sc *sc, char *left, char *right)
 			comp_report(sc, "warning l.%d: ignoring image with out of bounds number %d", sc->linenr, image_n);
 			return true;
 		}
-		totalname = malloc(strlen(sc->basedir) + strlen(right) + 0);
-		if(totalname == NULL) return true;
-		strcpy(totalname, sc->basedir);
-		strcat(totalname, right);
+		image_n--;
+		if(right[0] == '/')
+			totalname = strdup(right);
+		else {
+			totalname = malloc(strlen(sc->basedir) + strlen(right) + 0);
+			if(totalname == NULL) return true;
+			strcpy(totalname, sc->basedir);
+			strcat(totalname, right);
+		}
 		pixbuf_dec_ref(sc->p->images[image_n]);
 		sc->p->images[image_n] = pixbuf_get(totalname);
 		free(totalname);
+		return true;
 	}
 
 	pfv = pfv_from_name(sc, left);
