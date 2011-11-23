@@ -511,6 +511,7 @@ static void images(unsigned short *tex_backbuffer, struct frame_descriptor *frd,
 			dy = ftexsize*frd->image_y[i];
 			sx = ((float)frd->images[i]->width)*frd->image_zoom[i];
 			sy = ((float)frd->images[i]->height)*frd->image_zoom[i];
+			sy = sy*4/3;
 			
 			scale_vertices[0].x = 0;
 			scale_vertices[0].y = 0;
