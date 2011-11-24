@@ -36,10 +36,7 @@ struct compiler_sc {
 	int linenr;
 
 	struct fpvm_fragment pfv_fragment;
-	int pfv_preallocation[COMP_PFV_COUNT];	/* < where per-frame variables can be mapped in PFPU regf */
-
 	struct fpvm_fragment pvv_fragment;
-	int pvv_preallocation[COMP_PVV_COUNT];	/* < where per-vertex variables can be mapped in PFPU regf */
 };
 
 static void comp_report(struct compiler_sc *sc, const char *format, ...)
@@ -173,17 +170,13 @@ static const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
 	"image2_zoom"
 };
 
-static int pfv_from_name(struct compiler_sc *sc, const char *name)
+static int pfv_from_name(const char *name)
 {
 	int i;
+	
 	for(i=0;i<COMP_PFV_COUNT;i++) {
-		if(strcmp(pfv_names[i], name) == 0) {
-			if(i >= pfv_dmx1 && i <= pfv_idmx8)	sc->p->require |= REQUIRE_DMX;
-			if(i >= pfv_osc1 && i <= pfv_osc4)	sc->p->require |= REQUIRE_OSC;
-			if(i >= pfv_midi1 && i <= pfv_midi8)	sc->p->require |= REQUIRE_MIDI;
-			if(i == pfv_video_a)			sc->p->require |= REQUIRE_VIDEO;
+		if(strcmp(pfv_names[i], name) == 0)
 			return i;
-		}
 	}
 
 	if(strcmp(name, "fDecay") == 0) return pfv_decay;
@@ -195,6 +188,14 @@ static int pfv_from_name(struct compiler_sc *sc, const char *name)
 	if(strcmp(name, "bWaveThick") == 0) return pfv_wave_thick;
 	if(strcmp(name, "fWaveAlpha") == 0) return pfv_wave_a;
 	return -1;
+}
+
+static void pfv_update_patch_requires(struct compiler_sc *sc, int pfv)
+{
+	if(pfv >= pfv_dmx1 && pfv <= pfv_idmx8)		sc->p->require |= REQUIRE_DMX;
+	if(pfv >= pfv_osc1 && pfv <= pfv_osc4)		sc->p->require |= REQUIRE_OSC;
+	if(pfv >= pfv_midi1 && pfv <= pfv_midi8)	sc->p->require |= REQUIRE_MIDI;
+	if(pfv == pfv_video_a)				sc->p->require |= REQUIRE_VIDEO;
 }
 
 static void load_defaults(struct compiler_sc *sc)
@@ -257,27 +258,32 @@ static void all_initials_to_pfv(struct compiler_sc *sc)
 		initial_to_pfv(sc, i);
 }
 
+static void pfv_bind_callback(void *_sc, const char *sym, int reg)
+{
+	struct compiler_sc *sc = _sc;
+	int pfv;
+	
+	pfv = pfv_from_name(sym);
+	if(pfv >= 0) {
+		pfv_update_patch_requires(sc, pfv);
+		sc->p->pfv_allocation[pfv] = reg;
+	}
+}
+
 static bool init_pfv(struct compiler_sc *sc)
 {
 	int i;
 
 	fpvm_init(&sc->pfv_fragment, 0);
-	sc->pfv_fragment.bind_mode = 1; /* < keep user-defined variables from frame to frame */
-	for(i=0;i<COMP_PFV_COUNT;i++) {
-		sc->pfv_preallocation[i] = fpvm_bind(&sc->pfv_fragment, pfv_names[i]);
-		if(sc->pfv_preallocation[i] == FPVM_INVALID_REG) {
-			comp_report(sc, "failed to bind per-frame variable %s: %s", pfv_names[i], sc->pfv_fragment.last_error);
-			return false;
-		}
-	}
+	fpvm_set_bind_mode(&sc->pfv_fragment, 1);
+	for(i=0;i<COMP_PFV_COUNT;i++)
+		sc->p->pfv_allocation[i] = -1;
+	fpvm_set_bind_callback(&sc->pfv_fragment, pfv_bind_callback, sc);
 	return true;
 }
 
 static bool finalize_pfv(struct compiler_sc *sc)
 {
-	int i;
-	int references[FPVM_MAXBINDINGS];
-
 	/* assign dummy values for output */
 	if(!fpvm_assign(&sc->pfv_fragment, "_Xo", "_Xi")) goto fail_fpvm;
 	if(!fpvm_assign(&sc->pfv_fragment, "_Yo", "_Yi")) goto fail_fpvm;
@@ -287,17 +293,9 @@ static bool finalize_pfv(struct compiler_sc *sc)
 	fpvm_dump(&sc->pfv_fragment);
 	#endif
 
-	/* Build variable allocation table */
-	fpvm_get_references(&sc->pfv_fragment, references);
-	for(i=0;i<COMP_PFV_COUNT;i++)
-		if(references[sc->pfv_preallocation[i]])
-			sc->p->pfv_allocation[i] = sc->pfv_preallocation[i];
-		else
-			sc->p->pfv_allocation[i] = -1;
-
 	return true;
 fail_fpvm:
-	comp_report(sc, "failed to finalize per-frame variables: %s", sc->pfv_fragment.last_error);
+	comp_report(sc, "failed to finalize per-frame variables: %s", fpvm_get_last_error(&sc->pfv_fragment));
 	return false;
 }
 
@@ -321,7 +319,7 @@ static bool schedule_pfv(struct compiler_sc *sc)
 static bool add_per_frame(struct compiler_sc *sc, char *dest, char *val)
 {
 	if(!fpvm_assign(&sc->pfv_fragment, dest, val)) {
-		comp_report(sc, "failed to add per-frame equation l. %d: %s", sc->linenr, sc->pfv_fragment.last_error);
+		comp_report(sc, "failed to add per-frame equation l. %d: %s", sc->linenr, fpvm_get_last_error(&sc->pfv_fragment));
 		return false;
 	}
 	return true;
@@ -392,19 +390,45 @@ static const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN] = {
 	"midi8",
 };
 
+static int pvv_from_name(const char *name)
+{
+	int i;
+	
+	for(i=0;i<COMP_PVV_COUNT;i++) {
+		if(strcmp(pvv_names[i], name) == 0)
+			return i;
+	}
+	return -1;
+}
+
+static void pvv_update_patch_requires(struct compiler_sc *sc, int pvv)
+{
+	if(pvv >= pvv_idmx1 && pvv <= pvv_idmx8)	sc->p->require |= REQUIRE_DMX;
+	if(pvv >= pvv_osc1 && pvv <= pvv_osc4)		sc->p->require |= REQUIRE_OSC;
+	if(pvv >= pvv_midi1 && pvv <= pvv_midi8)	sc->p->require |= REQUIRE_MIDI;
+}
+
+static void pvv_bind_callback(void *_sc, const char *sym, int reg)
+{
+	struct compiler_sc *sc = _sc;
+	int pvv;
+	
+	pvv = pvv_from_name(sym);
+	if(pvv >= 0) {
+		pvv_update_patch_requires(sc, pvv);
+		sc->p->pvv_allocation[pvv] = reg;
+	}
+}
+
 static bool init_pvv(struct compiler_sc *sc)
 {
 	int i;
 
 	fpvm_init(&sc->pvv_fragment, 1);
-
-	for(i=0;i<COMP_PVV_COUNT;i++) {
-		sc->pvv_preallocation[i] = fpvm_bind(&sc->pvv_fragment, pvv_names[i]);
-		if(sc->pvv_preallocation[i] == FPVM_INVALID_REG) {
-			comp_report(sc, "failed to bind per-vertex variable %s: %s", pvv_names[i], sc->pvv_fragment.last_error);
-			return false;
-		}
-	}
+	fpvm_set_bind_mode(&sc->pvv_fragment, 1);
+	for(i=0;i<COMP_PVV_COUNT;i++)
+		sc->p->pvv_allocation[i] = -1;
+	fpvm_set_bind_callback(&sc->pvv_fragment, pvv_bind_callback, sc);
 
 	#define A(dest, val) if(!fpvm_assign(&sc->pvv_fragment, dest, val)) goto fail_assign
 	A("x", "i2f(_Xi)*_hmeshsize");
@@ -412,19 +436,16 @@ static bool init_pvv(struct compiler_sc *sc)
 	A("rad", "sqrt(sqr(x-0.5)+sqr(y-0.5))");
 	/* TODO: generate ang */
 	#undef A
-
+	
 	return true;
 
 fail_assign:
-	comp_report(sc, "failed to add equation to per-vertex header: %s", sc->pvv_fragment.last_error);
+	comp_report(sc, "failed to add equation to per-vertex header: %s", fpvm_get_last_error(&sc->pvv_fragment));
 	return false;
 }
 
 static int finalize_pvv(struct compiler_sc *sc)
 {
-	int i;
-	int references[FPVM_MAXBINDINGS];
-
 	#define A(dest, val) if(!fpvm_assign(&sc->pvv_fragment, dest, val)) goto fail_assign
 
 	/* Zoom */
@@ -476,21 +497,12 @@ static int finalize_pvv(struct compiler_sc *sc)
 	fpvm_dump(&sc->pvv_fragment);
 	#endif
 
-	/* Build variable allocation table */
-	fpvm_get_references(&sc->pvv_fragment, references);
-	for(i=0;i<COMP_PVV_COUNT;i++)
-		if(references[sc->pvv_preallocation[i]])
-			sc->p->pvv_allocation[i] = sc->pvv_preallocation[i];
-		else
-			sc->p->pvv_allocation[i] = -1;
-
-
 	return true;
 fail_assign:
-	comp_report(sc, "failed to add equation to per-vertex footer: %s", sc->pvv_fragment.last_error);
+	comp_report(sc, "failed to add equation to per-vertex footer: %s", fpvm_get_last_error(&sc->pvv_fragment));
 	return false;
 fail_finalize:
-	comp_report(sc, "failed to finalize per-vertex variables: %s", sc->pvv_fragment.last_error);
+	comp_report(sc, "failed to finalize per-vertex variables: %s", fpvm_get_last_error(&sc->pvv_fragment));
 	return false;
 }
 
@@ -513,7 +525,7 @@ static bool schedule_pvv(struct compiler_sc *sc)
 static bool add_per_vertex(struct compiler_sc *sc, char *dest, char *val)
 {
 	if(!fpvm_assign(&sc->pvv_fragment, dest, val)) {
-		comp_report(sc, "failed to add per-vertex equation l. %d: %s\n", sc->linenr, sc->pvv_fragment.last_error);
+		comp_report(sc, "failed to add per-vertex equation l. %d: %s\n", sc->linenr, fpvm_get_last_error(&sc->pvv_fragment));
 		return false;
 	}
 	return true;
@@ -605,9 +617,10 @@ static bool process_top_assign(struct compiler_sc *sc, char *left, char *right)
 		return true;
 	}
 
-	pfv = pfv_from_name(sc, left);
+	pfv = pfv_from_name(left);
 	if(pfv >= 0) {
 		/* patch initial condition or global parameter */
+		pfv_update_patch_requires(sc, pfv);
 		set_initial(sc, pfv, atof(right));
 		return true;
 	}
