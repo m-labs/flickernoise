@@ -275,7 +275,7 @@ static bool init_pfv(struct compiler_sc *sc)
 	int i;
 
 	fpvm_init(&sc->pfv_fragment, 0);
-	fpvm_set_bind_mode(&sc->pfv_fragment, 1);
+	fpvm_set_bind_mode(&sc->pfv_fragment, FPVM_BIND_ALL);
 	for(i=0;i<COMP_PFV_COUNT;i++)
 		sc->p->pfv_allocation[i] = -1;
 	fpvm_set_bind_callback(&sc->pfv_fragment, pfv_bind_callback, sc);
@@ -425,17 +425,18 @@ static bool init_pvv(struct compiler_sc *sc)
 	int i;
 
 	fpvm_init(&sc->pvv_fragment, 1);
-	fpvm_set_bind_mode(&sc->pvv_fragment, 1);
 	for(i=0;i<COMP_PVV_COUNT;i++)
 		sc->p->pvv_allocation[i] = -1;
 	fpvm_set_bind_callback(&sc->pvv_fragment, pvv_bind_callback, sc);
-
+	
+	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_SOURCE);
 	#define A(dest, val) if(!fpvm_assign(&sc->pvv_fragment, dest, val)) goto fail_assign
 	A("x", "i2f(_Xi)*_hmeshsize");
 	A("y", "i2f(_Yi)*_vmeshsize");
 	A("rad", "sqrt(sqr(x-0.5)+sqr(y-0.5))");
 	/* TODO: generate ang */
 	#undef A
+	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_ALL);
 	
 	return true;
 
@@ -446,6 +447,8 @@ fail_assign:
 
 static int finalize_pvv(struct compiler_sc *sc)
 {
+	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_SOURCE);
+	
 	#define A(dest, val) if(!fpvm_assign(&sc->pvv_fragment, dest, val)) goto fail_assign
 
 	/* Zoom */
