@@ -1,0 +1,16 @@
+imagefile1=pleiades.jpg
+imagefile2=pleiades.jpg
+decay=0.97
+image1_a=0.6
+image2_a=0.6
+per_frame=image1_zoom=0.8+0.2*sin(1.21*time)
+per_frame=image2_zoom=0.8+0.2*sin(0.98*time)
+sx=1.06
+sy=1.06
+per_frame=cx=0.5+0.1*sin(1.82*time)
+per_frame=cy=0.5+0.1*sin(0.97*time)
+per_frame=rot=0.05*sin(0.4*time)
+per_frame=image1_x=0.5+0.5*sin(4.32*time)
+per_frame=image1_y=0.5+0.5*cos(6.14*time)
+per_frame=image2_x=0.5+0.5*sin(5.17*time)
+per_frame=image2_y=0.5+0.5*cos(4.47*time)
