@@ -341,6 +341,7 @@ static void get_versions(struct patchpool *local_patches, struct patchpool *remo
 {
 	char *b;
 	char *c;
+	static const char *extensions[] = {"fnp", "png", "jpg", "jpeg", NULL};
 	
 	flash_progress = 0;
 	installed_patches = -1;
@@ -348,7 +349,7 @@ static void get_versions(struct patchpool *local_patches, struct patchpool *remo
 	available_application = unknown_version;
 	available_patches = -1;
 
-	patchpool_add_files(local_patches, SIMPLE_PATCHES_FOLDER, "fnp");
+	patchpool_add_files(local_patches, SIMPLE_PATCHES_FOLDER, extensions);
 	installed_patches = patchpool_count(local_patches);
 
 	flash_progress = 25;

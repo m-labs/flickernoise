@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "patchpool.h"
 
@@ -118,13 +119,14 @@ void patchpool_add_multi(struct patchpool *pp, const char *entry)
 	}
 }
 
-void patchpool_add_files(struct patchpool *pp, const char *folder, const char *extension)
+void patchpool_add_files(struct patchpool *pp, const char *folder, const char **extensions)
 {
 	DIR *d;
 	struct dirent *entry;
 	struct stat s;
 	char fullname[384];
 	char *c;
+	int i;
 	
 	d = opendir(folder);
 	if(!d) return;
@@ -135,8 +137,16 @@ void patchpool_add_files(struct patchpool *pp, const char *folder, const char *e
 		lstat(fullname, &s);
 		if(!S_ISDIR(s.st_mode)) {
 			c = strrchr(entry->d_name, '.');
-			if((c != NULL) && (strcmp(extension, c+1) == 0))
-				patchpool_add(pp, strdup(entry->d_name));
+			if(c != NULL) {
+				i = 0;
+				while(extensions[i] != NULL) {
+					if(strcasecmp(extensions[i], c+1) == 0) {
+						patchpool_add(pp, strdup(entry->d_name));
+						break;
+					}
+					i++;
+				}
+			}
 		}
 	}
 	closedir(d);

@@ -32,6 +32,6 @@ int patchpool_count(struct patchpool *pp);
 void patchpool_diff(struct patchpool *pp, struct patchpool *to_delete);
 
 void patchpool_add_multi(struct patchpool *pp, const char *entry);
-void patchpool_add_files(struct patchpool *pp, const char *folder, const char *extension);
+void patchpool_add_files(struct patchpool *pp, const char *folder, const char **extensions);
 
 #endif /* __PATCHPOOL_H */
