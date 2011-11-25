@@ -106,6 +106,18 @@ static void adjust_contrast(int amount)
 	cp_notify_changed();
 }
 
+static void set_video_format(int new_format)
+{
+	int format;
+	
+	format = config_read_int("vin_format", VIDEO_FORMAT_CVBS6);
+	if((format != VIDEO_FORMAT_CVBS6) && (format != VIDEO_FORMAT_CVBS5) && (format != VIDEO_FORMAT_CVBS4))
+		return;
+	config_write_int("vin_format", new_format);
+	videoinreconf_request(VIDEO_SET_FORMAT, new_format);
+	cp_notify_changed();
+}
+
 static void input_cb(mtk_event *e, int count)
 {
 	int i;
@@ -120,6 +132,15 @@ static void input_cb(mtk_event *e, int count)
 		}
 		if(e[i].type == EVENT_TYPE_PRESS) {
 			switch(e[i].press.code) {
+				case MTK_KEY_F1:
+					set_video_format(VIDEO_FORMAT_CVBS6);
+					break;
+				case MTK_KEY_F2:
+					set_video_format(VIDEO_FORMAT_CVBS5);
+					break;
+				case MTK_KEY_F3:
+					set_video_format(VIDEO_FORMAT_CVBS4);
+					break;
 				case MTK_KEY_F5:
 					adjust_brightness(5);
 					break;

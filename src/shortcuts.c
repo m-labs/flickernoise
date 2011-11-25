@@ -79,7 +79,7 @@ static void shortcuts_callback(mtk_event *e, int count)
 				clean_shutdown(0);
 			else if(ctrl && (e[i].press.code == MTK_KEY_F1))
 				switch_resolution();
-			else if(ctrl && (e[i].press.code == MTK_KEY_F2))
+			else if(ctrl && (e[i].press.code == MTK_KEY_PAUSE))
 				fbgrab(NULL);
 			else if(e[i].press.code == MTK_KEY_F9) {
 				f9_pressed = 1;
