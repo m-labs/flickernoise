@@ -37,6 +37,7 @@ static int appid;
 
 static int video_fd;
 
+static int format;
 static int brightness;
 static int contrast;
 static int hue;
@@ -48,6 +49,17 @@ enum {
 	CONTROL_CONTRAST,
 	CONTROL_HUE
 };
+
+static void set_format(int f)
+{
+	ioctl(video_fd, VIDEO_SET_FORMAT, f);
+	mtk_cmdf(appid, "b_cvbsg.set(-state %s)", f == VIDEO_FORMAT_CVBS6 ? "on" : "off");
+	mtk_cmdf(appid, "b_cvbsb.set(-state %s)", f == VIDEO_FORMAT_CVBS5 ? "on" : "off");
+	mtk_cmdf(appid, "b_cvbsr.set(-state %s)", f == VIDEO_FORMAT_CVBS4 ? "on" : "off");
+	mtk_cmdf(appid, "b_svideo.set(-state %s)", f == VIDEO_FORMAT_SVIDEO ? "on" : "off");
+	mtk_cmdf(appid, "b_component.set(-state %s)", f == VIDEO_FORMAT_COMPONENT ? "on" : "off");
+	format = f;
+}
 
 static void set_value(int channel, unsigned int val)
 {
@@ -97,8 +109,15 @@ static void slide_callback(mtk_event *e, void *arg)
 	set_value(control, val);
 }
 
+static void format_callback(mtk_event *e, void *arg)
+{
+	set_format((int)arg);
+}
+
 static void load_config()
 {
+	set_format(config_read_int("vin_format", VIDEO_FORMAT_CVBS6));
+
 	set_value(CONTROL_BRIGHTNESS, config_read_int("vin_brightness", 0));
 	set_value(CONTROL_CONTRAST, config_read_int("vin_contrast", 0x80));
 	set_value(CONTROL_HUE, config_read_int("vin_hue", 0));
@@ -110,6 +129,7 @@ static void load_config()
 
 static void set_config()
 {
+	config_write_int("vin_format", format);
 	config_write_int("vin_brightness", brightness);
 	config_write_int("vin_contrast", contrast);
 	config_write_int("vin_hue", hue);
@@ -165,17 +185,18 @@ static void preview_update(mtk_event *e, int count)
 
 static void close_videoin_window()
 {
+	input_delete_callback(preview_update);
 	mtk_cmd(appid, "w.close()");
+	load_config();
 	close(video_fd);
 	w_open = 0;
 	resmgr_release(RESOURCE_VIDEOIN);
-	input_delete_callback(preview_update);
 }
 
 static void ok_callback(mtk_event *e, void *arg)
 {
-	close_videoin_window();
 	set_config();
+	close_videoin_window();
 }
 
 static void close_callback(mtk_event *e, void *arg)
@@ -189,7 +210,45 @@ void init_videoin()
 
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
+		    
+		"g_format = new Grid()",
+		"l_format = new Label(-text \"Format\" -font \"title\")",
+		"s_format1 = new Separator(-vertical no)",
+		"s_format2 = new Separator(-vertical no)",
+		"g_format.place(s_format1, -column 1 -row 1)",
+		"g_format.place(l_format, -column 2 -row 1)",
+		"g_format.place(s_format2, -column 3 -row 1)",
+		"g.place(g_format, -column 1 -row 1)",
 
+		"g_cvbs = new Grid()",
+		"b_cvbsg = new Button(-text \"CVBS: Green\")",
+		"b_cvbsb = new Button(-text \"CVBS: Blue\")",
+		"b_cvbsr = new Button(-text \"CVBS: Red\")",
+		"g_cvbs.place(b_cvbsg, -column 1 -row 1)",
+		"g_cvbs.place(b_cvbsb, -column 2 -row 1)",
+		"g_cvbs.place(b_cvbsr, -column 3 -row 1)",
+		"g.place(g_cvbs, -column 1 -row 2)",
+		"b_svideo = new Button(-text \"S-Video (Y: Green, C: Blue)\")",
+		"g.place(b_svideo, -column 1 -row 3)",
+		"b_component = new Button(-text \"Component (YPbPr)\")",
+		"g.place(b_component, -column 1 -row 4)",
+		
+		"g_detected = new Grid()",
+		"l0_detected = new Label(-text \"Detected signal:\")",
+		"l_detected = new Label(-text \"None\")",
+		"g_detected.place(l0_detected, -column 1 -row 1)",
+		"g_detected.place(l_detected, -column 2 -row 1)",
+		"g.place(g_detected, -column 1 -row 5)",
+		
+		"g_parameters = new Grid()",
+		"l_parameters = new Label(-text \"Parameters\" -font \"title\")",
+		"s_parameters1 = new Separator(-vertical no)",
+		"s_parameters2 = new Separator(-vertical no)",
+		"g_parameters.place(s_parameters1, -column 1 -row 1)",
+		"g_parameters.place(l_parameters, -column 2 -row 1)",
+		"g_parameters.place(s_parameters2, -column 3 -row 1)",
+		"g.place(g_parameters, -column 1 -row 6)",
+		
 		"gc = new Grid()",
 		"l_brightness = new Label(-text \"Brightness:\")",
 		"s_brightness = new Scale(-from -128 -to 127 -value 0 -orient horizontal)",
@@ -197,20 +256,14 @@ void init_videoin()
 		"s_contrast = new Scale(-from 0 -to 255 -value 128 -orient horizontal)",
 		"l_hue = new Label(-text \"Hue:\")",
 		"s_hue = new Scale(-from -128 -to 127 -value 0 -orient horizontal)",
-		"l0_detected = new Label(-text \"Detected signal:\")",
-		"l_detected = new Label(-text \"None\")",
-
 		"gc.place(l_brightness, -column 1 -row 1)",
 		"gc.place(s_brightness, -column 2 -row 1)",
 		"gc.place(l_contrast, -column 1 -row 2)",
 		"gc.place(s_contrast, -column 2 -row 2)",
 		"gc.place(l_hue, -column 1 -row 3)",
 		"gc.place(s_hue, -column 2 -row 3)",
-		"gc.place(l0_detected, -column 1 -row 4)",
-		"gc.place(l_detected, -column 2 -row 4)",
 		"gc.columnconfig(2, -size 150)",
-
-		"g.place(gc, -column 1 -row 1)",
+		"g.place(gc, -column 1 -row 7)",
 
 		"g_preview = new Grid()",
 		"l_preview = new Label(-text \"Preview\" -font \"title\")",
@@ -219,13 +272,12 @@ void init_videoin()
 		"g_preview.place(s_preview1, -column 1 -row 1)",
 		"g_preview.place(l_preview, -column 2 -row 1)",
 		"g_preview.place(s_preview2, -column 3 -row 1)",
-
-		"g.place(g_preview, -column 1 -row 2)",
+		"g.place(g_preview, -column 1 -row 8)",
 
 		"p_preview = new Pixmap(-w 180 -h 144)",
-		"g.place(p_preview, -column 1 -row 3)",
+		"g.place(p_preview, -column 1 -row 9)",
 
-		"g.rowconfig(4, -size 10)",
+		"g.rowconfig(10, -size 10)",
 
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
@@ -233,12 +285,18 @@ void init_videoin()
 		"g_btn.columnconfig(1, -size 190)",
 		"g_btn.place(b_ok, -column 2 -row 1)",
 		"g_btn.place(b_cancel, -column 3 -row 1)",
-		"g.place(g_btn, -column 1 -row 5)",
+		"g.place(g_btn, -column 1 -row 11)",
 
-		"w = new Window(-content g -title \"Video input settings\")",
+		"w = new Window(-content g -title \"Video input settings\" -worky 30)",
 		0);
 
 	mtk_cmdf(appid, "p_preview.set(-fb %d)", preview_fb);
+	
+	mtk_bind(appid, "b_cvbsg", "press", format_callback, (void *)VIDEO_FORMAT_CVBS6);
+	mtk_bind(appid, "b_cvbsb", "press", format_callback, (void *)VIDEO_FORMAT_CVBS5);
+	mtk_bind(appid, "b_cvbsr", "press", format_callback, (void *)VIDEO_FORMAT_CVBS4);
+	mtk_bind(appid, "b_svideo", "press", format_callback, (void *)VIDEO_FORMAT_SVIDEO);
+	mtk_bind(appid, "b_component", "press", format_callback, (void *)VIDEO_FORMAT_COMPONENT);
 	
 	mtk_bind(appid, "s_brightness", "change", slide_callback, (void *)CONTROL_BRIGHTNESS);
 	mtk_bind(appid, "s_contrast", "change", slide_callback, (void *)CONTROL_CONTRAST);

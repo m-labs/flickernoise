@@ -116,6 +116,13 @@ struct mtk_i18n_entry translation_french[] = {
 	
 	// Video input settings
 	{ "Video input settings",				"Param\xe8""tres d'entr\xe9""e vid\xe9""o" },
+	{ "Format",						"Format" },
+	{ "CVBS: Green",					"CVBS: Vert" },
+	{ "CVBS: Blue",						"CVBS: Bleu" },
+	{ "CVBS: Red",						"CVBS: Rouge" },
+	{ "S-Video (Y: Green, C: Blue)",			"S-Video (Y: Vert, C: Bleu)" },
+	{ "Component (YPbPr)",					"Composantes (YPbPr)" },
+	{ "Parameters",						"Param\xe8""tres" },
 	{ "Brightness:",					"Luminosit\xe9"" :" },
 	{ "Contrast:",						"Contraste :" },
 	{ "Hue:",						"Teinte :" },
