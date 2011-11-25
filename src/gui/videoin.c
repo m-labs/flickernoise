@@ -114,7 +114,7 @@ static void format_callback(mtk_event *e, void *arg)
 	set_format((int)arg);
 }
 
-static void load_config()
+void load_videoin_config()
 {
 	set_format(config_read_int("vin_format", VIDEO_FORMAT_CVBS6));
 
@@ -187,7 +187,7 @@ static void close_videoin_window()
 {
 	input_delete_callback(preview_update);
 	mtk_cmd(appid, "w.close()");
-	load_config();
+	load_videoin_config();
 	close(video_fd);
 	w_open = 0;
 	resmgr_release(RESOURCE_VIDEOIN);
@@ -323,7 +323,7 @@ void open_videoin_window()
 	}
 	
 	w_open = 1;
-	load_config();
+	load_videoin_config();
 	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
 	input_add_callback(preview_update);
 	mtk_cmd(appid, "w.open()");

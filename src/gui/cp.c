@@ -72,6 +72,7 @@ static void on_config_change()
 	/* reload config for controls that need modification of some state */
 	load_audio_config();
 	load_dmx_config();
+	load_videoin_config();
 }
 
 static void loadok_callback(void *arg)
