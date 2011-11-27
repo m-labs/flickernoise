@@ -54,6 +54,16 @@ static void get_resolution(int mode, int *hres, int *vres)
 	}
 }
 
+static int current_mode = -1;
+
+static void set_mode(int mode)
+{
+	if(current_mode != mode) {
+		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, mode);
+		current_mode = mode;
+	}
+}
+
 void init_fb_mtk(int quiet)
 {
 	struct fb_fix_screeninfo fb_fix;
@@ -65,17 +75,26 @@ void init_fb_mtk(int quiet)
 	assert(framebuffer_fd != -1);
 	mode = sysconfig_get_resolution();
 	get_resolution(mode, &hres, &vres);
-	if(!quiet)
-		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, mode);
+	if(quiet)
+		/* Assume we will go into rendering mode, and prevent screen blinking. */
+		set_mode(SC_RESOLUTION_640_480);
+	else
+		set_mode(mode);
 	ioctl(framebuffer_fd, FBIOGET_FSCREENINFO, &fb_fix);
 	
 	mtk_init((void *)fb_fix.smem_start, hres, vres);
+	
+	if(quiet) {
+		ioctl(framebuffer_fd, FBIOSETBUFFERMODE, FB_TRIPLE_BUFFERED);
+		ioctl(framebuffer_fd, FBIOSWAPBUFFERS);
+	}
 }
 
 void fb_unblank()
 {
 	if(blanked) {
-		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, sysconfig_get_resolution());
+		set_mode(sysconfig_get_resolution());
+		ioctl(framebuffer_fd, FBIOSETBUFFERMODE, FB_SINGLE_BUFFERED);
 		blanked = 0;
 		/* FIXME: work around "black screen" bug in MTK */
 		mtk_cmd(1, "screen.refresh()");
@@ -84,8 +103,7 @@ void fb_unblank()
 
 void fb_render_mode()
 {
-	if((sysconfig_get_resolution() != SC_RESOLUTION_640_480) || blanked)
-		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, SC_RESOLUTION_640_480);
+	set_mode(SC_RESOLUTION_640_480);
 	ioctl(framebuffer_fd, FBIOSETBUFFERMODE, FB_TRIPLE_BUFFERED);
 	blanked = 0;
 	g_render_mode = 1;
@@ -93,8 +111,7 @@ void fb_render_mode()
 
 void fb_gui_mode()
 {
-	if(sysconfig_get_resolution() != SC_RESOLUTION_640_480)
-		ioctl(framebuffer_fd, FBIOSETVIDEOMODE, sysconfig_get_resolution());
+	set_mode(sysconfig_get_resolution());
 	ioctl(framebuffer_fd, FBIOSETBUFFERMODE, FB_SINGLE_BUFFERED);
 	blanked = 0;
 	g_render_mode = 0;
@@ -111,7 +128,7 @@ void fb_resize_gui()
 	int mode, hres, vres;
 	
 	mode = sysconfig_get_resolution();
-	ioctl(framebuffer_fd, FBIOSETVIDEOMODE, mode);
+	set_mode(mode);
 	get_resolution(mode, &hres, &vres);
 	ioctl(framebuffer_fd, FBIOGET_FSCREENINFO, &fb_fix);
 	mtk_resize((void *)fb_fix.smem_start, hres, vres);
