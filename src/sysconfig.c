@@ -162,11 +162,6 @@ static void format_ip(unsigned int ip, char *out)
 
 #define SYSCONFIG_FILE "/ssd/sysconfig.bin"
 
-static void my_dhcp()
-{
-	rtems_bsdnet_do_dhcp_timeout();
-}
-
 static void sysconfig_credentials_lock_init();
 static void sysconfig_credentials_lock();
 static void sysconfig_credentials_unlock();
@@ -181,6 +176,8 @@ int sysconfig_is_rescue()
 	return strcmp(bsp_cmdline, "rescue") == 0;
 }
 
+static void start_dhcp_task();
+
 void sysconfig_load()
 {
 	struct sysconfig conf;
@@ -194,7 +191,7 @@ void sysconfig_load()
 	}
 
 	if(sysconfig.dhcp_enable)
-		rtems_bsdnet_config.bootp = my_dhcp;
+		rtems_bsdnet_config.bootp = start_dhcp_task;
 	else {
 		if(sysconfig.ip) {
 			format_ip(sysconfig.ip, ip_fmt);
@@ -466,7 +463,13 @@ static int dhcp_task_running;
 
 static rtems_task dhcp_task(rtems_task_argument argument)
 {
-	rtems_bsdnet_do_dhcp_timeout();
+	int r;
+	
+	while(sysconfig.dhcp_enable) {
+		r = rtems_bsdnet_do_dhcp_timeout();
+		if(r >= 0)
+			break; /* success */
+	}
 	dhcp_task_running = 0;
 	rtems_task_delete(RTEMS_SELF);
 }
