@@ -246,9 +246,7 @@ struct mtk_i18n_entry translation_french[] = {
 	"Web: www.milkymist.org" },
 	
 	// Shutdown
-	{ "Do you want to power off or reboot the system?",	"Souhaitez-vous arr\xea""ter ou red\xe9""marrer le syst\xe8""me ?" },
-	{ "Power off",						"Arr\xea""ter" },
-	{ "Reboot",						"Red\xe9""marrer" },
+	{ "Are you sure?",					"Confirmation:" },
 	
 	{ "Messagebox",						"Bo\xee""te de message" },
 	

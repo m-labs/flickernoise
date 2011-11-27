@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,21 +50,18 @@ void init_shutdown()
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
 		"g2 = new Grid()",
-		"l = new Label(-text \"Do you want to power off or reboot the system?\")",
-		"b_shutdown = new Button(-text \"Power off\")",
-		"b_reboot = new Button(-text \"Reboot\")",
+		"l = new Label(-text \"Are you sure?\")",
+		"b_shutdown = new Button(-text \"Shutdown\")",
 		"b_cancel = new Button(-text \"Cancel\")",
 		"g.place(l, -column 1 -row 1)",
 		"g.rowconfig(1, -size 50)",
 		"g2.place(b_shutdown, -column 1 -row 1)",
-		"g2.place(b_reboot, -column 2 -row 1)",
-		"g2.place(b_cancel, -column 3 -row 1)",
+		"g2.place(b_cancel, -column 2 -row 1)",
 		"g.place(g2, -column 1 -row 2)",
 		"w = new Window(-content g -title \"Shutdown\")",
 		0);
 
 	mtk_bind(appid, "b_shutdown", "clack", shutdown_callback, (void *)1);
-	mtk_bind(appid, "b_reboot", "clack", shutdown_callback, (void *)0);
 
 	mtk_bind(appid, "b_cancel", "clack", cancel_callback, NULL);
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
