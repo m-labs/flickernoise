@@ -18,6 +18,10 @@
 #ifndef __LANGUAGES_H
 #define __LANGUAGES_H
 
+/*
+ * To disable translation of a string, prefix it with \e
+ */
+
 #include <mtki18n.h>
 
 extern struct mtk_i18n_entry translation_french[];

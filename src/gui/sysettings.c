@@ -179,10 +179,10 @@ void init_sysettings()
 		"g_localization0.place(s_localization2, -column 3 -row 1)",
 		"g_localization = new Grid()",
 		"l_language = new Label(-text \"Language:\")",
-		"b_lang_english = new Button(-text \"English\")",
-		"b_lang_french = new Button(-text \"French\")",
+		"b_lang_english = new Button(-text \"\eEnglish\")",
+		"b_lang_french = new Button(-text \"\eFran\xe7""ais\")",
 		// Wolfgang's slowness is amazing at times ...
-		//"b_lang_german = new Button(-text \"German\")",
+		//"b_lang_german = new Button(-text \"\eAllemand\")",
 		"l_layout = new Label(-text \"Keyboard layout:\")",
 		"b_kbd_us = new Button(-text \"US\")",
 		"b_kbd_french = new Button(-text \"French\")",

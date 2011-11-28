@@ -218,7 +218,6 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Localization",					"Localisation" },
 	{ "Language:",						"Langue :" },
 	{ "Keyboard layout:",					"Clavier :" },
-	{ "English",						"Anglais" },
 	{ "French",						"Fran\xe7""ais" },
 	{ "German",						"Allemand" },
 	{ "US",							"US" },
