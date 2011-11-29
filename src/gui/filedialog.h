@@ -24,6 +24,7 @@ struct filedialog {
 	const char *extfilter;
 	const char *extfilter2;
 	const char *extfilter3;
+	int unlock;
 	void (*ok_callback)(void *);
 	void *ok_callback_arg;
 	void (*cancel_callback)(void *);

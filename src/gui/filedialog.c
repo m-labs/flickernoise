@@ -28,6 +28,8 @@
 
 #include "filedialog.h"
 
+#define ROOT_FOLDER "/ssd/"
+
 static int cmpstringp(const void *p1, const void *p2)
 {
 	return strcmp(*(char * const *)p1, *(char * const *)p2);
@@ -138,6 +140,12 @@ static void refresh(struct filedialog *dlg)
 	mtk_cmd(dlg->appid, "fd_filename.set(-text \"\")");
 }
 
+static void unlock_callback(mtk_event *e, void *arg)
+{
+	struct filedialog *dlg = arg;
+	dlg->unlock++;
+}
+
 static void gqf_change_callback(mtk_event *e, void *arg)
 {
 	struct filedialog *dlg = arg;
@@ -189,7 +197,7 @@ static void folder_selcommit_callback(mtk_event *e, void *arg)
 
 	if(strcmp(selection, "../") == 0) {
 		char *c;
-		if(strcmp(curfolder, "/") == 0) return;
+		if(strcmp(curfolder, dlg->unlock > 2 ? "/": ROOT_FOLDER) == 0) return;
 		*(curfolder+strlen(curfolder)-1) = 0;
 		c = strrchr(curfolder, '/');
 		c++;
@@ -266,6 +274,7 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 	dlg->extfilter = extfilter;
 	dlg->extfilter2 = "";
 	dlg->extfilter3 = "";
+	dlg->unlock = 0;
 	dlg->ok_callback = ok_callback;
 	dlg->ok_callback_arg = ok_callback_arg;
 	dlg->cancel_callback = cancel_callback;
@@ -275,7 +284,7 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 
 	mtk_cmd(dlg->appid, "fd_g1 = new Grid()");
 	mtk_cmd(dlg->appid, "fd_g1_s1 = new Separator(-vertical no)");
-	mtk_cmd(dlg->appid, "fd_g1_l = new Label(-text \"\e/\")");
+	mtk_cmd(dlg->appid, "fd_g1_l = new Label(-text \"\e"ROOT_FOLDER"\")");
 	mtk_cmd(dlg->appid, "fd_g1_s2 = new Separator(-vertical no)");
 	mtk_cmd(dlg->appid, "fd_g1.place(fd_g1_s1, -column 1 -row 1)");
 	mtk_cmd(dlg->appid, "fd_g1.place(fd_g1_l, -column 2 -row 1)");
@@ -324,6 +333,8 @@ struct filedialog *create_filedialog(const char *name, int is_save, const char *
 
 	mtk_cmdf(dlg->appid, "fd = new Window(-content fd_g -title \"%s\")", name);
 	
+	mtk_bind(dlg->appid, "fd_g1_l", "press", unlock_callback, (void *)dlg);
+	
 	mtk_bind(dlg->appid, "fd_gqf_e", "change", gqf_change_callback, (void *)dlg);
 	mtk_bind(dlg->appid, "fd_gqf_clear", "commit", gqf_clear_callback, (void *)dlg);
 
@@ -346,6 +357,7 @@ void filedialog_extfilterex(struct filedialog *dlg, const char *extfilter2, cons
 
 void open_filedialog(struct filedialog *dlg)
 {
+	dlg->unlock = 0;
 	refresh(dlg);
 	mtk_cmd(dlg->appid, "fd.open()");
 }
