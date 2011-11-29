@@ -51,7 +51,7 @@ void init_shutdown()
 		"g = new Grid()",
 		"g2 = new Grid()",
 		"l = new Label(-text \"Are you sure?\")",
-		"b_shutdown = new Button(-text \"Shutdown\")",
+		"b_shutdown = new Button(-text \"Reboot\")",
 		"b_cancel = new Button(-text \"Cancel\")",
 		"g.place(l, -column 1 -row 1)",
 		"g.rowconfig(1, -size 50)",

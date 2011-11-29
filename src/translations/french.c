@@ -246,6 +246,7 @@ struct mtk_i18n_entry translation_french[] = {
 	
 	// Shutdown
 	{ "Are you sure?",					"Confirmation:" },
+	{ "Reboot",						"Red\xe9""marrer" },
 	
 	{ "Messagebox",						"Bo\xee""te de message" },
 	
