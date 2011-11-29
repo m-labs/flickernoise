@@ -64,7 +64,7 @@ struct pixbuf *pixbuf_load_png(char *filename)
 	color_type = png_get_color_type(png_ptr, info_ptr);
 	bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 
-	if(color_type != PNG_COLOR_TYPE_RGB) goto free3;
+	if((color_type != PNG_COLOR_TYPE_RGB) && (color_type != PNG_COLOR_TYPE_RGBA)) goto free3;
 	if(bit_depth != 8) goto free3;
 
 	row_pointers = calloc(sizeof(png_bytep), height);
@@ -82,7 +82,7 @@ struct pixbuf *pixbuf_load_png(char *filename)
 	ret = pixbuf_new(width, height);
 	if(ret == NULL) goto free4;
 	ret->filename = strdup(filename);
-	if(!pixbuf_dither(ret->pixels, row_pointers, width, height)) {
+	if(!pixbuf_dither(ret->pixels, row_pointers, width, height, color_type == PNG_COLOR_TYPE_RGBA)) {
 		pixbuf_dec_ref(ret);
 		ret = NULL;
 		goto free4;

@@ -18,6 +18,6 @@
 #ifndef __PIXBUF_DITHER_H
 #define __PIXBUF_DITHER_H
 
-int pixbuf_dither(unsigned short *ret, unsigned char **row_pointers, int width, int height);
+int pixbuf_dither(unsigned short *ret, unsigned char **row_pointers, int width, int height, int has_alpha);
 
 #endif /* __PIXBUF_DITHER_H */

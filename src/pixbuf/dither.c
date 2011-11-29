@@ -82,7 +82,7 @@ static void floyd_steinberg(int *pic, int width, int height)
 		}
 }
 
-int pixbuf_dither(unsigned short *ret, unsigned char **row_pointers, int width, int height)
+int pixbuf_dither(unsigned short *ret, unsigned char **row_pointers, int width, int height, int has_alpha)
 {
 	int x, y;
 	unsigned char *row;
@@ -92,13 +92,25 @@ int pixbuf_dither(unsigned short *ret, unsigned char **row_pointers, int width, 
 	pic = malloc(width*height*3*sizeof(int));
 	if(pic == NULL) return 0;
 	
-	for(y=0;y<height;y++) {
-		row = row_pointers[y];
-		for(x=0;x<width;x++) {
-			offset = 3*(width*y+x);
-			pic[offset] = ((unsigned int)row[3*x]) << 16;
-			pic[offset+1] = ((unsigned int)row[3*x+1]) << 16;
-			pic[offset+2] = ((unsigned int)row[3*x+2]) << 16;
+	if(has_alpha) {
+		for(y=0;y<height;y++) {
+			row = row_pointers[y];
+			for(x=0;x<width;x++) {
+				offset = 3*(width*y+x);
+				pic[offset] = ((unsigned int)row[4*x]) << 16;
+				pic[offset+1] = ((unsigned int)row[4*x+1]) << 16;
+				pic[offset+2] = ((unsigned int)row[4*x+2]) << 16;
+			}
+		}
+	} else {
+		for(y=0;y<height;y++) {
+			row = row_pointers[y];
+			for(x=0;x<width;x++) {
+				offset = 3*(width*y+x);
+				pic[offset] = ((unsigned int)row[3*x]) << 16;
+				pic[offset+1] = ((unsigned int)row[3*x+1]) << 16;
+				pic[offset+2] = ((unsigned int)row[3*x+2]) << 16;
+			}
 		}
 	}
 	
