@@ -427,13 +427,15 @@ static void event_callback(mtk_event *e, int count)
 				index = keycode_to_index(e[i].press.code);
 				if(index != -1) {
 					index = keyboard_patches[index];
-					renderer_add_patch(patches[index].p);
+					if(index != -1)
+						renderer_add_patch(patches[index].p);
 				}
 			} else if(e[i].type == EVENT_TYPE_RELEASE) {
 				index = keycode_to_index(e[i].release.code);
 				if(index != -1) {
 					index = keyboard_patches[index];
-					renderer_del_patch(patches[index].p);
+					if(index != -1)
+						renderer_del_patch(patches[index].p);
 				}
 			} else if(e[i].type == EVENT_TYPE_IR) {
 				index = e[i].press.code;
