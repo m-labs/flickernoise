@@ -67,12 +67,9 @@ static void display_folder(struct filedialog *dlg, const char *folder)
 		strncat(fullname, entry->d_name, sizeof(fullname));
 		lstat(fullname, &s);
 		if(S_ISDIR(s.st_mode)) {
-			/* hide /dev */
-			if((strcmp(folder, "/") != 0) || (strcmp(entry->d_name, "dev") != 0)) {
-				if(n_folders < 384) {
-					folders[n_folders] = strdup(entry->d_name);
-					n_folders++;
-				}
+			if(n_folders < 384) {
+				folders[n_folders] = strdup(entry->d_name);
+				n_folders++;
 			}
 		} else {
 			/* hide files without the extensions we are looking for
