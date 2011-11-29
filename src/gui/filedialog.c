@@ -247,7 +247,7 @@ static void dlg_ok_callback(mtk_event *e, void *arg)
 	char file[384];
 
 	mtk_req(dlg->appid, file, sizeof(file), "fd_filename.text");
-	if(strcmp(file, "") == 0)
+	if((strcmp(file, "") == 0) || (strchr(file, '/') != NULL))
 		return;
 	close_filedialog(dlg);
 	if(dlg->ok_callback)
