@@ -29,6 +29,9 @@
 
 #include "filemanager.h"
 
+#define ROOT_FOLDER "/ssd/"
+static int unlock;
+
 /* Ugly APIs need ugly hacks. */
 int rtems_shell_main_cp(int argc, char *argv[]);
 int rtems_shell_main_rm(int argc, char *argv[]);
@@ -186,7 +189,7 @@ static void selcommit_callback(mtk_event *e, void *arg)
 		get_lfolder(curfolder, sizeof(curfolder), panel);
 		if(strcmp(sel, "../") == 0) {
 			char *c;
-			if(strcmp(curfolder, "/") == 0) return;
+			if(strcmp(curfolder, unlock > 2 ? "/": ROOT_FOLDER) == 0) return;
 			*(curfolder+strlen(curfolder)-1) = 0;
 			c = strrchr(curfolder, '/');
 			c++;
@@ -278,6 +281,11 @@ static void close_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "w.close()");
 }
 
+static void unlock_callback(mtk_event *e, void *arg)
+{
+	unlock++;
+}
+
 void init_filemanager()
 {
 	appid = mtk_init_app("File manager");
@@ -358,6 +366,8 @@ void init_filemanager()
 		
 		"w = new Window(-content g -title \"File manager\" -workx 20 -workh 350)",
 	0);
+	
+	mtk_bind(appid, "p0_lfolder", "press", unlock_callback, NULL);
 	
 	mtk_bind(appid, "pc_copy", "press", mode_callback, (void *)0);
 	mtk_bind(appid, "pc_move", "press", mode_callback, (void *)1);
@@ -461,7 +471,8 @@ static void display_folder(int panel, const char *folder)
 
 void open_filemanager_window()
 {
-	display_folder(0, "/");
-	display_folder(1, "/");
+	unlock = 0;
+	display_folder(0, ROOT_FOLDER);
+	display_folder(1, ROOT_FOLDER);
 	mtk_cmd(appid, "w.open()");
 }
