@@ -1,0 +1,29 @@
+imagefile1=m_logo.png
+imagefile2=pleiades.jpg
+image1_a=1
+image2_a=0.5
+decay=0.7
+bTexWrap=1
+fWarpAnimSpeed=1
+fWarpScale=1
+zoom=1.205
+rot=0
+cx=0.5
+cy=0.5
+dx=0
+dy=0
+warp=0.016046
+sx=1
+sy=1
+per_frame=image1_zoom=0.8+0.2*sin(1.21*time)
+per_frame=image2_zoom=2+0.2*sin(0.98*time)
+per_frame=image2_x=0.5+0.1*sin(2.82*time)
+per_frame=image2_y=0.5+0.1*sin(1.98*time)
+per_frame=zoom = zoom + 0.013*( 0.60*sin(0.339*time) + 0.40*sin(0.276*time) );
+per_frame=rot = rot + 0.040*( 0.60*sin(0.381*time) + 0.40*sin(0.579*time) );
+per_frame=cx = cx + 0.003*( 0.60*sin(0.471*time) + 0.40*sin(0.297*time) );
+per_frame=cy = cy + 0.003*( 0.60*sin(0.379*time) + 0.40*sin(0.351*time) );
+per_frame=dx = dx + 0.003*( 0.60*sin(0.234*time) + 0.40*sin(0.277*time) );
+per_frame=rot=rot+0.02*(sin(time*2.134)+sin(time*1.7134)+sin(time*2.834));
+per_frame=dx=dx+0.02*(sin(time*1.134)+sin(time*0.7134)+sin(time*2.334));
+per_frame=dy=dy+0.02*(sin(time*1.8834)+sin(time*1.0144)+sin(time*1.334));
