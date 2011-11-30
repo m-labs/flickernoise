@@ -425,8 +425,10 @@ void input_eventloop()
 			if(m.fd == input_fd) {
 				if(m.len == 4)
 					n = handle_mouse_event(&e[total], m.data);
-				else
+				else if(m.len == 8)
 					n = handle_keybd_event(&e[total], m.data);
+				else
+					n = handle_midi_msg(&e[total], m.data);
 			} else if(m.fd == ir_fd) {
 				n = handle_ir_event(&e[total], m.data);
 			} else if(m.fd == midi_fd) {
