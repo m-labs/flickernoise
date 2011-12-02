@@ -257,34 +257,6 @@ static int handle_midi_msg(mtk_event *e, unsigned char *msg)
 	}
 }
 
-static unsigned char *midi_p = NULL;
-static unsigned char midi_msg[3];
-
-static int handle_midi_event(mtk_event *e, unsigned char *msg)
-{
-	int r;
-
-	if((*msg & 0xf8) == 0xf8)
-		return 0; /* ignore system real-time */
-
-	if(*msg & 0x80)
-		midi_p = midi_msg; /* status byte */
-
-	if(!midi_p)
-		return 0; /* ignore extra or unsynchronized data */
-
-	*midi_p++ = *msg;
-
-	if(midi_p == midi_msg+3) {
-		/* received a complete MIDI message */
-		r = handle_midi_msg(e, midi_msg);
-		midi_p = NULL;
-		return r;
-	}
-	
-	return 0;
-}
-
 static int handle_btn_event(mtk_event *e, unsigned char *msg)
 {
 	switch(msg[0]) {
@@ -432,7 +404,7 @@ void input_eventloop()
 			} else if(m.fd == ir_fd) {
 				n = handle_ir_event(&e[total], m.data);
 			} else if(m.fd == midi_fd) {
-				n = handle_midi_event(&e[total], m.data);
+				n = handle_midi_msg(&e[total], m.data);
 			} else if(m.fd == btn_fd) {
 				n = handle_btn_event(&e[total], m.data);
 			} else if(m.fd == -1) {
