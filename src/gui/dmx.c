@@ -91,7 +91,7 @@ static void set_config()
 		sprintf(confname, "e_idmx%d.text", i);
 		value = mtk_req_i(appid, confname);
 		if((value < 1) || (value > 512))
-			value = i;
+			value = i+1;
 		sprintf(confname, "idmx%d", i+1);
 		config_write_int(confname, value);
 	}
@@ -99,7 +99,7 @@ static void set_config()
 		sprintf(confname, "e_dmx%d.text", i);
 		value = mtk_req_i(appid, confname);
 		if((value < 1) || (value > 512))
-			value = i;
+			value = i+1;
 		sprintf(confname, "dmx%d", i+1);
 		config_write_int(confname, value);
 	}
