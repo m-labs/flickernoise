@@ -140,7 +140,6 @@ static void close_callback(mtk_event *e, void *arg)
 	close_dmxspy_window();
 	close_dmxdesk_window();
 	mtk_cmd(appid, "w.close()");
-	load_dmx_config();
 }
 
 void init_dmx()
@@ -209,13 +208,12 @@ void init_dmx()
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", close_callback, NULL);
 	mtk_bind(appid, "w", "close", close_callback, NULL);
-
-	load_dmx_config();
 }
 
 void open_dmx_window()
 {
 	if(w_open) return;
 	w_open = 1;
+	load_dmx_config();
 	mtk_cmd(appid, "w.open()");
 }
