@@ -46,13 +46,14 @@ static void set_chain_mode(int chain)
 {
 	int fd;
 	
+	if(!resmgr_acquire("DMX settings", RESOURCE_DMX_OUT)) return;
+
 	chain_mode = chain;
 	if(chain)
 		mtk_cmd(appid, "b_chain.set(-state on)");
 	else
 		mtk_cmd(appid, "b_chain.set(-state off)");
 
-	if(!resmgr_acquire("DMX settings", RESOURCE_DMX_OUT)) return;
 	fd = open("/dev/dmx_out", O_RDWR);
 	if(fd == -1) {
 		resmgr_release(RESOURCE_DMX_OUT);
