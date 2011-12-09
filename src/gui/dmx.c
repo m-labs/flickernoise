@@ -79,7 +79,7 @@ void load_dmx_config()
 		value = config_read_int(confname, i+1);
 		mtk_cmdf(appid, "e_dmx%d.set(-text \"%d\")", i, value);
 	}
-	set_chain_mode(config_read_int("dmx_chain", 0));
+	set_chain_mode(config_read_int("dmx_chain", 1));
 }
 
 static void set_config()
@@ -208,6 +208,8 @@ void init_dmx()
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", close_callback, NULL);
 	mtk_bind(appid, "w", "close", close_callback, NULL);
+
+	set_chain_mode(1);
 }
 
 void open_dmx_window()
