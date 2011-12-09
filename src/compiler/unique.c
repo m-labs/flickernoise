@@ -133,5 +133,6 @@ void unique_free(void)
 	for(i = 0; i != num_vars; i++)
 		free((void *) vars[i]);
 	free(vars);
+	vars = NULL;
 	num_vars = allocated = 0;
 }

@@ -27,6 +27,7 @@
 #include <fpvm/pfpu.h>
 
 #include "../pixbuf/pixbuf.h"
+#include "unique.h"
 #include "compiler.h"
 
 struct compiler_sc {
@@ -762,6 +763,7 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 		goto fail;
 	}
 	free(patch_code_copy);
+	unique_free();
 
 	if(!finalize_pfv(sc)) goto fail;
 	if(!schedule_pfv(sc)) goto fail;
