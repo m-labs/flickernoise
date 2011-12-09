@@ -1,27 +1,40 @@
-RTEMS_VERSION?=4.11
-RTEMS_MAKEFILE_PATH?=/opt/rtems-$(RTEMS_VERSION)/lm32-rtems$(RTEMS_VERSION)/milkymist/
-WITH_PDF?=0
+RTEMS_VERSION ?= 4.11
+RTEMS_MAKEFILE_PATH ?= \
+    /opt/rtems-$(RTEMS_VERSION)/lm32-rtems$(RTEMS_VERSION)/milkymist/
+WITH_PDF ?= 0
 
-CC=lm32-rtems$(RTEMS_VERSION)-gcc
-LD=lm32-rtems$(RTEMS_VERSION)-gcc
-OBJCOPY=lm32-rtems$(RTEMS_VERSION)-objcopy
+CC = lm32-rtems$(RTEMS_VERSION)-gcc
+LD = lm32-rtems$(RTEMS_VERSION)-gcc
+OBJCOPY = lm32-rtems$(RTEMS_VERSION)-objcopy
 
-CFLAGS=-O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant -I$(RTEMS_MAKEFILE_PATH)/lib/include -g
-LDFLAGS=-mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled -msign-extend-enabled -B$(RTEMS_MAKEFILE_PATH)/lib -specs bsp_specs -qrtems
-LIBS=-lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -ljpeg -lcurl -lexpat -lz -lm
-OBJDIR=obj
-BINDIR=bin
+CFLAGS = -O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled \
+	 -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant \
+	 -I$(RTEMS_MAKEFILE_PATH)/lib/include -g
+LDFLAGS = -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled \
+	  -msign-extend-enabled -B$(RTEMS_MAKEFILE_PATH)/lib \
+	  -specs bsp_specs -qrtems
+LIBS = -lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -ljpeg \
+      -lcurl -lexpat -lz -lm
+OBJDIR = obj
+BINDIR = bin
 
-OBJS=yaffs.o version.o shellext.o sysconfig.o config.o fb.o input.o keymap.o fbgrab.o shortcuts.o osc.o pngwrite.o patchpool.o flashvalid.o main.o
-OBJS+=$(addprefix pixbuf/,dither.o loaderjpeg.o loaderpng.o manager.o)
-OBJS+=$(addprefix gui/,messagebox.o filedialog.o resmgr.o guirender.o performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o dmxspy.o dmxdesk.o dmx.o videoin.o rsswall.o patcheditor.o monitor.o firstpatch.o filemanager.o sysettings.o about.o flash.o shutdown.o)
+OBJS = yaffs.o version.o shellext.o sysconfig.o config.o fb.o input.o \
+       keymap.o fbgrab.o shortcuts.o osc.o pngwrite.o patchpool.o \
+       flashvalid.o main.o
+OBJS += $(addprefix pixbuf/,dither.o loaderjpeg.o loaderpng.o manager.o)
+OBJS += $(addprefix gui/,messagebox.o filedialog.o resmgr.o guirender.o \
+	performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o \
+	dmxspy.o dmxdesk.o dmx.o videoin.o rsswall.o patcheditor.o monitor.o \
+	firstpatch.o filemanager.o sysettings.o about.o flash.o shutdown.o)
 ifeq ($(WITH_PDF),1)
-	OBJS+=$(addprefix gui/,pdfreader.o)
-	CFLAGS+=-DWITH_PDF
-	LIBS:=-lmupdf -lfreetype -ljbig2dec -lopenjpeg $(LIBS)
+	OBJS += $(addprefix gui/,pdfreader.o)
+	CFLAGS += -DWITH_PDF
+	LIBS := -lmupdf -lfreetype -ljbig2dec -lopenjpeg $(LIBS)
 endif
-OBJS+=$(addprefix translations/,french.o german.o)
-OBJS+=$(addprefix renderer/,framedescriptor.o analyzer.o sampler.o compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o videoinreconf.o)
+OBJS += $(addprefix translations/,french.o german.o)
+OBJS += $(addprefix renderer/,framedescriptor.o analyzer.o sampler.o \
+	compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o \
+	videoinreconf.o)
 
 POBJS=$(addprefix $(OBJDIR)/,$(OBJS))
 
@@ -64,7 +77,8 @@ flash:
 
 clean:
 	rm -f $(BINDIR)/flickernoise $(BINDIR)/flickernoise.bin 
-	rm -f $(BINDIR)/flickernoise.lzma $(BINDIR)/flickernoise.fbi $(BINDIR)/flickernoise.fbiz 
+	rm -f $(BINDIR)/flickernoise.lzma $(BINDIR)/flickernoise.fbi \
+	    $(BINDIR)/flickernoise.fbiz 
 	rm -f $(POBJS)
 
 .PHONY: clean load flash
