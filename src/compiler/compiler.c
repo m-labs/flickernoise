@@ -149,7 +149,7 @@ static const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
 	"osc2",
 	"osc3",
 	"osc4",
-	
+
 	"midi1",
 	"midi2",
 	"midi3",
@@ -160,7 +160,7 @@ static const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
 	"midi8",
 
 	"video_a",
-	
+
 	"image1_a",
 	"image1_x",
 	"image1_y",
@@ -174,7 +174,7 @@ static const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
 static int pfv_from_name(const char *name)
 {
 	int i;
-	
+
 	for(i=0;i<COMP_PFV_COUNT;i++) {
 		if(strcmp(pfv_names[i], name) == 0)
 			return i;
@@ -193,10 +193,14 @@ static int pfv_from_name(const char *name)
 
 static void pfv_update_patch_requires(struct compiler_sc *sc, int pfv)
 {
-	if(pfv >= pfv_dmx1 && pfv <= pfv_idmx8)		sc->p->require |= REQUIRE_DMX;
-	if(pfv >= pfv_osc1 && pfv <= pfv_osc4)		sc->p->require |= REQUIRE_OSC;
-	if(pfv >= pfv_midi1 && pfv <= pfv_midi8)	sc->p->require |= REQUIRE_MIDI;
-	if(pfv == pfv_video_a)				sc->p->require |= REQUIRE_VIDEO;
+	if(pfv >= pfv_dmx1 && pfv <= pfv_idmx8)
+		sc->p->require |= REQUIRE_DMX;
+	if(pfv >= pfv_osc1 && pfv <= pfv_osc4)
+		sc->p->require |= REQUIRE_OSC;
+	if(pfv >= pfv_midi1 && pfv <= pfv_midi8)
+		sc->p->require |= REQUIRE_MIDI;
+	if(pfv == pfv_video_a)
+		sc->p->require |= REQUIRE_VIDEO;
 }
 
 static void load_defaults(struct compiler_sc *sc)
@@ -227,9 +231,9 @@ static void load_defaults(struct compiler_sc *sc)
 	sc->p->pfv_initial[pfv_mv_l] = 1.0;
 
 	sc->p->pfv_initial[pfv_warp_scale] = 1.0;
-	
+
 	sc->p->pfv_initial[pfv_video_echo_zoom] = 1.0;
-	
+
 	sc->p->pfv_initial[pfv_image1_x] = 0.5;
 	sc->p->pfv_initial[pfv_image1_y] = 0.5;
 	sc->p->pfv_initial[pfv_image1_zoom] = 1.0;
@@ -263,7 +267,7 @@ static void pfv_bind_callback(void *_sc, const char *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
 	int pfv;
-	
+
 	pfv = pfv_from_name(sym);
 	if(pfv >= 0) {
 		pfv_update_patch_requires(sc, pfv);
@@ -296,14 +300,16 @@ static bool finalize_pfv(struct compiler_sc *sc)
 
 	return true;
 fail_fpvm:
-	comp_report(sc, "failed to finalize per-frame variables: %s", fpvm_get_last_error(&sc->pfv_fragment));
+	comp_report(sc, "failed to finalize per-frame variables: %s",
+	    fpvm_get_last_error(&sc->pfv_fragment));
 	return false;
 }
 
 static bool schedule_pfv(struct compiler_sc *sc)
 {
 	sc->p->perframe_prog_length = fpvm_default_schedule(&sc->pfv_fragment,
-		(unsigned int *)sc->p->perframe_prog, (unsigned int *)sc->p->perframe_regs);
+		(unsigned int *)sc->p->perframe_prog,
+		(unsigned int *)sc->p->perframe_regs);
 	if(sc->p->perframe_prog_length < 0) {
 		comp_report(sc, "per-frame VLIW scheduling failed");
 		return false;
@@ -320,7 +326,8 @@ static bool schedule_pfv(struct compiler_sc *sc)
 static bool add_per_frame(struct compiler_sc *sc, char *dest, char *val)
 {
 	if(!fpvm_assign(&sc->pfv_fragment, dest, val)) {
-		comp_report(sc, "failed to add per-frame equation l. %d: %s", sc->linenr, fpvm_get_last_error(&sc->pfv_fragment));
+		comp_report(sc, "failed to add per-frame equation l. %d: %s",
+		    sc->linenr, fpvm_get_last_error(&sc->pfv_fragment));
 		return false;
 	}
 	return true;
@@ -375,12 +382,12 @@ static const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN] = {
 	"idmx6",
 	"idmx7",
 	"idmx8",
-	
+
 	"osc1",
 	"osc2",
 	"osc3",
 	"osc4",
-	
+
 	"midi1",
 	"midi2",
 	"midi3",
@@ -394,7 +401,7 @@ static const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN] = {
 static int pvv_from_name(const char *name)
 {
 	int i;
-	
+
 	for(i=0;i<COMP_PVV_COUNT;i++) {
 		if(strcmp(pvv_names[i], name) == 0)
 			return i;
@@ -404,16 +411,19 @@ static int pvv_from_name(const char *name)
 
 static void pvv_update_patch_requires(struct compiler_sc *sc, int pvv)
 {
-	if(pvv >= pvv_idmx1 && pvv <= pvv_idmx8)	sc->p->require |= REQUIRE_DMX;
-	if(pvv >= pvv_osc1 && pvv <= pvv_osc4)		sc->p->require |= REQUIRE_OSC;
-	if(pvv >= pvv_midi1 && pvv <= pvv_midi8)	sc->p->require |= REQUIRE_MIDI;
+	if(pvv >= pvv_idmx1 && pvv <= pvv_idmx8)
+		sc->p->require |= REQUIRE_DMX;
+	if(pvv >= pvv_osc1 && pvv <= pvv_osc4)
+		sc->p->require |= REQUIRE_OSC;
+	if(pvv >= pvv_midi1 && pvv <= pvv_midi8)
+		sc->p->require |= REQUIRE_MIDI;
 }
 
 static void pvv_bind_callback(void *_sc, const char *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
 	int pvv;
-	
+
 	pvv = pvv_from_name(sym);
 	if(pvv >= 0) {
 		pvv_update_patch_requires(sc, pvv);
@@ -429,28 +439,31 @@ static bool init_pvv(struct compiler_sc *sc)
 	for(i=0;i<COMP_PVV_COUNT;i++)
 		sc->p->pvv_allocation[i] = -1;
 	fpvm_set_bind_callback(&sc->pvv_fragment, pvv_bind_callback, sc);
-	
+
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_SOURCE);
-	#define A(dest, val) if(!fpvm_assign(&sc->pvv_fragment, dest, val)) goto fail_assign
+	#define A(dest, val) \
+	    if(!fpvm_assign(&sc->pvv_fragment, dest, val)) goto fail_assign
 	A("x", "i2f(_Xi)*_hmeshsize");
 	A("y", "i2f(_Yi)*_vmeshsize");
 	A("rad", "sqrt(sqr(x-0.5)+sqr(y-0.5))");
 	/* TODO: generate ang */
 	#undef A
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_ALL);
-	
+
 	return true;
 
 fail_assign:
-	comp_report(sc, "failed to add equation to per-vertex header: %s", fpvm_get_last_error(&sc->pvv_fragment));
+	comp_report(sc, "failed to add equation to per-vertex header: %s",
+	    fpvm_get_last_error(&sc->pvv_fragment));
 	return false;
 }
 
 static int finalize_pvv(struct compiler_sc *sc)
 {
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_SOURCE);
-	
-	#define A(dest, val) if(!fpvm_assign(&sc->pvv_fragment, dest, val)) goto fail_assign
+
+	#define A(dest, val) \
+	    if(!fpvm_assign(&sc->pvv_fragment, dest, val)) goto fail_assign
 
 	/* Zoom */
 	A("_invzoom", "1/zoom");
@@ -502,18 +515,23 @@ static int finalize_pvv(struct compiler_sc *sc)
 	#endif
 
 	return true;
+
 fail_assign:
-	comp_report(sc, "failed to add equation to per-vertex footer: %s", fpvm_get_last_error(&sc->pvv_fragment));
+	comp_report(sc, "failed to add equation to per-vertex footer: %s",
+	    fpvm_get_last_error(&sc->pvv_fragment));
 	return false;
+
 fail_finalize:
-	comp_report(sc, "failed to finalize per-vertex variables: %s", fpvm_get_last_error(&sc->pvv_fragment));
+	comp_report(sc, "failed to finalize per-vertex variables: %s",
+	    fpvm_get_last_error(&sc->pvv_fragment));
 	return false;
 }
 
 static bool schedule_pvv(struct compiler_sc *sc)
 {
 	sc->p->pervertex_prog_length = fpvm_default_schedule(&sc->pvv_fragment,
-		(unsigned int *)sc->p->pervertex_prog, (unsigned int *)sc->p->pervertex_regs);
+		(unsigned int *)sc->p->pervertex_prog,
+		(unsigned int *)sc->p->pervertex_regs);
 	if(sc->p->pervertex_prog_length < 0) {
 		comp_report(sc, "per-vertex VLIW scheduling failed");
 		return false;
@@ -529,7 +547,8 @@ static bool schedule_pvv(struct compiler_sc *sc)
 static bool add_per_vertex(struct compiler_sc *sc, char *dest, char *val)
 {
 	if(!fpvm_assign(&sc->pvv_fragment, dest, val)) {
-		comp_report(sc, "failed to add per-vertex equation l. %d: %s\n", sc->linenr, fpvm_get_last_error(&sc->pvv_fragment));
+		comp_report(sc, "failed to add per-vertex equation l. %d: %s\n",
+		    sc->linenr, fpvm_get_last_error(&sc->pvv_fragment));
 		return false;
 	}
 	return true;
@@ -539,13 +558,15 @@ static bool add_per_vertex(struct compiler_sc *sc, char *dest, char *val)
 /* PARSING                                                      */
 /****************************************************************/
 
-static bool process_equation(struct compiler_sc *sc, char *equation, bool per_vertex)
+static bool process_equation(struct compiler_sc *sc, char *equation,
+    bool per_vertex)
 {
 	char *c, *c2;
 
 	c = strchr(equation, '=');
 	if(!c) {
-		comp_report(sc, "error l.%d: malformed equation (%s)", sc->linenr, equation);
+		comp_report(sc, "error l.%d: malformed equation (%s)",
+		    sc->linenr, equation);
 		return false;
 	}
 	*c = 0;
@@ -575,7 +596,8 @@ static bool process_equation(struct compiler_sc *sc, char *equation, bool per_ve
 		return add_per_frame(sc, equation, c);
 }
 
-static bool process_equations(struct compiler_sc *sc, char *equations, bool per_vertex)
+static bool process_equations(struct compiler_sc *sc, char *equations,
+    bool per_vertex)
 {
 	char *c;
 
@@ -596,21 +618,23 @@ static bool process_top_assign(struct compiler_sc *sc, char *left, char *right)
 
 	while(*right == ' ') right++;
 	if(*right == 0) return true;
-	
+
 	if(strncmp(left, "imagefile", 9) == 0) {
 		int image_n;
 		char *totalname;
-		
+
 		image_n = atoi(left+9);
 		if((image_n < 1) || (image_n > IMAGE_COUNT)) {
-			comp_report(sc, "warning l.%d: ignoring image with out of bounds number %d", sc->linenr, image_n);
+			comp_report(sc, "warning l.%d: ignoring image with out of bounds number %d",
+			     sc->linenr, image_n);
 			return true;
 		}
 		image_n--;
 		if(right[0] == '/')
 			totalname = strdup(right);
 		else {
-			totalname = malloc(strlen(sc->basedir) + strlen(right) + 0);
+			totalname =
+			    malloc(strlen(sc->basedir) + strlen(right) + 0);
 			if(totalname == NULL) return true;
 			strcpy(totalname, sc->basedir);
 			strcat(totalname, right);
@@ -633,11 +657,13 @@ static bool process_top_assign(struct compiler_sc *sc, char *left, char *right)
 		/* per-frame equation */
 		return process_equations(sc, right, false);
 
-	if((strncmp(left, "per_vertex", 10) == 0) || (strncmp(left, "per_pixel", 9) == 0))
+	if((strncmp(left, "per_vertex", 10) == 0) ||
+	    (strncmp(left, "per_pixel", 9) == 0))
 		/* per-vertex equation */
 		return process_equations(sc, right, true);
 
-	comp_report(sc, "warning l.%d: ignoring unknown parameter %s", sc->linenr, left);
+	comp_report(sc, "warning l.%d: ignoring unknown parameter %s",
+	    sc->linenr, left);
 
 	return true;
 }
@@ -693,7 +719,8 @@ static bool parse_patch(struct compiler_sc *sc, char *patch_code)
 	return true;
 }
 
-struct patch *patch_compile(const char *basedir, const char *patch_code, report_message rmc)
+struct patch *patch_compile(const char *basedir, const char *patch_code,
+    report_message rmc)
 {
 	struct compiler_sc *sc;
 	struct patch *p;
@@ -743,18 +770,20 @@ struct patch *patch_compile(const char *basedir, const char *patch_code, report_
 
 	free(sc);
 	return p;
+
 fail:
 	free(sc->p);
 	free(sc);
 	return NULL;
 }
 
-struct patch *patch_compile_filename(const char *filename, const char *patch_code, report_message rmc)
+struct patch *patch_compile_filename(const char *filename,
+    const char *patch_code, report_message rmc)
 {
 	char *basedir;
 	char *c;
 	struct patch *p;
-	
+
 	basedir = strdup(filename);
 	if(basedir == NULL) return NULL;
 	c = strrchr(basedir, '/');
@@ -772,7 +801,7 @@ struct patch *patch_copy(struct patch *p)
 {
 	struct patch *new_patch;
 	int i;
-	
+
 	new_patch = malloc(sizeof(struct patch));
 	assert(new_patch != NULL);
 	memcpy(new_patch, p, sizeof(struct patch));
@@ -786,7 +815,7 @@ struct patch *patch_copy(struct patch *p)
 void patch_free(struct patch *p)
 {
 	int i;
-	
+
 	for(i=0;i<IMAGE_COUNT;i++)
 		pixbuf_dec_ref(p->images[i]);
 	free(p);
