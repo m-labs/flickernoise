@@ -634,7 +634,7 @@ static bool process_top_assign(struct compiler_sc *sc, char *left, char *right)
 			totalname = strdup(right);
 		else {
 			totalname =
-			    malloc(strlen(sc->basedir) + strlen(right) + 0);
+			    malloc(strlen(sc->basedir) + strlen(right) + 1);
 			if(totalname == NULL) return true;
 			strcpy(totalname, sc->basedir);
 			strcat(totalname, right);
