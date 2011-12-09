@@ -35,6 +35,8 @@ OBJS += $(addprefix translations/,french.o german.o)
 OBJS += $(addprefix renderer/,framedescriptor.o analyzer.o sampler.o \
 	compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o \
 	videoinreconf.o)
+OBJS += $(addprefix compiler/,fpvm.o parser_helper.o scanner.o parser.o \
+	unique.o)
 
 POBJS=$(addprefix $(OBJDIR)/,$(OBJS))
 
@@ -53,6 +55,20 @@ $(BINDIR)/flickernoise: $(POBJS)
 
 bandfilters.h: bandfilters.sce
 	scilab -nw -nwni -nogui -nb -f bandfilters.sce
+
+%.c: %.re
+	re2c -o $@ $<
+
+%.c: %.y
+	lemon $<
+
+%.h %.inc: %.ids
+	cd compiler && ./idgen `basename $<`
+
+compiler/parser.h: compiler/parser.c
+obj/compiler/scanner.o: compiler/parser.h
+obj/compiler/parser_helper.o: compiler/parser.h
+obj/compiler/unique.o: compiler/fnp.inc
 
 # boot images for Milkymist One
 $(BINDIR)/flickernoise.bin: $(BINDIR)/flickernoise
@@ -80,5 +96,8 @@ clean:
 	rm -f $(BINDIR)/flickernoise.lzma $(BINDIR)/flickernoise.fbi \
 	    $(BINDIR)/flickernoise.fbiz 
 	rm -f $(POBJS)
+	rm -f compiler/scanner.c
+	rm -f compiler/parser.c compiler/parser.h compiler/parser.out
+	rm -f compiler/fnp.h compiler/fnp.inc
 
 .PHONY: clean load flash
