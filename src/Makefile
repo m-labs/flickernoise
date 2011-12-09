@@ -3,9 +3,29 @@ RTEMS_MAKEFILE_PATH ?= \
     /opt/rtems-$(RTEMS_VERSION)/lm32-rtems$(RTEMS_VERSION)/milkymist/
 WITH_PDF ?= 0
 
-CC = lm32-rtems$(RTEMS_VERSION)-gcc
-LD = lm32-rtems$(RTEMS_VERSION)-gcc
-OBJCOPY = lm32-rtems$(RTEMS_VERSION)-objcopy
+CROSS_COMPILER=lm32-rtems$(RTEMS_VERSION)-
+CC_normal := $(CROSS_COMPILER)gcc
+LD_normal := $(CROSS_COMPILER)gcc
+OBJCOPY_normal := $(CROSS_COMPILER)objcopy
+CC_quiet = @echo " CC " $@ && $(CROSS_COMPILER)gcc
+LD_quiet = @echo " LD " $@ && $(CROSS_COMPILER)gcc
+OBJCOPY_quiet = @echo " OBJCOPY " $@ && $(CROSS_COMPILER)objcopy
+
+ifeq ($(V),1)
+    CC = $(CC_normal)
+    AR = $(AR_normal)
+    AS = $(AS_normal)
+    LD = $(LD_normal)
+    OBJCOPY = $(OBJCOPY_normal)
+    RANLIB  = $(RANLIB_normal)
+else
+    CC = $(CC_quiet)
+    AR = $(AR_quiet)
+    AS = $(AS_quiet)
+    LD = $(LD_quiet)
+    OBJCOPY = $(OBJCOPY_quiet)
+    RANLIB  = $(RANLIB_quiet)
+endif
 
 CFLAGS = -O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled \
 	 -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant \
