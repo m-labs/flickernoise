@@ -18,7 +18,7 @@
 #ifndef __VIDEOINRECONF_H
 #define __VIDEOINRECONF_H
 
-void init_videoinreconf();
+void init_videoinreconf(void);
 void videoinreconf_request(int cmd, int value);
 void videoinreconf_do(int fd);
 

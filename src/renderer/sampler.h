@@ -22,6 +22,6 @@
 
 void sampler_start(frd_callback callback);
 void sampler_return(struct frame_descriptor *frd);
-void sampler_stop();
+void sampler_stop(void);
 
 #endif /* __SAMPLER_H */

@@ -34,8 +34,8 @@ extern int renderer_squareh;
  * 4. call renderer_unlock_patch()
  */
 
-void renderer_lock_patch();
-void renderer_unlock_patch();
+void renderer_lock_patch(void);
+void renderer_unlock_patch(void);
 
 void renderer_pulse_patch(struct patch *p);
 void renderer_add_patch(struct patch *p);
@@ -43,6 +43,6 @@ void renderer_del_patch(struct patch *p);
 struct patch *renderer_get_patch(int spin);
 
 void renderer_start(int framebuffer_fd, struct patch *p);
-void renderer_stop();
+void renderer_stop(void);
 
 #endif /* __RENDERER_H */

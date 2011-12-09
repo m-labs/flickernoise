@@ -28,7 +28,7 @@ struct reconf_request {
 
 static rtems_id request_q;
 
-void init_videoinreconf()
+void init_videoinreconf(void)
 {
 	rtems_status_code sc;
 	

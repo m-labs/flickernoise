@@ -84,7 +84,7 @@ struct frame_descriptor {
 
 typedef void (*frd_callback)(struct frame_descriptor *);
 
-struct frame_descriptor *new_frame_descriptor();
+struct frame_descriptor *new_frame_descriptor(void);
 void free_frame_descriptor(struct frame_descriptor *frd);
 
 #endif /* __FRAMEDESCRIPTOR_H */

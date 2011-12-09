@@ -40,12 +40,12 @@ static struct patch *mashup_head;
 static struct patch *current_patch;
 static rtems_id patch_lock;
 
-void renderer_lock_patch()
+void renderer_lock_patch(void)
 {
 	rtems_semaphore_obtain(patch_lock, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
 }
 
-void renderer_unlock_patch()
+void renderer_unlock_patch(void)
 {
 	rtems_semaphore_release(patch_lock);
 }
@@ -175,7 +175,7 @@ void renderer_start(int framebuffer_fd, struct patch *p)
 	rsswall_start();
 }
 
-void renderer_stop()
+void renderer_stop(void)
 {
 	struct patch *p;
 	

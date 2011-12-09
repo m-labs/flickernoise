@@ -323,7 +323,7 @@ void sampler_return(struct frame_descriptor *frd)
 	rtems_message_queue_send(returned_q, &frd, sizeof(void *));
 }
 
-void sampler_stop()
+void sampler_stop(void)
 {
 	input_delete_callback(event_callback);
 	rtems_event_send(sampler_task_id, RTEMS_EVENT_0);

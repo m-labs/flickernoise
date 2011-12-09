@@ -744,7 +744,7 @@ void raster_input(struct frame_descriptor *frd)
 	rtems_message_queue_send(raster_q, &frd, sizeof(void *));
 }
 
-void raster_stop()
+void raster_stop(void)
 {
 	void *dummy;
 

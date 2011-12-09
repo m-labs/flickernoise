@@ -21,7 +21,7 @@
 
 #include "framedescriptor.h"
 
-struct frame_descriptor *new_frame_descriptor()
+struct frame_descriptor *new_frame_descriptor(void)
 {
 	struct frame_descriptor *frd;
 

@@ -22,6 +22,6 @@
 
 void eval_start(frd_callback callback);
 void eval_input(struct frame_descriptor *frd);
-void eval_stop();
+void eval_stop(void);
 
 #endif /* __EVAL_H */

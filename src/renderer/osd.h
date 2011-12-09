@@ -18,7 +18,7 @@
 #ifndef __OSD_H
 #define __OSD_H
 
-void osd_init();
+void osd_init(void);
 void osd_event(const char *string);
 void osd_per_frame(int tmu_fd, unsigned short *dest, int hres, int vres);
 

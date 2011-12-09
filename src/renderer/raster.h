@@ -22,6 +22,6 @@
 
 void raster_start(int framebuffer_fd, frd_callback callback);
 void raster_input(struct frame_descriptor *frd);
-void raster_stop();
+void raster_stop(void);
 
 #endif /* __RASTER_H */

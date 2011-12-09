@@ -367,7 +367,7 @@ void eval_input(struct frame_descriptor *frd)
 	rtems_message_queue_send(eval_q, &frd, sizeof(void *));
 }
 
-void eval_stop()
+void eval_stop(void)
 {
 	void *dummy;
 

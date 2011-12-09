@@ -35,7 +35,7 @@ static struct font_context osd_font;
 static int osd_alpha;
 static int osd_timer;
 
-static void round_corners()
+static void round_corners(void)
 {
 	int i;
 	int d;
@@ -52,7 +52,7 @@ static void round_corners()
 	}
 }
 
-void osd_init()
+void osd_init(void)
 {
 	osd_vertices[0][0].x = 0;
 	osd_vertices[0][0].y = 0;
@@ -74,7 +74,7 @@ void osd_init()
 #define OSD_DURATION 90
 #define OSD_MAX_ALPHA 40
 
-static void clear_user_area()
+static void clear_user_area(void)
 {
 	int x, y;
 	
