@@ -33,7 +33,7 @@
 #include "../fb.h"
 #include "messagebox.h"
 #include "../config.h"
-#include "../renderer/compiler.h"
+#include "../compiler/compiler.h"
 #include "../renderer/renderer.h"
 #include "guirender.h"
 #include "performance.h"

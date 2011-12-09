@@ -28,7 +28,7 @@
 #include <bsp/milkymist_tmu.h>
 
 #include "../pixbuf/pixbuf.h"
-#include "compiler.h"
+#include "../compiler/compiler.h"
 #include "framedescriptor.h"
 #include "renderer.h"
 

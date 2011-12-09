@@ -53,10 +53,10 @@ ifeq ($(WITH_PDF),1)
 endif
 OBJS += $(addprefix translations/,french.o german.o)
 OBJS += $(addprefix renderer/,framedescriptor.o analyzer.o sampler.o \
-	compiler.o eval.o line.o wave.o font.o osd.o raster.o renderer.o \
+	eval.o line.o wave.o font.o osd.o raster.o renderer.o \
 	videoinreconf.o)
-OBJS += $(addprefix compiler/,fpvm.o parser_helper.o scanner.o parser.o \
-	unique.o)
+OBJS += $(addprefix compiler/,compiler.o fpvm.o parser_helper.o scanner.o \
+	parser.o unique.o)
 
 POBJS=$(addprefix $(OBJDIR)/,$(OBJS))
 

@@ -18,7 +18,7 @@
 #ifndef __RENDERER_H
 #define __RENDERER_H
 
-#include "compiler.h"
+#include "../compiler/compiler.h"
 
 extern int renderer_texsize;
 extern int renderer_hmeshlast;

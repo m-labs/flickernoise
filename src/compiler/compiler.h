@@ -21,7 +21,7 @@
 #include <rtems.h>
 #include <bsp/milkymist_pfpu.h>
 
-#include "framedescriptor.h"
+#include "../renderer/framedescriptor.h"
 #include "../pixbuf/pixbuf.h"
 
 enum {

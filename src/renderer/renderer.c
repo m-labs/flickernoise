@@ -21,7 +21,7 @@
 #include <stdlib.h>
 
 #include "sampler.h"
-#include "compiler.h"
+#include "../compiler/compiler.h"
 #include "eval.h"
 #include "raster.h"
 #include "osd.h"

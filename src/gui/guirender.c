@@ -25,7 +25,7 @@
 #include <mtkeycodes.h>
 #include <bsp/milkymist_video.h>
 
-#include "../renderer/compiler.h"
+#include "../compiler/compiler.h"
 #include "../renderer/renderer.h"
 #include "resmgr.h"
 #include "../fb.h"
