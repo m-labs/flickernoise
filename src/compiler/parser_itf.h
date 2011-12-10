@@ -18,6 +18,11 @@
 #ifndef __PARSER_ITF_H
 #define __PARSER_ITF_H
 
+#include <fpvm/fpvm.h>
+
+#include "parser_helper.h"
+
+
 #define NDEBUG
 
 struct id {
@@ -26,8 +31,14 @@ struct id {
 	float constant;
 };
 
+struct parser_state {
+	int success;
+	union parser_comm *comm;
+};
+
 void *ParseAlloc(void *(*mallocProc)(size_t));
 void ParseFree(void *p, void (*freeProc)(void*));
-void Parse(void *yyp, int yymajor, struct id *yyminor, struct ast_node **p);
+void Parse(void *yyp, int yymajor, struct id *yyminor,
+    struct parser_state *state);
 
 #endif /* __PARSER_ITF_H */

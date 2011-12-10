@@ -22,7 +22,9 @@
 	#include <malloc.h>
 	#include <math.h>
 	#include "fpvm/ast.h"
+	#include "fpvm/fpvm.h"
 	#include "parser_itf.h"
+	#include "parser_helper.h"
 	#include "parser.h"
 
 
@@ -73,18 +75,30 @@
 }
 
 %start_symbol start
-%extra_argument {struct ast_node **parseout}
+%extra_argument {struct parser_state *state}
 %token_type {struct id *}
 
 %token_destructor { free($$); }
 
-%type start {struct ast_node *}
 %type node {struct ast_node *}
 %destructor node { free($$); }
 
-start(S) ::= TOK_START_EXPR node(N). {
-	S = N;
-	*parseout = S;
+start ::= TOK_START_EXPR node(N). {
+	state->comm->parseout = N;
+	state->success = 1;
+}
+
+start ::= TOK_START_ASSIGN assignments. {
+	state->success = 1;
+}
+
+assignments ::= assignments assignment.
+
+assignments ::= .
+
+assignment ::= ident(I) TOK_ASSIGN node(N). {
+	fpvm_do_assign(state->comm->fragment, I->label, N);
+	fpvm_parse_free(N);
 }
 
 node(N) ::= TOK_CONSTANT(C). {

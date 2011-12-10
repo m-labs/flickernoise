@@ -45,19 +45,26 @@ void fpvm_init(struct fpvm_fragment *fragment, int vector_mode)
 int fpvm_assign(struct fpvm_fragment *fragment, const char *dest,
     const char *expr)
 {
-	struct ast_node *n;
+	union parser_comm comm;
 	int res;
 
-	n = fpvm_parse(expr, TOK_START_EXPR);
-	if(n == NULL) {
+	if (!fpvm_parse(expr, TOK_START_EXPR, &comm)) {
 		snprintf(fragment->last_error, FPVM_MAXERRLEN, "Parse error");
 		return 0;
 	}
 
 	dest = unique(dest);
 
-	res = fpvm_do_assign(fragment, dest, n);
-	fpvm_parse_free(n);
+	res = fpvm_do_assign(fragment, dest, comm.parseout);
+	fpvm_parse_free(comm.parseout);
 
 	return res;
+}
+
+
+int fpvm_chunk(struct fpvm_fragment *fragment, const char *chunk)
+{
+	union parser_comm comm = { .fragment = fragment };
+
+	return fpvm_parse(chunk, TOK_START_ASSIGN, &comm);
 }

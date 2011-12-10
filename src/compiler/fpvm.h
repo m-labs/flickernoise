@@ -32,4 +32,6 @@ void fpvm_init(struct fpvm_fragment *fragment, int vector_mode);
 int fpvm_assign(struct fpvm_fragment *fragment, const char *dest,
     const char *expr);
 
+int fpvm_chunk(struct fpvm_fragment *fragment, const char *chunk);
+
 #endif /* __FPVM_H */

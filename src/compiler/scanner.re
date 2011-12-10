@@ -57,7 +57,7 @@ int scan(struct scanner *s)
 	s->old_cursor = s->cursor;
 	
 	/*!re2c
-		[\x20\r\t]		{ goto std; }
+		[\x20\n\r\t]		{ goto std; }
 		[0-9]+			{ return TOK_CONSTANT; }
 		[0-9]* "." [0-9]*	{ return TOK_CONSTANT; }
 
@@ -90,6 +90,7 @@ int scan(struct scanner *s)
 		"("			{ return TOK_LPAREN; }
 		")"			{ return TOK_RPAREN; }
 		","			{ return TOK_COMMA; }
+		"="			{ return TOK_ASSIGN; }
 		[\x00-\xff]		{ return TOK_ERROR; }
 	*/
 }

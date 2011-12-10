@@ -24,18 +24,20 @@
 #include "parser_itf.h"
 #include "parser_helper.h"
 
-struct ast_node *fpvm_parse(const char *expr, int start_token)
+int fpvm_parse(const char *expr, int start_token, union parser_comm *comm)
 {
 	struct scanner *s;
+	struct parser_state state = {
+		.comm = comm,
+		.success = 0,
+	};
 	int tok;
 	struct id *identifier;
 	void *p;
-	struct ast_node *ast;
 	
 	s = new_scanner((unsigned char *)expr);
 	p = ParseAlloc(malloc);
-	Parse(p, start_token, NULL, &ast);
-	ast = NULL;
+	Parse(p, start_token, NULL, &state);
 	tok = scan(s);
 	while(tok != TOK_EOF) {
 		identifier = malloc(sizeof(struct id));
@@ -46,25 +48,25 @@ struct ast_node *fpvm_parse(const char *expr, int start_token)
 		} else {
 			identifier->label = get_token(s);
 		}
-		Parse(p, tok, identifier, &ast);
+		Parse(p, tok, identifier, &state);
 		if(tok == TOK_ERROR) {
 			printf("FPVM: scan error\n");
 			ParseFree(p, free);
 			delete_scanner(s);
-			return NULL;
+			return 0;
 		}
 		tok = scan(s);
 	}
-	Parse(p, TOK_EOF, NULL, &ast);
+	Parse(p, TOK_EOF, NULL, &state);
 	ParseFree(p, free);
 	delete_scanner(s);
 
-	if(ast == NULL) {
+	if(!state.success) {
 		printf("FPVM: parse error\n");
-		return NULL;
+		return 0;
 	}
 
-	return ast;
+	return state.success;
 }
 
 void fpvm_parse_free(struct ast_node *node)

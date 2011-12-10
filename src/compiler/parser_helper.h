@@ -19,8 +19,15 @@
 #define __PARSER_HELPER_H
 
 #include <fpvm/ast.h>
+#include <fpvm/fpvm.h>
 
-struct ast_node *fpvm_parse(const char *expr, int start_token);
+union parser_comm {
+	struct ast_node *parseout;
+	struct fpvm_fragment *fragment;
+};
+
+int fpvm_parse(const char *expr, int start_token,
+    union parser_comm *comm);
 void fpvm_parse_free(struct ast_node *node);
 
 #endif /* __PARSER_HELPER_H */
