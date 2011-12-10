@@ -82,7 +82,7 @@
 %type node {struct ast_node *}
 %destructor node { free($$); }
 
-start(S) ::= node(N). {
+start(S) ::= TOK_START_EXPR node(N). {
 	S = N;
 	*parseout = S;
 }

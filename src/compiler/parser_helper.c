@@ -20,10 +20,11 @@
 #include <fpvm/ast.h>
 
 #include "scanner.h"
+#include "parser.h"
 #include "parser_itf.h"
 #include "parser_helper.h"
 
-struct ast_node *fpvm_parse(const char *expr)
+struct ast_node *fpvm_parse(const char *expr, int start_token)
 {
 	struct scanner *s;
 	int tok;
@@ -32,8 +33,9 @@ struct ast_node *fpvm_parse(const char *expr)
 	struct ast_node *ast;
 	
 	s = new_scanner((unsigned char *)expr);
-	ast = NULL;
 	p = ParseAlloc(malloc);
+	Parse(p, start_token, NULL, &ast);
+	ast = NULL;
 	tok = scan(s);
 	while(tok != TOK_EOF) {
 		identifier = malloc(sizeof(struct id));

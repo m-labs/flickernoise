@@ -20,7 +20,7 @@
 
 #include <fpvm/ast.h>
 
-struct ast_node *fpvm_parse(const char *expr);
+struct ast_node *fpvm_parse(const char *expr, int start_token);
 void fpvm_parse_free(struct ast_node *node);
 
 #endif /* __PARSER_HELPER_H */

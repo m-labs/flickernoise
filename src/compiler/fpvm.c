@@ -21,6 +21,7 @@
 #include <fpvm/ast.h>
 
 #include "unique.h"
+#include "parser.h"
 #include "parser_helper.h"
 #include "fpvm.h"
 
@@ -47,7 +48,7 @@ int fpvm_assign(struct fpvm_fragment *fragment, const char *dest,
 	struct ast_node *n;
 	int res;
 
-	n = fpvm_parse(expr);
+	n = fpvm_parse(expr, TOK_START_EXPR);
 	if(n == NULL) {
 		snprintf(fragment->last_error, FPVM_MAXERRLEN, "Parse error");
 		return 0;

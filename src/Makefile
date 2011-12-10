@@ -88,6 +88,7 @@ bandfilters.h: bandfilters.sce
 compiler/parser.h: compiler/parser.c
 obj/compiler/scanner.o: compiler/parser.h
 obj/compiler/parser_helper.o: compiler/parser.h
+obj/compiler/fpvm.o: compiler/parser.h
 obj/compiler/unique.o: compiler/fnp.inc
 
 # boot images for Milkymist One
