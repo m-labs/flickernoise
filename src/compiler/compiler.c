@@ -27,6 +27,7 @@
 #include <fpvm/pfpu.h>
 
 #include "../pixbuf/pixbuf.h"
+#include "fpvm.h"
 #include "unique.h"
 #include "compiler.h"
 
