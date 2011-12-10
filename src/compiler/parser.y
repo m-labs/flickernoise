@@ -78,7 +78,10 @@
 %extra_argument {struct parser_state *state}
 %token_type {struct id *}
 
-%token_destructor { free($$); }
+%token_destructor {
+	free($$);
+	(void) state;	/* suppress unused variable warning */
+}
 
 %type node {struct ast_node *}
 %destructor node { free($$); }
