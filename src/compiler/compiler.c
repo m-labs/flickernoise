@@ -443,13 +443,12 @@ static bool init_pvv(struct compiler_sc *sc)
 	fpvm_set_bind_callback(&sc->pvv_fragment, pvv_bind_callback, sc);
 
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_SOURCE);
-	#define A(dest, val) \
-	    if(!fpvm_assign(&sc->pvv_fragment, dest, val)) goto fail_assign
-	A("x", "i2f(_Xi)*_hmeshsize");
-	A("y", "i2f(_Yi)*_vmeshsize");
-	A("rad", "sqrt(sqr(x-0.5)+sqr(y-0.5))");
+	if(!fpvm_chunk(&sc->pvv_fragment,
+	    "x = i2f(_Xi)*_hmeshsize\n"
+	    "y = i2f(_Yi)*_vmeshsize\n"
+	    "rad = sqrt(sqr(x-0.5)+sqr(y-0.5))"))
+		goto fail_assign;
 	/* TODO: generate ang */
-	#undef A
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_ALL);
 
 	return true;
