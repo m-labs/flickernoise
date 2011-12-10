@@ -84,12 +84,24 @@ static int cmp_n(const void *a, const void *b)
 }
 
 
+/*
+ * "isid" is not only a minor convenient enhancement, but it also shields us
+ * from implementations of isalpha() that trigger compiler warnings if "c" is
+ * a character.
+ */
+
+static int isid(int c)
+{
+	return isalpha(c) || c == '_';
+}
+
+
 const char *unique(const char *s)
 {
 	const char **res;
 	const char **walk;
 
-	if(!isalnum(*s) && *s != '_')
+	if(!isid(*s))
 		return s;
 	res = bsearch(s, well_known, sizeof(well_known)/sizeof(*well_known),
 	    sizeof(s), cmp);
@@ -112,7 +124,7 @@ const char *unique_n(const char *s, int n)
 	const char **res;
 	const char **walk;
 
-	if(!isalnum(*s) && *s != '_')
+	if(!isid(*s))
 		return s;
 	res = bsearch(&key, well_known, sizeof(well_known)/sizeof(*well_known),
 	    sizeof(s), cmp_n);
