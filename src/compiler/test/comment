@@ -1,0 +1,43 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "comment: line with just // " <<EOF
+// this is a comment
+a = b + c
+EOF
+expect <<EOF
+a = (+ b c)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "comment: line ending with // comment" <<EOF
+a = b + c // comment
+d = e + f
+EOF
+expect <<EOF
+a = (+ b c)
+d = (+ e f)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "comment: // after //" <<EOF
+a = b + c // comment // more
+d = e + f
+EOF
+expect <<EOF
+a = (+ b c)
+d = (+ e f)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "comment: // ending with EOF" "a = b// end"
+expect <<EOF
+a = b
+EOF
+
+###############################################################################
