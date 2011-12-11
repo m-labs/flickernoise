@@ -64,7 +64,8 @@ int scan(struct scanner *s)
 					{ goto std; }
 
 		[0-9]+			{ return TOK_CONSTANT; }
-		[0-9]* "." [0-9]*	{ return TOK_CONSTANT; }
+		[0-9]+ "." [0-9]*	{ return TOK_CONSTANT; }
+		[0-9]* "." [0-9]+	{ return TOK_CONSTANT; }
 
 		"above"			{ return TOK_ABOVE; }
 		"abs"			{ return TOK_ABS; }
