@@ -63,5 +63,5 @@ per_frame=fVideoEchoZoom=fVideoEchoZoom-.3*sin(time*(q5*0.01));
 per_vertex=box=abs(x*2-0.4*sin(q3)) + abs(y*2+0.4*sin(q5));
 per_vertex=q1 = 4.05+(sin(x+0.237*time)-cos(y+0.513*time));
 per_vertex=zoom = if(above(box,1),q1*.1,zoom);
-per_vertex=rot = if(above(box,1),sin(0.885*time),0)*(x+y)-rad)*sin(q5)*0.5
+per_vertex=rot = if(above(box,1),sin(0.885*time),0)*(x+y)-rad*sin(q5)*0.5
 

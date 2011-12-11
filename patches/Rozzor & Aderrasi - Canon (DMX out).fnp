@@ -62,7 +62,7 @@ per_frame=dx_r = equal(kick,2)*0.018*sin(6*time) + (1-equal(kick,2))*dx_r;
 per_frame=dy_r = equal(kick,2)*0.015*sin(7*time) + (1-equal(kick,2))*dy_r;
 per_frame=dy = dy + 2*dy_r * 0.5*sin(0.8*time);
 per_frame=dx = dx + 2*dx_r * 0.5*sin(time);
-per_frame=warp = warp + if (below(kick,0), + 0.5*treb, 0);
+per_frame=warp = warp + if (below(kick,0), 0.5*treb, 0);
 per_frame=q2 = kick;
 per_vertex=rot = rot + 0.3*(0.2*sin(1-rad)*5 - 0.2*sin(0.05*rad)*5) * q2;
 per_vertex=cx = if(above(dy,-.5),1-rot * 2,rot*q2);
