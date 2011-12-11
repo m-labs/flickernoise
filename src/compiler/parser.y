@@ -100,10 +100,14 @@ assignments ::= assignments assignment.
 
 assignments ::= .
 
-assignment ::= ident(I) TOK_ASSIGN node(N). {
+assignment ::= ident(I) TOK_ASSIGN node(N) opt_semi. {
 	fpvm_do_assign(state->comm->fragment, I->label, N);
 	fpvm_parse_free(N);
 }
+
+opt_semi ::= opt_semi TOK_SEMI.
+
+opt_semi ::= .
 
 node(N) ::= TOK_CONSTANT(C). {
 	N = node(TOK_CONSTANT, "", NULL, NULL, NULL);

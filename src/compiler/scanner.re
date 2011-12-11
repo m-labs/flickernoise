@@ -91,6 +91,7 @@ int scan(struct scanner *s)
 		")"			{ return TOK_RPAREN; }
 		","			{ return TOK_COMMA; }
 		"="			{ return TOK_ASSIGN; }
+		";"			{ return TOK_SEMI; }
 		[\x00-\xff]		{ return TOK_ERROR; }
 	*/
 }

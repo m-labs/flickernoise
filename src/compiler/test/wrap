@@ -1,0 +1,91 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "wrap: baseline" <<EOF
+a = b + c
+EOF
+expect <<EOF
+a = (+ b c)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "wrap: with newline" <<EOF
+a = b +
+c
+EOF
+expect <<EOF
+a = (+ b c)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "wrap: two assignments on two lines" <<EOF
+a = b + c
+d = e + f
+EOF
+expect <<EOF
+a = (+ b c)
+d = (+ e f)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "wrap: two assignments on one line" <<EOF
+a = b + c  d = e + f
+EOF
+expect <<EOF
+a = (+ b c)
+d = (+ e f)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "wrap: one assignment ending with semicolon" <<EOF
+a = b + c;
+EOF
+expect <<EOF
+a = (+ b c)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "wrap: one assignment ending with multiple semicolons" <<EOF
+a = b + c;;;;;;;;;;;
+EOF
+expect <<EOF
+a = (+ b c)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "wrap: two assignments separated by semicolon" <<EOF
+a = b + c; d = e + f
+EOF
+expect <<EOF
+a = (+ b c)
+d = (+ e f)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "wrap: one assignment containing semicolon (1)" <<EOF
+a = b +; c
+EOF
+expect <<EOF
+FPVM: parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "wrap: one assignment containing semicolon (2)" <<EOF
+a = b; + c
+EOF
+expect <<EOF
+a = b
+FPVM: parse error
+EOF
+
+###############################################################################
