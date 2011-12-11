@@ -40,4 +40,97 @@ expect <<EOF
 a = b
 EOF
 
+#------------------------------------------------------------------------------
+
+ptest "comment: /* ... */" <<EOF
+a = b + c /* comment */
+d = e + f
+EOF
+expect <<EOF
+a = (+ b c)
+d = (+ e f)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "comment: /* ... newline ... */" <<EOF
+a = b + c /* comment
+more */ d = e + f
+EOF
+expect <<EOF
+a = (+ b c)
+d = (+ e f)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "comment: /* ... * ... */" <<EOF
+a = 1 /* comment * more */
+b = 2
+EOF
+expect <<EOF
+a = 1
+b = 2
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "comment: /* ... ** ... */" <<EOF
+a = 3 /* comment ** more */
+b = 4
+EOF
+expect <<EOF
+a = 3
+b = 4
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "comment: /* ... **/" <<EOF
+a = 5 /* comment **/
+b = 6
+EOF
+expect <<EOF
+a = 5
+b = 6
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "comment: /**/" <<EOF
+a = 7 /**/
+b = 8
+EOF
+expect <<EOF
+a = 7
+b = 8
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "comment: /*/ (error)" <<EOF
+a = 9 /*/
+b = a
+EOF
+expect <<EOF
+FPVM: parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "comment: unterminated /* ... with newline" <<EOF
+a = b + c /* comment
+d = e + f
+EOF
+expect <<EOF
+FPVM: parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "comment: unterminated /* ... without newline" "a = b+c /* comment"
+expect <<EOF
+FPVM: parse error
+EOF
+
 ###############################################################################

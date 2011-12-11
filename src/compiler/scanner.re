@@ -58,7 +58,11 @@ int scan(struct scanner *s)
 	
 	/*!re2c
 		[\x20\n\r\t]		{ goto std; }
+
 		"//"[^\n\x00]*		{ goto std; }
+		"/*"("*"*[^/\x00]|[^*\x00])*"*"+"/"
+					{ goto std; }
+
 		[0-9]+			{ return TOK_CONSTANT; }
 		[0-9]* "." [0-9]*	{ return TOK_CONSTANT; }
 
