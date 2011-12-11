@@ -1,0 +1,23 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest_fail "syntax error: x = backtick" <<EOF
+x = \`
+EOF
+expect <<EOF
+FPVM: scan error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "syntax error: x = a b" <<EOF
+x = a b
+EOF
+expect <<EOF
+x = a
+FPVM: parse error
+EOF
+
+###############################################################################
