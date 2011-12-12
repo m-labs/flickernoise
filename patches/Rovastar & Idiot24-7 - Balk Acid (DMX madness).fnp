@@ -52,7 +52,7 @@ per_frame=rot=rot+0.10*sin(time);
 per_frame=mv_r=0.5 +0.5*sin(time*1.23);
 per_frame=mv_b=0.5 + 0.5*sin(time*1.26);
 per_frame=mv_g=0.5+ 0.5*sin(time*1.19);
-per_frame=wave_g=wave_g*+.20*sin(idmx4*time*.13);
+per_frame=wave_g=wave_g+.20*sin(idmx4*time*.13);
 per_frame=wave_r=wave_r+.13*sin(idmx4*time);
 per_frame=wave_b=wave_b*sin(idmx4*time);
 per_frame=wave_x=idmx3
