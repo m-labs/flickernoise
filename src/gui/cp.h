@@ -18,8 +18,8 @@
 #ifndef __CP_H
 #define __CP_H
 
-void init_cp();
-void cp_notify_changed();
-void cp_autostart();
+void init_cp(void);
+void cp_notify_changed(void);
+void cp_autostart(void);
 
 #endif /* __CP_H */

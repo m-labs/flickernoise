@@ -18,7 +18,7 @@
 #ifndef __KEYBOARD_H
 #define __KEYBOARD_H
 
-void init_keyboard();
-void open_keyboard_window();
+void init_keyboard(void);
+void open_keyboard_window(void);
 
 #endif /* __KEYBOARD_H */

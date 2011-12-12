@@ -18,10 +18,10 @@
 #ifndef __RSSWALL_H
 #define __RSSWALL_H
 
-void init_rsswall();
-void open_rsswall_window();
+void init_rsswall(void);
+void open_rsswall_window(void);
 
-void rsswall_start();
-void rsswall_stop();
+void rsswall_start(void);
+void rsswall_stop(void);
 
 #endif /* __RSSWALL_H */

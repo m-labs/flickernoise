@@ -18,8 +18,8 @@
 #ifndef __DMX_H
 #define __DMX_H
 
-void init_dmx();
-void open_dmx_window();
-void load_dmx_config();
+void init_dmx(void);
+void open_dmx_window(void);
+void load_dmx_config(void);
 
 #endif /* __DMX_H */

@@ -20,9 +20,9 @@
 
 #include "../compiler/compiler.h"
 
-typedef void (*guirender_stop_callback)();
+typedef void (*guirender_stop_callback)(void);
 
 int guirender(int appid, struct patch *p, guirender_stop_callback cb);
-void guirender_stop();
+void guirender_stop(void);
 
 #endif /* __GUIRENDER_H */

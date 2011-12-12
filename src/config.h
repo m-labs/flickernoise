@@ -27,7 +27,7 @@ const char *config_read_string(const char *key);
 void config_write_string(const char *key, const char *value);
 
 void config_delete(const char *key);
-void config_free();
+void config_free(void);
 
 int config_load(const char *filename);
 int config_save(const char *filename);

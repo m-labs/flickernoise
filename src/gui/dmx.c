@@ -82,7 +82,7 @@ void load_dmx_config()
 	set_chain_mode(config_read_int("dmx_chain", 1));
 }
 
-static void set_config()
+static void set_config(void)
 {
 	int i, value;
 	char confname[16];

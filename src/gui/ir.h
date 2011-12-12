@@ -18,7 +18,7 @@
 #ifndef __IR_H
 #define __IR_H
 
-void init_ir();
-void open_ir_window();
+void init_ir(void);
+void open_ir_window(void);
 
 #endif /* __IR_H */

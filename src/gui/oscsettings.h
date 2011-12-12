@@ -18,7 +18,7 @@
 #ifndef __OSCSETTINGS_H
 #define __OSCSETTINGS_H
 
-void init_oscsettings();
-void open_oscsettings_window();
+void init_oscsettings(void);
+void open_oscsettings_window(void);
 
 #endif /* __OSCSETTINGS_H */

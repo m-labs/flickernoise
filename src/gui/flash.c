@@ -390,7 +390,7 @@ static void get_versions(struct patchpool *local_patches, struct patchpool *remo
 	flash_progress = 100;
 }
 
-static void download_images()
+static void download_images(void)
 {
 	int rescue;
 	
@@ -484,7 +484,7 @@ static void download_patches(struct patchpool *pp)
 	}
 }
 
-static void flash_images()
+static void flash_images(void)
 {
 	if(bitstream_name[0] != 0) {
 		flashvalid_val = flashvalid_bitstream(bitstream_name);
@@ -546,7 +546,7 @@ static rtems_task flash_task(rtems_task_argument argument)
 	flash_terminate(FLASH_STATE_SUCCESS);
 }
 
-static int flash_busy()
+static int flash_busy(void)
 {
 	switch(flash_state) {
 		case FLASH_STATE_READY:
@@ -564,7 +564,7 @@ static int flash_busy()
 	}
 }
 
-static void update_progress();
+static void update_progress(void);
 
 #define UPDATE_PERIOD 40
 static rtems_interval next_update;
@@ -593,12 +593,12 @@ static void display_flashvalid_message(const char *n)
 	}
 }
 
-static void update_done()
+static void update_done(void)
 {
 	input_delete_callback(refresh_callback);
 }
 
-static void update_progress()
+static void update_progress(void)
 {
 	if(installed_patches < 0)
 		mtk_cmd(appid, "l_patchpool_i.set(-text \"\e?\")");
@@ -745,7 +745,7 @@ static void closefiles_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "w_files.close()");
 }
 
-static void flash_filedialog_ok_callback()
+static void flash_filedialog_ok_callback(void *arg)
 {
 	char filepath[384];
 

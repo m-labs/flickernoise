@@ -18,8 +18,8 @@
 #ifndef __SYSETTINGS_H
 #define __SYSETTINGS_H
 
-void init_sysettings();
-void open_sysettings_window();
-void sysettings_update_resolution();
+void init_sysettings(void);
+void open_sysettings_window(void);
+void sysettings_update_resolution(void);
 
 #endif /* __SYSETTINGS_H */

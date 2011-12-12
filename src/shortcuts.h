@@ -18,6 +18,6 @@
 #ifndef __SHORTCUTS_H
 #define __SHORTCUTS_H
 
-void init_shortcuts();
+void init_shortcuts(void);
 
 #endif /* __SHORTCUTS_H */

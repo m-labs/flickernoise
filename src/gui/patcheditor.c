@@ -38,7 +38,7 @@ static struct filedialog *filesave_dlg;
 static int modified;
 static char current_filename[384];
 
-static void update_wintitle()
+static void update_wintitle(void)
 {
 	const char *short_filename;
 
@@ -96,7 +96,7 @@ static void openok_callback(void *arg)
 	mtk_cmd(appid, "edf.expose(0, 0)");
 }
 
-static void save_current()
+static void save_current(void)
 {
 	char buf[32768];
 	FILE *fd;

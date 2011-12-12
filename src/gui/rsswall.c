@@ -36,7 +36,7 @@ static int appid;
 static int w_open;
 static int rsswall_enable;
 
-static void load_config()
+static void load_config(void)
 {
 	const char *url, *idle;
 	
@@ -55,7 +55,7 @@ static void load_config()
 	mtk_cmdf(appid, "e_idlep.set(-text \"%d\")", config_read_int("rss_idlep", 5));
 }
 
-static void set_config()
+static void set_config(void)
 {
 	char url[512];
 	char idle[512];
@@ -70,7 +70,7 @@ static void set_config()
 	config_write_int("rss_idlep", mtk_req_i(appid, "e_idlep.text"));
 }
 
-static void close_window()
+static void close_window(void)
 {
 	mtk_cmd(appid, "w.close()");
 	w_open = 0;

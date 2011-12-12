@@ -41,7 +41,7 @@ static int w_open;
 
 static char osc_bindings[64][384];
 
-static void load_config()
+static void load_config(void)
 {
 	char config_key[7];
 	int i;
@@ -57,7 +57,7 @@ static void load_config()
 	}
 }
 
-static void set_config()
+static void set_config(void)
 {
 	char config_key[7];
 	int i;
@@ -71,7 +71,7 @@ static void set_config()
 	}
 }
 
-static void update_list()
+static void update_list(void)
 {
 	char str[32768];
 	char *p;
@@ -114,7 +114,7 @@ static void selchange_callback(mtk_event *e, void *arg)
 	}
 }
 
-static void close_window()
+static void close_window(void)
 {
 	mtk_cmd(appid, "w.close()");
 	w_open = 0;

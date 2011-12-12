@@ -18,8 +18,8 @@
 #ifndef __DMXSPY_H
 #define __DMXSPY_H
 
-void init_dmxspy();
-void open_dmxspy_window();
-void close_dmxspy_window();
+void init_dmxspy(void);
+void open_dmxspy_window(void);
+void close_dmxspy_window(void);
 
 #endif /* __DMXSPY_H */

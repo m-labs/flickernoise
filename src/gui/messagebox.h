@@ -18,7 +18,7 @@
 #ifndef __MESSAGEBOX_H
 #define __MESSAGEBOX_H
 
-void init_messagebox();
+void init_messagebox(void);
 void messagebox(const char *title, const char *text);
 
 #endif /* __MESSAGEBOX_H */

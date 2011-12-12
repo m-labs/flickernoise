@@ -18,7 +18,7 @@
 #ifndef __MIDI_H
 #define __MIDI_H
 
-void init_midi();
-void open_midi_window();
+void init_midi(void);
+void open_midi_window(void);
 
 #endif /* __MIDI_H */

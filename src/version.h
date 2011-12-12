@@ -24,6 +24,6 @@ extern char soc[];
 extern char pcb[];
 extern char pcb_rev[];
 
-void init_version();
+void init_version(void);
 
 #endif /* __VERSION_H */

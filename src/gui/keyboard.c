@@ -40,7 +40,7 @@ static int w_open;
 
 static char key_bindings[26][384];
 
-static void load_config()
+static void load_config(void)
 {
 	char config_key[6];
 	int i;
@@ -58,7 +58,7 @@ static void load_config()
 	}
 }
 
-static void set_config()
+static void set_config(void)
 {
 	char config_key[6];
 	int i;
@@ -74,7 +74,7 @@ static void set_config()
 	}
 }
 
-static void update_list()
+static void update_list(void)
 {
 	char str[32768];
 	char *p;
@@ -133,7 +133,7 @@ static void cancel_callback(mtk_event *e, void *arg)
 	close_filedialog(browse_dlg);
 }
 
-static void browse_ok_callback()
+static void browse_ok_callback(void *arg)
 {
 	char filename[384];
 

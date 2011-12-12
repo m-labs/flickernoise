@@ -42,7 +42,7 @@ static int w_open;
 
 static char key_bindings[64][384];
 
-static void load_config()
+static void load_config(void)
 {
 	char config_key[6];
 	int i;
@@ -59,7 +59,7 @@ static void load_config()
 	}
 }
 
-static void set_config()
+static void set_config(void)
 {
 	char config_key[6];
 	int i;
@@ -74,7 +74,7 @@ static void set_config()
 	}
 }
 
-static void update_list()
+static void update_list(void)
 {
 	char str[32768];
 	char *p;
@@ -129,7 +129,7 @@ static void ir_event(mtk_event *e, int count)
 	}
 }
 
-static void close_window()
+static void close_window(void)
 {
 	mtk_cmd(appid, "w.close()");
 	input_delete_callback(ir_event);

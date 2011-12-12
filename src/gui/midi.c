@@ -165,7 +165,7 @@ static int w_open;
 
 static char midi_bindings[128][384];
 
-static void load_config()
+static void load_config(void)
 {
 	char config_key[8];
 	int i;
@@ -188,7 +188,7 @@ static void load_config()
 	}
 }
 
-static void set_config()
+static void set_config(void)
 {
 	char config_key[16];
 	int i;
@@ -212,7 +212,7 @@ static void set_config()
 	config_write_int("midi_channel", mtk_req_i(appid, "e_channel.text"));
 }
 
-static void update_list()
+static void update_list(void)
 {
 	char str[32768];
 	char note[16];
@@ -294,7 +294,7 @@ static void midi_event(mtk_event *e, int count)
 	}
 }
 
-static void close_window()
+static void close_window(void)
 {
 	mtk_cmd(appid, "w.close()");
 	input_delete_callback(midi_event);

@@ -18,8 +18,8 @@
 #ifndef __AUDIO_H
 #define __AUDIO_H
 
-void init_audio();
-void open_audio_window();
-void load_audio_config();
+void init_audio(void);
+void open_audio_window(void);
+void load_audio_config(void);
 
 #endif /* __AUDIO_H */

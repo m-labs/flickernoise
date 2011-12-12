@@ -109,7 +109,7 @@ void load_audio_config()
 		set_level(1, mic_vol);
 }
 
-static void set_config()
+static void set_config(void)
 {
 	config_write_int("line_vol", line_vol);
 	config_write_int("line_mute", line_mute);

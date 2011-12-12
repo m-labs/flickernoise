@@ -18,8 +18,8 @@
 #ifndef __MONITOR_H
 #define __MONITOR_H
 
-void init_monitor();
-void open_monitor_window();
-void monitor_notify_changed();
+void init_monitor(void);
+void open_monitor_window(void);
+void monitor_notify_changed(void);
 
 #endif /* __MONITOR_H */

@@ -18,8 +18,8 @@
 #ifndef __VIDEOIN_H
 #define __VIDEOIN_H
 
-void init_videoin();
-void open_videoin_window();
-void load_videoin_config();
+void init_videoin(void);
+void open_videoin_window(void);
+void load_videoin_config(void);
 
 #endif /* __VIDEOIN_H */

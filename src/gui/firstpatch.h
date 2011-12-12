@@ -18,7 +18,7 @@
 #ifndef __FIRSTPATCH_H
 #define __FIRSTPATCH_H
 
-void init_firstpatch();
-void open_firstpatch_window();
+void init_firstpatch(void);
+void open_firstpatch_window(void);
 
 #endif /* __FIRSTPATCH_H */

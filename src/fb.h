@@ -21,10 +21,10 @@
 extern int framebuffer_fd;
 
 void init_fb_mtk(int quiet);
-void fb_unblank();
-void fb_render_mode();
-void fb_gui_mode();
-void fb_resize_gui();
-int fb_get_mode();
+void fb_unblank(void);
+void fb_render_mode(void);
+void fb_gui_mode(void);
+void fb_resize_gui(void);
+int fb_get_mode(void);
 
 #endif /* __FB_H */

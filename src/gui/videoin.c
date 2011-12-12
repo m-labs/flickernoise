@@ -127,7 +127,7 @@ void load_videoin_config()
 	mtk_cmdf(appid, "s_hue.set(-value %d)", hue);
 }
 
-static void set_config()
+static void set_config(void)
 {
 	config_write_int("vin_format", format);
 	config_write_int("vin_brightness", brightness);
@@ -183,7 +183,7 @@ static void preview_update(mtk_event *e, int count)
 	}
 }
 
-static void close_videoin_window()
+static void close_videoin_window(void)
 {
 	input_delete_callback(preview_update);
 	mtk_cmd(appid, "w.close()");

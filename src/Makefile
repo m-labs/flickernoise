@@ -27,7 +27,8 @@ else
     RANLIB  = $(RANLIB_quiet)
 endif
 
-CFLAGS = -O9 -Wall -mbarrel-shift-enabled -mmultiply-enabled \
+CFLAGS = -O9 -Wall -Wstrict-prototypes \
+	 -mbarrel-shift-enabled -mmultiply-enabled \
 	 -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant \
 	 -I$(RTEMS_MAKEFILE_PATH)/lib/include -g
 LDFLAGS = -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled \

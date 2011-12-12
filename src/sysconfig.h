@@ -44,26 +44,26 @@ enum {
 	SC_AUTOSTART_FILE
 };
 
-int sysconfig_is_rescue();
+int sysconfig_is_rescue(void);
 
-void sysconfig_load();
-void sysconfig_save();
+void sysconfig_load(void);
+void sysconfig_save(void);
 
-int sysconfig_get_resolution();
+int sysconfig_get_resolution(void);
 void sysconfig_get_wallpaper(char *wallpaper);
-int sysconfig_get_language();
-int sysconfig_get_keyboard_layout();
+int sysconfig_get_language(void);
+int sysconfig_get_keyboard_layout(void);
 void sysconfig_get_ipconfig(int *dhcp_enable, unsigned int *ip, unsigned int *netmask, unsigned int *gateway, unsigned int *dns1, unsigned int *dns2);
 void sysconfig_get_credentials(char *login, char *password);
-int sysconfig_get_autostart_mode();
+int sysconfig_get_autostart_mode(void);
 void sysconfig_get_autostart_mode_simple(int *dt, int *as);
 void sysconfig_get_autostart(char *autostart);
 
 void sysconfig_set_resolution(int resolution);
 void sysconfig_set_wallpaper(char *wallpaper);
-void sysconfig_set_mtk_wallpaper();
+void sysconfig_set_mtk_wallpaper(void);
 void sysconfig_set_language(int language);
-void sysconfig_set_mtk_language();
+void sysconfig_set_mtk_language(void);
 void sysconfig_set_keyboard_layout(int layout);
 void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netmask, unsigned int gateway, unsigned int dns1, unsigned int dns2);
 void sysconfig_set_credentials(char *login, char *password);

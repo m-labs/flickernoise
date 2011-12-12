@@ -162,9 +162,9 @@ static void format_ip(unsigned int ip, char *out)
 
 #define SYSCONFIG_FILE "/ssd/sysconfig.bin"
 
-static void sysconfig_credentials_lock_init();
-static void sysconfig_credentials_lock();
-static void sysconfig_credentials_unlock();
+static void sysconfig_credentials_lock_init(void);
+static void sysconfig_credentials_lock(void);
+static void sysconfig_credentials_unlock(void);
 
 int sysconfig_is_rescue()
 {
@@ -176,7 +176,7 @@ int sysconfig_is_rescue()
 	return strcmp(bsp_cmdline, "rescue") == 0;
 }
 
-static void start_dhcp_task();
+static void start_dhcp_task(void);
 
 void sysconfig_load()
 {
@@ -274,7 +274,7 @@ static int retrieve_gateway(struct radix_node *rn, void *vw)
 	return 0;
 }
 
-static unsigned int route_get_gateway()
+static unsigned int route_get_gateway(void)
 {
 	struct radix_node_head *rnh;
 	int error;
@@ -474,7 +474,7 @@ static rtems_task dhcp_task(rtems_task_argument argument)
 	rtems_task_delete(RTEMS_SELF);
 }
 
-static void start_dhcp_task()
+static void start_dhcp_task(void)
 {
 	rtems_id task_id;
 	rtems_status_code sc;
@@ -578,7 +578,7 @@ bool sysconfig_login_check(const char *user, const char *passphrase)
 
 static rtems_id credentials_lock;
 
-static void sysconfig_credentials_lock_init()
+static void sysconfig_credentials_lock_init(void)
 {
 	rtems_semaphore_create(
 		rtems_build_name('C', 'R', 'E', 'D'),
@@ -588,12 +588,12 @@ static void sysconfig_credentials_lock_init()
 		&credentials_lock);
 }
 
-static void sysconfig_credentials_lock()
+static void sysconfig_credentials_lock(void)
 {
 	rtems_semaphore_obtain(credentials_lock, RTEMS_WAIT, RTEMS_NO_TIMEOUT);
 }
 
-static void sysconfig_credentials_unlock()
+static void sysconfig_credentials_unlock(void)
 {
 	rtems_semaphore_release(credentials_lock);
 }

@@ -30,10 +30,10 @@ static struct filedialog *browse_wallpaper_dlg;
 static struct filedialog *browse_autostart_dlg;
 
 static void close_sysettings_window(int save);
-static void update_language();
-static void update_layout();
-static void update_network();
-static void update_asmode();
+static void update_language(void);
+static void update_layout(void);
+static void update_network(void);
+static void update_asmode(void);
 
 static void resolution_callback(mtk_event *e, void *arg)
 {
@@ -104,7 +104,7 @@ static void cancel_callback(mtk_event *e, void *arg)
 	close_sysettings_window(0);
 }
 
-static void wallpaper_ok_callback()
+static void wallpaper_ok_callback(void *arg)
 {
 	char filename[384];
 
@@ -112,7 +112,7 @@ static void wallpaper_ok_callback()
 	mtk_cmdf(appid, "e_wallpaper.set(-text \"%s\")", filename);
 }
 
-static void autostart_ok_callback()
+static void autostart_ok_callback(void *arg)
 {
 	char filename[384];
 
@@ -343,7 +343,7 @@ void sysettings_update_resolution()
 	mtk_cmdf(appid, "b_res_1024.set(-state %s)", resolution == SC_RESOLUTION_1024_768 ? "on" : "off");
 }
 
-static void update_wallpaper()
+static void update_wallpaper(void)
 {
 	char wallpaper[256];
 
@@ -351,7 +351,7 @@ static void update_wallpaper()
 	mtk_cmdf(appid, "e_wallpaper.set(-text \"%s\")", wallpaper);
 }
 
-static void update_language()
+static void update_language(void)
 {
 	int language;
 	
@@ -362,7 +362,7 @@ static void update_language()
 	//mtk_cmdf(appid, "b_lang_german.set(-state %s)", language == SC_LANGUAGE_GERMAN ? "on" : "off");
 }
 
-static void update_layout()
+static void update_layout(void)
 {
 	int layout;
 
@@ -425,7 +425,7 @@ static void update_network()
 	mtk_cmdf(appid, "e_dns.set(-readonly %s)", dhcp_enable ? "yes" : "no");
 }
 
-static void update_credentials()
+static void update_credentials(void)
 {
 	char login[32];
 	char password[32];
@@ -435,7 +435,7 @@ static void update_credentials()
 	mtk_cmdf(appid, "e_password.set(-text \"%s\")", password);
 }
 
-static void update_asmode()
+static void update_asmode(void)
 {
 	mtk_cmdf(appid, "b_asmode_none.set(-state %s)", current_asmode == SC_AUTOSTART_NONE ? "on" : "off");
 	mtk_cmdf(appid, "b_asmode_simple.set(-state %s)", current_asmode == SC_AUTOSTART_SIMPLE ? "on" : "off");
@@ -444,7 +444,7 @@ static void update_asmode()
 	mtk_cmdf(appid, "b_asmode_as.set(-state %s)", current_asmode_as ? "on" : "off");
 }
 
-static void update_autostart()
+static void update_autostart(void)
 {
 	char autostart[256];
 

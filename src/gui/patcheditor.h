@@ -18,7 +18,7 @@
 #ifndef __PATCHEDITOR_H
 #define __PATCHEDITOR_H
 
-void init_patcheditor();
-void open_patcheditor_window();
+void init_patcheditor(void);
+void open_patcheditor_window(void);
 
 #endif /* __PATCHEDITOR_H */

@@ -18,8 +18,8 @@
 #ifndef __SHUTDOWN_H
 #define __SHUTDOWN_H
 
-void init_shutdown();
-void open_shutdown_window();
+void init_shutdown(void);
+void open_shutdown_window(void);
 
 void clean_shutdown(int turnoff);
 

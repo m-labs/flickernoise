@@ -42,7 +42,7 @@ static void read_dev(const char *dev, char *buf, unsigned int len)
 	close(fd);
 }
 
-void init_version()
+void init_version(void)
 {
 	read_dev("/dev/soc", soc, sizeof(soc));
 	read_dev("/dev/pcb", pcb, sizeof(pcb));

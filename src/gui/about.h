@@ -18,7 +18,7 @@
 #ifndef __ABOUT_H
 #define __ABOUT_H
 
-void init_about();
-void open_about_window();
+void init_about(void);
+void open_about_window(void);
 
 #endif /* __ABOUT_H */

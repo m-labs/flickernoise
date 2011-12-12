@@ -18,7 +18,7 @@
 #ifndef __FLASH_H
 #define __FLASH_H
 
-void init_flash();
+void init_flash(void);
 void open_flash_window(int automatic);
 
 #endif /* __FLASH_H */

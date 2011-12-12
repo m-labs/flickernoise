@@ -18,7 +18,7 @@
 #ifndef __FILEMANAGER_H
 #define __FILEMANAGER_H
 
-void init_filemanager();
-void open_filemanager_window();
+void init_filemanager(void);
+void open_filemanager_window(void);
 
 #endif /* __FILEMANAGER_H */

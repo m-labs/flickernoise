@@ -76,7 +76,7 @@ static int midi_channel;
 static int midi_patches[128];
 static int osc_patches[64];
 
-static void add_firstpatch()
+static void add_firstpatch(void)
 {
 	const char *filename;
 
@@ -85,7 +85,7 @@ static void add_firstpatch()
 	add_patch(filename);
 }
 
-static void add_keyboard_patches()
+static void add_keyboard_patches(void)
 {
 	int i;
 	char config_key[6];
@@ -103,7 +103,7 @@ static void add_keyboard_patches()
 	}
 }
 
-static void add_ir_patches()
+static void add_ir_patches(void)
 {
 	int i;
 	char config_key[6];
@@ -119,7 +119,7 @@ static void add_ir_patches()
 	}
 }
 
-static void add_midi_patches()
+static void add_midi_patches(void)
 {
 	int i;
 	char config_key[8];
@@ -136,7 +136,7 @@ static void add_midi_patches()
 	}
 }
 
-static void add_osc_patches()
+static void add_osc_patches(void)
 {
 	int i;
 	char config_key[7];
@@ -152,7 +152,7 @@ static void add_osc_patches()
 	}
 }
 
-static void add_simple_patches()
+static void add_simple_patches(void)
 {
 	DIR *d;
 	struct dirent *entry;
@@ -185,7 +185,7 @@ static void close_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "w.close()");
 }
 
-static void update_buttons()
+static void update_buttons(void)
 {
 	mtk_cmdf(appid, "b_mode_simple.set(-state %s)", simple_mode ? "on" : "off");
 	mtk_cmdf(appid, "b_mode_file.set(-state %s)", !simple_mode ? "on" : "off");
@@ -313,7 +313,7 @@ static rtems_task comp_task(rtems_task_argument argument)
 	rtems_task_delete(RTEMS_SELF);
 }
 
-static void free_patches()
+static void free_patches(void)
 {
 	int i;
 
@@ -360,7 +360,7 @@ static int keycode_to_index(int keycode)
 static rtems_interval next_as_time;
 #define AUTOSWITCH_PERIOD_MIN (2*60*100)
 #define AUTOSWITCH_PERIOD_MAX (4*60*100)
-static void update_next_as_time()
+static void update_next_as_time(void)
 {
 	rtems_interval t;
 	
@@ -466,7 +466,7 @@ static void event_callback(mtk_event *e, int count)
 	}
 }
 
-static void stop_callback()
+static void stop_callback(void)
 {
 	free_patches();
 	started = 0;
@@ -530,7 +530,7 @@ void open_performance_window()
 
 static rtems_id comp_task_id;
 
-static int check_input_video()
+static int check_input_video(void)
 {
 	int fd;
 	unsigned int status;

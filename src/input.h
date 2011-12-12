@@ -29,10 +29,10 @@
 
 typedef void (*input_callback)(mtk_event *e, int count);
 
-void init_input();
+void init_input(void);
 void input_add_callback(input_callback cb);
 void input_delete_callback(input_callback cb);
-void input_eventloop();
+void input_eventloop(void);
 
 void input_inject_midi(const unsigned char *msg);
 void input_inject_osc(unsigned char msg);

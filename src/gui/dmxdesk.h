@@ -18,8 +18,8 @@
 #ifndef __DMXDESK_H
 #define __DMXDESK_H
 
-void init_dmxdesk();
-void open_dmxdesk_window();
-void close_dmxdesk_window();
+void init_dmxdesk(void);
+void open_dmxdesk_window(void);
+void close_dmxdesk_window(void);
 
 #endif /* __DMXTABLE_H */

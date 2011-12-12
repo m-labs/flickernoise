@@ -327,7 +327,7 @@ static void start_event_task(const char *dev, rtems_name name, int *fd)
 
 static input_callback callbacks[MAX_CALLBACKS];
 
-void init_input(input_callback cb)
+void init_input(void)
 {
 	rtems_status_code sc;
 	int i;

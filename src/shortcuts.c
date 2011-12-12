@@ -36,7 +36,7 @@ static rtems_interval f9_press_time;
 static int f10_pressed;
 static rtems_interval f10_press_time;
 
-static void switch_resolution()
+static void switch_resolution(void)
 {
 	int res;
 
@@ -102,7 +102,7 @@ static void shortcuts_callback(mtk_event *e, int count)
 	}
 }
 
-void init_shortcuts()
+void init_shortcuts(void)
 {
 	input_add_callback(shortcuts_callback);
 }

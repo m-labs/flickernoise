@@ -61,13 +61,13 @@ void cp_notify_changed()
 	mtk_cmd(appid, "w.set(-title \"Control panel *\")");
 }
 
-static void clear_changed()
+static void clear_changed(void)
 {
 	mtk_cmd(appid, "w.set(-title \"Control panel\")");
 	changed = 0;
 }
 
-static void on_config_change()
+static void on_config_change(void)
 {
 	/* reload config for controls that need modification of some state */
 	load_audio_config();

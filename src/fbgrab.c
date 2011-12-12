@@ -33,7 +33,7 @@
 
 static char *filename = "/ssd/Screenshot-00.png";
 
-static char *get_name()
+static char *get_name(void)
 {
 	struct stat st;
 	int i, result;
