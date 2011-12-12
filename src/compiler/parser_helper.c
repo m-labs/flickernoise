@@ -48,13 +48,13 @@ int fpvm_parse(const char *expr, int start_token, union parser_comm *comm)
 		} else {
 			identifier->label = get_token(s);
 		}
-		Parse(p, tok, identifier, &state);
 		if(tok == TOK_ERROR) {
 			printf("FPVM: scan error\n");
 			ParseFree(p, free);
 			delete_scanner(s);
 			return 0;
 		}
+		Parse(p, tok, identifier, &state);
 		tok = scan(s);
 	}
 	Parse(p, TOK_EOF, NULL, &state);
