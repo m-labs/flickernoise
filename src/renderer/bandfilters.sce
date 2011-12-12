@@ -13,21 +13,21 @@ end
 
 mfprintf(fid, "/* Generated automatically by bandfilters.sce. Do not edit manually. */\n\n");
 
-mfprintf(fid, "const static int bass_filter[%d] = {\n", ncoef);
+mfprintf(fid, "static const int bass_filter[%d] = {\n", ncoef);
 bass = ffilt("lp", ncoef, f1);
 for i=1:ncoef
 	mfprintf(fid, "%d,\n", amp*bass(i));
 end
 mfprintf(fid, "};\n\n");
 
-mfprintf(fid, "const static int mid_filter[%d] = {\n", ncoef);
+mfprintf(fid, "static const int mid_filter[%d] = {\n", ncoef);
 mid = ffilt("bp", ncoef, f1, f2);
 for i=1:ncoef
 	mfprintf(fid, "%d,\n", amp*mid(i));
 end
 mfprintf(fid, "};\n\n");
 
-mfprintf(fid, "const static int treb_filter[%d] = {\n", ncoef);
+mfprintf(fid, "static const int treb_filter[%d] = {\n", ncoef);
 treb = ffilt("bp", ncoef, f2, f3);
 for i=1:ncoef
 	mfprintf(fid, "%d,\n", amp*treb(i));

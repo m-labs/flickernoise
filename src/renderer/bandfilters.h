@@ -1,6 +1,6 @@
 /* Generated automatically by bandfilters.sce. Do not edit manually. */
 
-const static int bass_filter[128] = {
+static const int bass_filter[128] = {
 155,
 157,
 158,
@@ -131,7 +131,7 @@ const static int bass_filter[128] = {
 155,
 };
 
-const static int mid_filter[128] = {
+static const int mid_filter[128] = {
 -313,
 -320,
 -326,
@@ -262,7 +262,7 @@ const static int mid_filter[128] = {
 -313,
 };
 
-const static int treb_filter[128] = {
+static const int treb_filter[128] = {
 17,
 0,
 2,
