@@ -83,6 +83,8 @@ int scan(struct scanner *s)
 					      s->cursor);
 					  goto std; }
 
+		"[preset]"		{ goto std; }
+
 		[0-9]+			{ return TOK_CONSTANT; }
 		[0-9]+ "." [0-9]*	{ return TOK_CONSTANT; }
 		[0-9]* "." [0-9]+	{ return TOK_CONSTANT; }
@@ -108,6 +110,7 @@ int scan(struct scanner *s)
 		"tsign"			{ return TOK_TSIGN; }
 
 		[a-zA-Z_0-9]+		{ return TOK_IDENT; }
+
 		"+"			{ return TOK_PLUS; }
 		"-"			{ return TOK_MINUS; }
 		"*"			{ return TOK_MULTIPLY; }
