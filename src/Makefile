@@ -27,7 +27,7 @@ else
     RANLIB  = $(RANLIB_quiet)
 endif
 
-CFLAGS = -O9 -Wall -Wstrict-prototypes \
+CFLAGS = -O9 -Wall -Wstrict-prototypes -Wmissing-prototypes \
 	 -mbarrel-shift-enabled -mmultiply-enabled \
 	 -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant \
 	 -I$(RTEMS_MAKEFILE_PATH)/lib/include -g

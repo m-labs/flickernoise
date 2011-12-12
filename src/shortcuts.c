@@ -29,6 +29,7 @@
 #include "fb.h"
 #include "gui/guirender.h"
 #include "gui/flash.h"
+#include "shortcuts.h"
 
 static int ctrl, alt;
 static int f9_pressed;

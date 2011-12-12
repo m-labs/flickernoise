@@ -31,7 +31,7 @@
 #include "shellext.h"
 #include "fbgrab.h"
 
-int main_viwrite(int argc, char **argv)
+static int main_viwrite(int argc, char **argv)
 {
 	unsigned int reg, val;
 	int fd;
@@ -59,7 +59,7 @@ int main_viwrite(int argc, char **argv)
 	return 0;
 }
 
-int main_viread(int argc, char **argv)
+static int main_viread(int argc, char **argv)
 {
 	int fd;
 	unsigned int rv;
@@ -86,7 +86,7 @@ int main_viread(int argc, char **argv)
 	return 0;
 }
 
-int main_erase(int argc, char **argv)
+static int main_erase(int argc, char **argv)
 {
 	int fd;
 	int r;
@@ -137,7 +137,7 @@ int main_erase(int argc, char **argv)
 	return 0;
 }
 
-int main_fbgrab(int argc, char **argv)
+static int main_fbgrab(int argc, char **argv)
 {
 	int ret = 0;
 

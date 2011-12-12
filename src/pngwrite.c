@@ -23,6 +23,7 @@
 
 #include "color.h"
 #include "png.h"
+#include "pngwrite.h"
 
 #ifdef PNG_FLOATING_ARITHMETIC_SUPPORTED
 #warning Floating point PNG is slow

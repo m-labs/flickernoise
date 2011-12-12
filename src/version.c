@@ -20,6 +20,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "version.h"
+
 char soc[13];
 char pcb[3];
 char pcb_rev[2];

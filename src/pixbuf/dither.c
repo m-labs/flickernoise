@@ -18,6 +18,7 @@
 #include <stdlib.h>
 
 #include "../color.h"
+#include "dither.h"
 
 static void floyd_steinberg(int *pic, int width, int height)
 {

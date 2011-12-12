@@ -153,6 +153,8 @@ static rtems_id gui_task_id;
 	mount("/dev/memcard1", "/memcard", "dosfs", RTEMS_FILESYSTEM_READ_ONLY, "");
 }*/
 
+rtems_task Init(rtems_task_argument argument);
+
 rtems_task Init(rtems_task_argument argument)
 {
 	rtems_status_code sc;
