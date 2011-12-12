@@ -70,6 +70,7 @@ const char *fpvm_parse(const char *expr, int start_token,
 	struct parser_state state = {
 		.comm = comm,
 		.success = 0,
+		.error = NULL,
 		.error_label = NULL,
 		.id = NULL,
 	};
@@ -108,11 +109,14 @@ const char *fpvm_parse(const char *expr, int start_token,
 	ParseFree(p, free);
 	delete_scanner(s);
 
-	if(!state.success)
+	if(!state.success) {
 		error = alloc_printf(
-		    "FPVM, line %d, near \"%.*s\": parse error",
+		    "FPVM, line %d, near \"%.*s\": %s",
 		    state.error_lineno, printable_label(state.error_label),
-		    state.error_label);
+		    state.error_label,
+		    state.error ? state.error : "parse error");
+		free((void *) state.error);
+	}
 
 	return error;
 }

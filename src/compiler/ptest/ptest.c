@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "../fpvm.h"
 #include "../parser_helper.h"
@@ -19,6 +20,7 @@
 
 
 static int quiet = 0;
+static const char *fail = NULL;
 
 
 static void dump_ast(const struct ast_node *ast);
@@ -133,9 +135,19 @@ static void dump_ast(const struct ast_node *ast)
 }
 
 
+const char *fpvm_get_last_error(struct fpvm_fragment *fragment)
+{
+	return fragment->last_error;
+}
+
+
 int fpvm_do_assign(struct fpvm_fragment *fragment, const char *dest,
     struct ast_node *ast)
 {
+	if (fail) {
+		snprintf(fragment->last_error, FPVM_MAXERRLEN, "%s", fail);
+		return 0;
+	}
 	if (!quiet) {
 		printf("%s = ", dest);
 		dump_ast(ast);
@@ -177,7 +189,7 @@ static const char *read_stdin(void)
 
 static void usage(const char *name)
 {
-	fprintf(stderr, "usage: %s [-q] [expr]\n", name);
+	fprintf(stderr, "usage: %s [-f error] [-q] [expr]\n", name);
 	exit(1);
 }
 
@@ -186,11 +198,15 @@ int main(int argc, char **argv)
 {
 	int c;
 	const char *buf;
-	union parser_comm comm;
+	struct fpvm_fragment fragment;
+	union parser_comm comm = { .fragment = &fragment };
 	const char *error;
 
-	while ((c = getopt(argc, argv, "q")) != EOF)
+	while ((c = getopt(argc, argv, "f:q")) != EOF)
 		switch (c) {
+		case 'f':
+			fail = optarg;
+			break;
 		case 'q':
 			quiet = 1;
 			break;

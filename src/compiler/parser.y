@@ -28,6 +28,9 @@
 	#include "parser.h"
 
 
+	struct yyParser;
+	static void yy_parse_failed(struct yyParser *yypParser);
+
 	const enum ast_op tok2op[] = {
 		[TOK_IDENT]	= op_ident,
 		[TOK_CONSTANT]	= op_constant,
@@ -58,8 +61,8 @@
 		[TOK_INT]	= op_int,
 	};
 
-	struct ast_node *node(int token, const char *id, struct ast_node *a,
-	     struct ast_node *b, struct ast_node *c)
+	static struct ast_node *node(int token, const char *id,
+	    struct ast_node *a, struct ast_node *b, struct ast_node *c)
 	{
 		struct ast_node *n;
 
@@ -70,6 +73,14 @@
 		n->contents.branches.b = b;
 		n->contents.branches.c = c;
 		return n;
+	}
+
+	static void syntax_error(struct parser_state *state)
+	{
+		if(!state->error_label) {
+			state->error_label = state->id->label;
+			state->error_lineno = state->id->lineno;
+		}
 	}
 }
 
@@ -85,10 +96,7 @@
 %type node {struct ast_node *}
 %destructor node { free($$); }
 %syntax_error {
-	if(!state->error_label) {
-		state->error_label = state->id->label;
-		state->error_lineno = state->id->lineno;
-	}
+	syntax_error(state);
 	yy_parse_failed(yypParser);
 }
 
@@ -106,7 +114,13 @@ assignments ::= assignments assignment.
 assignments ::= .
 
 assignment ::= ident(I) TOK_ASSIGN node(N) opt_semi. {
-	fpvm_do_assign(state->comm->fragment, I->label, N);
+	if(!fpvm_do_assign(state->comm->fragment, I->label, N)) {
+		state->error =
+		    strdup(fpvm_get_last_error(state->comm->fragment));
+		syntax_error(state);
+		yy_parse_failed(yypParser);
+		return;
+	}
 	fpvm_parse_free(N);
 }
 

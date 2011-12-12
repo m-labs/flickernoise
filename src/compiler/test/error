@@ -29,4 +29,13 @@ expect <<EOF
 FPVM, line 1, near "+": parse error
 EOF
 
+#------------------------------------------------------------------------------
+
+ptest_fail "code generation error" -f "codegen" <<EOF
+x = a + b
+EOF
+expect <<EOF
+FPVM, line 1, near "b": codegen
+EOF
+
 ###############################################################################
