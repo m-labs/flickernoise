@@ -87,12 +87,20 @@ const char *fpvm_parse(const char *expr, int start_token,
 		identifier = malloc(sizeof(struct id));
 		identifier->token = tok;
 		identifier->lineno = s->lineno;
-		if(tok == TOK_CONSTANT) {
+
+		switch(tok) {
+		case TOK_CONSTANT:
 			identifier->constant = get_constant(s);
 			identifier->label = "";
-		} else {
+			break;
+		case TOK_FNAME:
 			identifier->label = get_token(s);
+			break;
+		default:
+			identifier->label = get_unique_token(s);
+			break;
 		}
+
 		state.id = identifier;
 		if(tok == TOK_ERROR) {
 			error = alloc_printf(

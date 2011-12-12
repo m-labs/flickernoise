@@ -1,0 +1,69 @@
+#!/bin/sh
+. ./Common
+
+# WORK IN PROGRESS
+
+###############################################################################
+
+ptest "image: imagefile1=hello" <<EOF
+imagefile1=hello
+EOF
+expect <<EOF
+image 1 = "hello"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "image: imagefile2 = hello" <<EOF
+imagefile2 = hello
+EOF
+expect <<EOF
+image 2 = "hello"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "image: imagefile1 = hel lo" <<EOF
+imagefile1 = hel lo
+EOF
+expect <<EOF
+image 1 = "hel lo"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "image: imagefile2 = hel<nl>lo" <<EOF
+imagefile2 = hel
+lo = u
+EOF
+expect <<EOF
+image 2 = "hel"
+lo = u
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "image: imagefile1 = foo<spc><spc>" "imagefile1 = foo  "
+expect <<EOF
+image 1 = "foo"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "image: imagefile2 = /dev/null" <<EOF
+imagefile2 = /dev/null
+EOF
+expect <<EOF
+image 2 = "/dev/null"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "image: imagefile1 = *** test  -  robust & ness ***" <<EOF
+imagefile1 = *** test  -  robust & ness ***
+EOF
+expect <<EOF
+image 1 = "*** test  -  robust & ness ***"
+EOF
+
+###############################################################################

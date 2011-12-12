@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
@@ -30,6 +31,10 @@
 #define YYMARKER s->marker
 #define YYFILL(n)
 
+#define	YYCONDTYPE		enum scanner_cond
+#define	YYGETCONDITION()	s->cond
+#define	YYSETCONDITION(c)	s->cond = (c)
+
 struct scanner *new_scanner(unsigned char *input)
 {
 	struct scanner *s;
@@ -37,6 +42,7 @@ struct scanner *new_scanner(unsigned char *input)
 	s = malloc(sizeof(struct scanner));
 	if(s == NULL) return NULL;
 
+	s->cond = yycN;
 	s->marker = input;
 	s->old_cursor = input;
 	s->cursor = input;
@@ -73,66 +79,88 @@ int scan(struct scanner *s)
 	s->old_cursor = s->cursor;
 
 	/*!re2c
-		[\x20\r\t]		{ goto std; }
-		"\n"			{ s->lineno++;
+		<*>[\x20\r\t]		{ goto std; }
+		<*>"\n"			{ s->lineno++;
+					  YYSETCONDITION(yycN);
 					  goto std; }
 
-		"//"[^\n\x00]*		{ goto std; }
-		"/*"([^*\x00]|("*"+([^*/\x00])))*"*"+"/"
+		<N>"//"[^\n\x00]*	{ goto std; }
+		<N>"/*"([^*\x00]|("*"+([^*/\x00])))*"*"+"/"
 					{ s->lineno += nls(s->old_cursor,
 					      s->cursor);
 					  goto std; }
 
-		"[preset]"		{ goto std; }
+		<N>"[preset]"		{ goto std; }
 
-		[0-9]+			{ return TOK_CONSTANT; }
-		[0-9]+ "." [0-9]*	{ return TOK_CONSTANT; }
-		[0-9]* "." [0-9]+	{ return TOK_CONSTANT; }
+		<N>[0-9]+		{ return TOK_CONSTANT; }
+		<N>[0-9]+ "." [0-9]*	{ return TOK_CONSTANT; }
+		<N>[0-9]* "." [0-9]+	{ return TOK_CONSTANT; }
 
-		"above"			{ return TOK_ABOVE; }
-		"abs"			{ return TOK_ABS; }
-		"below"			{ return TOK_BELOW; }
-		"cos"			{ return TOK_COS; }
-		"equal"			{ return TOK_EQUAL; }
-		"f2i"			{ return TOK_F2I; }
-		"icos"			{ return TOK_ICOS; }
-		"i2f"			{ return TOK_I2F; }
-		"if"			{ return TOK_IF; }
-		"int"			{ return TOK_INT; }
-		"invsqrt"		{ return TOK_INVSQRT; }
-		"isin"			{ return TOK_ISIN; }
-		"max"			{ return TOK_MAX; }
-		"min"			{ return TOK_MIN; }
-		"quake"			{ return TOK_QUAKE; }
-		"sin"			{ return TOK_SIN; }
-		"sqr"			{ return TOK_SQR; }
-		"sqrt"			{ return TOK_SQRT; }
-		"tsign"			{ return TOK_TSIGN; }
+		<N>"above"		{ return TOK_ABOVE; }
+		<N>"abs"		{ return TOK_ABS; }
+		<N>"below"		{ return TOK_BELOW; }
+		<N>"cos"		{ return TOK_COS; }
+		<N>"equal"		{ return TOK_EQUAL; }
+		<N>"f2i"		{ return TOK_F2I; }
+		<N>"icos"		{ return TOK_ICOS; }
+		<N>"i2f"		{ return TOK_I2F; }
+		<N>"if"			{ return TOK_IF; }
+		<N>"int"		{ return TOK_INT; }
+		<N>"invsqrt"		{ return TOK_INVSQRT; }
+		<N>"isin"		{ return TOK_ISIN; }
+		<N>"max"		{ return TOK_MAX; }
+		<N>"min"		{ return TOK_MIN; }
+		<N>"quake"		{ return TOK_QUAKE; }
+		<N>"sin"		{ return TOK_SIN; }
+		<N>"sqr"		{ return TOK_SQR; }
+		<N>"sqrt"		{ return TOK_SQRT; }
+		<N>"tsign"		{ return TOK_TSIGN; }
 
-		"per_frame"		{ return TOK_PER_FRAME; }
-		"per_vertex"		{ return TOK_PER_VERTEX; }
-		"per_pixel"		{ return TOK_PER_PIXEL; }
+		<N>"per_frame"		{ return TOK_PER_FRAME; }
+		<N>"per_vertex"		{ return TOK_PER_VERTEX; }
+		<N>"per_pixel"		{ return TOK_PER_PIXEL; }
 
-		[a-zA-Z_0-9]+		{ return TOK_IDENT; }
+		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);
+					  return TOK_IMAGEFILE; }
 
-		"+"			{ return TOK_PLUS; }
-		"-"			{ return TOK_MINUS; }
-		"*"			{ return TOK_MULTIPLY; }
-		"/"			{ return TOK_DIVIDE; }
-		"%"			{ return TOK_PERCENT; }
-		"("			{ return TOK_LPAREN; }
-		")"			{ return TOK_RPAREN; }
-		","			{ return TOK_COMMA; }
-		"="			{ return TOK_ASSIGN; }
-		";"			{ return TOK_SEMI; }
-		[\x00-\xff]		{ return TOK_ERROR; }
+		<N>[a-zA-Z_0-9]+	{ return TOK_IDENT; }
+
+		<N>"+"			{ return TOK_PLUS; }
+		<N>"-"			{ return TOK_MINUS; }
+		<N>"*"			{ return TOK_MULTIPLY; }
+		<N>"/"			{ return TOK_DIVIDE; }
+		<N>"%"			{ return TOK_PERCENT; }
+		<N>"("			{ return TOK_LPAREN; }
+		<N>")"			{ return TOK_RPAREN; }
+		<N>","			{ return TOK_COMMA; }
+		<N,FNAME1>"="		{ if (YYGETCONDITION() == yycFNAME1)
+						YYSETCONDITION(yycFNAME2);
+					  return TOK_ASSIGN; }
+		<N>";"			{ return TOK_SEMI; }
+
+		<FNAME2>[^ \x00\n\r\t]|[^ \x00\n\r\t][^\n\x00]*[^ \x00\n\r\t]
+					{ return TOK_FNAME; }
+
+		<*>[\x00-\xff]		{ return TOK_ERROR; }
 	*/
+}
+
+const char *get_unique_token(struct scanner *s)
+{
+	return unique_n((const char *) s->old_cursor,
+	    s->cursor - s->old_cursor);
 }
 
 const char *get_token(struct scanner *s)
 {
-	return unique_n((const char *) s->old_cursor,
-	    s->cursor - s->old_cursor);
+	char *buf;
+	int n;
+
+	n = s->cursor - s->old_cursor;
+	buf = malloc(n+1);
+	memcpy(buf, s->old_cursor, n);
+	buf[n] = 0;
+	return buf;
 }
 
 float get_constant(struct scanner *s)

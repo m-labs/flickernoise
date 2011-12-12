@@ -37,7 +37,7 @@ ptest:		$(OBJS)
 		$(CC) $(CFLAGS) -c -o $@ $<
 
 %.c:		%.re
-		$(GEN) re2c -o $@ $<
+		$(GEN) re2c -c -o $@ $<
 
 %.c:		%.y
 		$(GEN) lemon $<

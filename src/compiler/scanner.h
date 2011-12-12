@@ -23,7 +23,14 @@
 
 #include "parser.h"
 
+enum scanner_cond {
+	yycN = 1,
+	yycFNAME1,
+	yycFNAME2,
+};
+
 struct scanner {
+	enum scanner_cond cond;
 	unsigned char *marker;
 	unsigned char *old_cursor;
 	unsigned char *cursor;
@@ -39,6 +46,9 @@ int scan(struct scanner *s);
 
 /* get the unique string comprising the current token
  */
+const char *get_unique_token(struct scanner *s);
+
+/* like get_unique_token, but malloc'ed non-unique string */
 const char *get_token(struct scanner *s);
 
 float get_constant(struct scanner *s);

@@ -162,6 +162,14 @@ static const char *assign_unsupported(struct parser_comm *comm,
 }
 
 
+static const char *assign_image_name(struct parser_comm *comm,
+    int number, const char *name)
+{
+	if (!quiet)
+		printf("image %d = \"%s\"\n", number, name);
+	return NULL;
+}
+
 static const char *read_stdin(void)
 {
 	char *buf = NULL;
@@ -209,6 +217,7 @@ int main(int argc, char **argv)
 		.assign_default = assign_default,
 		.assign_per_frame = assign_unsupported,
 		.assign_per_vertex = assign_unsupported,
+		.assign_image_name = assign_image_name,
 	 };
 	const char *error;
 

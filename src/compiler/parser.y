@@ -129,6 +129,16 @@ assignment ::= context(C) ident(I) TOK_ASSIGN node(N) opt_semi. {
 	fpvm_parse_free(N);
 }
 
+assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
+	state->error = state->comm->assign_image_name(state->comm,
+	    atoi(I->label+9), N->label);
+	if(state->error) {
+		syntax_error(state);
+		yy_parse_failed(yypParser);
+		return;
+	}
+}
+
 context(C) ::= . {
 	C = state->comm->assign_default;
 }

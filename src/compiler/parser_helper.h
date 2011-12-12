@@ -32,6 +32,8 @@ struct parser_comm {
 	    const char *label, struct ast_node *node);
 	const char *(*assign_per_vertex)(struct parser_comm *comm,
 	    const char *label, struct ast_node *node);
+	const char *(*assign_image_name)(struct parser_comm *comm,
+	    int number, const char *name);
 };
 
 const char *fpvm_parse(const char *expr, int start_token,

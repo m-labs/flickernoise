@@ -77,7 +77,7 @@ bandfilters.h: bandfilters.sce
 	scilab -nw -nwni -nogui -nb -f bandfilters.sce
 
 %.c: %.re
-	re2c -o $@ $<
+	re2c -c -o $@ $<
 
 %.c: %.y
 	lemon $<
