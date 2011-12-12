@@ -29,6 +29,8 @@
 #include "../pixbuf/pixbuf.h"
 #include "fpvm.h"
 #include "unique.h"
+#include "parser_helper.h"
+#include "parser.h"
 #include "compiler.h"
 
 #include "infra-fnp.h"
@@ -326,16 +328,6 @@ static bool schedule_pfv(struct compiler_sc *sc)
 	return true;
 }
 
-static bool add_per_frame(struct compiler_sc *sc, char *dest, char *val)
-{
-	if(!fpvm_assign(&sc->pfv_fragment, dest, val)) {
-		comp_report(sc, "failed to add per-frame equation l. %d: %s",
-		    sc->linenr, fpvm_get_last_error(&sc->pfv_fragment));
-		return false;
-	}
-	return true;
-}
-
 /****************************************************************/
 /* PER-VERTEX VARIABLES                                         */
 /****************************************************************/
@@ -498,179 +490,104 @@ static bool schedule_pvv(struct compiler_sc *sc)
 	return true;
 }
 
-static bool add_per_vertex(struct compiler_sc *sc, char *dest, char *val)
-{
-	if(!fpvm_assign(&sc->pvv_fragment, dest, val)) {
-		comp_report(sc, "failed to add per-vertex equation l. %d: %s\n",
-		    sc->linenr, fpvm_get_last_error(&sc->pvv_fragment));
-		return false;
-	}
-	return true;
-}
-
 /****************************************************************/
 /* PARSING                                                      */
 /****************************************************************/
 
-static bool process_equation(struct compiler_sc *sc, char *equation,
-    bool per_vertex)
+static const char *assign_default(struct parser_comm *comm,
+    const char *label, struct ast_node *node)
 {
-	char *c, *c2;
-
-	c = strchr(equation, '=');
-	if(!c) {
-		comp_report(sc, "error l.%d: malformed equation (%s)",
-		    sc->linenr, equation);
-		return false;
-	}
-	*c = 0;
-
-	if(*equation == 0) {
-		comp_report(sc, "error l.%d: missing lvalue", sc->linenr);
-		return false;
-	}
-	c2 = c - 1;
-	while((c2 > equation) && (*c2 == ' ')) *c2-- = 0;
-
-	c++;
-	while(*c == ' ') c++;
-
-	if(*equation == 0) {
-		comp_report(sc, "error l.%d: missing lvalue", sc->linenr);
-		return false;
-	}
-	if(*c == 0) {
-		comp_report(sc, "error l.%d: missing rvalue", sc->linenr);
-		return false;
-	}
-
-	if(per_vertex)
-		return add_per_vertex(sc, equation, c);
-	else
-		return add_per_frame(sc, equation, c);
-}
-
-static bool process_equations(struct compiler_sc *sc, char *equations,
-    bool per_vertex)
-{
-	char *c;
-
-	while(*equations) {
-		c = strchr(equations, ';');
-		if(!c)
-			return process_equation(sc, equations, per_vertex);
-		*c = 0;
-		if(!process_equation(sc, equations, per_vertex)) return false;
-		equations = c + 1;
-	}
-	return true;
-}
-
-static bool process_top_assign(struct compiler_sc *sc, char *left, char *right)
-{
+	struct compiler_sc *sc = comm->u.sc;
 	int pfv;
+	float v;
 
-	while(*right == ' ') right++;
-	if(*right == 0) return true;
+	pfv = pfv_from_name(label);
+	if(pfv < 0)
+		return strdup("unknown parameter");
 
-	if(strncmp(left, "imagefile", 9) == 0) {
-		int image_n;
-		char *totalname;
-
-		image_n = atoi(left+9);
-		if((image_n < 1) || (image_n > IMAGE_COUNT)) {
-			comp_report(sc, "warning l.%d: ignoring image with out of bounds number %d",
-			     sc->linenr, image_n);
-			return true;
+	switch(node->op) {
+	case op_constant:
+		v = node->contents.constant;
+		break;
+	case op_not:
+		if(node->contents.branches.a->op == op_constant) {
+			v = -node->contents.branches.a->contents.constant;
+			break;
 		}
-		image_n--;
-		if(right[0] == '/')
-			totalname = strdup(right);
-		else {
-			totalname =
-			    malloc(strlen(sc->basedir) + strlen(right) + 1);
-			if(totalname == NULL) return true;
-			strcpy(totalname, sc->basedir);
-			strcat(totalname, right);
-		}
-		pixbuf_dec_ref(sc->p->images[image_n]);
-		sc->p->images[image_n] = pixbuf_get(totalname);
-		free(totalname);
-		return true;
+		/* fall through */
+	default:
+		return strdup("value must be a constant");
 	}
 
-	pfv = pfv_from_name(left);
-	if(pfv >= 0) {
-		/* patch initial condition or global parameter */
-		pfv_update_patch_requires(sc, pfv);
-		set_initial(sc, pfv, atof(right));
-		return true;
-	}
-
-	if(strncmp(left, "per_frame", 9) == 0)
-		/* per-frame equation */
-		return process_equations(sc, right, false);
-
-	if((strncmp(left, "per_vertex", 10) == 0) ||
-	    (strncmp(left, "per_pixel", 9) == 0))
-		/* per-vertex equation */
-		return process_equations(sc, right, true);
-
-	comp_report(sc, "warning l.%d: ignoring unknown parameter %s",
-	    sc->linenr, left);
-
-	return true;
+	/* patch initial condition or global parameter */
+	pfv_update_patch_requires(sc, pfv);
+	set_initial(sc, pfv, v);
+	return NULL;
 }
 
-static bool process_line(struct compiler_sc *sc, char *line)
+static const char *assign_fragment(struct fpvm_fragment *frag,
+    const char *label, struct ast_node *node)
 {
-	char *c;
-
-	while(*line == ' ') line++;
-	if(*line == 0) return true;
-	if(*line == '[') return true;
-
-	c = strstr(line, "//");
-	if(c) *c = 0;
-
-	c = line + strlen(line) - 1;
-	while((c >= line) && (*c == ' ')) *c-- = 0;
-	if(*line == 0) return true;
-
-	c = strchr(line, '=');
-	if(!c) {
-		comp_report(sc, "error l.%d: '=' expected", sc->linenr);
-		return false;
-	}
-	*c = 0;
-	return process_top_assign(sc, line, c+1);
+	if(fpvm_do_assign(frag, label, node))
+		return NULL;
+	else
+		return strdup(fpvm_get_last_error(frag));
 }
 
-static bool parse_patch(struct compiler_sc *sc, char *patch_code)
+static const char *assign_per_frame(struct parser_comm *comm,
+    const char *label, struct ast_node *node)
 {
-	char *eol;
+	return assign_fragment(&comm->u.sc->pfv_fragment, label, node);
+}
 
-	while(*patch_code) {
-		sc->linenr++;
-		eol = strchr(patch_code, '\n');
-		if(!eol) {
-			if(!process_line(sc, patch_code))
-				return false;
-			else
-				return true;
-		}
-		*eol = 0;
-		if(*patch_code == 0) {
-			patch_code = eol + 1;
-			continue;
-		}
-		if(*(eol - 1) == '\r') *(eol - 1) = 0;
-		if(!process_line(sc, patch_code))
-			return false;
-		patch_code = eol + 1;
+static const char *assign_per_vertex(struct parser_comm *comm,
+    const char *label, struct ast_node *node)
+{
+	return assign_fragment(&comm->u.sc->pvv_fragment, label, node);
+}
+
+static const char *assign_image_name(struct parser_comm *comm,
+    int number, const char *name)
+{
+	struct compiler_sc *sc = comm->u.sc;
+	char *totalname;
+
+	if(number > IMAGE_COUNT)
+		return strdup("image number out of bounds");
+	number--;
+	
+	if(*name == '/')
+		totalname = strdup(name);
+	else {
+		totalname = malloc(strlen(sc->basedir) + strlen(name) + 1);
+		if(totalname == NULL)
+			return strdup("out of memory");
+		strcpy(totalname, sc->basedir);
+		strcat(totalname, name);
 	}
+	pixbuf_dec_ref(sc->p->images[number]);
+	sc->p->images[number] = pixbuf_get(totalname);
+	free(totalname);
+	return NULL;
+}
 
-	return true;
+static bool parse_patch(struct compiler_sc *sc, const char *patch_code)
+{
+	struct parser_comm comm = {
+		.u.sc = sc,
+		.assign_default = assign_default,
+		.assign_per_frame = assign_per_frame,
+		.assign_per_vertex = assign_per_vertex,
+		.assign_image_name = assign_image_name,
+	};
+	const char *error;
+
+	error = fpvm_parse(patch_code, TOK_START_ASSIGN, &comm);
+	if(error) {
+		sc->rmc(error);
+		free((void *) error);
+	}
+	return !error;
 }
 
 struct patch *patch_compile(const char *basedir, const char *patch_code,
@@ -678,7 +595,6 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 {
 	struct compiler_sc *sc;
 	struct patch *p;
-	char *patch_code_copy;
 	int i;
 
 	sc = malloc(sizeof(struct compiler_sc));
@@ -706,16 +622,8 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	if(!init_pfv(sc)) goto fail;
 	if(!init_pvv(sc)) goto fail;
 
-	patch_code_copy = strdup(patch_code);
-	if(patch_code_copy == NULL) {
-		rmc("Failed to allocate memory for patch code");
+	if(!parse_patch(sc, patch_code))
 		goto fail;
-	}
-	if(!parse_patch(sc, patch_code_copy)) {
-		free(patch_code_copy);
-		goto fail;
-	}
-	free(patch_code_copy);
 	unique_free();
 
 	if(!finalize_pfv(sc)) goto fail;

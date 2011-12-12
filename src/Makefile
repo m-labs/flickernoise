@@ -94,7 +94,7 @@ obj/compiler/scanner.o: compiler/parser.h
 obj/compiler/parser_helper.o: compiler/parser.h
 obj/compiler/fpvm.o: compiler/parser.h
 obj/compiler/unique.o: compiler/fnp.inc
-obj/compiler/compiler.o: compiler/infra-fnp.h
+obj/compiler/compiler.o: compiler/infra-fnp.h compiler/parser.h
 
 # boot images for Milkymist One
 $(BINDIR)/flickernoise.bin: $(BINDIR)/flickernoise

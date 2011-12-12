@@ -21,10 +21,13 @@
 #include <fpvm/ast.h>
 #include <fpvm/fpvm.h>
 
+struct compiler_sc;
+
 struct parser_comm {
 	union {
 		struct ast_node *parseout;
 		struct fpvm_fragment *fragment;
+		struct compiler_sc *sc;
 	} u;
 	const char *(*assign_default)(struct parser_comm *comm,
 	    const char *label, struct ast_node *node);
