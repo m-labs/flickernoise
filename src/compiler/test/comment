@@ -146,8 +146,8 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "comment: [preset]" <<EOF
-  [preset]
+ptest "comment: [preset00]" <<EOF
+  [preset00]
 x=y
 EOF
 expect <<EOF

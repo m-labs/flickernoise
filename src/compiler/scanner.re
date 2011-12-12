@@ -90,7 +90,7 @@ int scan(struct scanner *s)
 					      s->cursor);
 					  goto std; }
 
-		<N>"[preset]"		{ goto std; }
+		<N>"[preset00]"		{ goto std; }
 
 		<N>[0-9]+		{ return TOK_CONSTANT; }
 		<N>[0-9]+ "." [0-9]*	{ return TOK_CONSTANT; }
