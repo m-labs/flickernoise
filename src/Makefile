@@ -4,27 +4,32 @@ RTEMS_MAKEFILE_PATH ?= \
 WITH_PDF ?= 0
 
 CROSS_COMPILER=lm32-rtems$(RTEMS_VERSION)-
-CC_normal := $(CROSS_COMPILER)gcc
-LD_normal := $(CROSS_COMPILER)gcc
-OBJCOPY_normal := $(CROSS_COMPILER)objcopy
-CC_quiet = @echo " CC " $@ && $(CROSS_COMPILER)gcc
-LD_quiet = @echo " LD " $@ && $(CROSS_COMPILER)gcc
-OBJCOPY_quiet = @echo " OBJCOPY " $@ && $(CROSS_COMPILER)objcopy
+
+CC_normal	:= $(CROSS_COMPILER)gcc
+LD_normal	:= $(CROSS_COMPILER)gcc
+OBJCOPY_normal	:= $(CROSS_COMPILER)objcopy
+
+CC_quiet	= @echo " CC " $@ && $(CROSS_COMPILER)gcc
+LD_quiet	= @echo " LD " $@ && $(CROSS_COMPILER)gcc
+OBJCOPY_quiet	= @echo " OBJCOPY " $@ && $(CROSS_COMPILER)objcopy
+GEN_quiet	= @echo " GENERATE " $@ &&
 
 ifeq ($(V),1)
-    CC = $(CC_normal)
-    AR = $(AR_normal)
-    AS = $(AS_normal)
-    LD = $(LD_normal)
-    OBJCOPY = $(OBJCOPY_normal)
-    RANLIB  = $(RANLIB_normal)
+    CC		= $(CC_normal)
+    AR		= $(AR_normal)
+    AS		= $(AS_normal)
+    LD		= $(LD_normal)
+    OBJCOPY	= $(OBJCOPY_normal)
+    RANLIB	= $(RANLIB_normal)
+    GEN		=
 else
-    CC = $(CC_quiet)
-    AR = $(AR_quiet)
-    AS = $(AS_quiet)
-    LD = $(LD_quiet)
-    OBJCOPY = $(OBJCOPY_quiet)
-    RANLIB  = $(RANLIB_quiet)
+    CC		= $(CC_quiet)
+    AR		= $(AR_quiet)
+    AS		= $(AS_quiet)
+    LD		= $(LD_quiet)
+    OBJCOPY	= $(OBJCOPY_quiet)
+    RANLIB	= $(RANLIB_quiet)
+    GEN		= $(GEN_quiet)
 endif
 
 CFLAGS = -O9 -Wall -Wstrict-prototypes -Wmissing-prototypes \
@@ -79,17 +84,17 @@ bandfilters.h: bandfilters.sce
 	scilab -nw -nwni -nogui -nb -f bandfilters.sce
 
 %.c: %.re
-	re2c -c -o $@ $<
+	$(GEN) re2c -c -o $@ $<
 
 %.c: %.y
-	lemon $<
+	$(GEN) lemon $<
 
 %.h %.inc: %.ids
-	cd compiler && ./idgen `basename $<`
+	$(GEN) cd compiler && ./idgen `basename $<`
 
 compiler/infra-fnp.h: \
 	  compiler/finish-pfv.fnp compiler/init-pvv.fnp compiler/finish-pvv.fnp
-	compiler/file2h $^ >$@ || { rm -f $@; }
+	$(GEN) compiler/file2h $^ >$@ || { rm -f $@; }
 
 compiler/parser.h: compiler/parser.c
 obj/compiler/scanner.o: compiler/parser.h
