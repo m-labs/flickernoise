@@ -116,7 +116,8 @@ int scan(struct scanner *s)
 		<N>"sqrt"		{ return TOK_SQRT; }
 		<N>"tsign"		{ return TOK_TSIGN; }
 
-		<N>"per_frame"		{ return TOK_PER_FRAME; }
+		<N>"per_frame"[a-z_0-9]*
+					{ return TOK_PER_FRAME; }
 		<N>"per_vertex"		{ return TOK_PER_VERTEX; }
 		<N>"per_pixel"		{ return TOK_PER_PIXEL; }
 

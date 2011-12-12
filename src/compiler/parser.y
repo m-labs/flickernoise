@@ -119,8 +119,8 @@ assignments ::= assignments assignment.
 
 assignments ::= .
 
-assignment ::= context(C) ident(I) TOK_ASSIGN node(N) opt_semi. {
-	state->error = C(state->comm, I->label, N);
+assignment ::= ident(I) TOK_ASSIGN node(N) opt_semi. {
+	state->error = state->comm->assign_default(state->comm, I->label, N);
 	if(state->error) {
 		syntax_error(state);
 		yy_parse_failed(yypParser);
@@ -139,8 +139,17 @@ assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 	}
 }
 
-context(C) ::= . {
-	C = state->comm->assign_default;
+assignment ::= context(C). {
+	/*
+	 * @@@ Vile madness ahead: a lot of patches have per_frame= or
+	 * per_vertex= tags followed by nothing else. We work around the
+	 * syntax issue by making these tags "sticky".
+	 *
+	 * This subtly changes the semantics. Also, changing assign_default
+	 * is not a good idea, since the caller may rely on it staying the
+	 * same.
+	 */
+	state->comm->assign_default = C;
 }
 
 context(C) ::= TOK_PER_FRAME TOK_ASSIGN. {
