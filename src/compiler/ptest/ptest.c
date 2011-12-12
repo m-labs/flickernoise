@@ -155,10 +155,27 @@ static const char *assign_default(struct parser_comm *comm,
 }
 
 
-static const char *assign_unsupported(struct parser_comm *comm,
+static const char *assign_per_frame(struct parser_comm *comm,
     const char *label, struct ast_node *node)
 {
-	return strdup("assignment mode not supported yet");
+	if (!quiet) {
+		printf("per_frame = %s = ", label);
+		dump_ast(node);
+		putchar('\n');
+	}
+	return NULL;
+}
+
+
+static const char *assign_per_vertex(struct parser_comm *comm,
+    const char *label, struct ast_node *node)
+{
+	if (!quiet) {
+		printf("per_vertex = %s = ", label);
+		dump_ast(node);
+		putchar('\n');
+	}
+	return NULL;
 }
 
 
@@ -215,8 +232,8 @@ int main(int argc, char **argv)
 	struct parser_comm comm = {
 		.u.fragment = &fragment,
 		.assign_default = assign_default,
-		.assign_per_frame = assign_unsupported,
-		.assign_per_vertex = assign_unsupported,
+		.assign_per_frame = assign_per_frame,
+		.assign_per_vertex = assign_per_vertex,
 		.assign_image_name = assign_image_name,
 	 };
 	const char *error;

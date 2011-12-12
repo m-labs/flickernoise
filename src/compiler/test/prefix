@@ -5,29 +5,29 @@
 
 ###############################################################################
 
-ptest_fail "prefix: per_frame=x = a+b" <<EOF
+ptest "prefix: per_frame=x = a+b" <<EOF
 per_frame=x = a+b
 EOF
 expect <<EOF
-FPVM, line 1, near "b": assignment mode not supported yet
+per_frame = x = (+ a b)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "prefix: per_vertex= x = a+b" <<EOF
+ptest "prefix: per_vertex= x = a+b" <<EOF
 per_vertex = x = a+b
 EOF
 expect <<EOF
-FPVM, line 1, near "b": assignment mode not supported yet
+per_vertex = x = (+ a b)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "prefix: per_pixel=x = a+b" <<EOF
+ptest "prefix: per_pixel=x = a+b" <<EOF
 per_pixel=x = a+b
 EOF
 expect <<EOF
-FPVM, line 1, near "b": assignment mode not supported yet
+per_vertex = x = (+ a b)
 EOF
 
 ###############################################################################
