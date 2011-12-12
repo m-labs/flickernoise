@@ -55,7 +55,7 @@ int fpvm_parse(const char *expr, int start_token, union parser_comm *comm)
 	int tok;
 	struct id *identifier;
 	void *p;
-	
+
 	s = new_scanner((unsigned char *)expr);
 	p = ParseAlloc(malloc);
 	Parse(p, start_token, NULL, &state);

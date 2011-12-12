@@ -56,7 +56,6 @@
 		[TOK_MIN]	= op_min,
 		[TOK_MAX]	= op_max,
 		[TOK_INT]	= op_int,
-		
 	};
 
 	struct ast_node *node(int token, const char *id, struct ast_node *a,
@@ -88,7 +87,7 @@
 %syntax_error {
 	if(!state->error_label) {
 		state->error_label = state->id->label;
-		state->error_lineno = state->id->lineno; 
+		state->error_lineno = state->id->lineno;
 	}
 	yy_parse_failed(yypParser);
 }

@@ -33,10 +33,10 @@
 struct scanner *new_scanner(unsigned char *input)
 {
 	struct scanner *s;
-	
+
 	s = malloc(sizeof(struct scanner));
 	if(s == NULL) return NULL;
-	
+
 	s->marker = input;
 	s->old_cursor = input;
 	s->cursor = input;
@@ -66,7 +66,7 @@ int scan(struct scanner *s)
 	std:
 	if(s->cursor == s->limit) return TOK_EOF;
 	s->old_cursor = s->cursor;
-	
+
 	/*!re2c
 		[\x20\r\t]		{ goto std; }
 		"\n"			{ s->lineno++;

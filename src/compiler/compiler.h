@@ -117,7 +117,7 @@ enum {
 	pfv_osc2,
 	pfv_osc3,
 	pfv_osc4,
-	
+
 	pfv_midi1,
 	pfv_midi2,
 	pfv_midi3,
@@ -128,7 +128,7 @@ enum {
 	pfv_midi8,
 
 	pfv_video_a,
-	
+
 	pfv_image1_a,
 	pfv_image1_x,
 	pfv_image1_y,
@@ -191,7 +191,7 @@ enum {
 	pvv_osc2,
 	pvv_osc3,
 	pvv_osc4,
-	
+
 	pvv_midi1,
 	pvv_midi2,
 	pvv_midi3,
