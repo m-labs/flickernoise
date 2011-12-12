@@ -64,7 +64,7 @@ static const char *alloc_printf(const char *fmt, ...)
 }
 
 const char *fpvm_parse(const char *expr, int start_token,
-    union parser_comm *comm)
+    struct parser_comm *comm)
 {
 	struct scanner *s;
 	struct parser_state state = {

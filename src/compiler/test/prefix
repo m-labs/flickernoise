@@ -1,0 +1,33 @@
+#!/bin/sh
+. ./Common
+
+# WORK IN PROGRESS
+
+###############################################################################
+
+ptest_fail "prefix: per_frame=x = a+b" <<EOF
+per_frame=x = a+b
+EOF
+expect <<EOF
+FPVM, line 1, near "b": assignment mode not supported yet
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "prefix: per_vertex= x = a+b" <<EOF
+per_vertex = x = a+b
+EOF
+expect <<EOF
+FPVM, line 1, near "b": assignment mode not supported yet
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "prefix: per_pixel=x = a+b" <<EOF
+per_pixel=x = a+b
+EOF
+expect <<EOF
+FPVM, line 1, near "b": assignment mode not supported yet
+EOF
+
+###############################################################################

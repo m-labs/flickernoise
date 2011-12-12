@@ -21,13 +21,21 @@
 #include <fpvm/ast.h>
 #include <fpvm/fpvm.h>
 
-union parser_comm {
-	struct ast_node *parseout;
-	struct fpvm_fragment *fragment;
+struct parser_comm {
+	union {
+		struct ast_node *parseout;
+		struct fpvm_fragment *fragment;
+	} u;
+	const char *(*assign_default)(struct parser_comm *comm,
+	    const char *label, struct ast_node *node);
+	const char *(*assign_per_frame)(struct parser_comm *comm,
+	    const char *label, struct ast_node *node);
+	const char *(*assign_per_vertex)(struct parser_comm *comm,
+	    const char *label, struct ast_node *node);
 };
 
 const char *fpvm_parse(const char *expr, int start_token,
-    union parser_comm *comm);
+    struct parser_comm *comm);
 void fpvm_parse_free(struct ast_node *node);
 
 #endif /* __PARSER_HELPER_H */

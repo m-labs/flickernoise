@@ -31,6 +31,9 @@
 	struct yyParser;
 	static void yy_parse_failed(struct yyParser *yypParser);
 
+	typedef const char *(*assign_callback)(struct parser_comm *comm,
+	    const char *label, struct ast_node *node);
+
 	const enum ast_op tok2op[] = {
 		[TOK_IDENT]	= op_ident,
 		[TOK_CONSTANT]	= op_constant,
@@ -95,13 +98,16 @@
 
 %type node {struct ast_node *}
 %destructor node { free($$); }
+
+%type context {assign_callback}
+
 %syntax_error {
 	syntax_error(state);
 	yy_parse_failed(yypParser);
 }
 
 start ::= TOK_START_EXPR node(N). {
-	state->comm->parseout = N;
+	state->comm->u.parseout = N;
 	state->success = 1;
 }
 
@@ -113,15 +119,30 @@ assignments ::= assignments assignment.
 
 assignments ::= .
 
-assignment ::= ident(I) TOK_ASSIGN node(N) opt_semi. {
-	if(!fpvm_do_assign(state->comm->fragment, I->label, N)) {
-		state->error =
-		    strdup(fpvm_get_last_error(state->comm->fragment));
+assignment ::= context(C) ident(I) TOK_ASSIGN node(N) opt_semi. {
+	state->error = C(state->comm, I->label, N);
+	if(state->error) {
 		syntax_error(state);
 		yy_parse_failed(yypParser);
 		return;
 	}
 	fpvm_parse_free(N);
+}
+
+context(C) ::= . {
+	C = state->comm->assign_default;
+}
+
+context(C) ::= TOK_PER_FRAME TOK_ASSIGN. {
+	C = state->comm->assign_per_frame;
+}
+
+context(C) ::= TOK_PER_VERTEX TOK_ASSIGN. {
+	C = state->comm->assign_per_vertex;
+}
+
+context(C) ::= TOK_PER_PIXEL TOK_ASSIGN. {
+	C = state->comm->assign_per_vertex;
 }
 
 opt_semi ::= opt_semi TOK_SEMI.

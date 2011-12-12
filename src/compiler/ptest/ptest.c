@@ -141,19 +141,24 @@ const char *fpvm_get_last_error(struct fpvm_fragment *fragment)
 }
 
 
-int fpvm_do_assign(struct fpvm_fragment *fragment, const char *dest,
-    struct ast_node *ast)
+static const char *assign_default(struct parser_comm *comm,
+    const char *label, struct ast_node *node)
 {
-	if (fail) {
-		snprintf(fragment->last_error, FPVM_MAXERRLEN, "%s", fail);
-		return 0;
-	}
+	if (fail)
+		return strdup(fail);
 	if (!quiet) {
-		printf("%s = ", dest);
-		dump_ast(ast);
+		printf("%s = ", label);
+		dump_ast(node);
 		putchar('\n');
 	}
-	return 1;
+	return NULL;
+}
+
+
+static const char *assign_unsupported(struct parser_comm *comm,
+    const char *label, struct ast_node *node)
+{
+	return strdup("assignment mode not supported yet");
 }
 
 
@@ -199,7 +204,12 @@ int main(int argc, char **argv)
 	int c;
 	const char *buf;
 	struct fpvm_fragment fragment;
-	union parser_comm comm = { .fragment = &fragment };
+	struct parser_comm comm = {
+		.u.fragment = &fragment,
+		.assign_default = assign_default,
+		.assign_per_frame = assign_unsupported,
+		.assign_per_vertex = assign_unsupported,
+	 };
 	const char *error;
 
 	while ((c = getopt(argc, argv, "f:q")) != EOF)

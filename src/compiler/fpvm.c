@@ -17,6 +17,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <fpvm/fpvm.h>
 #include <fpvm/ast.h>
@@ -46,7 +47,7 @@ void fpvm_init(struct fpvm_fragment *fragment, int vector_mode)
 int fpvm_assign(struct fpvm_fragment *fragment, const char *dest,
     const char *expr)
 {
-	union parser_comm comm;
+	struct parser_comm comm;
 	const char *error;
 	int res;
 
@@ -59,16 +60,38 @@ int fpvm_assign(struct fpvm_fragment *fragment, const char *dest,
 
 	dest = unique(dest);
 
-	res = fpvm_do_assign(fragment, dest, comm.parseout);
-	fpvm_parse_free(comm.parseout);
+	res = fpvm_do_assign(fragment, dest, comm.u.parseout);
+	fpvm_parse_free(comm.u.parseout);
 
 	return res;
 }
 
 
+static const char *assign_default(struct parser_comm *comm,
+    const char *label, struct ast_node *node)
+{
+	if(fpvm_do_assign(comm->u.fragment, label, node))
+		return NULL;
+	else
+		return strdup(fpvm_get_last_error(comm->u.fragment));
+}
+
+
+static const char *assign_unsupported(struct parser_comm *comm,
+    const char *label, struct ast_node *node)
+{
+	return strdup("assignment mode not supported yet");
+}
+
+
 int fpvm_chunk(struct fpvm_fragment *fragment, const char *chunk)
 {
-	union parser_comm comm = { .fragment = fragment };
+	struct parser_comm comm = {
+		.u.fragment = fragment,
+		.assign_default = assign_default,
+		.assign_per_frame = assign_unsupported,
+		.assign_per_vertex = assign_unsupported,
+	};
 	const char *error;
 
 	error = fpvm_parse(chunk, TOK_START_ASSIGN, &comm);

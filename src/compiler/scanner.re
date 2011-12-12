@@ -109,6 +109,10 @@ int scan(struct scanner *s)
 		"sqrt"			{ return TOK_SQRT; }
 		"tsign"			{ return TOK_TSIGN; }
 
+		"per_frame"		{ return TOK_PER_FRAME; }
+		"per_vertex"		{ return TOK_PER_VERTEX; }
+		"per_pixel"		{ return TOK_PER_PIXEL; }
+
 		[a-zA-Z_0-9]+		{ return TOK_IDENT; }
 
 		"+"			{ return TOK_PLUS; }
