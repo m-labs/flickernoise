@@ -52,7 +52,7 @@ ptest_fail "number: f = ." <<EOF
 f = .
 EOF
 expect <<EOF
-FPVM, line 1, near ".": scan error
+FPVM, line 1: scan error near '.'
 EOF
 
 ###############################################################################

@@ -10,7 +10,7 @@ c = d
 EOF
 expect <<EOF
 a = b
-FPVM, line 2, near "\`": scan error
+FPVM, line 2: scan error near '\`'
 EOF
 
 #------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ a = b
 c = d
 EOF
 expect <<EOF
-FPVM, line 2, near "\`": scan error
+FPVM, line 2: scan error near '\`'
 EOF
 
 #------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ c = d
 EOF
 expect <<EOF
 a = b
-FPVM, line 2, near "\`": scan error
+FPVM, line 2: scan error near '\`'
 EOF
 
 #------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ c = d
 EOF
 expect <<EOF
 a = b
-FPVM, line 2, near "*": parse error
+FPVM, line 2: parse error near '*'
 EOF
 
 #------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ c = d
 EOF
 expect <<EOF
 a = b
-FPVM, line 2, near ")x": parse error
+FPVM, line 2: parse error near ')x'
 EOF
 
 #------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ EOF
 expect <<EOF
 a = b
 x = y
-FPVM, line 2, near "(": parse error
+FPVM, line 2: parse error near '('
 EOF
 
 #------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ c = d
 EOF
 expect <<EOF
 a = b
-FPVM, line 2, near ")": parse error
+FPVM, line 2: parse error near ')'
 EOF
 
 #------------------------------------------------------------------------------
@@ -93,14 +93,14 @@ x =
 EOF
 expect <<EOF
 a = b
-FPVM, line 2, near "=": parse error
+FPVM, line 2: parse error near '='
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: error is EOF" "x="
 expect <<EOF
-FPVM, line 1, near "=": parse error
+FPVM, line 1: parse error near '='
 EOF
 
 #------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ foo = this is an error
 EOF
 expect <<EOF
 foo = this
-FPVM, line 1, near "an": parse error
+FPVM, line 1: parse error near 'an'
 EOF
 
 #------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ EOF
 expect <<EOF
 a = b
 c = d
-FPVM, line 3, near ")": parse error
+FPVM, line 3: parse error near ')'
 EOF
 
 #------------------------------------------------------------------------------
@@ -138,7 +138,7 @@ EOF
 expect <<EOF
 a = b
 c = d
-FPVM, line 5, near ")": parse error
+FPVM, line 5: parse error near ')'
 EOF
 
 #------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ EOF
 expect <<EOF
 a = b
 c = d
-FPVM, line 4, near ")": parse error
+FPVM, line 4: parse error near ')'
 EOF
 
 ###############################################################################

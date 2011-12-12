@@ -7,7 +7,7 @@ ptest_fail "syntax error: x = backtick" <<EOF
 x = \`
 EOF
 expect <<EOF
-FPVM, line 1, near "\`": scan error
+FPVM, line 1: scan error near '\`'
 EOF
 
 #------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ x = a b
 EOF
 expect <<EOF
 x = a
-FPVM, line 1, near "b": parse error
+FPVM, line 1: parse error near 'b'
 EOF
 
 #------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ ptest_fail "syntax error: x = a + + b" <<EOF
 x = a + + b
 EOF
 expect <<EOF
-FPVM, line 1, near "+": parse error
+FPVM, line 1: parse error near '+'
 EOF
 
 #------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ ptest_fail "code generation error" -f "codegen" <<EOF
 x = a + b
 EOF
 expect <<EOF
-FPVM, line 1, near "b": codegen
+FPVM, line 1: codegen near 'b'
 EOF
 
 ###############################################################################

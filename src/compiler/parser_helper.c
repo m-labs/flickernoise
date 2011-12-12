@@ -104,7 +104,7 @@ const char *fpvm_parse(const char *expr, int start_token,
 		state.id = identifier;
 		if(tok == TOK_ERROR) {
 			error = alloc_printf(
-			    "FPVM, line %d, near \"%c\": scan error",
+			    "FPVM, line %d: scan error near '%c'",
 			    s->lineno, printable_char(s->cursor[-1]));
 			ParseFree(p, free);
 			delete_scanner(s);
@@ -119,10 +119,10 @@ const char *fpvm_parse(const char *expr, int start_token,
 
 	if(!state.success) {
 		error = alloc_printf(
-		    "FPVM, line %d, near \"%.*s\": %s",
-		    state.error_lineno, printable_label(state.error_label),
-		    state.error_label,
-		    state.error ? state.error : "parse error");
+		    "FPVM, line %d: %s near '%.*s'",
+		    state.error_lineno,
+		    state.error ? state.error : "parse error",
+		    printable_label(state.error_label), state.error_label);
 		free((void *) state.error);
 	}
 
