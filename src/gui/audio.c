@@ -87,7 +87,7 @@ static void mute_callback(mtk_event *e, void *arg)
 	}
 }
 
-void load_audio_config()
+void load_audio_config(void)
 {
 	line_vol = config_read_int("line_vol", 100);
 	line_mute = config_read_int("line_mute", 0);
@@ -134,7 +134,7 @@ static void close_callback(mtk_event *e, void *arg)
 	load_audio_config();
 }
 
-void init_audio()
+void init_audio(void)
 {
 	appid = mtk_init_app("Audio");
 
@@ -193,7 +193,7 @@ void init_audio()
 	load_audio_config();
 }
 
-void open_audio_window()
+void open_audio_window(void)
 {
 	if(w_open) return;
 	w_open = 1;

@@ -28,7 +28,7 @@ static void close_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "w.close()");
 }
 
-void init_messagebox()
+void init_messagebox(void)
 {
 	appid = mtk_init_app("Messagebox");
 	mtk_cmd_seq(appid,

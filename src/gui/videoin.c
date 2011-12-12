@@ -114,7 +114,7 @@ static void format_callback(mtk_event *e, void *arg)
 	set_format((int)arg);
 }
 
-void load_videoin_config()
+void load_videoin_config(void)
 {
 	set_format(config_read_int("vin_format", VIDEO_FORMAT_CVBS6));
 
@@ -204,7 +204,7 @@ static void close_callback(mtk_event *e, void *arg)
 	close_videoin_window();
 }
 
-void init_videoin()
+void init_videoin(void)
 {
 	appid = mtk_init_app("Video in");
 
@@ -308,7 +308,7 @@ void init_videoin()
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
-void open_videoin_window()
+void open_videoin_window(void)
 {
 	if(w_open) return;
 

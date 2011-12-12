@@ -104,7 +104,7 @@ static void clearidle_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "e_idle.set(-text \"\")");
 }
 
-void init_rsswall()
+void init_rsswall(void)
 {
 	appid = mtk_init_app("RSS wall");
 
@@ -168,7 +168,7 @@ void init_rsswall()
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 }
 
-void open_rsswall_window()
+void open_rsswall_window(void)
 {
 	if(w_open) return;
 	w_open = 1;
@@ -335,7 +335,7 @@ static rtems_task rsswall_task(rtems_task_argument argument)
 	rtems_task_delete(RTEMS_SELF);
 }
 
-void rsswall_start()
+void rsswall_start(void)
 {
 	rtems_status_code sc;
 	
@@ -369,7 +369,7 @@ void rsswall_start()
 	rsswall_running = 1;
 }
 
-void rsswall_stop()
+void rsswall_stop(void)
 {
 	if(!rsswall_running) return;
 	rtems_event_send(rsswall_task_id, RTEMS_EVENT_1);

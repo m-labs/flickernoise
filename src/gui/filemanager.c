@@ -286,7 +286,7 @@ static void unlock_callback(mtk_event *e, void *arg)
 	unlock++;
 }
 
-void init_filemanager()
+void init_filemanager(void)
 {
 	appid = mtk_init_app("File manager");
 
@@ -466,7 +466,7 @@ static void display_folder(int panel, const char *folder)
 	mtk_cmdf(appid, "p%d_listf.expose(0, 0)", panel);
 }
 
-void open_filemanager_window()
+void open_filemanager_window(void)
 {
 	unlock = 0;
 	display_folder(0, ROOT_FOLDER);

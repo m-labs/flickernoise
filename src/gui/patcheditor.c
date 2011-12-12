@@ -185,7 +185,7 @@ static void accel_callback(mtk_event *e, void *arg)
 
 static void close_callback(mtk_event *e, void *arg);
 
-void init_patcheditor()
+void init_patcheditor(void)
 {
 	appid = mtk_init_app("Patch editor");
 	mtk_cmd_seq(appid,
@@ -239,7 +239,7 @@ static void close_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "w.close()");
 }
 
-void open_patcheditor_window()
+void open_patcheditor_window(void)
 {
 	if(w_open) return;
 	w_open = 1;

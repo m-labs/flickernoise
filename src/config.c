@@ -146,7 +146,7 @@ void config_delete(const char *key)
 	free(e);
 }
 
-void config_free()
+void config_free(void)
 {
 	struct element *e, *next;
 

@@ -62,7 +62,7 @@ static void browse_ok_callback(void *arg)
 	mtk_cmdf(appid, "e_filename.set(-text \"%s\")", filename);
 }
 
-void init_firstpatch()
+void init_firstpatch(void)
 {
 	appid = mtk_init_app("First patch");
 
@@ -102,7 +102,7 @@ void init_firstpatch()
 	browse_dlg = create_filedialog("Select first patch", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
 }
 
-void open_firstpatch_window()
+void open_firstpatch_window(void)
 {
 	const char *firstpatch;
 	

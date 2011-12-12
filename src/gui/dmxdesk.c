@@ -82,7 +82,7 @@ static void close_callback(mtk_event *e, void *arg)
 	close_dmxdesk_window();
 }
 
-void init_dmxdesk()
+void init_dmxdesk(void)
 {
 	int i;
 
@@ -115,7 +115,7 @@ void init_dmxdesk()
 
 static int w_open;
 
-void open_dmxdesk_window()
+void open_dmxdesk_window(void)
 {
 	if(w_open) return;
 	w_open = 1;
@@ -131,7 +131,7 @@ void open_dmxdesk_window()
 	mtk_cmd(appid, "w.open()");
 }
 
-void close_dmxdesk_window()
+void close_dmxdesk_window(void)
 {
 	if(!w_open) return;
 	w_open = 0;

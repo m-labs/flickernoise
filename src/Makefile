@@ -28,7 +28,7 @@ else
 endif
 
 CFLAGS = -O9 -Wall -Wstrict-prototypes -Wmissing-prototypes \
-	 -Wold-style-declaration \
+	 -Wold-style-declaration -Wold-style-definition \
 	 -mbarrel-shift-enabled -mmultiply-enabled \
 	 -mdivide-enabled -msign-extend-enabled -fsingle-precision-constant \
 	 -I$(RTEMS_MAKEFILE_PATH)/lib/include -g

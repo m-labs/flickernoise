@@ -64,7 +64,7 @@ static void set_chain_mode(int chain)
 	resmgr_release(RESOURCE_DMX_OUT);
 }
 
-void load_dmx_config()
+void load_dmx_config(void)
 {
 	int i, value;
 	char confname[12];
@@ -142,7 +142,7 @@ static void close_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "w.close()");
 }
 
-void init_dmx()
+void init_dmx(void)
 {
 	int i;
 
@@ -212,7 +212,7 @@ void init_dmx()
 	set_chain_mode(1);
 }
 
-void open_dmx_window()
+void open_dmx_window(void)
 {
 	if(w_open) return;
 	w_open = 1;

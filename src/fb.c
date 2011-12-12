@@ -90,7 +90,7 @@ void init_fb_mtk(int quiet)
 	}
 }
 
-void fb_unblank()
+void fb_unblank(void)
 {
 	if(blanked) {
 		set_mode(sysconfig_get_resolution());
@@ -101,7 +101,7 @@ void fb_unblank()
 	}
 }
 
-void fb_render_mode()
+void fb_render_mode(void)
 {
 	set_mode(SC_RESOLUTION_640_480);
 	ioctl(framebuffer_fd, FBIOSETBUFFERMODE, FB_TRIPLE_BUFFERED);
@@ -109,7 +109,7 @@ void fb_render_mode()
 	g_render_mode = 1;
 }
 
-void fb_gui_mode()
+void fb_gui_mode(void)
 {
 	set_mode(sysconfig_get_resolution());
 	ioctl(framebuffer_fd, FBIOSETBUFFERMODE, FB_SINGLE_BUFFERED);
@@ -117,12 +117,12 @@ void fb_gui_mode()
 	g_render_mode = 0;
 }
 
-int fb_get_mode()
+int fb_get_mode(void)
 {
 	return g_render_mode;
 }
 
-void fb_resize_gui()
+void fb_resize_gui(void)
 {
 	struct fb_fix_screeninfo fb_fix;
 	int mode, hres, vres;

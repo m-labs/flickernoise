@@ -54,7 +54,7 @@ static struct filedialog *save_dlg;
 
 static int changed;
 
-void cp_notify_changed()
+void cp_notify_changed(void)
 {
 	if(changed) return;
 	changed = 1;
@@ -207,7 +207,7 @@ static void cp_callback(mtk_event *e, void *arg)
 	}
 }
 
-void init_cp()
+void init_cp(void)
 {
 	appid = mtk_init_app("Control panel");
 
@@ -363,7 +363,7 @@ void init_cp()
 	save_dlg = create_filedialog("Save performance", 1, "per", saveok_callback, NULL, NULL, NULL);
 }
 
-void cp_autostart()
+void cp_autostart(void)
 {
 	char autostart[256];
 	int dt, as;

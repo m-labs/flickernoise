@@ -37,7 +37,7 @@ static void flash_callback(mtk_event *e, void *arg)
 
 #define FLASH_OFFSET_MAC_ADDRESS (0x002200E0)
 
-void init_about()
+void init_about(void)
 {
 	unsigned char *macadr = (unsigned char *)FLASH_OFFSET_MAC_ADDRESS;
 
@@ -93,7 +93,7 @@ void init_about()
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
-void open_about_window()
+void open_about_window(void)
 {
 	mtk_cmd(appid, "w.open()");
 }

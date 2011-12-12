@@ -44,7 +44,7 @@ static void shutdown_callback(mtk_event *e, void *arg)
 	clean_shutdown(turnoff);
 }
 
-void init_shutdown()
+void init_shutdown(void)
 {
 	appid = mtk_init_app("Shutdown");
 	mtk_cmd_seq(appid,
@@ -67,7 +67,7 @@ void init_shutdown()
 	mtk_bind(appid, "w", "close", cancel_callback, NULL);
 }
 
-void open_shutdown_window()
+void open_shutdown_window(void)
 {
 	mtk_cmd(appid, "w.open()");
 }

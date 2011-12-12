@@ -434,7 +434,7 @@ static void autobuild_callback(mtk_event *e, void *arg)
 	update_list();
 }
 
-void init_midi()
+void init_midi(void)
 {
 	int i;
 	
@@ -571,7 +571,7 @@ void init_midi()
 	browse_dlg = create_filedialog("Select MIDI patch", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
 }
 
-void open_midi_window()
+void open_midi_window(void)
 {
 	if(w_open) return;
 	w_open = 1;

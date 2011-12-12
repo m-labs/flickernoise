@@ -135,7 +135,7 @@ static void clear_wallpaper_callback(mtk_event *e, void *arg)
 	mtk_cmd(appid, "e_wallpaper.set(-text \"\")");
 }
 
-void init_sysettings()
+void init_sysettings(void)
 {
 	appid = mtk_init_app("System settings");
 
@@ -332,7 +332,7 @@ void init_sysettings()
 	browse_autostart_dlg = create_filedialog("Select autostart performance", 0, "per", autostart_ok_callback, NULL, NULL, NULL);
 }
 
-void sysettings_update_resolution()
+void sysettings_update_resolution(void)
 {
 	int resolution;
 
@@ -373,7 +373,7 @@ static void update_layout(void)
 	mtk_cmdf(appid, "b_kbd_german.set(-state %s)", layout == SC_KEYBOARD_LAYOUT_GERMAN ? "on" : "off");
 }
 
-static void update_network()
+static void update_network(void)
 {
 	int dhcp_enable;
 	unsigned int ip;
@@ -477,7 +477,7 @@ static int previous_layout;
 static int previous_dhcp;
 static unsigned int previous_ip, previous_netmask, previous_gateway, previous_dns1, previous_dns2;
 
-void open_sysettings_window()
+void open_sysettings_window(void)
 {
 	if(w_open) return;
 	w_open = 1;

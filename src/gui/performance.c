@@ -222,7 +222,7 @@ static void go_callback(mtk_event *e, void *arg)
 	start_performance(simple_mode, dt_mode, as_mode);
 }
 
-void init_performance()
+void init_performance(void)
 {
 	appid = mtk_init_app("Performance");
 
@@ -522,7 +522,7 @@ static void refresh_callback(mtk_event *e, int count)
 	}
 }
 
-void open_performance_window()
+void open_performance_window(void)
 {
 	update_buttons();
 	mtk_cmd(appid, "w.open()");

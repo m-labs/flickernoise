@@ -166,7 +166,7 @@ static void sysconfig_credentials_lock_init(void);
 static void sysconfig_credentials_lock(void);
 static void sysconfig_credentials_unlock(void);
 
-int sysconfig_is_rescue()
+int sysconfig_is_rescue(void)
 {
 	const char *bsp_cmdline;
 	
@@ -178,7 +178,7 @@ int sysconfig_is_rescue()
 
 static void start_dhcp_task(void);
 
-void sysconfig_load()
+void sysconfig_load(void)
 {
 	struct sysconfig conf;
 
@@ -216,7 +216,7 @@ void sysconfig_load()
 	}
 }
 
-void sysconfig_save()
+void sysconfig_save(void)
 {
 	FILE *fd;
 
@@ -334,7 +334,7 @@ static void route_set_gateway(unsigned int ip)
 
 /* get */
 
-int sysconfig_get_resolution()
+int sysconfig_get_resolution(void)
 {
 	return sysconfig.resolution;
 }
@@ -344,12 +344,12 @@ void sysconfig_get_wallpaper(char *wallpaper)
 	strcpy(wallpaper, sysconfig.wallpaper);
 }
 
-int sysconfig_get_language()
+int sysconfig_get_language(void)
 {
 	return sysconfig.language;
 }
 
-int sysconfig_get_keyboard_layout()
+int sysconfig_get_keyboard_layout(void)
 {
 	return sysconfig.keyboard_layout;
 }
@@ -376,7 +376,7 @@ void sysconfig_get_credentials(char *login, char *password)
 	strcpy(password, sysconfig.password);
 }
 
-int sysconfig_get_autostart_mode()
+int sysconfig_get_autostart_mode(void)
 {
 	return sysconfig.autostart_mode;
 }
@@ -405,7 +405,7 @@ void sysconfig_set_resolution(int resolution)
 		fb_resize_gui();
 }
 
-void sysconfig_set_mtk_wallpaper()
+void sysconfig_set_mtk_wallpaper(void)
 {
 	struct pixbuf *p;
 	
@@ -439,7 +439,7 @@ void sysconfig_set_language(int language)
 	sysconfig_set_mtk_language();
 }
 
-void sysconfig_set_mtk_language()
+void sysconfig_set_mtk_language(void)
 {
 	switch(sysconfig.language) {
 		case SC_LANGUAGE_FRENCH:

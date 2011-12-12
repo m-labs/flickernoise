@@ -53,7 +53,7 @@ static void input_cb(mtk_event *e, int count);
 static int guirender_running;
 static guirender_stop_callback callback;
 
-void guirender_stop()
+void guirender_stop(void)
 {
 	if(!guirender_running) return;
 	guirender_running = 0;

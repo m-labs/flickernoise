@@ -246,7 +246,7 @@ static void autobuild_callback(mtk_event *e, void *arg)
 	update_list();
 }
 
-void init_oscsettings()
+void init_oscsettings(void)
 {
 	appid = mtk_init_app("OSC");
 
@@ -323,7 +323,7 @@ void init_oscsettings()
 	browse_dlg = create_filedialog("OSC patch select", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
 }
 
-void open_oscsettings_window()
+void open_oscsettings_window(void)
 {
 	if(w_open) return;
 	w_open = 1;

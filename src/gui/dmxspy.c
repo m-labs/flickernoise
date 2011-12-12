@@ -76,7 +76,7 @@ static void close_callback(mtk_event *e, void *arg)
 	close_dmxspy_window();
 }
 
-void init_dmxspy()
+void init_dmxspy(void)
 {
 	appid = mtk_init_app("DMX spy");
 
@@ -100,7 +100,7 @@ void init_dmxspy()
 
 }
 
-void open_dmxspy_window()
+void open_dmxspy_window(void)
 {
 	if(w_open) return;
 	if(!resmgr_acquire("DMX spy", RESOURCE_DMX_IN)) return;
@@ -117,7 +117,7 @@ void open_dmxspy_window()
 	input_add_callback(dmxspy_update);
 }
 
-void close_dmxspy_window()
+void close_dmxspy_window(void)
 {
 	mtk_cmd(appid, "w.close()");
 	input_delete_callback(dmxspy_update);

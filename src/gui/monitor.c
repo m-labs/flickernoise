@@ -134,7 +134,7 @@ static void close_callback(mtk_event *e, void *arg)
 	w_open = 0;
 }
 
-void init_monitor()
+void init_monitor(void)
 {
 	int i;
 	int column;
@@ -167,7 +167,7 @@ void init_monitor()
 	mtk_bind(appid, "w", "close", close_callback, NULL);
 }
 
-void open_monitor_window()
+void open_monitor_window(void)
 {
 	if(w_open) return;
 
@@ -186,7 +186,7 @@ void open_monitor_window()
 	sampler_start(sampler_callback);
 }
 
-void monitor_notify_changed()
+void monitor_notify_changed(void)
 {
 	if(!w_open) return;
 	sampler_stop();

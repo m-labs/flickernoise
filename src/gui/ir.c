@@ -261,7 +261,7 @@ static void autobuild_callback(mtk_event *e, void *arg)
 	update_list();
 }
 
-void init_ir()
+void init_ir(void)
 {
 	appid = mtk_init_app("IR remote control settings");
 
@@ -340,7 +340,7 @@ void init_ir()
 	browse_dlg = create_filedialog("Select IR patch", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
 }
 
-void open_ir_window()
+void open_ir_window(void)
 {
 	if(w_open) return;
 	w_open = 1;

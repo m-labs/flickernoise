@@ -160,7 +160,7 @@ static rtems_task osc_task(rtems_task_argument argument)
 
 static rtems_id osc_task_id;
 
-void init_osc()
+void init_osc(void)
 {
 	rtems_status_code sc;
 

@@ -243,7 +243,7 @@ static void autobuild_callback(mtk_event *e, void *arg)
 	update_list();
 }
 
-void init_keyboard()
+void init_keyboard(void)
 {
 	appid = mtk_init_app("Keyboard");
 
@@ -322,7 +322,7 @@ void init_keyboard()
 	browse_dlg = create_filedialog("Select keyboard patch", 0, "fnp", browse_ok_callback, NULL, NULL, NULL);
 }
 
-void open_keyboard_window()
+void open_keyboard_window(void)
 {
 	if(w_open) return;
 	w_open = 1;

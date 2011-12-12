@@ -761,7 +761,7 @@ static void opendialog_callback(mtk_event *e, void *arg)
 	open_filedialog(file_dlg);
 }
 
-void init_flash()
+void init_flash(void)
 {
 	appid = mtk_init_app("Flash");
 
