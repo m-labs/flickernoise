@@ -61,6 +61,11 @@ static int nls(const unsigned char *s, const unsigned char *end)
 	return n;
 }
 
+/*
+ * Regular expression for C-style comments by Stephen Ostermiller, from
+ * http://ostermiller.org/findcomment.html
+ */
+
 int scan(struct scanner *s)
 {
 	std:
@@ -73,7 +78,7 @@ int scan(struct scanner *s)
 					  goto std; }
 
 		"//"[^\n\x00]*		{ goto std; }
-		"/*"("*"*[^/\x00]|[^*\x00])*"*"+"/"
+		"/*"([^*\x00]|("*"+([^*/\x00])))*"*"+"/"
 					{ s->lineno += nls(s->old_cursor,
 					      s->cursor);
 					  goto std; }
