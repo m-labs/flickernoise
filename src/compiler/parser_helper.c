@@ -16,6 +16,7 @@
  */
 
 #include <stdarg.h>
+#define _GNU_SOURCE /* for asprintf */
 #include <stdlib.h>
 #include <stdio.h>
 #include <malloc.h>
@@ -44,25 +45,6 @@ static int printable_label(const char *s)
 	return p-s;
 }
 
-static const char *alloc_printf(const char *fmt, ...)
-{
-	va_list ap;
-	int n;
-	char *s;
-
-	va_start(ap, fmt);
-	n = vsnprintf(NULL, 0, fmt, ap);
-	va_end(ap);
-
-	s = malloc(n+1);
-
-	va_start(ap, fmt);
-	vsnprintf(s, n+1, fmt, ap);
-	va_end(ap);
-
-	return s;
-}
-
 const char *fpvm_parse(const char *expr, int start_token,
     struct parser_comm *comm)
 {
@@ -77,7 +59,7 @@ const char *fpvm_parse(const char *expr, int start_token,
 	int tok;
 	struct id *identifier;
 	void *p;
-	const char *error = NULL;
+	char *error = NULL;
 
 	s = new_scanner((unsigned char *)expr);
 	p = ParseAlloc(malloc);
@@ -103,7 +85,7 @@ const char *fpvm_parse(const char *expr, int start_token,
 
 		state.id = identifier;
 		if(tok == TOK_ERROR) {
-			error = alloc_printf(
+			asprintf(&error,
 			    "FPVM, line %d: scan error near '%c'",
 			    s->lineno, printable_char(s->cursor[-1]));
 			ParseFree(p, free);
@@ -118,7 +100,7 @@ const char *fpvm_parse(const char *expr, int start_token,
 	delete_scanner(s);
 
 	if(!state.success) {
-		error = alloc_printf(
+		asprintf(&error,
 		    "FPVM, line %d: %s near '%.*s'",
 		    state.error_lineno,
 		    state.error ? state.error : "parse error",
