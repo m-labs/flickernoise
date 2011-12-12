@@ -31,6 +31,8 @@
 #include "unique.h"
 #include "compiler.h"
 
+#include "infra-fnp.h"
+
 struct compiler_sc {
 	struct patch *p;
 
@@ -292,9 +294,8 @@ static bool init_pfv(struct compiler_sc *sc)
 static bool finalize_pfv(struct compiler_sc *sc)
 {
 	/* assign dummy values for output */
-	if(!fpvm_assign(&sc->pfv_fragment, "_Xo", "_Xi")) goto fail_fpvm;
-	if(!fpvm_assign(&sc->pfv_fragment, "_Yo", "_Yi")) goto fail_fpvm;
-	if(!fpvm_finalize(&sc->pfv_fragment)) goto fail_fpvm;
+	if(!fpvm_chunk(&sc->pfv_fragment, FINISH_PFV_FNP))
+		goto fail_fpvm;
 	#ifdef COMP_DEBUG
 	printf("per-frame FPVM fragment:\n");
 	fpvm_dump(&sc->pfv_fragment);
@@ -443,12 +444,8 @@ static bool init_pvv(struct compiler_sc *sc)
 	fpvm_set_bind_callback(&sc->pvv_fragment, pvv_bind_callback, sc);
 
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_SOURCE);
-	if(!fpvm_chunk(&sc->pvv_fragment,
-	    "x = i2f(_Xi)*_hmeshsize\n"
-	    "y = i2f(_Yi)*_vmeshsize\n"
-	    "rad = sqrt(sqr(x-0.5)+sqr(y-0.5))"))
+	if(!fpvm_chunk(&sc->pvv_fragment, INIT_PVV_FNP))
 		goto fail_assign;
-	/* TODO: generate ang */
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_ALL);
 
 	return true;
@@ -463,52 +460,8 @@ static int finalize_pvv(struct compiler_sc *sc)
 {
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_SOURCE);
 
-	#define A(dest, val) \
-	    if(!fpvm_assign(&sc->pvv_fragment, dest, val)) goto fail_assign
-
-	/* Zoom */
-	A("_invzoom", "1/zoom");
-	A("_xz", "_invzoom*(x-0.5)+0.5");
-	A("_yz", "_invzoom*(y-0.5)+0.5");
-
-	/* Scale */
-	A("_xs", "(_xz-cx)/sx+cx");
-	A("_ys", "(_yz-cy)/sy+cy");
-
-	/* Warp */
-	A("_warptime", "time*fWarpAnimSpeed");
-	A("_invwarpscale", "1/fWarpScale");
-	A("_f0", "11.68 + 4.0*cos(_warptime*1.413 + 10)");
-	A("_f1", "8.77 + 3.0*cos(_warptime*1.113 + 7)");
-	A("_f2", "10.54 + 3.0*cos(_warptime*1.233 + 3)");
-	A("_f3", "11.49 + 4.0*cos(_warptime*0.933 + 5)");
-	A("_ox2", "2*x-1");
-	A("_oy2", "2*y-1");
-	A("_xw", "_xs+warp*0.0035*("
-		"sin(_warptime*0.333+_invwarpscale*(_ox2*_f0-_oy2*_f3))"
-		"+cos(_warptime*0.753-_invwarpscale*(_ox2*_f1-_oy2*_f2)))");
-	A("_yw", "_ys+warp*0.0035*("
-		"cos(_warptime*0.375-_invwarpscale*(_ox2*_f2+_oy2*_f1))"
-		"+sin(_warptime*0.825+_invwarpscale*(_ox2*_f0+_oy2*_f3)))");
-
-	/* Rotate */
-	A("_cosr", "cos(rot)");
-	A("_sinr", "sin(0-rot)");
-	A("_u", "_xw-cx");
-	A("_v", "_yw-cy");
-	A("_xr", "_u*_cosr-_v*_sinr+cx");
-	A("_yr", "_u*_sinr+_v*_cosr+cy");
-
-	/* Translate */
-	A("_xd", "_xr-dx");
-	A("_yd", "_yr-dy");
-
-	/* Convert to framebuffer coordinates */
-	A("_Xo", "f2i(_xd*_texsize)");
-	A("_Yo", "f2i(_yd*_texsize)");
-
-	#undef A
-
+	if(!fpvm_chunk(&sc->pvv_fragment, FINISH_PVV_FNP))
+		goto fail_assign;
 	if(!fpvm_finalize(&sc->pvv_fragment)) goto fail_finalize;
 	#ifdef COMP_DEBUG
 	printf("per-vertex FPVM fragment:\n");

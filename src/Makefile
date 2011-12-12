@@ -85,11 +85,16 @@ bandfilters.h: bandfilters.sce
 %.h %.inc: %.ids
 	cd compiler && ./idgen `basename $<`
 
+compiler/infra-fnp.h: \
+	  compiler/finish-pfv.fnp compiler/init-pvv.fnp compiler/finish-pvv.fnp
+	compiler/file2h $^ >$@ || { rm -f $@; }
+
 compiler/parser.h: compiler/parser.c
 obj/compiler/scanner.o: compiler/parser.h
 obj/compiler/parser_helper.o: compiler/parser.h
 obj/compiler/fpvm.o: compiler/parser.h
 obj/compiler/unique.o: compiler/fnp.inc
+obj/compiler/compiler.o: compiler/infra-fnp.h
 
 # boot images for Milkymist One
 $(BINDIR)/flickernoise.bin: $(BINDIR)/flickernoise
@@ -119,6 +124,6 @@ clean:
 	rm -f $(POBJS)
 	rm -f compiler/scanner.c
 	rm -f compiler/parser.c compiler/parser.h compiler/parser.out
-	rm -f compiler/fnp.h compiler/fnp.inc
+	rm -f compiler/fnp.h compiler/fnp.inc compiler/infra-fnp.h
 
 .PHONY: clean load flash

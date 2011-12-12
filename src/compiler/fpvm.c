@@ -72,7 +72,9 @@ int fpvm_chunk(struct fpvm_fragment *fragment, const char *chunk)
 	const char *error;
 
 	error = fpvm_parse(chunk, TOK_START_ASSIGN, &comm);
-	if (error)
+	if(error) {
+		snprintf(fragment->last_error, FPVM_MAXERRLEN, "%s", error);
 		free((void *) error);
+	}
 	return !error;
 }

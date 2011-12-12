@@ -1,0 +1,57 @@
+/*
+ * Per-Vertex Variables Epilogue
+ * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+	/* Zoom */
+	_invzoom = 1/zoom
+	_xz = _invzoom*(x-0.5)+0.5
+	_yz = _invzoom*(y-0.5)+0.5
+
+	/* Scale */
+	_xs = (_xz-cx)/sx+cx
+	_ys = (_yz-cy)/sy+cy
+
+	/* Warp */
+	_warptime = time*fWarpAnimSpeed
+	_invwarpscale = 1/fWarpScale
+	_f0 = 11.68 + 4.0*cos(_warptime*1.413 + 10)
+	_f1 = 8.77 + 3.0*cos(_warptime*1.113 + 7)
+	_f2 = 10.54 + 3.0*cos(_warptime*1.233 + 3)
+	_f3 = 11.49 + 4.0*cos(_warptime*0.933 + 5)
+	_ox2 = 2*x-1
+	_oy2 = 2*y-1
+	_xw = _xs+warp*0.0035*(
+		sin(_warptime*0.333+_invwarpscale*(_ox2*_f0-_oy2*_f3))
+		+cos(_warptime*0.753-_invwarpscale*(_ox2*_f1-_oy2*_f2)))
+	_yw = _ys+warp*0.0035*(
+		cos(_warptime*0.375-_invwarpscale*(_ox2*_f2+_oy2*_f1))
+		+sin(_warptime*0.825+_invwarpscale*(_ox2*_f0+_oy2*_f3)))
+
+       	/* Rotate */
+	_cosr = cos(rot)
+	_sinr = sin(0-rot)
+	_u = _xw-cx
+	_v = _yw-cy
+	_xr = _u*_cosr-_v*_sinr+cx
+	_yr = _u*_sinr+_v*_cosr+cy
+
+	/* Translate */
+	_xd = _xr-dx
+	_yd = _yr-dy
+
+	/* Convert to framebuffer coordinates */
+	_Xo = f2i(_xd*_texsize)
+	_Yo = f2i(_yd*_texsize)
