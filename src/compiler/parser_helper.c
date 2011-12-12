@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdarg.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <fpvm/ast.h>
@@ -42,8 +44,27 @@ static int printable_label(const char *s)
 	return p-s;
 }
 
+static const char *alloc_printf(const char *fmt, ...)
+{
+	va_list ap;
+	int n;
+	char *s;
 
-int fpvm_parse(const char *expr, int start_token, union parser_comm *comm)
+	va_start(ap, fmt);
+	n = vsnprintf(NULL, 0, fmt, ap);
+	va_end(ap);
+
+	s = malloc(n+1);
+
+	va_start(ap, fmt);
+	vsnprintf(s, n+1, fmt, ap);
+	va_end(ap);
+
+	return s;
+}
+
+const char *fpvm_parse(const char *expr, int start_token,
+    union parser_comm *comm)
 {
 	struct scanner *s;
 	struct parser_state state = {
@@ -55,6 +76,7 @@ int fpvm_parse(const char *expr, int start_token, union parser_comm *comm)
 	int tok;
 	struct id *identifier;
 	void *p;
+	const char *error = NULL;
 
 	s = new_scanner((unsigned char *)expr);
 	p = ParseAlloc(malloc);
@@ -72,11 +94,12 @@ int fpvm_parse(const char *expr, int start_token, union parser_comm *comm)
 		}
 		state.id = identifier;
 		if(tok == TOK_ERROR) {
-			printf("FPVM, line %d, near \"%c\": scan error\n",
+			error = alloc_printf(
+			    "FPVM, line %d, near \"%c\": scan error",
 			    s->lineno, printable_char(s->cursor[-1]));
 			ParseFree(p, free);
 			delete_scanner(s);
-			return 0;
+			return error;
 		}
 		Parse(p, tok, identifier, &state);
 		tok = scan(s);
@@ -86,11 +109,12 @@ int fpvm_parse(const char *expr, int start_token, union parser_comm *comm)
 	delete_scanner(s);
 
 	if(!state.success)
-		printf("FPVM, line %d, near \"%.*s\": parse error\n",
+		error = alloc_printf(
+		    "FPVM, line %d, near \"%.*s\": parse error",
 		    state.error_lineno, printable_label(state.error_label),
 		    state.error_label);
 
-	return state.success;
+	return error;
 }
 
 void fpvm_parse_free(struct ast_node *node)

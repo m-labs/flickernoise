@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 
 #include <fpvm/fpvm.h>
@@ -46,10 +47,13 @@ int fpvm_assign(struct fpvm_fragment *fragment, const char *dest,
     const char *expr)
 {
 	union parser_comm comm;
+	const char *error;
 	int res;
 
-	if (!fpvm_parse(expr, TOK_START_EXPR, &comm)) {
-		snprintf(fragment->last_error, FPVM_MAXERRLEN, "Parse error");
+	error = fpvm_parse(expr, TOK_START_EXPR, &comm);
+	if(error) {
+		snprintf(fragment->last_error, FPVM_MAXERRLEN, "%s", error);
+		free((void *) error);
 		return 0;
 	}
 
@@ -65,6 +69,10 @@ int fpvm_assign(struct fpvm_fragment *fragment, const char *dest,
 int fpvm_chunk(struct fpvm_fragment *fragment, const char *chunk)
 {
 	union parser_comm comm = { .fragment = fragment };
+	const char *error;
 
-	return fpvm_parse(chunk, TOK_START_ASSIGN, &comm);
+	error = fpvm_parse(chunk, TOK_START_ASSIGN, &comm);
+	if (error)
+		free((void *) error);
+	return !error;
 }

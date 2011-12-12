@@ -26,7 +26,7 @@ union parser_comm {
 	struct fpvm_fragment *fragment;
 };
 
-int fpvm_parse(const char *expr, int start_token,
+const char *fpvm_parse(const char *expr, int start_token,
     union parser_comm *comm);
 void fpvm_parse_free(struct ast_node *node);
 

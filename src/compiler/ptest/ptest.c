@@ -187,6 +187,7 @@ int main(int argc, char **argv)
 	int c;
 	const char *buf;
 	union parser_comm comm;
+	const char *error;
 
 	while ((c = getopt(argc, argv, "q")) != EOF)
 		switch (c) {
@@ -207,5 +208,10 @@ int main(int argc, char **argv)
 		usage(*argv);
 	}
 
-	return !fpvm_parse(buf, TOK_START_ASSIGN, &comm);
+	error = fpvm_parse(buf, TOK_START_ASSIGN, &comm);
+	if (!error)
+		return 0;
+	fflush(stdout);
+	fprintf(stderr, "%s\n", error);
+	return 1;
 }
