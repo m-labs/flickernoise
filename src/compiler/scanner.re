@@ -41,13 +41,24 @@ struct scanner *new_scanner(unsigned char *input)
 	s->old_cursor = input;
 	s->cursor = input;
 	s->limit = input + strlen((char *)input);
-	
+	s->lineno = 1;
+
 	return s;
 }
 
 void delete_scanner(struct scanner *s)
 {
 	free(s);
+}
+
+static int nls(const unsigned char *s, const unsigned char *end)
+{
+	int n = 0;
+
+	while(s != end)
+		if(*s++ == '\n')
+			n++;
+	return n;
 }
 
 int scan(struct scanner *s)
@@ -57,11 +68,15 @@ int scan(struct scanner *s)
 	s->old_cursor = s->cursor;
 	
 	/*!re2c
-		[\x20\n\r\t]		{ goto std; }
+		[\x20\r\t]		{ goto std; }
+		"\n"			{ s->lineno++;
+					  goto std; }
 
 		"//"[^\n\x00]*		{ goto std; }
 		"/*"("*"*[^/\x00]|[^*\x00])*"*"+"/"
-					{ goto std; }
+					{ s->lineno += nls(s->old_cursor,
+					      s->cursor);
+					  goto std; }
 
 		[0-9]+			{ return TOK_CONSTANT; }
 		[0-9]+ "." [0-9]*	{ return TOK_CONSTANT; }

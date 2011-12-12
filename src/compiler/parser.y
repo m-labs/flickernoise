@@ -85,7 +85,13 @@
 
 %type node {struct ast_node *}
 %destructor node { free($$); }
-%syntax_error { yy_parse_failed(yypParser); }
+%syntax_error {
+	if(!state->error_label) {
+		state->error_label = state->id->label;
+		state->error_lineno = state->id->lineno; 
+	}
+	yy_parse_failed(yypParser);
+}
 
 start ::= TOK_START_EXPR node(N). {
 	state->comm->parseout = N;

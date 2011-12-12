@@ -28,6 +28,7 @@ struct scanner {
 	unsigned char *old_cursor;
 	unsigned char *cursor;
 	unsigned char *limit;
+	int lineno;
 };
 
 struct scanner *new_scanner(unsigned char *input);

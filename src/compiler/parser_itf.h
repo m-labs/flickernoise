@@ -29,11 +29,15 @@ struct id {
 	int token;
 	const char *label;
 	float constant;
+	int lineno;
 };
 
 struct parser_state {
 	int success;
 	union parser_comm *comm;
+	const char *error_label;
+	int error_lineno;
+	const struct id *id; /* for error handling */
 };
 
 void *ParseAlloc(void *(*mallocProc)(size_t));

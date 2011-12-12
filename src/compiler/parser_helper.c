@@ -24,12 +24,33 @@
 #include "parser_itf.h"
 #include "parser_helper.h"
 
+static char printable_char(unsigned char c)
+{
+	return c < ' ' || c > '~' ? '?' : c;
+}
+
+/*
+ * Since operators don't set "label" properly in unique(), we can't just print
+ * the whole string, but need to cut it at the first non-printable character.
+ */
+
+static int printable_label(const char *s)
+{
+	const char *p;
+
+	for(p = s; *p > ' '; p++);
+	return p-s;
+}
+
+
 int fpvm_parse(const char *expr, int start_token, union parser_comm *comm)
 {
 	struct scanner *s;
 	struct parser_state state = {
 		.comm = comm,
 		.success = 0,
+		.error_label = NULL,
+		.id = NULL,
 	};
 	int tok;
 	struct id *identifier;
@@ -42,14 +63,17 @@ int fpvm_parse(const char *expr, int start_token, union parser_comm *comm)
 	while(tok != TOK_EOF) {
 		identifier = malloc(sizeof(struct id));
 		identifier->token = tok;
+		identifier->lineno = s->lineno;
 		if(tok == TOK_CONSTANT) {
 			identifier->constant = get_constant(s);
 			identifier->label = "";
 		} else {
 			identifier->label = get_token(s);
 		}
+		state.id = identifier;
 		if(tok == TOK_ERROR) {
-			printf("FPVM: scan error\n");
+			printf("FPVM, line %d, near \"%c\": scan error\n",
+			    s->lineno, printable_char(s->cursor[-1]));
 			ParseFree(p, free);
 			delete_scanner(s);
 			return 0;
@@ -61,10 +85,10 @@ int fpvm_parse(const char *expr, int start_token, union parser_comm *comm)
 	ParseFree(p, free);
 	delete_scanner(s);
 
-	if(!state.success) {
-		printf("FPVM: parse error\n");
-		return 0;
-	}
+	if(!state.success)
+		printf("FPVM, line %d, near \"%.*s\": parse error\n",
+		    state.error_lineno, printable_label(state.error_label),
+		    state.error_label);
 
 	return state.success;
 }

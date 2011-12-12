@@ -1,0 +1,158 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest_fail "location: scanner, inside line" <<EOF
+a = b
+x = \` y
+c = d
+EOF
+expect <<EOF
+a = b
+FPVM, line 2, near "\`": scan error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: scanner, beginning of line" <<EOF
+a = b
+\`x = y
+c = d
+EOF
+expect <<EOF
+FPVM, line 2, near "\`": scan error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: scanner, end of line" <<EOF
+a = b
+x = y\`
+c = d
+EOF
+expect <<EOF
+a = b
+FPVM, line 2, near "\`": scan error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: parser, inside line" <<EOF
+a = b
+x = * y
+c = d
+EOF
+expect <<EOF
+a = b
+FPVM, line 2, near "*": parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: parser, beginning of line" <<EOF
+a = b
+)x = y
+c = d
+EOF
+expect <<EOF
+a = b
+FPVM, line 2, near ")x": parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: parser, end of line (1)" <<EOF
+a = b
+x = y(
+c = d
+EOF
+expect <<EOF
+a = b
+x = y
+FPVM, line 2, near "(": parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: parser, end of line (2)" <<EOF
+a = b
+x = )
+c = d
+EOF
+expect <<EOF
+a = b
+FPVM, line 2, near ")": parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: error is end of line" <<EOF
+a = b
+x =
+EOF
+expect <<EOF
+a = b
+FPVM, line 2, near "=": parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: error is EOF" "x="
+expect <<EOF
+FPVM, line 1, near "=": parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: error is identifier" <<EOF
+foo = this is an error
+EOF
+expect <<EOF
+foo = this
+FPVM, line 1, near "an": parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: 3rd line" <<EOF
+a = b
+c = d
+)
+EOF
+expect <<EOF
+a = b
+c = d
+FPVM, line 3, near ")": parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: 5th line, with // comments" <<EOF
+// assign a
+a = b
+// assign c
+c = d
+)
+EOF
+expect <<EOF
+a = b
+c = d
+FPVM, line 5, near ")": parse error
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "location: 4th line, with /*...*/ comments" <<EOF
+a = b /* some
+comment */
+c = d
+)
+EOF
+expect <<EOF
+a = b
+c = d
+FPVM, line 4, near ")": parse error
+EOF
+
+###############################################################################
