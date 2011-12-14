@@ -265,5 +265,6 @@ int main(int argc, char **argv)
 		return 0;
 	fflush(stdout);
 	fprintf(stderr, "%s\n", error);
+	free((void *)error);
 	return 1;
 }
