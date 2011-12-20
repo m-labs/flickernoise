@@ -213,7 +213,7 @@ struct rtems_ftpd_configuration rtems_ftpd_configuration = {
 	512*1024,		/* Maximum hook 'file' size */
 	0,			/* Use default port */
 	ftp_hooks,		/* Local ftp hooks */
-	NULL,			/* Root */
+	"/ssd/",		/* Root */
 	3,			/* Task count */
 	3600,			/* Idle timeout */
 	0,			/* Access */
