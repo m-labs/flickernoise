@@ -549,6 +549,7 @@ static const char *assign_per_vertex(struct parser_comm *comm,
 static const char *assign_image_name(struct parser_comm *comm,
     int number, const char *name)
 {
+#ifndef STANDALONE
 	struct compiler_sc *sc = comm->u.sc;
 	char *totalname;
 
@@ -568,6 +569,7 @@ static const char *assign_image_name(struct parser_comm *comm,
 	pixbuf_dec_ref(sc->p->images[number]);
 	sc->p->images[number] = pixbuf_get(totalname);
 	free(totalname);
+#endif /* STANDALONE */
 	return NULL;
 }
 
@@ -660,6 +662,8 @@ struct patch *patch_compile_filename(const char *filename,
 	return p;
 }
 
+#ifndef STANDALONE
+
 struct patch *patch_copy(struct patch *p)
 {
 	struct patch *new_patch;
@@ -683,3 +687,5 @@ void patch_free(struct patch *p)
 		pixbuf_dec_ref(p->images[i]);
 	free(p);
 }
+
+#endif

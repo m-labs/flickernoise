@@ -14,9 +14,12 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "fpvm/pfpu.h"
+
 #include "../fpvm.h"
 #include "../parser_helper.h"
 #include "../parser.h"
+#include "../compiler.h"
 
 
 static int quiet = 0;
@@ -135,12 +138,6 @@ static void dump_ast(const struct ast_node *ast)
 }
 
 
-const char *fpvm_get_last_error(struct fpvm_fragment *fragment)
-{
-	return fragment->last_error;
-}
-
-
 static const char *assign_default(struct parser_comm *comm,
     const char *label, struct ast_node *node)
 {
@@ -187,6 +184,14 @@ static const char *assign_image_name(struct parser_comm *comm,
 	return NULL;
 }
 
+
+static void report(const char *s)
+{
+	fprintf(stderr, "%s\n", s);
+	exit(1);
+}
+
+
 static const char *read_stdin(void)
 {
 	char *buf = NULL;
@@ -217,17 +222,8 @@ static const char *read_stdin(void)
 }
 
 
-static void usage(const char *name)
+static void parse_only(const char *pgm)
 {
-	fprintf(stderr, "usage: %s [-f error] [-q] [expr]\n", name);
-	exit(1);
-}
-
-
-int main(int argc, char **argv)
-{
-	int c;
-	const char *buf;
 	struct fpvm_fragment fragment;
 	struct parser_comm comm = {
 		.u.fragment = &fragment,
@@ -238,8 +234,50 @@ int main(int argc, char **argv)
 	 };
 	const char *error;
 
-	while ((c = getopt(argc, argv, "f:q")) != EOF)
+	error = fpvm_parse(pgm, TOK_START_ASSIGN, &comm);
+	if (!error)
+		return;
+	fflush(stdout);
+	fprintf(stderr, "%s\n", error);
+	free((void *) error);
+	exit(1);
+}
+
+
+static void compile(const char *pgm)
+{
+	struct patch *patch;
+
+	patch = patch_compile("/", pgm, report);
+	if (!patch)
+		exit(1);
+	if (quiet)
+		return;
+	printf("per-frame PFPU fragment:\n");
+	pfpu_dump(patch->perframe_prog, patch->perframe_prog_length);
+	printf("per-vertex PFPU fragment:\n");
+	pfpu_dump(patch->pervertex_prog, patch->pervertex_prog_length);
+}
+
+
+static void usage(const char *name)
+{
+	fprintf(stderr, "usage: %s [-c] [-f error] [-q] [expr]\n", name);
+	exit(1);
+}
+
+
+int main(int argc, char **argv)
+{
+	int c;
+	const char *buf;
+	int codegen = 0;
+
+	while ((c = getopt(argc, argv, "cf:q")) != EOF)
 		switch (c) {
+		case 'c':
+			codegen = 1;
+			break;
 		case 'f':
 			fail = optarg;
 			break;
@@ -260,11 +298,9 @@ int main(int argc, char **argv)
 		usage(*argv);
 	}
 
-	error = fpvm_parse(buf, TOK_START_ASSIGN, &comm);
-	if (!error)
-		return 0;
-	fflush(stdout);
-	fprintf(stderr, "%s\n", error);
-	free((void *)error);
-	return 1;
+	if (codegen)
+		compile(buf);
+	else
+		parse_only(buf);
+	return 0;
 }

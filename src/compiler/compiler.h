@@ -18,8 +18,12 @@
 #ifndef __COMPILER_H
 #define __COMPILER_H
 
+#ifndef STANDALONE
 #include <rtems.h>
 #include <bsp/milkymist_pfpu.h>
+#else
+#include STANDALONE
+#endif /* STANDALONE */
 
 #include "../renderer/framedescriptor.h"
 #include "../pixbuf/pixbuf.h"

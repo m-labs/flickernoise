@@ -18,8 +18,12 @@
 #ifndef __FRAMEDESCRIPTOR_H
 #define __FRAMEDESCRIPTOR_H
 
+#ifndef STANDALONE
 #include <rtems.h>
 #include <bsp/milkymist_ac97.h>
+#else 
+#include STANDALONE
+#endif /* STANDALONE */
 
 #include "../pixbuf/pixbuf.h"
 
