@@ -2,7 +2,7 @@
 while [ "$1" ]; do
 	echo -n "#define "
 	basename $1 | sed 's/[^a-zA-Z0-9]/_/g' | tr a-z A-Z | tr -d '\n'
-	echo ' \'
+	echo ' "" \'
 	sed 's/\\/\\\\/g;s/"/\\"/g;s/.*/    "&\\n" \\/' <$1
 	echo
 	shift
