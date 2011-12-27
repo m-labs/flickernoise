@@ -71,7 +71,7 @@ for n in \
     "Zylot - The Inner Workings of my New Computer.fnp" \
     "bmelgren - Godhead (Video mix).fnp" \
     "nil - Cid and Lucy.fnp"; do
-	ptest "patch: $n" -q <"$PATCHDIR/$n"
+	ptest "patch: $n" -c -q <"$PATCHDIR/$n"
 	expect </dev/null
 done
 
