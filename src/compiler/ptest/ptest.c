@@ -244,18 +244,50 @@ static void parse_only(const char *pgm)
 }
 
 
+static void dump_regs(const int *alloc, const char (*names)[FPVM_MAXSYMLEN],
+    const float *values, int n)
+{
+	const char *mapped[n];
+	int i;
+
+	for (i = 0; i != n; i++)
+		mapped[i] = NULL;
+	for (i = 0; i != n; i++)
+		if (alloc[i] != -1)
+			mapped[alloc[i]] = names[i];
+	for (i = 0; i != n; i++) {
+		if (!values[i] && !mapped[i])
+			continue;
+		printf("R%03d = %f", i, values[i]);
+		if (mapped[i])
+			printf(" %s", mapped[i]);
+		printf("\n");
+	}
+}
+
+
 static void compile(const char *pgm)
 {
 	struct patch *patch;
+	int i;
 
 	patch = patch_compile("/", pgm, report);
 	if (!patch)
 		exit(1);
 	if (quiet)
 		return;
+	printf("global:\n");
+	for (i = 0; i != COMP_PFV_COUNT; i++)
+		if (patch->pfv_initial[i])
+			printf("R%03d = %f %s\n", i, patch->pfv_initial[i],
+			    pfv_names[i]);
 	printf("per-frame PFPU fragment:\n");
+	dump_regs(patch->pfv_allocation, pfv_names, patch->perframe_regs,
+	    COMP_PFV_COUNT);
 	pfpu_dump(patch->perframe_prog, patch->perframe_prog_length);
 	printf("per-vertex PFPU fragment:\n");
+	dump_regs(patch->pvv_allocation, pvv_names, patch->pervertex_regs,
+	    COMP_PVV_COUNT);
 	pfpu_dump(patch->pervertex_prog, patch->pervertex_prog_length);
 }
 

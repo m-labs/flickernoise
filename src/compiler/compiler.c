@@ -62,7 +62,7 @@ static void comp_report(struct compiler_sc *sc, const char *format, ...)
 /* PER-FRAME VARIABLES                                          */
 /****************************************************************/
 
-static const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
+const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
 	"sx",
 	"sy",
 	"cx",
@@ -332,7 +332,7 @@ static bool schedule_pfv(struct compiler_sc *sc)
 /* PER-VERTEX VARIABLES                                         */
 /****************************************************************/
 
-static const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN] = {
+const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN] = {
 	/* System */
 	"_texsize",
 	"_hmeshsize",
