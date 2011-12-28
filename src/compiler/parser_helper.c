@@ -66,6 +66,15 @@ const char *fpvm_parse(const char *expr, int start_token,
 	Parse(p, start_token, NULL, &state);
 	tok = scan(s);
 	while(tok != TOK_EOF) {
+		if(tok == TOK_ERROR) {
+			asprintf(&error,
+			    "FPVM, line %d: scan error near '%c'",
+			    s->lineno, printable_char(s->cursor[-1]));
+			ParseFree(p, free);
+			delete_scanner(s);
+			return error;
+		}
+
 		identifier = malloc(sizeof(struct id));
 		identifier->token = tok;
 		identifier->lineno = s->lineno;
@@ -84,17 +93,16 @@ const char *fpvm_parse(const char *expr, int start_token,
 		}
 
 		state.id = identifier;
-		if(tok == TOK_ERROR) {
-			asprintf(&error,
-			    "FPVM, line %d: scan error near '%c'",
-			    s->lineno, printable_char(s->cursor[-1]));
-			ParseFree(p, free);
-			delete_scanner(s);
-			return error;
-		}
 		Parse(p, tok, identifier, &state);
 		tok = scan(s);
 	}
+
+	identifier = malloc(sizeof(struct id));
+	identifier->token = TOK_EOF;
+	identifier->lineno = s->lineno;
+	identifier->label = "EOF";
+
+	state.id = identifier;
 	Parse(p, TOK_EOF, NULL, &state);
 	ParseFree(p, free);
 	delete_scanner(s);

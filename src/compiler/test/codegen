@@ -15,7 +15,7 @@ ptest_fail "codegen: global foo = 1" -c -q <<EOF
 foo = 1
 EOF
 expect <<EOF
-FPVM, line 1: unknown parameter near ''
+FPVM, line 2: unknown parameter near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ ptest_fail "codegen: wave_a = bar" -c -q <<EOF
 wave_a = bar
 EOF
 expect <<EOF
-FPVM, line 1: value must be a constant near 'bar'
+FPVM, line 2: value must be a constant near 'EOF'
 EOF
 
 ###############################################################################

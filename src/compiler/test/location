@@ -93,14 +93,14 @@ x =
 EOF
 expect <<EOF
 a = b
-FPVM, line 2: parse error near '='
+FPVM, line 3: parse error near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: error is EOF" "x="
 expect <<EOF
-FPVM, line 1: parse error near '='
+FPVM, line 1: parse error near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
