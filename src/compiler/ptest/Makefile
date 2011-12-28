@@ -3,7 +3,7 @@ RTEMS_MAKEFILE_PATH ?= \
     /opt/rtems-$(RTEMS_VERSION)/lm32-rtems$(RTEMS_VERSION)/milkymist/
 RTEMS_FPVM_H = $(RTEMS_MAKEFILE_PATH)/lib/include/fpvm
 
-MMDIR ?= /opt/milkymist/milkymist.git
+MMDIR ?= ../../../../milkymist
 LIBFPVM_X86 = $(MMDIR)/software/libfpvm/x86-linux
 
 CFLAGS_STANDALONE = -DSTANDALONE=\"standalone.h\"
