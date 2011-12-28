@@ -25,6 +25,8 @@
 #include STANDALONE
 #endif /* STANDALONE */
 
+#include <fpvm/fpvm.h>
+
 #include "../renderer/framedescriptor.h"
 #include "../pixbuf/pixbuf.h"
 
