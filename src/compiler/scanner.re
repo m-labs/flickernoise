@@ -79,6 +79,8 @@ int scan(struct scanner *s)
 	s->old_cursor = s->cursor;
 
 	/*!re2c
+		<*>[\x00]		{ abort(); }
+
 		<*>[\x20\r\t]		{ goto std; }
 		<*>"\n"			{ s->lineno++;
 					  YYSETCONDITION(yycN);
@@ -142,7 +144,7 @@ int scan(struct scanner *s)
 		<FNAME2>[^ \x00\n\r\t]|[^ \x00\n\r\t][^\n\x00]*[^ \x00\n\r\t]
 					{ return TOK_FNAME; }
 
-		<*>[\x00-\xff]		{ return TOK_ERROR; }
+		<*>[\x01-\xff]		{ return TOK_ERROR; }
 	*/
 }
 

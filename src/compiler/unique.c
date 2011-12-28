@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "unique.h"
 
@@ -124,6 +125,7 @@ const char *unique_n(const char *s, int n)
 	const char **res;
 	const char **walk;
 
+	assert(n);
 	if(!isid(*s))
 		return s;
 	res = bsearch(&key, well_known, sizeof(well_known)/sizeof(*well_known),
