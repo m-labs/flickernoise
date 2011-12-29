@@ -47,7 +47,7 @@ ptest:		$(OBJS)
 		$(GEN) cd .. && ./idgen `basename $<`
 
 ../infra-fnp.h:	../finish-pfv.fnp ../init-pvv.fnp ../finish-pvv.fnp
-		$(GEN) ../file2h $^ >$@ || { rm -f $@; }
+		$(GEN) ../file2h -c $^ >$@ || { rm -f $@; }
 
 libfpvm.a:
 		$(MAKE) -C $(LIBFPVM_X86)

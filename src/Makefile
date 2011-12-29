@@ -94,7 +94,7 @@ bandfilters.h: bandfilters.sce
 
 compiler/infra-fnp.h: \
 	  compiler/finish-pfv.fnp compiler/init-pvv.fnp compiler/finish-pvv.fnp
-	$(GEN) compiler/file2h $^ >$@ || { rm -f $@; }
+	$(GEN) compiler/file2h -c $^ >$@ || { rm -f $@; }
 
 compiler/parser.h: compiler/parser.c
 obj/compiler/scanner.o: compiler/parser.h

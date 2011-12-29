@@ -1,9 +1,37 @@
 #!/bin/sh -e
+#
+# file2h - Embed file content in #define expanding to a string
+#
+# Copyright 2011 by Werner Almesberger
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+
+
+usage()
+{
+	echo "usage: $0 [-c] file ..." 1>&2
+	exit 1
+}
+
+
+filter=cat
+while [ "$1" ]; do
+	case "$1" in
+	-c)	filter="cpp -P";;
+	-*)	usage;;
+	*)	break;
+	esac
+	shift
+done
+
 while [ "$1" ]; do
 	echo -n "#define "
 	basename $1 | sed 's/[^a-zA-Z0-9]/_/g' | tr a-z A-Z | tr -d '\n'
 	echo ' "" \'
-	sed 's/\\/\\\\/g;s/"/\\"/g;s/.*/    "&\\n" \\/' <$1
+	cat $1 | $filter | sed 's/\\/\\\\/g;s/"/\\"/g;s/.*/    "&\\n" \\/'
 	echo
 	shift
 done
