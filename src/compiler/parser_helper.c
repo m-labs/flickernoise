@@ -107,6 +107,8 @@ const char *fpvm_parse(const char *expr, int start_token,
 	ParseFree(p, free);
 	delete_scanner(s);
 
+	free(identifier);
+
 	if(!state.success) {
 		asprintf(&error,
 		    "FPVM, line %d: %s near '%.*s'",
