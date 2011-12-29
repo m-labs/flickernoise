@@ -266,16 +266,10 @@ static void dump_regs(const int *alloc, const char (*names)[FPVM_MAXSYMLEN],
 }
 
 
-static void compile(const char *pgm)
+static void show_patch(const struct patch *patch)
 {
-	struct patch *patch;
 	int i;
 
-	patch = patch_compile("/", pgm, report);
-	if (!patch)
-		exit(1);
-	if (quiet)
-		return;
 	printf("global:\n");
 	for (i = 0; i != COMP_PFV_COUNT; i++)
 		if (patch->pfv_initial[i])
@@ -289,6 +283,24 @@ static void compile(const char *pgm)
 	dump_regs(patch->pvv_allocation, pvv_names, patch->pervertex_regs,
 	    COMP_PVV_COUNT);
 	pfpu_dump(patch->pervertex_prog, patch->pervertex_prog_length);
+}
+
+
+static void compile(const char *pgm)
+{
+	struct patch *patch;
+
+	patch = patch_compile("/", pgm, report);
+	if (!patch)
+		exit(1);
+	if (!quiet)
+		show_patch(patch);
+	/*
+	 * We can't use patch_free here because that function also accesses
+	 * image data, which isn't available in standalone builds. A simple
+	 * free(3) has the same effect in this case.
+	 */
+	free(patch);
 }
 
 
@@ -353,6 +365,9 @@ int main(int argc, char **argv)
 		else
 			parse_only(buf);
 	}
+
+	if (argc == optind)
+		free((void *) buf);
 
 	return 0;
 }
