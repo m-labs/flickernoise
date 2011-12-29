@@ -8,6 +8,7 @@
 # of it.
 #
 
+valgrind_orig=$VALGRIND
 if [ "$VALGRIND" ]; then
 	VALGRIND="$VALGRIND --leak-check=full --show-reachable=yes"
 fi
@@ -83,5 +84,7 @@ for n in \
 	ptest "patch: $n" -c -q <"$PATCHDIR/$n"
 	expect </dev/null
 done
+
+VALGRIND=$valgrind_orig
 
 ###############################################################################
