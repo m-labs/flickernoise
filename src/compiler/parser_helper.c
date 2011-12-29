@@ -87,8 +87,30 @@ const char *fpvm_parse(const char *expr, int start_token,
 		case TOK_FNAME:
 			identifier->label = get_token(s);
 			break;
-		default:
+		case TOK_IDENT:
+		case TOK_ABOVE:
+		case TOK_ABS:
+		case TOK_BELOW:
+		case TOK_COS:
+		case TOK_EQUAL:
+		case TOK_F2I:
+		case TOK_ICOS:
+		case TOK_I2F:
+		case TOK_IF:
+		case TOK_INT:
+		case TOK_INVSQRT:
+		case TOK_ISIN:
+		case TOK_MAX:
+		case TOK_MIN:
+		case TOK_QUAKE:
+		case TOK_SIN:
+		case TOK_SQR:
+		case TOK_SQRT:
+		case TOK_TSIGN:
 			identifier->label = get_unique_token(s);
+			break;
+		default:
+			identifier->label = (const char *) s->old_cursor;
 			break;
 		}
 

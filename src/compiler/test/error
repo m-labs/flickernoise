@@ -31,11 +31,20 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "code generation error" -f "codegen" <<EOF
+ptest_fail "inject code generation error" -f "codegen" <<EOF
 x = a + b
 EOF
 expect <<EOF
 FPVM, line 2: codegen near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "syntax error: sin/*foo*/sin/*bar*/sin" <<EOF
+sin/*foo*/sin/*bar*/sin
+EOF
+expect <<EOF
+FPVM, line 1: parse error near 'sin'
 EOF
 
 ###############################################################################
