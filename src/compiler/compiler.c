@@ -626,12 +626,13 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 
 	if(!parse_patch(sc, patch_code))
 		goto fail;
-	unique_free();
 
 	if(!finalize_pfv(sc)) goto fail;
 	if(!schedule_pfv(sc)) goto fail;
 	if(!finalize_pvv(sc)) goto fail;
 	if(!schedule_pvv(sc)) goto fail;
+
+	unique_free();
 
 	free(sc);
 	return p;
