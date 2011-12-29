@@ -39,8 +39,7 @@ struct parser_comm {
 	    int number, const char *name);
 };
 
-const char *fpvm_parse(const char *expr, int start_token,
-    struct parser_comm *comm);
-void fpvm_parse_free(struct ast_node *node);
+const char *parse(const char *expr, int start_token, struct parser_comm *comm);
+void parse_free(struct ast_node *node);
 
 #endif /* __PARSER_HELPER_H */

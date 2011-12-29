@@ -127,7 +127,7 @@ assignment ::= ident(I) TOK_ASSIGN node(N) opt_semi. {
 		yy_parse_failed(yypParser);
 		return;
 	}
-	fpvm_parse_free(N);
+	parse_free(N);
 }
 
 assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {

@@ -45,8 +45,7 @@ static int printable_label(const char *s)
 	return p-s;
 }
 
-const char *fpvm_parse(const char *expr, int start_token,
-    struct parser_comm *comm)
+const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 {
 	struct scanner *s;
 	struct parser_state state = {
@@ -143,13 +142,13 @@ const char *fpvm_parse(const char *expr, int start_token,
 	return error;
 }
 
-void fpvm_parse_free(struct ast_node *node)
+void parse_free(struct ast_node *node)
 {
 	if(node == NULL) return;
 	if(node->label[0] != 0) {
-		fpvm_parse_free(node->contents.branches.a);
-		fpvm_parse_free(node->contents.branches.b);
-		fpvm_parse_free(node->contents.branches.c);
+		parse_free(node->contents.branches.a);
+		parse_free(node->contents.branches.b);
+		parse_free(node->contents.branches.c);
 	}
 	free(node);
 }

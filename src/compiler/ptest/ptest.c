@@ -234,7 +234,7 @@ static void parse_only(const char *pgm)
 	 };
 	const char *error;
 
-	error = fpvm_parse(pgm, TOK_START_ASSIGN, &comm);
+	error = parse(pgm, TOK_START_ASSIGN, &comm);
 	if (!error)
 		return;
 	fflush(stdout);

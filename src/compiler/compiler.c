@@ -584,7 +584,7 @@ static bool parse_patch(struct compiler_sc *sc, const char *patch_code)
 	};
 	const char *error;
 
-	error = fpvm_parse(patch_code, TOK_START_ASSIGN, &comm);
+	error = parse(patch_code, TOK_START_ASSIGN, &comm);
 	if(error) {
 		sc->rmc(error);
 		free((void *) error);
