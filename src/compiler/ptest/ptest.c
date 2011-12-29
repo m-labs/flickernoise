@@ -294,7 +294,13 @@ static void compile(const char *pgm)
 
 static void usage(const char *name)
 {
-	fprintf(stderr, "usage: %s [-c] [-f error] [-q] [expr]\n", name);
+	fprintf(stderr,
+"usage: %s [-c|-f error] [-n runs] [-q] [expr]\n\n"
+"  -c        generate code and dump generated code (unless -q is set)\n"
+"  -f error  fail any assignment with specified error message\n"
+"  -n runs   run compilation repeatedly (default: run only once)\n"
+"  -q        quiet operation\n"
+    , name);
 	exit(1);
 }
 
@@ -304,8 +310,10 @@ int main(int argc, char **argv)
 	int c;
 	const char *buf;
 	int codegen = 0;
+	unsigned long repeat = 1;
+	char *end;
 
-	while ((c = getopt(argc, argv, "cf:q")) != EOF)
+	while ((c = getopt(argc, argv, "cf:n:q")) != EOF)
 		switch (c) {
 		case 'c':
 			codegen = 1;
@@ -313,12 +321,21 @@ int main(int argc, char **argv)
 		case 'f':
 			fail = optarg;
 			break;
+		case 'n':
+			repeat = strtoul(optarg, &end, 0);
+			if (*end)
+				usage(*argv);
+			break;
 		case 'q':
 			quiet = 1;
 			break;
 		default:
 			usage(*argv);
 		}
+
+	if (codegen && fail)
+		usage(*argv);
+
 	switch (argc-optind) {
 	case 0:
 		buf = read_stdin();
@@ -330,9 +347,12 @@ int main(int argc, char **argv)
 		usage(*argv);
 	}
 
-	if (codegen)
-		compile(buf);
-	else
-		parse_only(buf);
+	while (repeat--) {
+		if (codegen)
+			compile(buf);
+		else
+			parse_only(buf);
+	}
+
 	return 0;
 }
