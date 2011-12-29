@@ -1,9 +1,5 @@
-RTEMS_VERSION ?= 4.11
-RTEMS_MAKEFILE_PATH ?= \
-    /opt/rtems-$(RTEMS_VERSION)/lm32-rtems$(RTEMS_VERSION)/milkymist/
-RTEMS_FPVM_H = $(RTEMS_MAKEFILE_PATH)/lib/include/fpvm
-
 MMDIR ?= ../../../../milkymist
+FPVM_H = $(MMDIR)/software/include/fpvm
 LIBFPVM_X86 = $(MMDIR)/software/libfpvm/x86-linux
 
 CFLAGS_STANDALONE = -DSTANDALONE=\"standalone.h\"
@@ -33,7 +29,7 @@ endif
 all:		fpvm ptest
 
 fpvm:
-		$(GEN) ln -s $(RTEMS_FPVM_H) fpvm
+		$(GEN) ln -s $(FPVM_H) fpvm
 
 ptest:		$(OBJS)
 		$(CC) $(CFLAGS) -o $@ $^
