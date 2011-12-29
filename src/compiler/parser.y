@@ -21,8 +21,8 @@
 	#include <stdlib.h>
 	#include <malloc.h>
 	#include <math.h>
-	#include "fpvm/ast.h"
-	#include "fpvm/fpvm.h"
+	#include <fpvm/ast.h>
+	#include <fpvm/fpvm.h>
 	#include "parser_itf.h"
 	#include "parser_helper.h"
 	#include "parser.h"
