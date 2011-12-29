@@ -23,11 +23,11 @@
 #include <string.h>
 
 #include <fpvm/fpvm.h>
+#include <fpvm/ast.h>
 #include <fpvm/schedulers.h>
 #include <fpvm/pfpu.h>
 
 #include "../pixbuf/pixbuf.h"
-#include "fpvm.h"
 #include "unique.h"
 #include "parser_helper.h"
 #include "parser.h"
@@ -57,6 +57,51 @@ static void comp_report(struct compiler_sc *sc, const char *format, ...)
 	va_end(args);
 	sc->rmc(outbuf);
 }
+
+static void init_fpvm(struct fpvm_fragment *fragment, int vector_mode)
+{
+	/*
+	 * We need to pass these through unique() because the parser does
+	 * the same. We can get rid of these calls to unique() later.
+	 */
+
+	_Xi = unique("_Xi");
+	_Xo = unique("_Xo");
+	_Yi = unique("_Yi");
+	_Yo = unique("_Yo");
+	fpvm_do_init(fragment, vector_mode);
+}
+
+/* ----- Compilation of internal per-fragment setup code ------------------- */
+
+
+static const char *assign_chunk(struct parser_comm *comm,
+    const char *label, struct ast_node *node)
+{
+	if(fpvm_do_assign(comm->u.fragment, label, node))
+		return NULL;
+	else
+		return strdup(fpvm_get_last_error(comm->u.fragment));
+}
+
+static int compile_chunk(struct fpvm_fragment *fragment, const char *chunk)
+{
+	struct parser_comm comm = {
+		.u.fragment = fragment,
+		.assign_default = assign_chunk,
+		.assign_per_frame = NULL,	/* crash ... */
+		.assign_per_vertex = NULL,	/* and burn */
+	};
+	const char *error;
+
+	error = parse(chunk, TOK_START_ASSIGN, &comm);
+	if(error) {
+		snprintf(fragment->last_error, FPVM_MAXERRLEN, "%s", error);
+		free((void *) error);
+	}
+	return !error;
+}
+
 
 /****************************************************************/
 /* PER-FRAME VARIABLES                                          */
@@ -285,7 +330,7 @@ static bool init_pfv(struct compiler_sc *sc)
 {
 	int i;
 
-	fpvm_init(&sc->pfv_fragment, 0);
+	init_fpvm(&sc->pfv_fragment, 0);
 	fpvm_set_bind_mode(&sc->pfv_fragment, FPVM_BIND_ALL);
 	for(i=0;i<COMP_PFV_COUNT;i++)
 		sc->p->pfv_allocation[i] = -1;
@@ -296,7 +341,7 @@ static bool init_pfv(struct compiler_sc *sc)
 static bool finalize_pfv(struct compiler_sc *sc)
 {
 	/* assign dummy values for output */
-	if(!fpvm_chunk(&sc->pfv_fragment, FINISH_PFV_FNP))
+	if(!compile_chunk(&sc->pfv_fragment, FINISH_PFV_FNP))
 		goto fail_fpvm;
 	#ifdef COMP_DEBUG
 	printf("per-frame FPVM fragment:\n");
@@ -430,13 +475,13 @@ static bool init_pvv(struct compiler_sc *sc)
 {
 	int i;
 
-	fpvm_init(&sc->pvv_fragment, 1);
+	init_fpvm(&sc->pvv_fragment, 1);
 	for(i=0;i<COMP_PVV_COUNT;i++)
 		sc->p->pvv_allocation[i] = -1;
 	fpvm_set_bind_callback(&sc->pvv_fragment, pvv_bind_callback, sc);
 
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_SOURCE);
-	if(!fpvm_chunk(&sc->pvv_fragment, INIT_PVV_FNP))
+	if(!compile_chunk(&sc->pvv_fragment, INIT_PVV_FNP))
 		goto fail_assign;
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_ALL);
 
@@ -452,7 +497,7 @@ static int finalize_pvv(struct compiler_sc *sc)
 {
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_SOURCE);
 
-	if(!fpvm_chunk(&sc->pvv_fragment, FINISH_PVV_FNP))
+	if(!compile_chunk(&sc->pvv_fragment, FINISH_PVV_FNP))
 		goto fail_assign;
 	if(!fpvm_finalize(&sc->pvv_fragment)) goto fail_finalize;
 	#ifdef COMP_DEBUG

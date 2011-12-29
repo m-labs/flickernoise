@@ -16,7 +16,6 @@
 
 #include "fpvm/pfpu.h"
 
-#include "../fpvm.h"
 #include "../parser_helper.h"
 #include "../parser.h"
 #include "../compiler.h"

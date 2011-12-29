@@ -4,7 +4,7 @@ LIBFPVM_X86 = $(MMDIR)/software/libfpvm/x86-linux
 
 CFLAGS_STANDALONE = -DSTANDALONE=\"standalone.h\"
 CFLAGS = -Wall -g -I.. -I. $(CFLAGS_STANDALONE)
-OBJS = ptest.o scanner.o parser.o parser_helper.o unique.o compiler.o fpvm.o \
+OBJS = ptest.o scanner.o parser.o parser_helper.o unique.o compiler.o \
        libfpvm.a
 
 # ----- Verbosity control -----------------------------------------------------

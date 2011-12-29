@@ -62,7 +62,7 @@ OBJS += $(addprefix translations/,french.o german.o)
 OBJS += $(addprefix renderer/,framedescriptor.o analyzer.o sampler.o \
 	eval.o line.o wave.o font.o osd.o raster.o renderer.o \
 	videoinreconf.o)
-OBJS += $(addprefix compiler/,compiler.o fpvm.o parser_helper.o scanner.o \
+OBJS += $(addprefix compiler/,compiler.o parser_helper.o scanner.o \
 	parser.o unique.o)
 
 POBJS=$(addprefix $(OBJDIR)/,$(OBJS))
@@ -99,7 +99,6 @@ compiler/infra-fnp.h: \
 compiler/parser.h: compiler/parser.c
 obj/compiler/scanner.o: compiler/parser.h
 obj/compiler/parser_helper.o: compiler/parser.h
-obj/compiler/fpvm.o: compiler/parser.h
 obj/compiler/unique.o: compiler/fnp.inc
 obj/compiler/compiler.o: compiler/infra-fnp.h compiler/parser.h
 
