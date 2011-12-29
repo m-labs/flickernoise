@@ -121,6 +121,7 @@ assignments ::= .
 
 assignment ::= ident(I) TOK_ASSIGN node(N) opt_semi. {
 	state->error = state->comm->assign_default(state->comm, I->label, N);
+	free(I);
 	if(state->error) {
 		syntax_error(state);
 		yy_parse_failed(yypParser);
@@ -132,11 +133,16 @@ assignment ::= ident(I) TOK_ASSIGN node(N) opt_semi. {
 assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 	state->error = state->comm->assign_image_name(state->comm,
 	    atoi(I->label+9), N->label);
+	free(I);
 	if(state->error) {
 		syntax_error(state);
 		yy_parse_failed(yypParser);
+		free((void *) N->label);
+		free(N);
 		return;
 	}
+	free((void *) N->label);
+	free(N);
 }
 
 assignment ::= context(C). {
@@ -171,10 +177,12 @@ opt_semi ::= .
 node(N) ::= TOK_CONSTANT(C). {
 	N = node(TOK_CONSTANT, "", NULL, NULL, NULL);
 	N->contents.constant = C->constant;
+	free(C);
 }
 
 node(N) ::= ident(I). {
 	N = node(I->token, I->label, NULL, NULL, NULL);
+	free(I);
 }
 
 %left TOK_PLUS TOK_MINUS.
@@ -207,15 +215,18 @@ node(N) ::= TOK_MINUS node(A). [TOK_NOT] {
 
 node(N) ::= unary(I) TOK_LPAREN node(A) TOK_RPAREN. {
 	N = node(I->token, I->label, A, NULL, NULL);
+	free(I);
 }
 
 node(N) ::= binary(I) TOK_LPAREN node(A) TOK_COMMA node(B) TOK_RPAREN. {
 	N = node(I->token, I->label, A, B, NULL);
+	free(I);
 }
 
 node(N) ::= ternary(I) TOK_LPAREN node(A) TOK_COMMA node(B) TOK_COMMA node(C)
     TOK_RPAREN. {
 	N = node(I->token, I->label, A, B, C);
+	free(I);
 }
 
 node(N) ::= TOK_LPAREN node(A) TOK_RPAREN. {
