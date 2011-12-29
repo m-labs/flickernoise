@@ -4,6 +4,15 @@
 ###############################################################################
 
 #
+# If we're going to spend the time to run under valgrind, make the most
+# of it.
+#
+
+if [ "$VALGRIND" ]; then
+	VALGRIND="$VALGRIND --leak-check=full --show-reachable=yes"
+fi
+
+#
 # We explicitly list all the known patches here so that any local additions
 # won't interfere.
 #
