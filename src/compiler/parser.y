@@ -45,7 +45,7 @@
 
 	#define	IS_STYLE(which)						\
 		do {							\
-			if (state->style == OTHER_STYLE_##which) {	\
+			if(state->style == OTHER_STYLE_##which) {	\
 				FAIL;					\
 				return;					\
 			}						\
@@ -100,6 +100,31 @@
 	{
 		return node_op(tok2op[token], id, a, b, c);
 	}
+
+	static struct ast_node *constant(float n)
+	{
+		struct ast_node *node;
+
+		node = node_op(op_constant, "", NULL, NULL, NULL);
+		node->contents.constant = n;
+		return node;
+	}
+
+	#define FOLD_BINARY(res, ast_op, name, arg_a, arg_b, expr)	\
+		do {							\
+			if((arg_a)->op == op_constant && 		\
+			    (arg_b)->op == op_constant) {		\
+				float a = (arg_a)->contents.constant;	\
+				float b = (arg_b)->contents.constant;	\
+									\
+				res = constant(expr);			\
+				parse_free(arg_a);			\
+				parse_free(arg_b);			\
+			} else {					\
+				res = node_op(ast_op, name,		\
+				     arg_a, arg_b, NULL); 		\
+			}						\
+		} while (0)
 
 	static void syntax_error(struct parser_state *state)
 	{
@@ -241,11 +266,11 @@ add_expr(N) ::= mult_expr(A). {
 }
 
 add_expr(N) ::= add_expr(A) TOK_PLUS mult_expr(B). {
-	N = node_op(op_plus, "+", A, B, NULL);
+	FOLD_BINARY(N, op_plus, "+", A, B, a + b);
 }
 
 add_expr(N) ::= add_expr(A) TOK_MINUS mult_expr(B). {
-	N = node_op(op_minus, "-", A, B, NULL);
+	FOLD_BINARY(N, op_minus, "-", A, B, a - b);
 }
 
 mult_expr(N) ::= unary_expr(A). {
@@ -253,15 +278,15 @@ mult_expr(N) ::= unary_expr(A). {
 }
 
 mult_expr(N) ::= mult_expr(A) TOK_MULTIPLY unary_expr(B). {
-	N = node_op(op_multiply, "*", A, B, NULL);
+	FOLD_BINARY(N, op_multiply, "*", A, B, a * b);
 }
 
 mult_expr(N) ::= mult_expr(A) TOK_DIVIDE unary_expr(B). {
-	N = node_op(op_divide, "/", A, B, NULL);
+	FOLD_BINARY(N, op_divide, "/", A, B, a / b);
 }
 
 mult_expr(N) ::= mult_expr(A) TOK_PERCENT unary_expr(B). {
-	N = node_op(op_percent, "%", A, B, NULL);
+	FOLD_BINARY(N, op_percent, "%", A, B, a-b*(int) (a/b));
 }
 
 unary_expr(N) ::= primary_expr(A). {
@@ -293,8 +318,7 @@ primary_expr(N) ::= TOK_LPAREN expr(A) TOK_RPAREN. {
 }
 
 primary_expr(N) ::= TOK_CONSTANT(C). {
-	N = node_op(op_constant, "", NULL, NULL, NULL);
-	N->contents.constant = C->constant;
+	N = constant(C->constant);
 	free(C);
 }
 
