@@ -175,6 +175,8 @@
 
 %type expr {struct ast_node *}
 %type cond_expr {struct ast_node *}
+%type equal_expr {struct ast_node *}
+%type rel_expr {struct ast_node *}
 %type add_expr {struct ast_node *}
 %type mult_expr {struct ast_node *}
 %type unary_expr {struct ast_node *}
@@ -182,6 +184,8 @@
 
 %destructor expr { free($$); }
 %destructor cond_expr { free($$); }
+%destructor equal_expr { free($$); }
+%destructor rel_expr { free($$); }
 %destructor add_expr { free($$); }
 %destructor multexpr { free($$); }
 %destructor unary_expr { free($$); }
@@ -290,12 +294,32 @@ expr(N) ::= cond_expr(A). {
 	N = A;
 }
 
-cond_expr(N) ::= add_expr(A). {
+cond_expr(N) ::= equal_expr(A). {
 	N = A;
 }
 
-cond_expr(N) ::= add_expr(A) TOK_QUESTION expr(B) TOK_COLON cond_expr(C). {
+cond_expr(N) ::= equal_expr(A) TOK_QUESTION expr(B) TOK_COLON cond_expr(C). {
 	N = conditional(A, B, C);
+}
+
+equal_expr(N) ::= rel_expr(A). {
+	N = A;
+}
+
+equal_expr(N) ::= equal_expr(A) TOK_EQ rel_expr(B). {
+	FOLD_BINARY(N, op_equal, "equal", A, B, a == b);
+}
+
+rel_expr(N) ::= add_expr(A). {
+	N = A;
+}
+
+rel_expr(N) ::= rel_expr(A) TOK_LT add_expr(B). {
+	FOLD_BINARY(N, op_below, "below", A, B, a < b);
+}
+
+rel_expr(N) ::= rel_expr(A) TOK_GT add_expr(B). {
+	FOLD_BINARY(N, op_above, "above", A, B, a > b);
 }
 
 add_expr(N) ::= mult_expr(A). {
