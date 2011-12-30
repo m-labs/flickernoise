@@ -554,7 +554,7 @@ static const char *assign_default(struct parser_comm *comm,
 	case op_constant:
 		v = node->contents.constant;
 		break;
-	case op_not:
+	case op_negate:
 		if(node->contents.branches.a->op == op_constant) {
 			v = -node->contents.branches.a->contents.constant;
 			break;

@@ -110,8 +110,8 @@ static void dump_ast(const struct ast_node *ast)
         case op_quake:
 		op("quake", ast);
 		break;
-	case op_not:
-		op("!", ast);
+	case op_negate:
+		op("-", ast);
 		break;
 	case op_sqr:
 		op("sqr", ast);

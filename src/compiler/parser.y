@@ -355,7 +355,7 @@ unary_expr(N) ::= primary_expr(A). {
 }
 
 unary_expr(N) ::= TOK_MINUS unary_expr(A). {
-	FOLD_UNARY(N, op_not, "!", A, -a);
+	FOLD_UNARY(N, op_negate, "-", A, -a);
 }
 
 
