@@ -54,6 +54,7 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 		.error = NULL,
 		.error_label = NULL,
 		.id = NULL,
+		.style = unknown_style,
 	};
 	int tok;
 	struct id *identifier;

@@ -121,4 +121,28 @@ per_vertex = a = b
 FPVM, line 3: parse error near ':'
 EOF
 
+#------------------------------------------------------------------------------
+
+ptest_fail "sections: old-style selection in new-style section" <<EOF
+per_frame:
+	a = b
+per_vertex=c=d
+EOF
+expect <<EOF
+per_frame = a = b
+FPVM, line 3: parse error near 'c'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "sections: new-style section follows old-style selection" <<EOF
+per_vertex=a=b
+per_frame:
+	c = d
+EOF
+expect <<EOF
+per_vertex = a = b
+FPVM, line 3: parse error near 'c'
+EOF
+
 ###############################################################################

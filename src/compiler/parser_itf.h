@@ -39,6 +39,11 @@ struct parser_state {
 	const char *error_label;/* details about the failing token */
 	int error_lineno;
 	const struct id *id;	/* input, for error handling */
+	enum {
+		unknown_style,	/* haven't seen any fragment selection yet */
+		old_style,	/* patch uses per_frame=var=expr */
+		new_style,	/* patch uses per_frame: var=expr ... */
+	} style; 
 };
 
 void *ParseAlloc(void *(*mallocProc)(size_t));

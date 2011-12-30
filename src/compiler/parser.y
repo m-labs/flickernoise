@@ -34,6 +34,24 @@
 	typedef const char *(*assign_callback)(struct parser_comm *comm,
 	    const char *label, struct ast_node *node);
 
+	#define	FAIL					\
+		do {					\
+			syntax_error(state);		\
+			yy_parse_failed(yypParser);	\
+		} while (0)
+
+	#define	OTHER_STYLE_new_style	old_style
+	#define	OTHER_STYLE_old_style	new_style
+
+	#define	IS_STYLE(which)						\
+		do {							\
+			if (state->style == OTHER_STYLE_##which) {	\
+				FAIL;					\
+				return;					\
+			}						\
+			state->style = which;				\
+		} while (0)
+
 	const enum ast_op tok2op[] = {
 		[TOK_IDENT]	= op_ident,
 		[TOK_CONSTANT]	= op_constant,
@@ -102,8 +120,7 @@
 %type context {assign_callback}
 
 %syntax_error {
-	syntax_error(state);
-	yy_parse_failed(yypParser);
+	FAIL;
 }
 
 start ::= TOK_START_EXPR node(N). {
@@ -122,10 +139,12 @@ sections ::= assignments per_frame_label assignments per_vertex_label
 sections ::= assignments per_vertex_label assignments.
 
 per_frame_label ::= TOK_PER_FRAME TOK_COLON. {
+	IS_STYLE(new_style);
 	state->comm->assign_default = state->comm->assign_per_frame;
 }
 
 per_vertex_label ::= TOK_PER_VERTEX TOK_COLON. {
+	IS_STYLE(new_style);
 	state->comm->assign_default = state->comm->assign_per_vertex;
 }
 
@@ -137,8 +156,7 @@ assignment ::= ident(I) TOK_ASSIGN node(N) opt_semi. {
 	state->error = state->comm->assign_default(state->comm, I->label, N);
 	free(I);
 	if(state->error) {
-		syntax_error(state);
-		yy_parse_failed(yypParser);
+		FAIL;
 		return;
 	}
 	parse_free(N);
@@ -149,8 +167,7 @@ assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 	    atoi(I->label+9), N->label);
 	free(I);
 	if(state->error) {
-		syntax_error(state);
-		yy_parse_failed(yypParser);
+		FAIL;
 		free((void *) N->label);
 		free(N);
 		return;
@@ -173,14 +190,17 @@ assignment ::= context(C). {
 }
 
 context(C) ::= TOK_PER_FRAME TOK_ASSIGN. {
+	IS_STYLE(old_style);
 	C = state->comm->assign_per_frame;
 }
 
 context(C) ::= TOK_PER_VERTEX TOK_ASSIGN. {
+	IS_STYLE(old_style);
 	C = state->comm->assign_per_vertex;
 }
 
 context(C) ::= TOK_PER_PIXEL TOK_ASSIGN. {
+	IS_STYLE(old_style);
 	C = state->comm->assign_per_vertex;
 }
 
