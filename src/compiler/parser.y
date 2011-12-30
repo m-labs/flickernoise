@@ -202,6 +202,10 @@ start ::= TOK_START_ASSIGN sections. {
 	state->success = 1;
 }
 
+
+/* ----- Sections and assignments ------------------------------------------ */
+
+
 sections ::= assignments.
 sections ::= assignments per_frame_label assignments.
 sections ::= assignments per_frame_label assignments per_vertex_label
@@ -278,6 +282,10 @@ opt_semi ::= opt_semi TOK_SEMI.
 
 opt_semi ::= .
 
+
+/* ----- Operators --------------------------------------------------------- */
+
+
 expr(N) ::= cond_expr(A). {
 	N = A;
 }
@@ -326,6 +334,10 @@ unary_expr(N) ::= TOK_MINUS unary_expr(A). {
 	FOLD_UNARY(N, op_not, "!", A, -a);
 }
 
+
+/* ----- Unary functions --------------------------------------------------- */
+
+
 primary_expr(N) ::= unary_misc(I) TOK_LPAREN expr(A) TOK_RPAREN. {
 	N = node(I->token, I->label, A, NULL, NULL);
 	free(I);
@@ -335,6 +347,10 @@ primary_expr(N) ::= TOK_SQR(I) TOK_LPAREN expr(A) TOK_RPAREN. {
 	FOLD_UNARY(N, op_sqr, "sqr", A, a*a);
 	free(I);
 }
+
+
+/* ----- Binary functions -------------------------------------------------- */
+
 
 primary_expr(N) ::= binary_misc(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
     TOK_RPAREN. {
@@ -372,11 +388,19 @@ primary_expr(N) ::= TOK_MIN(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
 	free(I);
 }
 
+
+/* ----- Trinary functions ------------------------------------------------- */
+
+
 primary_expr(N) ::= TOK_IF(I) TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_COMMA
     expr(C) TOK_RPAREN. {
 	N = conditional(A, B, C);
 	free(I);
 }
+
+
+/* ----- Primary expressions ----------------------------------------------- */
+
 
 primary_expr(N) ::= TOK_LPAREN expr(A) TOK_RPAREN. {
 	N = A;
@@ -391,6 +415,19 @@ primary_expr(N) ::= ident(I). {
 	N = node(I->token, I->label, NULL, NULL, NULL);
 	free(I);
 }
+
+
+/* ----- Identifiers ------------------------------------------------------- */
+
+/*
+ * Function names are not reserved words. If not followed by an opening
+ * parenthesis, they become regular identifiers.
+ *
+ * {u,bi,ter}nary are identifiers that have an individual rule, e.g., because
+ * they have function-specific code for constant folding. {u,bi,ter}nary_misc
+ * are identifiers the parser treats as generic functions, without knowing
+ * anything about their semantics.
+ */
 
 ident(O) ::= TOK_IDENT(I).	{ O = I; }
 ident(O) ::= unary(I).		{ O = I; }
