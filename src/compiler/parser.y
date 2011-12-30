@@ -233,7 +233,7 @@ cond_expr(N) ::= add_expr(A). {
 }
 
 cond_expr(N) ::= add_expr(A) TOK_QUESTION expr(B) TOK_COLON cond_expr(C). {
-	N = node(TOK_IF, "if", A, B, C);
+	N = node_op(op_if, "if", A, B, C);
 }
 
 add_expr(N) ::= mult_expr(A). {
@@ -241,11 +241,11 @@ add_expr(N) ::= mult_expr(A). {
 }
 
 add_expr(N) ::= add_expr(A) TOK_PLUS mult_expr(B). {
-	N = node(TOK_PLUS, "+", A, B, NULL);
+	N = node_op(op_plus, "+", A, B, NULL);
 }
 
 add_expr(N) ::= add_expr(A) TOK_MINUS mult_expr(B). {
-	N = node(TOK_MINUS, "-", A, B, NULL);
+	N = node_op(op_minus, "-", A, B, NULL);
 }
 
 mult_expr(N) ::= unary_expr(A). {
@@ -253,15 +253,15 @@ mult_expr(N) ::= unary_expr(A). {
 }
 
 mult_expr(N) ::= mult_expr(A) TOK_MULTIPLY unary_expr(B). {
-	N = node(TOK_MULTIPLY, "*", A, B, NULL);
+	N = node_op(op_multiply, "*", A, B, NULL);
 }
 
 mult_expr(N) ::= mult_expr(A) TOK_DIVIDE unary_expr(B). {
-	N = node(TOK_DIVIDE, "/", A, B, NULL);
+	N = node_op(op_divide, "/", A, B, NULL);
 }
 
 mult_expr(N) ::= mult_expr(A) TOK_PERCENT unary_expr(B). {
-	N = node(TOK_PERCENT, "%", A, B, NULL);
+	N = node_op(op_percent, "%", A, B, NULL);
 }
 
 unary_expr(N) ::= primary_expr(A). {
@@ -293,7 +293,7 @@ primary_expr(N) ::= TOK_LPAREN expr(A) TOK_RPAREN. {
 }
 
 primary_expr(N) ::= TOK_CONSTANT(C). {
-	N = node(TOK_CONSTANT, "", NULL, NULL, NULL);
+	N = node_op(op_constant, "", NULL, NULL, NULL);
 	N->contents.constant = C->constant;
 	free(C);
 }
