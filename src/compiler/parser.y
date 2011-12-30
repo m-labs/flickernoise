@@ -126,6 +126,22 @@
 			}						\
 		} while (0)
 
+	static struct ast_node *conditional(struct ast_node *a,
+	    struct ast_node *b, struct ast_node *c)
+	{
+		if(a->op != op_constant)
+			return node_op(op_if, "if", a, b, c);
+		if(a->contents.constant) {
+			parse_free(a);
+			parse_free(c);
+			return b;
+		} else {
+			parse_free(a);
+			parse_free(b);
+			return c;
+		}
+	}
+
 	static void syntax_error(struct parser_state *state)
 	{
 		if(!state->error_label) {
@@ -258,7 +274,7 @@ cond_expr(N) ::= add_expr(A). {
 }
 
 cond_expr(N) ::= add_expr(A) TOK_QUESTION expr(B) TOK_COLON cond_expr(C). {
-	N = node_op(op_if, "if", A, B, C);
+	N = conditional(A, B, C);
 }
 
 add_expr(N) ::= mult_expr(A). {
@@ -338,9 +354,9 @@ primary_expr(N) ::= TOK_MIN(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
 	free(I);
 }
 
-primary_expr(N) ::= ternary(I) TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_COMMA
+primary_expr(N) ::= TOK_IF(I) TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_COMMA
     expr(C) TOK_RPAREN. {
-	N = node(I->token, I->label, A, B, C);
+	N = conditional(A, B, C);
 	free(I);
 }
 

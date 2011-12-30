@@ -1,0 +1,58 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "fold conditional: x = a ? b : c (nothing to fold)" << EOF
+x = a ? b : c
+EOF
+expect <<EOF
+x = (if a b c)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "fold conditional: x = 1 ? b : c" << EOF
+x = 1 ? b : c
+EOF
+expect <<EOF
+x = b
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "fold conditional: x = 0 ? b : c" << EOF
+x = 0 ? b : c
+EOF
+expect <<EOF
+x = c
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "fold conditional: x = if(a, b, c) (nothing to fold)" << EOF
+x = if(a, b, c)
+EOF
+expect <<EOF
+x = (if a b c)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "fold conditional: x = if(1, b, c)" << EOF
+x = if(1, b, c)
+EOF
+expect <<EOF
+x = b
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "fold conditional: x = if(0, b,c)" << EOF
+x = if(0, b, c)
+EOF
+expect <<EOF
+x = c
+EOF
+
+###############################################################################
