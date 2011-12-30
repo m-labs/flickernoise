@@ -316,6 +316,13 @@ equal_expr(N) ::= equal_expr(A) TOK_EQ rel_expr(B). {
 	FOLD_BINARY(N, op_equal, "equal", A, B, a == b);
 }
 
+equal_expr(N) ::= equal_expr(A) TOK_NE rel_expr(B). {
+	struct ast_node *tmp;
+
+	FOLD_BINARY(tmp, op_equal, "equal", A, B, a == b);
+	FOLD_UNARY(N, op_not, "!", tmp, !a);
+}
+
 rel_expr(N) ::= add_expr(A). {
 	N = A;
 }
@@ -326,6 +333,20 @@ rel_expr(N) ::= rel_expr(A) TOK_LT add_expr(B). {
 
 rel_expr(N) ::= rel_expr(A) TOK_GT add_expr(B). {
 	FOLD_BINARY(N, op_above, "above", A, B, a > b);
+}
+
+rel_expr(N) ::= rel_expr(A) TOK_LE add_expr(B). {
+	struct ast_node *tmp;
+
+	FOLD_BINARY(tmp, op_above, "above", A, B, a > b);
+	FOLD_UNARY(N, op_not, "!", tmp, !a);
+}
+
+rel_expr(N) ::= rel_expr(A) TOK_GE add_expr(B). {
+	struct ast_node *tmp;
+
+	FOLD_BINARY(tmp, op_below, "below", A, B, a < b);
+	FOLD_UNARY(N, op_not, "!", tmp, !a);
 }
 
 add_expr(N) ::= mult_expr(A). {

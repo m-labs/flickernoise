@@ -140,8 +140,11 @@ int scan(struct scanner *s)
 		<N>":"			{ return TOK_COLON; }
 		<N>"!"			{ return TOK_NOT; }
 		<N>"=="			{ return TOK_EQ; }
+		<N>"!="			{ return TOK_NE; }
 		<N>"<"			{ return TOK_LT; }
 		<N>">"			{ return TOK_GT; }
+		<N>"<="			{ return TOK_LE; }
+		<N>">="			{ return TOK_GE; }
 
 		<N,FNAME1>"="		{ if (YYGETCONDITION() == yycFNAME1)
 						YYSETCONDITION(yycFNAME2);
