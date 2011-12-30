@@ -221,7 +221,7 @@ static int wave_mode_23(struct frame_descriptor *frd, struct wave_vertex *vertic
 		s2 = samples[8*i+32+1]/32768.0;
 
 		vertices[i].x = (s1*frd->wave_scale*0.5 + frd->wave_x)*renderer_texsize;
-		vertices[i].y = (s2*frd->wave_scale*0.5 + frd->wave_x)*renderer_texsize;
+		vertices[i].y = (s2*frd->wave_scale*0.5 + frd->wave_y)*renderer_texsize;
 	}
 
 	return nvertices;
