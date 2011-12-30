@@ -143,6 +143,11 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 	return error;
 }
 
+void parse_free_one(struct ast_node *node)
+{
+	free(node);
+}
+
 void parse_free(struct ast_node *node)
 {
 	if(node == NULL) return;

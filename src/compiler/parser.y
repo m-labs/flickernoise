@@ -142,6 +142,12 @@
 	static struct ast_node *conditional(struct ast_node *a,
 	    struct ast_node *b, struct ast_node *c)
 	{
+		if(a->op == op_not) {
+			struct ast_node *next = a->contents.branches.a;
+
+			parse_free_one(a);
+			return node_op(op_if, "if", next, c, b);
+		}
 		if(a->op != op_constant)
 			return node_op(op_if, "if", a, b, c);
 		if(a->contents.constant) {
