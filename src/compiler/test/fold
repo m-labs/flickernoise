@@ -64,4 +64,65 @@ expect <<EOF
 x = (+ 1 b)
 EOF
 
+#------------------------------------------------------------------------------
+
+ptest "constant folding: above" << EOF
+x = above(1, 2)
+y = above(2, 1)
+z = above(1, 1)
+EOF
+expect <<EOF
+x = 0
+y = 1
+z = 0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "constant folding: below" << EOF
+x = below(1, 2)
+y = below(2, 1)
+z = below(1, 1)
+EOF
+expect <<EOF
+x = 1
+y = 0
+z = 0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "constant folding: equal" << EOF
+x = equal(1, 2)
+y = equal(2, 1)
+z = equal(1, 1)
+EOF
+expect <<EOF
+x = 0
+y = 0
+z = 1
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "constant folding: max" << EOF
+x = max(2, 3)
+y = max(3, 2)
+EOF
+expect <<EOF
+x = 3
+y = 3
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "constant folding: min" << EOF
+x = min(2, 3)
+y = min(3, 2)
+EOF
+expect <<EOF
+x = 2
+y = 2
+EOF
+
 ###############################################################################

@@ -302,8 +302,39 @@ primary_expr(N) ::= unary(I) TOK_LPAREN expr(A) TOK_RPAREN. {
 	free(I);
 }
 
-primary_expr(N) ::= binary(I) TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
+primary_expr(N) ::= binary_misc(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
+    TOK_RPAREN. {
 	N = node(I->token, I->label, A, B, NULL);
+	free(I);
+}
+
+primary_expr(N) ::= TOK_ABOVE(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
+     TOK_RPAREN. {
+	FOLD_BINARY(N, op_above, "above", A, B, a > b);
+	free(I);
+}
+
+primary_expr(N) ::= TOK_BELOW(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
+     TOK_RPAREN. {
+	FOLD_BINARY(N, op_below, "below", A, B, a < b);
+	free(I);
+}
+
+primary_expr(N) ::= TOK_EQUAL(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
+     TOK_RPAREN. {
+	FOLD_BINARY(N, op_equal, "equal", A, B, a == b);
+	free(I);
+}
+
+primary_expr(N) ::= TOK_MAX(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
+     TOK_RPAREN. {
+	FOLD_BINARY(N, op_max, "max", A, B, a > b ? a : b);
+	free(I);
+}
+
+primary_expr(N) ::= TOK_MIN(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
+     TOK_RPAREN. {
+	FOLD_BINARY(N, op_min, "min", A, B, a < b ? a : b);
 	free(I);
 }
 
@@ -330,6 +361,7 @@ primary_expr(N) ::= ident(I). {
 ident(O) ::= TOK_IDENT(I).	{ O = I; }
 ident(O) ::= unary(I).		{ O = I; }
 ident(O) ::= binary(I).		{ O = I; }
+ident(O) ::= binary_misc(I).	{ O = I; }
 ident(O) ::= ternary(I).	{ O = I; }
 
 unary(O) ::= TOK_ABS(I).	{ O = I; }
@@ -350,6 +382,6 @@ binary(O) ::= TOK_BELOW(I).	{ O = I; }
 binary(O) ::= TOK_EQUAL(I).	{ O = I; }
 binary(O) ::= TOK_MAX(I).	{ O = I; }
 binary(O) ::= TOK_MIN(I).	{ O = I; }
-binary(O) ::= TOK_TSIGN(I).	{ O = I; }
+binary_misc(O) ::= TOK_TSIGN(I).	{ O = I; }
 
 ternary(O) ::= TOK_IF(I).	{ O = I; }
