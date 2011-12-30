@@ -111,8 +111,22 @@ start ::= TOK_START_EXPR node(N). {
 	state->success = 1;
 }
 
-start ::= TOK_START_ASSIGN assignments. {
+start ::= TOK_START_ASSIGN sections. {
 	state->success = 1;
+}
+
+sections ::= assignments.
+sections ::= assignments per_frame_label assignments.
+sections ::= assignments per_frame_label assignments per_vertex_label
+    assignments.
+sections ::= assignments per_vertex_label assignments.
+
+per_frame_label ::= TOK_PER_FRAME TOK_COLON. {
+	state->comm->assign_default = state->comm->assign_per_frame;
+}
+
+per_vertex_label ::= TOK_PER_VERTEX TOK_COLON. {
+	state->comm->assign_default = state->comm->assign_per_vertex;
 }
 
 assignments ::= assignments assignment.

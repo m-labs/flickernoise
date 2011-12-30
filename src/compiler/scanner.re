@@ -136,6 +136,7 @@ int scan(struct scanner *s)
 		<N>"("			{ return TOK_LPAREN; }
 		<N>")"			{ return TOK_RPAREN; }
 		<N>","			{ return TOK_COMMA; }
+		<N>":"			{ return TOK_COLON; }
 		<N,FNAME1>"="		{ if (YYGETCONDITION() == yycFNAME1)
 						YYSETCONDITION(yycFNAME2);
 					  return TOK_ASSIGN; }

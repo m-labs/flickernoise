@@ -1,0 +1,124 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "sections: only global" <<EOF
+foo = bar
+EOF
+expect <<EOF
+foo = bar
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "sections: only per frame" <<EOF
+per_frame:
+	foo = bar
+	bar = foo
+EOF
+expect <<EOF
+per_frame = foo = bar
+per_frame = bar = foo
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "sections: empty per frame" <<EOF
+per_frame:
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "sections: only per vertex" <<EOF
+per_vertex:
+	foo = bar
+	bar = foo
+EOF
+expect <<EOF
+per_vertex = foo = bar
+per_vertex = bar = foo
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "sections: empty per vertex" <<EOF
+per_vertex:
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "sections: global, per frame, then per vertex" <<EOF
+x = y
+per_frame:
+	a = b
+	c = d
+per_vertex:
+	e = f
+	g = h
+EOF
+expect <<EOF
+x = y
+per_frame = a = b
+per_frame = c = d
+per_vertex = e = f
+per_vertex = g = h
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "sections: empty per frame, then per vertex" <<EOF
+per_frame:
+per_vertex:
+	a = c
+	b = d
+EOF
+expect <<EOF
+per_vertex = a = c
+per_vertex = b = d
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "sections: double per frame" <<EOF
+per_frame:
+	a = b
+per_frame:
+	c = d
+EOF
+expect <<EOF
+per_frame = a = b
+FPVM, line 3: parse error near ':'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "sections: double per vertex" <<EOF
+per_vertex:
+	a = b
+per_vertex:
+	c = d
+EOF
+expect <<EOF
+per_vertex = a = b
+FPVM, line 3: parse error near ':'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "sections: per vertex, then per frame" <<EOF
+per_vertex:
+	a = b
+per_frame:
+	c = d
+EOF
+expect <<EOF
+per_vertex = a = b
+FPVM, line 3: parse error near ':'
+EOF
+
+###############################################################################
