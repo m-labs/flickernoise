@@ -120,12 +120,14 @@
 }
 
 %type expr {struct ast_node *}
+%type cond_expr {struct ast_node *}
 %type add_expr {struct ast_node *}
 %type mult_expr {struct ast_node *}
 %type unary_expr {struct ast_node *}
 %type primary_expr {struct ast_node *}
 
 %destructor expr { free($$); }
+%destructor cond_expr { free($$); }
 %destructor add_expr { free($$); }
 %destructor multexpr { free($$); }
 %destructor unary_expr { free($$); }
@@ -222,8 +224,16 @@ opt_semi ::= opt_semi TOK_SEMI.
 
 opt_semi ::= .
 
-expr(N) ::= add_expr(A). {
+expr(N) ::= cond_expr(A). {
 	N = A;
+}
+
+cond_expr(N) ::= add_expr(A). {
+	N = A;
+}
+
+cond_expr(N) ::= add_expr(A) TOK_QUESTION expr(B) TOK_COLON cond_expr(C). {
+	N = node(TOK_IF, "if", A, B, C);
 }
 
 add_expr(N) ::= mult_expr(A). {
