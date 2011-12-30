@@ -110,6 +110,19 @@
 		return node;
 	}
 
+	#define FOLD_UNARY(res, ast_op, name, arg, expr)		\
+		do {							\
+			if((arg)->op == op_constant) {			\
+				float a = (arg)->contents.constant;	\
+									\
+				res = constant(expr);			\
+				parse_free(arg);			\
+			} else {					\
+				res = node_op(ast_op, name,		\
+				    arg, NULL, NULL);			\
+			}						\
+		} while (0)
+
 	#define FOLD_BINARY(res, ast_op, name, arg_a, arg_b, expr)	\
 		do {							\
 			if((arg_a)->op == op_constant && 		\
@@ -310,11 +323,16 @@ unary_expr(N) ::= primary_expr(A). {
 }
 
 unary_expr(N) ::= TOK_MINUS unary_expr(A). {
-	N = node_op(op_not, "!", A, NULL, NULL);
+	FOLD_UNARY(N, op_not, "!", A, -a);
 }
 
-primary_expr(N) ::= unary(I) TOK_LPAREN expr(A) TOK_RPAREN. {
+primary_expr(N) ::= unary_misc(I) TOK_LPAREN expr(A) TOK_RPAREN. {
 	N = node(I->token, I->label, A, NULL, NULL);
+	free(I);
+}
+
+primary_expr(N) ::= TOK_SQR(I) TOK_LPAREN expr(A) TOK_RPAREN. {
+	FOLD_UNARY(N, op_sqr, "sqr", A, a*a);
 	free(I);
 }
 
@@ -376,22 +394,23 @@ primary_expr(N) ::= ident(I). {
 
 ident(O) ::= TOK_IDENT(I).	{ O = I; }
 ident(O) ::= unary(I).		{ O = I; }
+ident(O) ::= unary_misc(I).	{ O = I; }
 ident(O) ::= binary(I).		{ O = I; }
 ident(O) ::= binary_misc(I).	{ O = I; }
 ident(O) ::= ternary(I).	{ O = I; }
 
-unary(O) ::= TOK_ABS(I).	{ O = I; }
-unary(O) ::= TOK_COS(I).	{ O = I; }
-unary(O) ::= TOK_F2I(I).	{ O = I; }
-unary(O) ::= TOK_ICOS(I).	{ O = I; }
-unary(O) ::= TOK_I2F(I).	{ O = I; }
-unary(O) ::= TOK_INT(I).	{ O = I; }
-unary(O) ::= TOK_INVSQRT(I).	{ O = I; }
-unary(O) ::= TOK_ISIN(I).	{ O = I; }
-unary(O) ::= TOK_QUAKE(I).	{ O = I; }
-unary(O) ::= TOK_SIN(I).	{ O = I; }
+unary_misc(O) ::= TOK_ABS(I).	{ O = I; }
+unary_misc(O) ::= TOK_COS(I).	{ O = I; }
+unary_misc(O) ::= TOK_F2I(I).	{ O = I; }
+unary_misc(O) ::= TOK_ICOS(I).	{ O = I; }
+unary_misc(O) ::= TOK_I2F(I).	{ O = I; }
+unary_misc(O) ::= TOK_INT(I).	{ O = I; }
+unary_misc(O) ::= TOK_INVSQRT(I).	{ O = I; }
+unary_misc(O) ::= TOK_ISIN(I).	{ O = I; }
+unary_misc(O) ::= TOK_QUAKE(I).	{ O = I; }
+unary_misc(O) ::= TOK_SIN(I).	{ O = I; }
 unary(O) ::= TOK_SQR(I).	{ O = I; }
-unary(O) ::= TOK_SQRT(I).	{ O = I; }
+unary_misc(O) ::= TOK_SQRT(I).	{ O = I; }
 
 binary(O) ::= TOK_ABOVE(I).	{ O = I; }
 binary(O) ::= TOK_BELOW(I).	{ O = I; }
