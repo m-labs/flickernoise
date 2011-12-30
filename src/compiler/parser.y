@@ -358,6 +358,10 @@ unary_expr(N) ::= TOK_MINUS unary_expr(A). {
 	FOLD_UNARY(N, op_negate, "-", A, -a);
 }
 
+unary_expr(N) ::= TOK_NOT unary_expr(A). {
+	FOLD_UNARY(N, op_not, "!", A, !a);
+}
+
 
 /* ----- Unary functions --------------------------------------------------- */
 

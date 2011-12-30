@@ -21,6 +21,12 @@
 #include <fpvm/ast.h>
 #include <fpvm/fpvm.h>
 
+
+/* virtual operation - for use inside the parser only */
+enum {
+	op_not  = op_vops+1,
+};
+
 struct compiler_sc;
 
 struct parser_comm {

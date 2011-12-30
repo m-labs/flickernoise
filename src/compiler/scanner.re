@@ -138,6 +138,7 @@ int scan(struct scanner *s)
 		<N>","			{ return TOK_COMMA; }
 		<N>"?"			{ return TOK_QUESTION; }
 		<N>":"			{ return TOK_COLON; }
+		<N>"!"			{ return TOK_NOT; }
 		<N>"=="			{ return TOK_EQ; }
 		<N>"<"			{ return TOK_LT; }
 		<N>">"			{ return TOK_GT; }

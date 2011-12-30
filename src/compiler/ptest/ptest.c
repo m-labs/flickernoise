@@ -131,6 +131,9 @@ static void dump_ast(const struct ast_node *ast)
         case op_int:
 		op("int", ast);
 		break;
+	case op_not:
+		op("!", ast);
+		break;
 	default:
 		abort();
 	}
