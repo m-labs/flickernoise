@@ -14,39 +14,39 @@
 
 ptest()
 {
-    echo -n "$1: " 1>&2
-    shift
-    $VALGRIND ${PTST:-../ptest/ptest} "$@" >_out 2>&1 || {
-	echo FAILED "($SCRIPT)" 1>&2
-	cat _out
-	rm -f _out
-	exit 1
-    }
+	echo -n "$1: " 1>&2
+	shift
+	$VALGRIND ${PTST:-../ptest/ptest} "$@" >_out 2>&1 || {
+		echo FAILED "($SCRIPT)" 1>&2
+		cat _out
+		rm -f _out
+		exit 1
+	}
 }
 
 
 ptest_fail()
 {
-    echo -n "$1: " 1>&2
-    shift
-    $VALGRIND ${PTST:-../ptest/ptest} "$@" >_out 2>&1 && {
-	echo FAILED "($SCRIPT)" 1>&2
-	cat _out
-	rm -f _out
-	exit 1
-    }
+	echo -n "$1: " 1>&2
+	shift
+	$VALGRIND ${PTST:-../ptest/ptest} "$@" >_out 2>&1 && {
+		echo FAILED "($SCRIPT)" 1>&2
+		cat _out
+		rm -f _out
+		exit 1
+	}
 }
 
 
 expect()
 {
-    diff -u - "$@" _out >_diff || {
-	echo FAILED "($SCRIPT)" 1>&2
-	cat _diff 1>&2
+	diff -u - "$@" _out >_diff || {
+		echo FAILED "($SCRIPT)" 1>&2
+		cat _diff 1>&2
+		rm -f _out _diff
+		exit 1
+	}
+	echo PASSED 1>&2
 	rm -f _out _diff
-	exit 1
-    }
-    echo PASSED 1>&2
-    rm -f _out _diff
-    passed=`expr ${passed:-0} + 1`
+	passed=`expr ${passed:-0} + 1`
 }
