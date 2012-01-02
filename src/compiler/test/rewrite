@@ -1,0 +1,13 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+PATCHDIR=../../../patches
+
+equiv1 "rewrite: prettier Krash - Digital Flame" \
+    "$PATCHDIR/Krash - Digital Flame.fnp"
+sedit s/swapcolour/swap/g
+equiv2 Data/flame.fnp
+
+###############################################################################

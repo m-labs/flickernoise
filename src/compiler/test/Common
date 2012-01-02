@@ -50,3 +50,46 @@ expect()
 	rm -f _out _diff
 	passed=`expr ${passed:-0} + 1`
 }
+
+
+sedit()
+{
+	sed "$1" _out >_tmp || exit 1
+	mv _tmp _out
+}
+
+
+equiv1()
+{
+	echo -n "$1: " 1>&2
+	one=$2
+	shift 2
+	$VALGRIND ${PTST:-../ptest/ptest} "$@" <"$one" >_out 2>&1 || {
+		echo FAILED "($SCRIPT)" 1>&2
+		cat _out
+		rm -f _out
+		exit 1
+	}
+}
+
+
+equiv2()
+{
+	two=$1
+	shift
+	$VALGRIND ${PTST:-../ptest/ptest} "$@" <"$two" >_two 2>&1 || {
+		echo FAILED "($SCRIPT)" 1>&2
+		cat _two
+		rm -f _out _two
+		exit 1
+	}
+	diff -u _out _two >_diff || {
+		echo FAILED "($SCRIPT)" 1>&2
+		cat _diff 1>&2
+		rm -f _out _two _diff
+		exit 1
+	}
+	echo PASSED 1>&2
+	rm -f _out _two _diff
+	passed=`expr ${passed:-0} + 1`
+}
