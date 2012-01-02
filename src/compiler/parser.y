@@ -403,6 +403,11 @@ primary_expr(N) ::= TOK_SQR(I) TOK_LPAREN expr(A) TOK_RPAREN. {
 	free(I);
 }
 
+primary_expr(N) ::= TOK_SQRT(I) TOK_LPAREN expr(A) TOK_RPAREN. {
+	FOLD_UNARY(N, op_sqrt, "sqrt", A, sqrtf(a));
+	free(I);
+}
+
 
 /* ----- Binary functions -------------------------------------------------- */
 
@@ -502,7 +507,7 @@ unary_misc(O) ::= TOK_ISIN(I).	{ O = I; }
 unary_misc(O) ::= TOK_QUAKE(I).	{ O = I; }
 unary_misc(O) ::= TOK_SIN(I).	{ O = I; }
 unary(O) ::= TOK_SQR(I).	{ O = I; }
-unary_misc(O) ::= TOK_SQRT(I).	{ O = I; }
+unary(O) ::= TOK_SQRT(I).	{ O = I; }
 
 binary(O) ::= TOK_ABOVE(I).	{ O = I; }
 binary(O) ::= TOK_BELOW(I).	{ O = I; }

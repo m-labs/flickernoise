@@ -6,6 +6,7 @@ CFLAGS_STANDALONE = -DSTANDALONE=\"standalone.h\"
 CFLAGS = -Wall -g -I.. -I. $(CFLAGS_STANDALONE)
 OBJS = ptest.o scanner.o parser.o parser_helper.o unique.o compiler.o \
        libfpvm.a
+LDLIBS = -lm
 
 # ----- Verbosity control -----------------------------------------------------
 
@@ -32,7 +33,7 @@ fpvm:
 		$(GEN) ln -s $(FPVM_H) fpvm
 
 ptest:		$(OBJS)
-		$(CC) $(CFLAGS) -o $@ $^
+		$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
 %.o:		../%.c
 		$(CC) $(CFLAGS) -c -o $@ $<
