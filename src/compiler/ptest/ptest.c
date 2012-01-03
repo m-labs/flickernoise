@@ -19,10 +19,12 @@
 #include "../parser_helper.h"
 #include "../parser.h"
 #include "../compiler.h"
+#include "../unique.h"
 
 
 static int quiet = 0;
 static const char *fail = NULL;
+static const char *buffer;
 
 
 static void dump_ast(const struct ast_node *ast);
@@ -190,7 +192,6 @@ static const char *assign_image_name(struct parser_comm *comm,
 static void report(const char *s)
 {
 	fprintf(stderr, "%s\n", s);
-	exit(1);
 }
 
 
@@ -237,6 +238,7 @@ static void parse_only(const char *pgm)
 	const char *error;
 
 	error = parse(pgm, TOK_START_ASSIGN, &comm);
+	unique_free();
 	if (!error)
 		return;
 	fflush(stdout);
@@ -306,6 +308,12 @@ static void compile(const char *pgm)
 }
 
 
+static void free_buffer(void)
+{
+	free((void *) buffer);
+}
+
+
 static void usage(const char *name)
 {
 	fprintf(stderr,
@@ -322,7 +330,6 @@ static void usage(const char *name)
 int main(int argc, char **argv)
 {
 	int c;
-	const char *buf;
 	int codegen = 0;
 	unsigned long repeat = 1;
 	char *end;
@@ -352,10 +359,11 @@ int main(int argc, char **argv)
 
 	switch (argc-optind) {
 	case 0:
-		buf = read_stdin();
+		buffer = read_stdin();
+		atexit(free_buffer);
 		break;
 	case 1:
-		buf = argv[optind];
+		buffer = argv[optind];
 		break;
 	default:
 		usage(*argv);
@@ -363,13 +371,10 @@ int main(int argc, char **argv)
 
 	while (repeat--) {
 		if (codegen)
-			compile(buf);
+			compile(buffer);
 		else
-			parse_only(buf);
+			parse_only(buffer);
 	}
-
-	if (argc == optind)
-		free((void *) buf);
 
 	return 0;
 }
