@@ -398,14 +398,12 @@ primary_expr(N) ::= unary_misc(I) TOK_LPAREN expr(A) TOK_RPAREN. {
 	free(I);
 }
 
-primary_expr(N) ::= TOK_SQR(I) TOK_LPAREN expr(A) TOK_RPAREN. {
+primary_expr(N) ::= TOK_SQR TOK_LPAREN expr(A) TOK_RPAREN. {
 	FOLD_UNARY(N, op_sqr, "sqr", A, a*a);
-	free(I);
 }
 
-primary_expr(N) ::= TOK_SQRT(I) TOK_LPAREN expr(A) TOK_RPAREN. {
+primary_expr(N) ::= TOK_SQRT TOK_LPAREN expr(A) TOK_RPAREN. {
 	FOLD_UNARY(N, op_sqrt, "sqrt", A, sqrtf(a));
-	free(I);
 }
 
 
@@ -418,44 +416,33 @@ primary_expr(N) ::= binary_misc(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
 	free(I);
 }
 
-primary_expr(N) ::= TOK_ABOVE(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
-     TOK_RPAREN. {
+primary_expr(N) ::= TOK_ABOVE TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
 	FOLD_BINARY(N, op_above, "above", A, B, a > b);
-	free(I);
 }
 
-primary_expr(N) ::= TOK_BELOW(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
-     TOK_RPAREN. {
+primary_expr(N) ::= TOK_BELOW TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
 	FOLD_BINARY(N, op_below, "below", A, B, a < b);
-	free(I);
 }
 
-primary_expr(N) ::= TOK_EQUAL(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
-     TOK_RPAREN. {
+primary_expr(N) ::= TOK_EQUAL TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
 	FOLD_BINARY(N, op_equal, "equal", A, B, a == b);
-	free(I);
 }
 
-primary_expr(N) ::= TOK_MAX(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
-     TOK_RPAREN. {
+primary_expr(N) ::= TOK_MAX TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
 	FOLD_BINARY(N, op_max, "max", A, B, a > b ? a : b);
-	free(I);
 }
 
-primary_expr(N) ::= TOK_MIN(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
-     TOK_RPAREN. {
+primary_expr(N) ::= TOK_MIN TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
 	FOLD_BINARY(N, op_min, "min", A, B, a < b ? a : b);
-	free(I);
 }
 
 
 /* ----- Trinary functions ------------------------------------------------- */
 
 
-primary_expr(N) ::= TOK_IF(I) TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_COMMA
+primary_expr(N) ::= TOK_IF TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_COMMA
     expr(C) TOK_RPAREN. {
 	N = conditional(A, B, C);
-	free(I);
 }
 
 
