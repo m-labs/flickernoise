@@ -1,5 +1,5 @@
 .PHONY:		all clean
-.PHONY:		test tests valgrind
+.PHONY:		test tests valgrind leak leaks
 
 all:
 		$(MAKE) -C ptest
@@ -15,6 +15,10 @@ test tests:     all
 
 valgrind:
 		VALGRIND="valgrind -q" $(MAKE) tests
+
+leak leaks:
+		VALGRIND="valgrind -q --leak-check=full --show-reachable=yes" \
+		    $(MAKE) tests
 
 # ----- Cleanup ---------------------------------------------------------------
 
