@@ -683,6 +683,7 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	return p;
 
 fail:
+	unique_free();
 	free(sc->p);
 	free(sc);
 	return NULL;
