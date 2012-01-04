@@ -23,9 +23,7 @@
 
 
 /* virtual operation - for use inside the parser only */
-enum {
-	op_not  = op_vops+1,
-};
+#define	op_not	(op_vops+1)
 
 struct compiler_sc;
 
