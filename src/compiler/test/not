@@ -16,7 +16,7 @@ ptest_fail "not: !a (try to generate code)" -c << EOF
 per_frame: wave_a = !a
 EOF
 expect <<EOF
-FPVM, line 2: Operation not supported: ! near 'EOF'
+FPVM, line 2: Operation not supported: 29 near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------

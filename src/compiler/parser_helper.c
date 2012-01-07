@@ -151,7 +151,7 @@ void parse_free_one(struct ast_node *node)
 void parse_free(struct ast_node *node)
 {
 	if(node == NULL) return;
-	if(node->label[0] != 0) {
+	if(node_is_op(node)) {
 		parse_free(node->contents.branches.a);
 		parse_free(node->contents.branches.b);
 		parse_free(node->contents.branches.c);
