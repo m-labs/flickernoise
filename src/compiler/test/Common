@@ -44,7 +44,12 @@ expect()
 		echo FAILED "($SCRIPT)" 1>&2
 		cat _diff 1>&2
 		rm -f _out _diff
-		exit 1
+		if ${FAIL_ON_ERROR:-true}; then
+			exit 1
+		else
+			failed=`expr ${failed:-0} + 1`
+			return 1
+		fi
 	}
 	echo PASSED 1>&2
 	rm -f _out _diff
