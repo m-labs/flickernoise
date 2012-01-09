@@ -18,11 +18,15 @@
 %include {
 	#include <assert.h>
 	#include <string.h>
+	#include <ctype.h>
 	#include <stdlib.h>
 	#include <malloc.h>
 	#include <math.h>
+
 	#include <fpvm/ast.h>
 	#include <fpvm/fpvm.h>
+
+	#include "unique.h"
 	#include "parser_itf.h"
 	#include "parser_helper.h"
 	#include "parser.h"
@@ -167,6 +171,15 @@
 			state->error_label = state->id->label;
 			state->error_lineno = state->id->lineno;
 		}
+	}
+
+	static struct id *symbolify(struct id *id)
+	{
+		const char *p;
+
+		for(p = id->label; isalnum(*p); p++);
+		id->label = unique_n(id->label, p-id->label);
+		return id;
 	}
 }
 
@@ -474,14 +487,17 @@ primary_expr(N) ::= ident(I). {
  * they have function-specific code for constant folding. {u,bi,ter}nary_misc
  * are identifiers the parser treats as generic functions, without knowing
  * anything about their semantics.
+ *
+ * The use of symbolify() is somewhat inefficient, but use of function names
+ * for variables should be a rare condition anyway.
  */
 
 ident(O) ::= TOK_IDENT(I).	{ O = I; }
-ident(O) ::= unary(I).		{ O = I; }
-ident(O) ::= unary_misc(I).	{ O = I; }
-ident(O) ::= binary(I).		{ O = I; }
-ident(O) ::= binary_misc(I).	{ O = I; }
-ident(O) ::= ternary(I).	{ O = I; }
+ident(O) ::= unary(I).		{ O = symbolify(I); }
+ident(O) ::= unary_misc(I).	{ O = symbolify(I); }
+ident(O) ::= binary(I).		{ O = symbolify(I); }
+ident(O) ::= binary_misc(I).	{ O = symbolify(I); }
+ident(O) ::= ternary(I).	{ O = symbolify(I); }
 
 unary_misc(O) ::= TOK_ABS(I).	{ O = I; }
 unary_misc(O) ::= TOK_COS(I).	{ O = I; }

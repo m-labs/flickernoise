@@ -11,30 +11,6 @@
 #
 
 #
-# Built-in functions
-#
-
-above
-abs
-below
-cos
-equal
-f2i
-icos
-i2f
-if
-int
-invsqrt
-isin
-max
-min
-quake
-sin
-sqr
-sqrt
-tsign
-
-#
 #
 # Per-Frame Variables
 #
