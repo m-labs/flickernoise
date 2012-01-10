@@ -1,5 +1,6 @@
 #!/bin/sh
 . ./Common
+. ./Patches
 
 ###############################################################################
 
@@ -13,77 +14,15 @@ if [ "$VALGRIND" ]; then
 	VALGRIND="$VALGRIND --leak-check=full --show-reachable=yes"
 fi
 
-#
-# We explicitly list all the known patches here so that any local additions
-# won't interfere.
-#
-
 PATCHDIR=../../../patches
 
-for n in \
-    "Aderassi - Making time.fnp" \
-    "Aderrasi - Airs.fnp" \
-    "Aderrasi - Antidote (Aqualung Mix).fnp" \
-    "Aderrasi - Bow to gravity.fnp" \
-    "Aderrasi - Variants Of Eternity (Shaking mix).fnp" \
-    "Bmelgren & Krash - Rainbow Orb Peacock (Lonely Signal Gone Mad Mix).fnp" \
-    "EvilJim - Ice Drops.fnp" \
-    "Fvese - The Tunnel (Final Stage Mix).fnp" \
-    "Geiss & Werner - Tornado (Rain Dance MIDI RMX).fnp" \
-    "Geiss - Approach.fnp" \
-    "Geiss - Cruzin'.fnp" \
-    "Geiss - Eggs.fnp" \
-    "Geiss - Shift.fnp" \
-    "Geiss - The Fatty Lumpkin Sunkle Tweaker.fnp" \
-    "Geiss - Tornado.fnp" \
-    "Idiot & Rovastar - Altars Of Madness 2 (X42 Mix).fnp" \
-    "Illusion & Che - The Piper.fnp" \
-    "Illusion & Rovastar - Clouded Bottle.fnp" \
-    "Illusion & Unchained - Frozen Eye 1.fnp" \
-    "Jeremie - conduirebourre.com.fnp" \
-    "Krash - Digital Flame (Video remix).fnp" \
-    "Krash - Digital Flame.fnp" \
-    "Krash - Interwoven (Nightmare Weft Mix).fnp" \
-    "Lekernel & Geiss - Shaking.fnp" \
-    "Lekernel & Krash - Boil off (DMX).fnp" \
-    "Lekernel & Krash - Personal Shroomery.fnp" \
-    "Lekernel & Rovastar & Fvese - Subconscious Objects.fnp" \
-    "Lekernel & Rozzor & Aderassi - Video Cannon.fnp" \
-    "Lekernel & fiShbRaiN - crazy face.fnp" \
-    "Lekernel - Disc Explosion.fnp" \
-    "Lekernel - Drawing Board (DMX).fnp" \
-    "Lekernel - Eerie Beri.fnp" \
-    "Lekernel - Falling (DMX).fnp" \
-    "Lekernel - FullScreen Video-in Preview.fnp" \
-    "Lekernel - Musique de telephone.fnp" \
-    "Lekernel - Pulsating photography.fnp" \
-    "Lekernel - Sailing.fnp" \
-    "Lekernel - Spiralling.fnp" \
-    "Lekernel - Star Ballet (Bass Travel Mix).fnp" \
-    "Lekernel - Star Ballet (Fountain Mix).fnp" \
-    "Lekernel - Star Ballet.fnp" \
-    "Lekernel - Starpainter.fnp" \
-    "Lekernel - The psychedelic drunken boat.fnp" \
-    "Lekernel - Vibrant Plasma Streams.fnp" \
-    "Philpraxis - Eight bit starfield.fnp" \
-    "Rovastar & Fvese - Dark Subconscious.fnp" \
-    "Rovastar & Idiot24-7 - Balk Acid (DMX madness).fnp" \
-    "Rovastar & Idiot24-7 - Balk Acid.fnp" \
-    "Rovastar - A Million Miles from Earth.fnp" \
-    "Rovastar - Cosmic Echoes 2.fnp" \
-    "Rovastar - Explosive Minds.fnp" \
-    "Rovastar - Forgotten Moon.fnp" \
-    "Rovastar - Hallucinogenic Pyramids.fnp" \
-    "Rovastar - Torrid Tales.fnp" \
-    "Rozzor & Aderrasi - Canon (DMX out).fnp" \
-    "Telek - Slow Shift Matrix (bb4.5).fnp" \
-    "Unchained - A Matter Of Taste (Remix).fnp" \
-    "Zylot - The Inner Workings of my New Computer.fnp" \
-    "bmelgren - Godhead (Video mix).fnp" \
-    "nil - Cid and Lucy.fnp"; do
+do_test()
+{
 	ptest "patch: $n" -c -q <"$PATCHDIR/$n"
 	expect </dev/null
-done
+}
+
+forall_patches do_test
 
 VALGRIND=$valgrind_orig
 
