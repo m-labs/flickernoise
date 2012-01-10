@@ -1,7 +1,7 @@
 /*
  * ptest.c - FNP parser tester
  *
- * Copyright 2011 by Werner Almesberger
+ * Copyright 2011-2012 by Werner Almesberger
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 
 
 static int quiet = 0;
+static int symbols = 0;
 static const char *fail = NULL;
 static const char *buffer;
 
@@ -238,6 +239,8 @@ static void parse_only(const char *pgm)
 	const char *error;
 
 	error = parse(pgm, TOK_START_ASSIGN, &comm);
+	if (symbols)
+		unique_dump();
 	unique_free();
 	if (!error)
 		return;
@@ -317,11 +320,12 @@ static void free_buffer(void)
 static void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [-c|-f error] [-n runs] [-q] [expr]\n\n"
+"usage: %s [-c|-f error] [-n runs] [-q] [-s] [expr]\n\n"
 "  -c        generate code and dump generated code (unless -q is set)\n"
 "  -f error  fail any assignment with specified error message\n"
 "  -n runs   run compilation repeatedly (default: run only once)\n"
 "  -q        quiet operation\n"
+"  -s        dump symbol table after parsing (only if -c is not set)\n"
     , name);
 	exit(1);
 }
@@ -334,7 +338,7 @@ int main(int argc, char **argv)
 	unsigned long repeat = 1;
 	char *end;
 
-	while ((c = getopt(argc, argv, "cf:n:q")) != EOF)
+	while ((c = getopt(argc, argv, "cf:n:qs")) != EOF)
 		switch (c) {
 		case 'c':
 			codegen = 1;
@@ -350,11 +354,14 @@ int main(int argc, char **argv)
 		case 'q':
 			quiet = 1;
 			break;
+		case 's':
+			symbols = 1;
+			break;
 		default:
 			usage(*argv);
 		}
 
-	if (codegen && fail)
+	if (codegen && (fail || symbols))
 		usage(*argv);
 
 	switch (argc-optind) {

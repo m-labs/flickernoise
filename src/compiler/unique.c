@@ -1,7 +1,7 @@
 /*
  * unique.c - Unique string store
  *
- * Copyright 2011 by Werner Almesberger
+ * Copyright 2011-2012 by Werner Almesberger
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -10,6 +10,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
@@ -133,3 +134,19 @@ void unique_free(void)
 	vars = NULL;
 	num_vars = allocated = 0;
 }
+
+
+#ifdef STANDALONE
+
+void unique_dump(void)
+{
+	int i;
+
+	for(i = 0; i != sizeof(well_known)/sizeof(*well_known); i++)
+		printf("%s\n", well_known[i]);
+	printf("\n");
+	for(i = 0; i != num_vars; i++)
+		printf("%s\n", vars[i]);
+}
+
+#endif /* STANDALONE */
