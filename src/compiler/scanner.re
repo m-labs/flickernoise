@@ -158,7 +158,7 @@ int scan(struct scanner *s)
 	*/
 }
 
-const char *get_unique_token(struct scanner *s)
+struct sym *get_symbol(struct scanner *s)
 {
 	return unique_n((const char *) s->old_cursor,
 	    s->cursor - s->old_cursor);

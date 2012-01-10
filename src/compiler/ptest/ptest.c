@@ -54,7 +54,7 @@ static void dump_ast(const struct ast_node *ast)
 {
 	switch (ast->op) {
         case op_ident:
-		printf("%s", ast->label);
+		printf("%s", ast->sym->name);
 		break;
 	case op_constant:
 		printf("%g", ast->contents.constant);
@@ -144,12 +144,12 @@ static void dump_ast(const struct ast_node *ast)
 
 
 static const char *assign_default(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
 	if (fail)
 		return strdup(fail);
 	if (!quiet) {
-		printf("%s = ", label);
+		printf("%s = ", sym->name);
 		dump_ast(node);
 		putchar('\n');
 	}
@@ -158,10 +158,10 @@ static const char *assign_default(struct parser_comm *comm,
 
 
 static const char *assign_per_frame(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
 	if (!quiet) {
-		printf("per_frame = %s = ", label);
+		printf("per_frame = %s = ", sym->name);
 		dump_ast(node);
 		putchar('\n');
 	}
@@ -170,10 +170,10 @@ static const char *assign_per_frame(struct parser_comm *comm,
 
 
 static const char *assign_per_vertex(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
 	if (!quiet) {
-		printf("per_vertex = %s = ", label);
+		printf("per_vertex = %s = ", sym->name);
 		dump_ast(node);
 		putchar('\n');
 	}

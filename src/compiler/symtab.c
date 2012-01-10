@@ -25,12 +25,12 @@ struct key_n {
 	int n;
 };
 
-const char *well_known[] = {
+struct sym well_known[] = {
 #include "fnp.inc"
 };
 
-static const char **vars = NULL;
-static int num_vars = 0, allocated = 0;
+static struct sym *syms = NULL;
+static int num_syms = 0, allocated = 0;
 
 
 /*
@@ -63,64 +63,69 @@ static char *strdup_n(const char *s, int n)
 
 static void grow_table(void)
 {
-	if(num_vars != allocated)
+	if(num_syms != allocated)
 		return;
 
 	allocated = allocated ? allocated*2 : INITIAL_ALLOC;
-	vars = realloc(vars, allocated*sizeof(*vars));
+	syms = realloc(syms, allocated*sizeof(*syms));
 }
 
 
 static int cmp(const void *a, const void *b)
 {
-	return strcmp(a, *(const char **) b);
+	const struct sym *sym = b;
+
+	return strcmp(a, sym->name);
 }
 
 
 static int cmp_n(const void *a, const void *b)
 {
 	const struct key_n *key = a;
+	const struct sym *sym = b;
 
-	return strcmp_n(key->s, *(const char **) b, key->n);
+	return strcmp_n(key->s, sym->name, key->n);
 }
 
 
-const char *unique(const char *s)
+struct sym *unique(const char *s)
 {
-	const char **res;
-	const char **walk;
+	struct sym *res;
+	struct sym *walk;
 
 	res = bsearch(s, well_known, sizeof(well_known)/sizeof(*well_known),
 	    sizeof(s), cmp);
 	if(res)
-		return *res;
-	for(walk = vars; walk != vars+num_vars; walk++)
-		if(!strcmp(*walk, s))
-			return *walk;
+		return res;
+	for(walk = syms; walk != syms+num_syms; walk++)
+		if(!strcmp(walk->name, s))
+			return walk;
 	grow_table();
-	return vars[num_vars++] = strdup(s);
+	syms[num_syms].name = strdup(s);
+	return syms+num_syms++;
 }
 
 
-const char *unique_n(const char *s, int n)
+struct sym *unique_n(const char *s, int n)
 {
 	struct key_n key = {
 		.s = s,
 		.n = n,
 	};
-	const char **res;
-	const char **walk;
+	struct sym *res;
+	struct sym *walk;
 
 	assert(n);
 	res = bsearch(&key, well_known, sizeof(well_known)/sizeof(*well_known),
 	    sizeof(s), cmp_n);
 	if(res)
-		return *res;
-	for(walk = vars; walk != vars+num_vars; walk++)
-		if(!strcmp_n(s, *walk, n))
-			return *walk;
+		return res;
+	for(walk = syms; walk != syms+num_syms; walk++)
+		if(!strcmp_n(s, walk->name, n))
+			return walk;
 	grow_table();
-	return vars[num_vars++] = strdup_n(s, n);
+	syms[num_syms].name = strdup_n(s, n);
+	return syms+num_syms++;
 }
 
 
@@ -128,11 +133,11 @@ void unique_free(void)
 {
 	int i;
 
-	for(i = 0; i != num_vars; i++)
-		free((void *) vars[i]);
-	free(vars);
-	vars = NULL;
-	num_vars = allocated = 0;
+	for(i = 0; i != num_syms; i++)
+		free((void *) syms[i].name);
+	free(syms);
+	syms = NULL;
+	num_syms = allocated = 0;
 }
 
 
@@ -143,10 +148,10 @@ void unique_dump(void)
 	int i;
 
 	for(i = 0; i != sizeof(well_known)/sizeof(*well_known); i++)
-		printf("%s\n", well_known[i]);
+		printf("%s\n", well_known[i].name);
 	printf("\n");
-	for(i = 0; i != num_vars; i++)
-		printf("%s\n", vars[i]);
+	for(i = 0; i != num_syms; i++)
+		printf("%s\n", syms[i].name);
 }
 
 #endif /* STANDALONE */

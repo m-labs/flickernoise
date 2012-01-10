@@ -11,8 +11,11 @@
 #ifndef SYMTAB_H
 #define	SYMTAB_H
 
-const char *unique(const char *s);
-const char *unique_n(const char *s, int n);
+#include <fpvm/symbol.h>
+
+
+struct sym *unique(const char *s);
+struct sym *unique_n(const char *s, int n);
 void unique_free(void);
 void unique_dump(void);
 

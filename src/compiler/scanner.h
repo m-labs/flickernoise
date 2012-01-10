@@ -46,7 +46,7 @@ int scan(struct scanner *s);
 
 /* get the unique string comprising the current token
  */
-const char *get_unique_token(struct scanner *s);
+struct sym *get_symbol(struct scanner *s);
 
 /* like get_unique_token, but malloc'ed non-unique string */
 const char *get_token(struct scanner *s);

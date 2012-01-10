@@ -34,11 +34,11 @@ struct parser_comm {
 		struct compiler_sc *sc;
 	} u;
 	const char *(*assign_default)(struct parser_comm *comm,
-	    const char *label, struct ast_node *node);
+	    struct sym *sym, struct ast_node *node);
 	const char *(*assign_per_frame)(struct parser_comm *comm,
-	    const char *label, struct ast_node *node);
+	    struct sym *sym, struct ast_node *node);
 	const char *(*assign_per_vertex)(struct parser_comm *comm,
-	    const char *label, struct ast_node *node);
+	    struct sym *sym, struct ast_node *node);
 	const char *(*assign_image_name)(struct parser_comm *comm,
 	    int number, const char *name);
 };

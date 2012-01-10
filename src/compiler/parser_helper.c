@@ -93,7 +93,8 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 			identifier->label = get_token(s);
 			break;
 		case TOK_IDENT:
-			identifier->label = get_unique_token(s);
+			identifier->sym = get_symbol(s);
+			identifier->label = identifier->sym->name;
 			break;
 		default:
 			identifier->label = (const char *) s->old_cursor;

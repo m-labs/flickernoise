@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include <fpvm/fpvm.h>
+#include <fpvm/symbol.h>
 #include <fpvm/ast.h>
 #include <fpvm/schedulers.h>
 #include <fpvm/pfpu.h>
@@ -76,9 +77,9 @@ static void init_fpvm(struct fpvm_fragment *fragment, int vector_mode)
 
 
 static const char *assign_chunk(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
-	if(fpvm_do_assign(comm->u.fragment, label, node))
+	if(fpvm_do_assign(comm->u.fragment, sym, node))
 		return NULL;
 	else
 		return strdup(fpvm_get_last_error(comm->u.fragment));
@@ -314,12 +315,12 @@ static void all_initials_to_pfv(struct compiler_sc *sc)
 		initial_to_pfv(sc, i);
 }
 
-static void pfv_bind_callback(void *_sc, const char *sym, int reg)
+static void pfv_bind_callback(void *_sc, struct sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
 	int pfv;
 
-	pfv = pfv_from_name(sym);
+	pfv = pfv_from_name(sym->name);
 	if(pfv >= 0) {
 		pfv_update_patch_requires(sc, pfv);
 		sc->p->pfv_allocation[pfv] = reg;
@@ -459,12 +460,12 @@ static void pvv_update_patch_requires(struct compiler_sc *sc, int pvv)
 		sc->p->require |= REQUIRE_MIDI;
 }
 
-static void pvv_bind_callback(void *_sc, const char *sym, int reg)
+static void pvv_bind_callback(void *_sc, struct sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
 	int pvv;
 
-	pvv = pvv_from_name(sym);
+	pvv = pvv_from_name(sym->name);
 	if(pvv >= 0) {
 		pvv_update_patch_requires(sc, pvv);
 		sc->p->pvv_allocation[pvv] = reg;
@@ -540,13 +541,13 @@ static bool schedule_pvv(struct compiler_sc *sc)
 /****************************************************************/
 
 static const char *assign_default(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
 	struct compiler_sc *sc = comm->u.sc;
 	int pfv;
 	float v;
 
-	pfv = pfv_from_name(label);
+	pfv = pfv_from_name(sym->name);
 	if(pfv < 0)
 		return strdup("unknown parameter");
 
@@ -571,24 +572,24 @@ static const char *assign_default(struct parser_comm *comm,
 }
 
 static const char *assign_fragment(struct fpvm_fragment *frag,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
-	if(fpvm_do_assign(frag, label, node))
+	if(fpvm_do_assign(frag, sym, node))
 		return NULL;
 	else
 		return strdup(fpvm_get_last_error(frag));
 }
 
 static const char *assign_per_frame(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
-	return assign_fragment(&comm->u.sc->pfv_fragment, label, node);
+	return assign_fragment(&comm->u.sc->pfv_fragment, sym, node);
 }
 
 static const char *assign_per_vertex(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
-	return assign_fragment(&comm->u.sc->pvv_fragment, label, node);
+	return assign_fragment(&comm->u.sc->pvv_fragment, sym, node);
 }
 
 static const char *assign_image_name(struct parser_comm *comm,

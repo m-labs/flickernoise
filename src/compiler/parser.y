@@ -36,7 +36,7 @@
 	static void yy_parse_failed(struct yyParser *yypParser);
 
 	typedef const char *(*assign_callback)(struct parser_comm *comm,
-	    const char *label, struct ast_node *node);
+	    struct sym *sym, struct ast_node *node);
 
 	#define	FAIL					\
 		do {					\
@@ -85,36 +85,40 @@
 		[TOK_INT]	= op_int,
 	};
 
-	static struct ast_node *node_op(enum ast_op op, const char *id,
+	static struct ast_node *node_op(enum ast_op op,
 	    struct ast_node *a, struct ast_node *b, struct ast_node *c)
 	{
 		struct ast_node *n;
 
 		n = malloc(sizeof(struct ast_node));
 		n->op = op;
-		n->label = id;
+		n->sym = NULL;
 		n->contents.branches.a = a;
 		n->contents.branches.b = b;
 		n->contents.branches.c = c;
 		return n;
 	}
 
-	static struct ast_node *node(int token, const char *id,
+	static struct ast_node *node(int token, struct sym *sym,
 	    struct ast_node *a, struct ast_node *b, struct ast_node *c)
 	{
-		return node_op(tok2op[token], id, a, b, c);
+		struct ast_node *n;
+
+		n = node_op(tok2op[token], a, b, c);
+		n->sym = sym;
+		return n;
 	}
 
 	static struct ast_node *constant(float n)
 	{
 		struct ast_node *node;
 
-		node = node_op(op_constant, "", NULL, NULL, NULL);
+		node = node_op(op_constant, NULL, NULL, NULL);
 		node->contents.constant = n;
 		return node;
 	}
 
-	#define FOLD_UNARY(res, ast_op, name, arg, expr)		\
+	#define FOLD_UNARY(res, ast_op, arg, expr)			\
 		do {							\
 			if((arg)->op == op_constant) {			\
 				float a = (arg)->contents.constant;	\
@@ -122,12 +126,11 @@
 				res = constant(expr);			\
 				parse_free(arg);			\
 			} else {					\
-				res = node_op(ast_op, name,		\
-				    arg, NULL, NULL);			\
+				res = node_op(ast_op, arg, NULL, NULL);	\
 			}						\
 		} while (0)
 
-	#define FOLD_BINARY(res, ast_op, name, arg_a, arg_b, expr)	\
+	#define FOLD_BINARY(res, ast_op, arg_a, arg_b, expr)		\
 		do {							\
 			if((arg_a)->op == op_constant && 		\
 			    (arg_b)->op == op_constant) {		\
@@ -138,7 +141,7 @@
 				parse_free(arg_a);			\
 				parse_free(arg_b);			\
 			} else {					\
-				res = node_op(ast_op, name,		\
+				res = node_op(ast_op,			\
 				     arg_a, arg_b, NULL); 		\
 			}						\
 		} while (0)
@@ -150,10 +153,10 @@
 			struct ast_node *next = a->contents.branches.a;
 
 			parse_free_one(a);
-			return node_op(op_if, "if", next, c, b);
+			return node_op(op_if, next, c, b);
 		}
 		if(a->op != op_constant)
-			return node_op(op_if, "if", a, b, c);
+			return node_op(op_if, a, b, c);
 		if(a->contents.constant) {
 			parse_free(a);
 			parse_free(c);
@@ -178,7 +181,7 @@
 		const char *p;
 
 		for(p = id->label; isalnum(*p); p++);
-		id->label = unique_n(id->label, p-id->label);
+		id->sym = unique_n(id->label, p-id->label);
 		return id;
 	}
 }
@@ -250,7 +253,7 @@ assignments ::= assignments assignment.
 assignments ::= .
 
 assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
-	state->error = state->comm->assign_default(state->comm, I->label, N);
+	state->error = state->comm->assign_default(state->comm, I->sym, N);
 	free(I);
 	if(state->error) {
 		FAIL;
@@ -326,14 +329,14 @@ equal_expr(N) ::= rel_expr(A). {
 }
 
 equal_expr(N) ::= equal_expr(A) TOK_EQ rel_expr(B). {
-	FOLD_BINARY(N, op_equal, "equal", A, B, a == b);
+	FOLD_BINARY(N, op_equal, A, B, a == b);
 }
 
 equal_expr(N) ::= equal_expr(A) TOK_NE rel_expr(B). {
 	struct ast_node *tmp;
 
-	FOLD_BINARY(tmp, op_equal, "equal", A, B, a == b);
-	FOLD_UNARY(N, op_not, "!", tmp, !a);
+	FOLD_BINARY(tmp, op_equal, A, B, a == b);
+	FOLD_UNARY(N, op_not, tmp, !a);
 }
 
 rel_expr(N) ::= add_expr(A). {
@@ -341,25 +344,25 @@ rel_expr(N) ::= add_expr(A). {
 }
 
 rel_expr(N) ::= rel_expr(A) TOK_LT add_expr(B). {
-	FOLD_BINARY(N, op_below, "below", A, B, a < b);
+	FOLD_BINARY(N, op_below, A, B, a < b);
 }
 
 rel_expr(N) ::= rel_expr(A) TOK_GT add_expr(B). {
-	FOLD_BINARY(N, op_above, "above", A, B, a > b);
+	FOLD_BINARY(N, op_above, A, B, a > b);
 }
 
 rel_expr(N) ::= rel_expr(A) TOK_LE add_expr(B). {
 	struct ast_node *tmp;
 
-	FOLD_BINARY(tmp, op_above, "above", A, B, a > b);
-	FOLD_UNARY(N, op_not, "!", tmp, !a);
+	FOLD_BINARY(tmp, op_above, A, B, a > b);
+	FOLD_UNARY(N, op_not, tmp, !a);
 }
 
 rel_expr(N) ::= rel_expr(A) TOK_GE add_expr(B). {
 	struct ast_node *tmp;
 
-	FOLD_BINARY(tmp, op_below, "below", A, B, a < b);
-	FOLD_UNARY(N, op_not, "!", tmp, !a);
+	FOLD_BINARY(tmp, op_below, A, B, a < b);
+	FOLD_UNARY(N, op_not, tmp, !a);
 }
 
 add_expr(N) ::= mult_expr(A). {
@@ -367,11 +370,11 @@ add_expr(N) ::= mult_expr(A). {
 }
 
 add_expr(N) ::= add_expr(A) TOK_PLUS mult_expr(B). {
-	FOLD_BINARY(N, op_plus, "+", A, B, a + b);
+	FOLD_BINARY(N, op_plus, A, B, a + b);
 }
 
 add_expr(N) ::= add_expr(A) TOK_MINUS mult_expr(B). {
-	FOLD_BINARY(N, op_minus, "-", A, B, a - b);
+	FOLD_BINARY(N, op_minus, A, B, a - b);
 }
 
 mult_expr(N) ::= unary_expr(A). {
@@ -379,15 +382,15 @@ mult_expr(N) ::= unary_expr(A). {
 }
 
 mult_expr(N) ::= mult_expr(A) TOK_MULTIPLY unary_expr(B). {
-	FOLD_BINARY(N, op_multiply, "*", A, B, a * b);
+	FOLD_BINARY(N, op_multiply, A, B, a * b);
 }
 
 mult_expr(N) ::= mult_expr(A) TOK_DIVIDE unary_expr(B). {
-	FOLD_BINARY(N, op_divide, "/", A, B, a / b);
+	FOLD_BINARY(N, op_divide, A, B, a / b);
 }
 
 mult_expr(N) ::= mult_expr(A) TOK_PERCENT unary_expr(B). {
-	FOLD_BINARY(N, op_percent, "%", A, B, a-b*(int) (a/b));
+	FOLD_BINARY(N, op_percent, A, B, a-b*(int) (a/b));
 }
 
 unary_expr(N) ::= primary_expr(A). {
@@ -395,11 +398,11 @@ unary_expr(N) ::= primary_expr(A). {
 }
 
 unary_expr(N) ::= TOK_MINUS unary_expr(A). {
-	FOLD_UNARY(N, op_negate, "-", A, -a);
+	FOLD_UNARY(N, op_negate, A, -a);
 }
 
 unary_expr(N) ::= TOK_NOT unary_expr(A). {
-	FOLD_UNARY(N, op_not, "!", A, !a);
+	FOLD_UNARY(N, op_not, A, !a);
 }
 
 
@@ -407,16 +410,16 @@ unary_expr(N) ::= TOK_NOT unary_expr(A). {
 
 
 primary_expr(N) ::= unary_misc(I) TOK_LPAREN expr(A) TOK_RPAREN. {
-	N = node(I->token, I->label, A, NULL, NULL);
+	N = node(I->token, NULL, A, NULL, NULL);
 	free(I);
 }
 
 primary_expr(N) ::= TOK_SQR TOK_LPAREN expr(A) TOK_RPAREN. {
-	FOLD_UNARY(N, op_sqr, "sqr", A, a*a);
+	FOLD_UNARY(N, op_sqr, A, a*a);
 }
 
 primary_expr(N) ::= TOK_SQRT TOK_LPAREN expr(A) TOK_RPAREN. {
-	FOLD_UNARY(N, op_sqrt, "sqrt", A, sqrtf(a));
+	FOLD_UNARY(N, op_sqrt, A, sqrtf(a));
 }
 
 
@@ -425,28 +428,28 @@ primary_expr(N) ::= TOK_SQRT TOK_LPAREN expr(A) TOK_RPAREN. {
 
 primary_expr(N) ::= binary_misc(I) TOK_LPAREN expr(A) TOK_COMMA expr(B)
     TOK_RPAREN. {
-	N = node(I->token, I->label, A, B, NULL);
+	N = node(I->token, NULL, A, B, NULL);
 	free(I);
 }
 
 primary_expr(N) ::= TOK_ABOVE TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
-	FOLD_BINARY(N, op_above, "above", A, B, a > b);
+	FOLD_BINARY(N, op_above, A, B, a > b);
 }
 
 primary_expr(N) ::= TOK_BELOW TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
-	FOLD_BINARY(N, op_below, "below", A, B, a < b);
+	FOLD_BINARY(N, op_below, A, B, a < b);
 }
 
 primary_expr(N) ::= TOK_EQUAL TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
-	FOLD_BINARY(N, op_equal, "equal", A, B, a == b);
+	FOLD_BINARY(N, op_equal, A, B, a == b);
 }
 
 primary_expr(N) ::= TOK_MAX TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
-	FOLD_BINARY(N, op_max, "max", A, B, a > b ? a : b);
+	FOLD_BINARY(N, op_max, A, B, a > b ? a : b);
 }
 
 primary_expr(N) ::= TOK_MIN TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
-	FOLD_BINARY(N, op_min, "min", A, B, a < b ? a : b);
+	FOLD_BINARY(N, op_min, A, B, a < b ? a : b);
 }
 
 
@@ -472,7 +475,7 @@ primary_expr(N) ::= TOK_CONSTANT(C). {
 }
 
 primary_expr(N) ::= ident(I). {
-	N = node(I->token, I->label, NULL, NULL, NULL);
+	N = node(I->token, I->sym, NULL, NULL, NULL);
 	free(I);
 }
 

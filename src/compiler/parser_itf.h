@@ -28,6 +28,7 @@
 struct id {
 	int token;
 	const char *label;
+	struct sym *sym;
 	float constant;
 	int lineno;
 };
