@@ -48,6 +48,7 @@ ib_g
 ib_b
 ib_a
 
+nMotionVectorsX
 nMotionVectorsY
 mv_dx
 mv_dy
