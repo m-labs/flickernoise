@@ -164,7 +164,7 @@ struct sym *get_symbol(struct scanner *s)
 	    s->cursor - s->old_cursor);
 }
 
-const char *get_token(struct scanner *s)
+const char *get_name(struct scanner *s)
 {
 	char *buf;
 	int n;

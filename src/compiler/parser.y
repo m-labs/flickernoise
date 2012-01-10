@@ -264,15 +264,15 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 
 assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 	state->error = state->comm->assign_image_name(state->comm,
-	    atoi(I->label+9), N->label);
+	    atoi(I->label+9), N->fname);
 	free(I);
 	if(state->error) {
 		FAIL;
-		free((void *) N->label);
+		free((void *) N->fname);
 		free(N);
 		return;
 	}
-	free((void *) N->label);
+	free((void *) N->fname);
 	free(N);
 }
 
