@@ -1,5 +1,5 @@
 /*
- * unique.c - Unique string store
+ * symtab.c - Symbol table
  *
  * Copyright 2011-2012 by Werner Almesberger
  *
@@ -14,7 +14,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "unique.h"
+#include "symtab.h"
 
 
 #define	INITIAL_ALLOC	64

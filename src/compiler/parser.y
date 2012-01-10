@@ -26,7 +26,7 @@
 	#include <fpvm/ast.h>
 	#include <fpvm/fpvm.h>
 
-	#include "unique.h"
+	#include "symtab.h"
 	#include "parser_itf.h"
 	#include "parser_helper.h"
 	#include "parser.h"

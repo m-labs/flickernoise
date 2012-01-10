@@ -28,7 +28,7 @@
 #include <fpvm/pfpu.h>
 
 #include "../pixbuf/pixbuf.h"
-#include "unique.h"
+#include "symtab.h"
 #include "parser_helper.h"
 #include "parser.h"
 #include "compiler.h"

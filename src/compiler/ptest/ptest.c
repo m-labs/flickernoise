@@ -19,7 +19,7 @@
 #include "../parser_helper.h"
 #include "../parser.h"
 #include "../compiler.h"
-#include "../unique.h"
+#include "../symtab.h"
 
 
 static int quiet = 0;

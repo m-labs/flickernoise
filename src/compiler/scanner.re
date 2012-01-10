@@ -20,7 +20,7 @@
 #include <string.h>
 #include <malloc.h>
 
-#include "unique.h"
+#include "symtab.h"
 #include "scanner.h"
 
 #define YYCTYPE     unsigned char

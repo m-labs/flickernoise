@@ -4,7 +4,7 @@ LIBFPVM_X86 = $(MMDIR)/software/libfpvm/x86-linux
 
 CFLAGS_STANDALONE = -DSTANDALONE=\"standalone.h\"
 CFLAGS = -Wall -g -I.. -I. $(CFLAGS_STANDALONE)
-OBJS = ptest.o scanner.o parser.o parser_helper.o unique.o compiler.o \
+OBJS = ptest.o scanner.o parser.o parser_helper.o symtab.o compiler.o \
        libfpvm.a
 LDLIBS = -lm
 
@@ -60,7 +60,7 @@ libfpvm.a:
 scanner.o:	../parser.h
 parser_helper.o: ../parser.h
 ptest.o:	../parser.h
-unique.o:	../fnp.inc
+symtab.o:	../fnp.inc
 compiler.o:	../infra-fnp.h
 
 # ----- Cleanup ---------------------------------------------------------------
