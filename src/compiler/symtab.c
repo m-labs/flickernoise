@@ -14,6 +14,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "compiler.h"
 #include "symtab.h"
 
 
@@ -94,7 +95,7 @@ struct sym *unique(const char *s)
 	struct sym *walk;
 
 	res = bsearch(s, well_known, sizeof(well_known)/sizeof(*well_known),
-	    sizeof(s), cmp);
+	    sizeof(*well_known), cmp);
 	if(res)
 		return res;
 	for(walk = syms; walk != syms+num_syms; walk++)
@@ -102,6 +103,7 @@ struct sym *unique(const char *s)
 			return walk;
 	grow_table();
 	syms[num_syms].fpvm_sym.name = strdup(s);
+	syms[num_syms].pfv_idx = syms[num_syms].pvv_idx = -1;
 	return syms+num_syms++;
 }
 
@@ -117,7 +119,7 @@ struct sym *unique_n(const char *s, int n)
 
 	assert(n);
 	res = bsearch(&key, well_known, sizeof(well_known)/sizeof(*well_known),
-	    sizeof(s), cmp_n);
+	    sizeof(*well_known), cmp_n);
 	if(res)
 		return res;
 	for(walk = syms; walk != syms+num_syms; walk++)
@@ -125,6 +127,7 @@ struct sym *unique_n(const char *s, int n)
 			return walk;
 	grow_table();
 	syms[num_syms].fpvm_sym.name = strdup_n(s, n);
+	syms[num_syms].pfv_idx = syms[num_syms].pvv_idx = -1;
 	return syms+num_syms++;
 }
 

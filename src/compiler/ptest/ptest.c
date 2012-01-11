@@ -275,6 +275,11 @@ static void dump_regs(const int *alloc, const char (*names)[FPVM_MAXSYMLEN],
 
 static void show_patch(const struct patch *patch)
 {
+/*
+ * @@@ Disable for now since we have no good way to get the names and the
+ * mapping archtecture is still in flux.
+ */
+#if 0
 	int i;
 
 	printf("global:\n");
@@ -290,6 +295,7 @@ static void show_patch(const struct patch *patch)
 	dump_regs(patch->pvv_allocation, pvv_names, patch->pervertex_regs,
 	    COMP_PVV_COUNT);
 	pfpu_dump(patch->pervertex_prog, patch->pervertex_prog_length);
+#endif
 }
 
 

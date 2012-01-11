@@ -16,8 +16,11 @@
 
 struct sym {
 	struct fpvm_sym fpvm_sym;
+	int pfv_idx, pvv_idx;	/* index; -1 if not a variable known to FN */
 };
 
+
+#define	FPVM2SYM(fpvm_sym)	((struct sym *) (fpvm_sym))
 
 struct sym *unique(const char *s);
 struct sym *unique_n(const char *s, int n);

@@ -108,139 +108,9 @@ static int compile_chunk(struct fpvm_fragment *fragment, const char *chunk)
 /* PER-FRAME VARIABLES                                          */
 /****************************************************************/
 
-const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
-	"sx",
-	"sy",
-	"cx",
-	"cy",
-	"rot",
-	"dx",
-	"dy",
-	"zoom",
-	"decay",
-	"wave_mode",
-	"wave_scale",
-	"wave_additive",
-	"wave_usedots",
-	"wave_brighten",
-	"wave_thick",
-	"wave_x",
-	"wave_y",
-	"wave_r",
-	"wave_g",
-	"wave_b",
-	"wave_a",
-
-	"ob_size",
-	"ob_r",
-	"ob_g",
-	"ob_b",
-	"ob_a",
-	"ib_size",
-	"ib_r",
-	"ib_g",
-	"ib_b",
-	"ib_a",
-
-	"nMotionVectorsX",
-	"nMotionVectorsY",
-	"mv_dx",
-	"mv_dy",
-	"mv_l",
-	"mv_r",
-	"mv_g",
-	"mv_b",
-	"mv_a",
-
-	"bTexWrap",
-
-	"time",
-	"bass",
-	"mid",
-	"treb",
-	"bass_att",
-	"mid_att",
-	"treb_att",
-
-	"warp",
-	"fWarpAnimSpeed",
-	"fWarpScale",
-
-	"q1",
-	"q2",
-	"q3",
-	"q4",
-	"q5",
-	"q6",
-	"q7",
-	"q8",
-
-	"fVideoEchoAlpha",
-	"fVideoEchoZoom",
-	"nVideoEchoOrientation",
-
-	"dmx1",
-	"dmx2",
-	"dmx3",
-	"dmx4",
-	"dmx5",
-	"dmx6",
-	"dmx7",
-	"dmx8",
-
-	"idmx1",
-	"idmx2",
-	"idmx3",
-	"idmx4",
-	"idmx5",
-	"idmx6",
-	"idmx7",
-	"idmx8",
-
-	"osc1",
-	"osc2",
-	"osc3",
-	"osc4",
-
-	"midi1",
-	"midi2",
-	"midi3",
-	"midi4",
-	"midi5",
-	"midi6",
-	"midi7",
-	"midi8",
-
-	"video_a",
-
-	"image1_a",
-	"image1_x",
-	"image1_y",
-	"image1_zoom",
-	"image2_a",
-	"image2_x",
-	"image2_y",
-	"image2_zoom"
-};
-
-static int pfv_from_name(const char *name)
+static int pfv_from_sym(const struct sym *sym)
 {
-	int i;
-
-	for(i=0;i<COMP_PFV_COUNT;i++) {
-		if(strcmp(pfv_names[i], name) == 0)
-			return i;
-	}
-
-	if(strcmp(name, "fDecay") == 0) return pfv_decay;
-	if(strcmp(name, "nWaveMode") == 0) return pfv_wave_mode;
-	if(strcmp(name, "fWaveScale") == 0) return pfv_wave_scale;
-	if(strcmp(name, "bAdditiveWaves") == 0) return pfv_wave_additive;
-	if(strcmp(name, "bWaveDots") == 0) return pfv_wave_usedots;
-	if(strcmp(name, "bMaximizeWaveColor") == 0) return pfv_wave_brighten;
-	if(strcmp(name, "bWaveThick") == 0) return pfv_wave_thick;
-	if(strcmp(name, "fWaveAlpha") == 0) return pfv_wave_a;
-	return -1;
+	return sym->pfv_idx;
 }
 
 static void pfv_update_patch_requires(struct compiler_sc *sc, int pfv)
@@ -320,7 +190,7 @@ static void pfv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 	struct compiler_sc *sc = _sc;
 	int pfv;
 
-	pfv = pfv_from_name(sym->name);
+	pfv = pfv_from_sym(FPVM2SYM(sym));
 	if(pfv >= 0) {
 		pfv_update_patch_requires(sc, pfv);
 		sc->p->pfv_allocation[pfv] = reg;
@@ -378,76 +248,9 @@ static bool schedule_pfv(struct compiler_sc *sc)
 /* PER-VERTEX VARIABLES                                         */
 /****************************************************************/
 
-const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN] = {
-	/* System */
-	"_texsize",
-	"_hmeshsize",
-	"_vmeshsize",
-
-	/* MilkDrop */
-	"sx",
-	"sy",
-	"cx",
-	"cy",
-	"rot",
-	"dx",
-	"dy",
-	"zoom",
-
-	"time",
-	"bass",
-	"mid",
-	"treb",
-	"bass_att",
-	"mid_att",
-	"treb_att",
-
-	"warp",
-	"fWarpAnimSpeed",
-	"fWarpScale",
-
-	"q1",
-	"q2",
-	"q3",
-	"q4",
-	"q5",
-	"q6",
-	"q7",
-	"q8",
-
-	"idmx1",
-	"idmx2",
-	"idmx3",
-	"idmx4",
-	"idmx5",
-	"idmx6",
-	"idmx7",
-	"idmx8",
-
-	"osc1",
-	"osc2",
-	"osc3",
-	"osc4",
-
-	"midi1",
-	"midi2",
-	"midi3",
-	"midi4",
-	"midi5",
-	"midi6",
-	"midi7",
-	"midi8",
-};
-
-static int pvv_from_name(const char *name)
+static int pvv_from_sym(const struct sym *sym)
 {
-	int i;
-
-	for(i=0;i<COMP_PVV_COUNT;i++) {
-		if(strcmp(pvv_names[i], name) == 0)
-			return i;
-	}
-	return -1;
+	return sym->pvv_idx;
 }
 
 static void pvv_update_patch_requires(struct compiler_sc *sc, int pvv)
@@ -465,7 +268,7 @@ static void pvv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 	struct compiler_sc *sc = _sc;
 	int pvv;
 
-	pvv = pvv_from_name(sym->name);
+	pvv = pvv_from_sym(FPVM2SYM(sym));
 	if(pvv >= 0) {
 		pvv_update_patch_requires(sc, pvv);
 		sc->p->pvv_allocation[pvv] = reg;
@@ -547,7 +350,7 @@ static const char *assign_default(struct parser_comm *comm,
 	int pfv;
 	float v;
 
-	pfv = pfv_from_name(sym->fpvm_sym.name);
+	pfv = pfv_from_sym(sym);
 	if(pfv < 0)
 		return strdup("unknown parameter");
 

@@ -236,9 +236,6 @@ struct patch {
 
 typedef void (*report_message)(const char *);
 
-extern const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN];
-extern const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN];
-
 struct patch *patch_compile(const char *basedir, const char *patch_code, report_message rmc);
 struct patch *patch_compile_filename(const char *filename, const char *patch_code, report_message rmc);
 struct patch *patch_copy(struct patch *p);
