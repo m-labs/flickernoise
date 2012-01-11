@@ -23,6 +23,7 @@
 #include <malloc.h>
 #include <fpvm/ast.h>
 
+#include "symtab.h"
 #include "scanner.h"
 #include "parser.h"
 #include "parser_itf.h"
@@ -95,7 +96,7 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 			break;
 		case TOK_IDENT:
 			identifier->sym = get_symbol(s);
-			identifier->label = identifier->sym->name;
+			identifier->label = identifier->sym->fpvm_sym.name;
 			break;
 		default:
 			identifier->label = (const char *) s->old_cursor;

@@ -105,7 +105,7 @@
 		struct ast_node *n;
 
 		n = node_op(tok2op[token], a, b, c);
-		n->sym = sym;
+		n->sym = &sym->fpvm_sym;
 		return n;
 	}
 

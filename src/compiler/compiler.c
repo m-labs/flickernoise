@@ -66,10 +66,10 @@ static void init_fpvm(struct fpvm_fragment *fragment, int vector_mode)
 	 * the same. We can get rid of these calls to unique() later.
 	 */
 
-	_Xi = unique("_Xi");
-	_Xo = unique("_Xo");
-	_Yi = unique("_Yi");
-	_Yo = unique("_Yo");
+	_Xi = &unique("_Xi")->fpvm_sym;
+	_Xo = &unique("_Xo")->fpvm_sym;
+	_Yi = &unique("_Yi")->fpvm_sym;
+	_Yo = &unique("_Yo")->fpvm_sym;
 	fpvm_do_init(fragment, vector_mode);
 }
 
@@ -79,7 +79,7 @@ static void init_fpvm(struct fpvm_fragment *fragment, int vector_mode)
 static const char *assign_chunk(struct parser_comm *comm,
     struct sym *sym, struct ast_node *node)
 {
-	if(fpvm_do_assign(comm->u.fragment, sym, node))
+	if(fpvm_do_assign(comm->u.fragment, &sym->fpvm_sym, node))
 		return NULL;
 	else
 		return strdup(fpvm_get_last_error(comm->u.fragment));
@@ -315,7 +315,7 @@ static void all_initials_to_pfv(struct compiler_sc *sc)
 		initial_to_pfv(sc, i);
 }
 
-static void pfv_bind_callback(void *_sc, struct sym *sym, int reg)
+static void pfv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
 	int pfv;
@@ -460,7 +460,7 @@ static void pvv_update_patch_requires(struct compiler_sc *sc, int pvv)
 		sc->p->require |= REQUIRE_MIDI;
 }
 
-static void pvv_bind_callback(void *_sc, struct sym *sym, int reg)
+static void pvv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
 	int pvv;
@@ -547,7 +547,7 @@ static const char *assign_default(struct parser_comm *comm,
 	int pfv;
 	float v;
 
-	pfv = pfv_from_name(sym->name);
+	pfv = pfv_from_name(sym->fpvm_sym.name);
 	if(pfv < 0)
 		return strdup("unknown parameter");
 
@@ -574,7 +574,7 @@ static const char *assign_default(struct parser_comm *comm,
 static const char *assign_fragment(struct fpvm_fragment *frag,
     struct sym *sym, struct ast_node *node)
 {
-	if(fpvm_do_assign(frag, sym, node))
+	if(fpvm_do_assign(frag, &sym->fpvm_sym, node))
 		return NULL;
 	else
 		return strdup(fpvm_get_last_error(frag));

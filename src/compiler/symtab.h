@@ -14,6 +14,11 @@
 #include <fpvm/symbol.h>
 
 
+struct sym {
+	struct fpvm_sym fpvm_sym;
+};
+
+
 struct sym *unique(const char *s);
 struct sym *unique_n(const char *s, int n);
 void unique_free(void);

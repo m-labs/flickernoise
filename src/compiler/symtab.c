@@ -75,7 +75,7 @@ static int cmp(const void *a, const void *b)
 {
 	const struct sym *sym = b;
 
-	return strcmp(a, sym->name);
+	return strcmp(a, sym->fpvm_sym.name);
 }
 
 
@@ -84,7 +84,7 @@ static int cmp_n(const void *a, const void *b)
 	const struct key_n *key = a;
 	const struct sym *sym = b;
 
-	return strcmp_n(key->s, sym->name, key->n);
+	return strcmp_n(key->s, sym->fpvm_sym.name, key->n);
 }
 
 
@@ -98,10 +98,10 @@ struct sym *unique(const char *s)
 	if(res)
 		return res;
 	for(walk = syms; walk != syms+num_syms; walk++)
-		if(!strcmp(walk->name, s))
+		if(!strcmp(walk->fpvm_sym.name, s))
 			return walk;
 	grow_table();
-	syms[num_syms].name = strdup(s);
+	syms[num_syms].fpvm_sym.name = strdup(s);
 	return syms+num_syms++;
 }
 
@@ -121,10 +121,10 @@ struct sym *unique_n(const char *s, int n)
 	if(res)
 		return res;
 	for(walk = syms; walk != syms+num_syms; walk++)
-		if(!strcmp_n(s, walk->name, n))
+		if(!strcmp_n(s, walk->fpvm_sym.name, n))
 			return walk;
 	grow_table();
-	syms[num_syms].name = strdup_n(s, n);
+	syms[num_syms].fpvm_sym.name = strdup_n(s, n);
 	return syms+num_syms++;
 }
 
@@ -134,7 +134,7 @@ void unique_free(void)
 	int i;
 
 	for(i = 0; i != num_syms; i++)
-		free((void *) syms[i].name);
+		free((void *) syms[i].fpvm_sym.name);
 	free(syms);
 	syms = NULL;
 	num_syms = allocated = 0;
@@ -148,10 +148,10 @@ void unique_dump(void)
 	int i;
 
 	for(i = 0; i != sizeof(well_known)/sizeof(*well_known); i++)
-		printf("%s\n", well_known[i].name);
+		printf("%s\n", well_known[i].fpvm_sym.name);
 	printf("\n");
 	for(i = 0; i != num_syms; i++)
-		printf("%s\n", syms[i].name);
+		printf("%s\n", syms[i].fpvm_sym.name);
 }
 
 #endif /* STANDALONE */

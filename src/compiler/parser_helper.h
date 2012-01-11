@@ -21,6 +21,8 @@
 #include <fpvm/ast.h>
 #include <fpvm/fpvm.h>
 
+#include "symtab.h"
+
 
 /* virtual operation - for use inside the parser only */
 #define	op_not	(op_vops+1)

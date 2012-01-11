@@ -149,7 +149,7 @@ static const char *assign_default(struct parser_comm *comm,
 	if (fail)
 		return strdup(fail);
 	if (!quiet) {
-		printf("%s = ", sym->name);
+		printf("%s = ", sym->fpvm_sym.name);
 		dump_ast(node);
 		putchar('\n');
 	}
@@ -161,7 +161,7 @@ static const char *assign_per_frame(struct parser_comm *comm,
     struct sym *sym, struct ast_node *node)
 {
 	if (!quiet) {
-		printf("per_frame = %s = ", sym->name);
+		printf("per_frame = %s = ", sym->fpvm_sym.name);
 		dump_ast(node);
 		putchar('\n');
 	}
@@ -173,7 +173,7 @@ static const char *assign_per_vertex(struct parser_comm *comm,
     struct sym *sym, struct ast_node *node)
 {
 	if (!quiet) {
-		printf("per_vertex = %s = ", sym->name);
+		printf("per_vertex = %s = ", sym->fpvm_sym.name);
 		dump_ast(node);
 		putchar('\n');
 	}
