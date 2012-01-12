@@ -59,7 +59,7 @@
 			state->style = which;				\
 		} while (0)
 
-	const enum ast_op tok2op[] = {
+	static const enum ast_op tok2op[] = {
 		[TOK_IDENT]	= op_ident,
 		[TOK_CONSTANT]	= op_constant,
 		[TOK_PLUS]	= op_plus,
