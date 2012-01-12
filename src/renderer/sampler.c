@@ -104,6 +104,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 	frd_callback callback = (frd_callback)argument;
 	rtems_event_set dummy;
 	float time;
+	int frame;
 
 	snd_fd = open("/dev/snd", O_RDWR);
 	if(snd_fd == -1) {
@@ -128,7 +129,8 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		}
 	}
 
-	time = 0.0;
+	time = 0;
+	frame = 0;
 
 	while(rtems_event_receive(RTEMS_EVENT_0, RTEMS_NO_WAIT, RTEMS_NO_TIMEOUT, &dummy) != RTEMS_SUCCESSFUL) {
 		struct snd_buffer *recorded_buf;
@@ -188,6 +190,7 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		recorded_descriptor = (struct frame_descriptor *)recorded_buf->user;
 		/* Analyze */
 		analyze_snd(recorded_descriptor, &history);
+		recorded_descriptor->frame = frame++;
 		recorded_descriptor->time = time;
 		time += 1.0/FPS;
 		/* Get DMX/OSC/MIDI inputs */

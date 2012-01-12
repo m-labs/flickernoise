@@ -60,6 +60,7 @@ mv_a		pfv_mv_a	-1
 bTexWrap	pfv_tex_wrap	-1
 
 time		pfv_time	pvv_time
+frame		pfv_frame	pvv_frame
 bass		pfv_bass	pvv_bass
 mid		pfv_mid		pvv_mid
 treb		pfv_treb	pvv_treb

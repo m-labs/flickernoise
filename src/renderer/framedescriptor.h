@@ -49,6 +49,7 @@ struct frame_descriptor {
 	int status;
 
 	float time;
+	float frame;
 	struct snd_buffer *snd_buf;
 	float bass, mid, treb;
 	float bass_att, mid_att, treb_att;

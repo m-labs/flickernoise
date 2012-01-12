@@ -77,6 +77,7 @@ enum {
 	pfv_tex_wrap,
 
 	pfv_time,
+	pfv_frame,
 	pfv_bass,
 	pfv_mid,
 	pfv_treb,
@@ -164,6 +165,7 @@ enum {
 	pvv_zoom,
 
 	pvv_time,
+	pvv_frame,
 	pvv_bass,
 	pvv_mid,
 	pvv_treb,

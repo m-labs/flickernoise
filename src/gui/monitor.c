@@ -31,7 +31,7 @@ static int appid;
 
 static int w_open;
 
-static float time2;
+static float time2, frame;
 static float bass, mid, treb;
 static float bass_att, mid_att, treb_att;
 static float idmx[IDMX_COUNT];
@@ -43,6 +43,7 @@ static void sampler_callback(struct frame_descriptor *frd)
 	int i;
 	
 	time2 = frd->time;
+	frame = frd->frame;
 
 	bass = frd->bass;
 	mid = frd->mid;
@@ -64,6 +65,7 @@ static void sampler_callback(struct frame_descriptor *frd)
 static float *get_variable(const char *name)
 {
 	if(strcmp(name, "time") == 0) return &time2;
+	if(strcmp(name, "frame") == 0) return &frame;
 
 	else if(strcmp(name, "bass") == 0) return &bass;
 	else if(strcmp(name, "mid") == 0) return &mid;
