@@ -228,6 +228,14 @@ start ::= TOK_START_EXPR expr(N). {
 }
 
 start ::= TOK_START_ASSIGN sections. {
+	if(warn_undefined && state->style == old_style) {
+		const struct sym *sym;
+
+		forall_syms(sym)
+			if(!(sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
+				printf("variable %s is only read, never set\n",
+				    sym->fpvm_sym.name);
+	}
 	state->success = 1;
 }
 
@@ -274,6 +282,7 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 			FAIL;
 			return;
 		}
+		IS_STYLE(new_style);
 	} else {
 		state->error =
 		    state->comm->assign_default(state->comm, I->sym, N);
@@ -499,7 +508,8 @@ primary_expr(N) ::= TOK_CONSTANT(C). {
 }
 
 primary_expr(N) ::= ident(I). {
-	if(warn_undefined && !(I->sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
+	if(warn_undefined && state->style == new_style &&
+	    !(I->sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
 		printf("accessing undefined variable %s\n",
 		    I->sym->fpvm_sym.name);
 	N = node(I->token, I->sym, NULL, NULL, NULL);

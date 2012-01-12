@@ -55,4 +55,23 @@ expect <<EOF
 accessing undefined variable foo
 EOF
 
+#------------------------------------------------------------------------------
+
+ptest "-Wundefined: old-style read-modify-write" -q -Wundefined <<EOF
+per_vertex =
+	foo = foo
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "-Wundefined: old-style undefined" -q -Wundefined <<EOF
+per_vertex =
+	foo = bar
+EOF
+expect <<EOF
+variable bar is only read, never set
+EOF
+
 ###############################################################################
