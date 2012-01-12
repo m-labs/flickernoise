@@ -15,7 +15,7 @@ ptest_fail "codegen: global foo = 1" -c -q <<EOF
 foo = 1
 EOF
 expect <<EOF
-FPVM, line 2: unknown parameter near 'EOF'
+FPVM, line 2: can initialize non-system variables only to zero near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------

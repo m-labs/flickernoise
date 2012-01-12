@@ -257,11 +257,31 @@ assignments ::= .
 
 assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 	I->sym->flags |= SF_ASSIGNED;
-	state->error = state->comm->assign_default(state->comm, I->sym, N);
-	free(I);
-	if(state->error) {
-		FAIL;
-		return;
+	/*
+	 * The conditions are as follows:
+	 * - we must be outside compile_chunk (has different rules)
+	 * - must be in the initial section
+	 * - must not assign to a per-frame system variable
+	 */
+	if(state->comm->assign_per_frame &&
+	    state->comm->assign_default != state->comm->assign_per_frame &&
+	    state->comm->assign_default != state->comm->assign_per_vertex &&
+	    I->sym->pfv_idx == -1) {
+		free(I);
+		if(N->op != op_constant || N->contents.constant) {
+			state->error = strdup("can initialize non-system "
+			    "variables only to zero");
+			FAIL;
+			return;
+		}
+	} else {
+		state->error =
+		    state->comm->assign_default(state->comm, I->sym, N);
+		free(I);
+		if(state->error) {
+			FAIL;
+			return;
+		}
 	}
 	parse_free(N);
 }

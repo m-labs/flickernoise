@@ -3,56 +3,46 @@
 
 ###############################################################################
 
-ptest "-Wundefined: variable defined globally" -q -Wundefined <<EOF
+ptest "initial: initialize non-system to zero" <<EOF
 foo = 0
-per_frame:
-	bar = foo
-per_vertex:
-	bar = foo
 EOF
 expect <<EOF
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "-Wundefined: variable defined per-frame" -q -Wundefined <<EOF
-per_frame:
-	foo = 1
-	bar = foo
-per_vertex:
-	bar = foo
+ptest "initial: initialize per-frame to non-zero" <<EOF
+wave_x = 1
 EOF
 expect <<EOF
+wave_x = 1
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "-Wundefined: variable defined per-vertex" -q -Wundefined <<EOF
-per_vertex:
-	foo = 1
-	bar = foo
+ptest_fail "initial: initialize per-vertex to non-zero" <<EOF
+_texsize = 1
 EOF
 expect <<EOF
+FPVM, line 2: can initialize non-system variables only to zero near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "-Wundefined: variable undefined in per-frame" -q -Wundefined <<EOF
-per_frame:
-	bar = foo
+ptest_fail "initial: initialize non-system to non-zero" <<EOF
+foo = 1
 EOF
 expect <<EOF
-accessing undefined variable foo
+FPVM, line 2: can initialize non-system variables only to zero near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "-Wundefined: variable undefined in per-vertex" -q -Wundefined <<EOF
-per_vertex:
-	bar = foo
+ptest_fail "initial: initialize non-system to non-number" <<EOF
+foo = bar
 EOF
 expect <<EOF
-accessing undefined variable foo
+FPVM, line 2: can initialize non-system variables only to zero near 'EOF'
 EOF
 
 ###############################################################################
