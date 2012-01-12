@@ -4,7 +4,7 @@
 ###############################################################################
 
 ptest "-Wsection: user-defined variables" -q -Wsection <<EOF
-my_a = my_x
+my_a = 0
 per_frame:
 	my_b = my_y
 per_vertex:
@@ -67,7 +67,6 @@ EOF
 
 ptest "-Wsection: per-vertex only variable (_texsize), assign" \
     -q -Wsection <<EOF
-_texsize = 1
 per_frame:
 	foo = _texsize
 per_vertex:

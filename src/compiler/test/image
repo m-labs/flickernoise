@@ -32,13 +32,13 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "image: imagefile2 = hel<nl>lo" <<EOF
+ptest "image: imagefile2 = hel<nl>sx" <<EOF
 imagefile2 = hel
-lo = u
+sx = u
 EOF
 expect <<EOF
 image 2 = "hel"
-lo = u
+sx = u
 EOF
 
 #------------------------------------------------------------------------------

@@ -4,10 +4,10 @@
 ###############################################################################
 
 ptest "sections: only global" <<EOF
-foo = bar
+sx = bar
 EOF
 expect <<EOF
-foo = bar
+sx = bar
 EOF
 
 #------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ EOF
 #------------------------------------------------------------------------------
 
 ptest "sections: global, per frame, then per vertex" <<EOF
-x = y
+sx = y
 per_frame:
 	a = b
 	c = d
@@ -62,7 +62,7 @@ per_vertex:
 	g = h
 EOF
 expect <<EOF
-x = y
+sx = y
 per_frame = a = b
 per_frame = c = d
 per_vertex = e = f

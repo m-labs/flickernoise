@@ -4,211 +4,211 @@
 ###############################################################################
 
 ptest "relop: a == b" << EOF
-x = a == b
+sx = a == b
 EOF
 expect <<EOF
-x = (equal a b)
+sx = (equal a b)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a < b" << EOF
-x = a < b
+sx = a < b
 EOF
 expect <<EOF
-x = (below a b)
+sx = (below a b)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a > b" << EOF
-x = a > b
+sx = a > b
 EOF
 expect <<EOF
-x = (above a b)
+sx = (above a b)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: fold ==" << EOF
-x = 1 == 2
-y = 2 == 2
-z = 3 == 2
+sx = 1 == 2
+sy = 2 == 2
+cx = 3 == 2
 EOF
 expect <<EOF
-x = 0
-y = 1
-z = 0
+sx = 0
+sy = 1
+cx = 0
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: fold <" << EOF
-x = 1 < 2
-y = 2 < 2
-z = 3 < 2
+sx = 1 < 2
+sy = 2 < 2
+cx = 3 < 2
 EOF
 expect <<EOF
-x = 1
-y = 0
-z = 0
+sx = 1
+sy = 0
+cx = 0
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: fold >" << EOF
-x = 1 > 2
-y = 2 > 2
-z = 3 > 2
+sx = 1 > 2
+sy = 2 > 2
+cx = 3 > 2
 EOF
 expect <<EOF
-x = 0
-y = 0
-z = 1
+sx = 0
+sy = 0
+cx = 1
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a == b ? c : d" << EOF
-x = a == b ? c : d
+sx = a == b ? c : d
 EOF
 expect <<EOF
-x = (if (equal a b) c d)
+sx = (if (equal a b) c d)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a ? b : c == d" << EOF
-x = a ? b : c == d
+sx = a ? b : c == d
 EOF
 expect <<EOF
-x = (if a b (equal c d))
+sx = (if a b (equal c d))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a < b == c > d" << EOF
-x = a < b == c > d
+sx = a < b == c > d
 EOF
 expect <<EOF
-x = (equal (below a b) (above c d))
+sx = (equal (below a b) (above c d))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a+b < c-d" << EOF
-x = a+b < c-d
+sx = a+b < c-d
 EOF
 expect <<EOF
-x = (below (+ a b) (- c d))
+sx = (below (+ a b) (- c d))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a-b > c+d" << EOF
-x = a-b > c+d
+sx = a-b > c+d
 EOF
 expect <<EOF
-x = (above (- a b) (+ c d))
+sx = (above (- a b) (+ c d))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a != b" << EOF
-x = a != b
+sx = a != b
 EOF
 expect <<EOF
-x = (! (equal a b))
+sx = (! (equal a b))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a <= b" << EOF
-x = a <= b
+sx = a <= b
 EOF
 expect <<EOF
-x = (! (above a b))
+sx = (! (above a b))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a >= b" << EOF
-x = a >= b
+sx = a >= b
 EOF
 expect <<EOF
-x = (! (below a b))
+sx = (! (below a b))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a < b != c >= d" << EOF
-x = a < b != c >= d
+sx = a < b != c >= d
 EOF
 expect <<EOF
-x = (! (equal (below a b) (! (below c d))))
+sx = (! (equal (below a b) (! (below c d))))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a+b <= c-d" << EOF
-x = a+b <= c-d
+sx = a+b <= c-d
 EOF
 expect <<EOF
-x = (! (above (+ a b) (- c d)))
+sx = (! (above (+ a b) (- c d)))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a-b >= c+d" << EOF
-x = a-b >= c+d
+sx = a-b >= c+d
 EOF
 expect <<EOF
-x = (! (below (- a b) (+ c d)))
+sx = (! (below (- a b) (+ c d)))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a != b ? c : d" << EOF
-x = a != b ? c : d
+sx = a != b ? c : d
 EOF
 expect <<EOF
-x = (if (equal a b) d c)
+sx = (if (equal a b) d c)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a <= b ? c : d" << EOF
-x = a <= b ? c : d
+sx = a <= b ? c : d
 EOF
 expect <<EOF
-x = (if (above a b) d c)
+sx = (if (above a b) d c)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: a >= b ? c : d" << EOF
-x = a >= b ? c : d
+sx = a >= b ? c : d
 EOF
 expect <<EOF
-x = (if (below a b) d c)
+sx = (if (below a b) d c)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: 1 != 2 ? c : d" << EOF
-x = 1 != 2 ? c : d
+sx = 1 != 2 ? c : d
 EOF
 expect <<EOF
-x = c
+sx = c
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "relop: 2 != 2 ? c : d" << EOF
-x = 2 != 2 ? c : d
+sx = 2 != 2 ? c : d
 EOF
 expect <<EOF
-x = d
+sx = d
 EOF
 
 ###############################################################################

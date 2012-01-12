@@ -3,56 +3,56 @@
 
 ###############################################################################
 
-ptest "fold conditional: x = a ? b : c (nothing to fold)" << EOF
-x = a ? b : c
+ptest "fold conditional: sx = a ? b : c (nothing to fold)" << EOF
+sx = a ? b : c
 EOF
 expect <<EOF
-x = (if a b c)
+sx = (if a b c)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "fold conditional: x = 1 ? b : c" << EOF
-x = 1 ? b : c
+ptest "fold conditional: sx = 1 ? b : c" << EOF
+sx = 1 ? b : c
 EOF
 expect <<EOF
-x = b
+sx = b
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "fold conditional: x = 0 ? b : c" << EOF
-x = 0 ? b : c
+ptest "fold conditional: sx = 0 ? b : c" << EOF
+sx = 0 ? b : c
 EOF
 expect <<EOF
-x = c
+sx = c
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "fold conditional: x = if(a, b, c) (nothing to fold)" << EOF
-x = if(a, b, c)
+ptest "fold conditional: sx = if(a, b, c) (nothing to fold)" << EOF
+sx = if(a, b, c)
 EOF
 expect <<EOF
-x = (if a b c)
+sx = (if a b c)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "fold conditional: x = if(1, b, c)" << EOF
-x = if(1, b, c)
+ptest "fold conditional: sx = if(1, b, c)" << EOF
+sx = if(1, b, c)
 EOF
 expect <<EOF
-x = b
+sx = b
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "fold conditional: x = if(0, b,c)" << EOF
-x = if(0, b, c)
+ptest "fold conditional: sx = if(0, b,c)" << EOF
+sx = if(0, b, c)
 EOF
 expect <<EOF
-x = c
+sx = c
 EOF
 
 ###############################################################################

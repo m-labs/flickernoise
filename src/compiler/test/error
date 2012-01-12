@@ -12,18 +12,18 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "syntax error: x = a b" <<EOF
-x = a b
+ptest_fail "syntax error: sx = a b" <<EOF
+sx = a b
 EOF
 expect <<EOF
-x = a
+sx = a
 FPVM, line 2: parse error near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "syntax error: x = a + + b" <<EOF
-x = a + + b
+ptest_fail "syntax error: sx = a + + b" <<EOF
+sx = a + + b
 EOF
 expect <<EOF
 FPVM, line 1: parse error near '+'
@@ -32,7 +32,7 @@ EOF
 #------------------------------------------------------------------------------
 
 ptest_fail "inject code generation error" -f "codegen" <<EOF
-x = a + b
+sx = a + b
 EOF
 expect <<EOF
 FPVM, line 2: codegen near 'EOF'

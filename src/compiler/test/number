@@ -3,53 +3,53 @@
 
 ###############################################################################
 
-ptest "number: a = 1" <<EOF
-a = 1
+ptest "number: sx = 1" <<EOF
+sx = 1
 EOF
 expect <<EOF
-a = 1
+sx = 1
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "number: b = 1.2" <<EOF
-b = 1.2
+ptest "number: sx = 1.2" <<EOF
+sx = 1.2
 EOF
 expect <<EOF
-b = 1.2
+sx = 1.2
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "number: c = .3" <<EOF
-c = .3
+ptest "number: sx = .3" <<EOF
+sx = .3
 EOF
 expect <<EOF
-c = 0.3
+sx = 0.3
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "number: d = 4." <<EOF
-d = 4.
+ptest "number: sx = 4." <<EOF
+sx = 4.
 EOF
 expect <<EOF
-d = 4
+sx = 4
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "number: e = 51.23" <<EOF
-e = 51.23
+ptest "number: sx = 51.23" <<EOF
+sx = 51.23
 EOF
 expect <<EOF
-e = 51.23
+sx = 51.23
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "number: f = ." <<EOF
-f = .
+ptest_fail "number: sx = ." <<EOF
+sx = .
 EOF
 expect <<EOF
 FPVM, line 1: scan error near '.'

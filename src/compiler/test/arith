@@ -3,47 +3,47 @@
 
 ###############################################################################
 
-ptest "arithmetic: x = a+b" <<EOF
-x = a+b
+ptest "arithmetic: sx = a+b" <<EOF
+sx = a+b
 EOF
 expect <<EOF
-x = (+ a b)
+sx = (+ a b)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "arithmetic: x = a-b" <<EOF
-x = a-b
+ptest "arithmetic: sx = a-b" <<EOF
+sx = a-b
 EOF
 expect <<EOF
-x = (- a b)
+sx = (- a b)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "arithmetic: x = a*b" <<EOF
-x = a*b
+ptest "arithmetic: sx = a*b" <<EOF
+sx = a*b
 EOF
 expect <<EOF
-x = (* a b)
+sx = (* a b)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "arithmetic: x = a/b" <<EOF
-x = a/b
+ptest "arithmetic: sx = a/b" <<EOF
+sx = a/b
 EOF
 expect <<EOF
-x = (/ a b)
+sx = (/ a b)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "arithmetic: x = a%b" <<EOF
-x = a/b
+ptest "arithmetic: sx = a%b" <<EOF
+sx = a/b
 EOF
 expect <<EOF
-x = (/ a b)
+sx = (/ a b)
 EOF
 
 ###############################################################################

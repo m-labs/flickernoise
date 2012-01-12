@@ -3,128 +3,128 @@
 
 ###############################################################################
 
-ptest "precedence: x = a+b*c+d" <<EOF
-x = a+b*c+d
+ptest "precedence: sx = a+b*c+d" <<EOF
+sx = a+b*c+d
 EOF
 expect <<EOF
-x = (+ (+ a (* b c)) d)
+sx = (+ (+ a (* b c)) d)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = a+b/c+d" <<EOF
-x = a+b/c+d
+ptest "precedence: sx = a+b/c+d" <<EOF
+sx = a+b/c+d
 EOF
 expect <<EOF
-x = (+ (+ a (/ b c)) d)
+sx = (+ (+ a (/ b c)) d)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = a+b%c+d" <<EOF
-x = a+b%c+d
+ptest "precedence: sx = a+b%c+d" <<EOF
+sx = a+b%c+d
 EOF
 expect <<EOF
-x = (+ (+ a (% b c)) d)
+sx = (+ (+ a (% b c)) d)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = a-b*c-d" <<EOF
-x = a-b*c-d
+ptest "precedence: sx = a-b*c-d" <<EOF
+sx = a-b*c-d
 EOF
 expect <<EOF
-x = (- (- a (* b c)) d)
+sx = (- (- a (* b c)) d)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = a-b/c-d" <<EOF
-x = a-b/c-d
+ptest "precedence: sx = a-b/c-d" <<EOF
+sx = a-b/c-d
 EOF
 expect <<EOF
-x = (- (- a (/ b c)) d)
+sx = (- (- a (/ b c)) d)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = a-b%c-d" <<EOF
-x = a-b%c-d
+ptest "precedence: sx = a-b%c-d" <<EOF
+sx = a-b%c-d
 EOF
 expect <<EOF
-x = (- (- a (% b c)) d)
+sx = (- (- a (% b c)) d)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = -a*b" <<EOF
-x = -a*b
+ptest "precedence: sx = -a*b" <<EOF
+sx = -a*b
 EOF
 expect <<EOF
-x = (* (- a) b)
+sx = (* (- a) b)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = a/b" <<EOF
-x = -a/b
+ptest "precedence: sx = a/b" <<EOF
+sx = -a/b
 EOF
 expect <<EOF
-x = (/ (- a) b)
+sx = (/ (- a) b)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = a%b" <<EOF
-x = -a%b
+ptest "precedence: sx = a%b" <<EOF
+sx = -a%b
 EOF
 expect <<EOF
-x = (% (- a) b)
+sx = (% (- a) b)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = -sin(a)" <<EOF
-x = -sin(a)
+ptest "precedence: sx = -sin(a)" <<EOF
+sx = -sin(a)
 EOF
 expect <<EOF
-x = (- (sin a))
+sx = (- (sin a))
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = -max(a, b)" <<EOF
-x = -max(a, b)
+ptest "precedence: sx = -max(a, b)" <<EOF
+sx = -max(a, b)
 EOF
 expect <<EOF
-x = (- (max a b))
+sx = (- (max a b))
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = -if(a, b, c)" <<EOF
-x = -if(a, b, c)
+ptest "precedence: sx = -if(a, b, c)" <<EOF
+sx = -if(a, b, c)
 EOF
 expect <<EOF
-x = (- (if a b c))
+sx = (- (if a b c))
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = -(a+b)" <<EOF
-x = -(a+b)
+ptest "precedence: sx = -(a+b)" <<EOF
+sx = -(a+b)
 EOF
 expect <<EOF
-x = (- (+ a b))
+sx = (- (+ a b))
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "precedence: x = a--b" <<EOF
-x = a--b
+ptest "precedence: sx = a--b" <<EOF
+sx = a--b
 EOF
 expect <<EOF
-x = (- a (- b))
+sx = (- a (- b))
 EOF
 
 ###############################################################################

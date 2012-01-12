@@ -4,28 +4,31 @@
 ###############################################################################
 
 ptest "dual use: min = sin+cos" <<EOF
+per_frame:
 min = sin+cos
 EOF
 expect <<EOF
-min = (+ (sin) (cos))
+per_frame = min = (+ (sin) (cos))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "dual use: sin = sqr-if" <<EOF
+per_frame:
 sin = sqr-if
 EOF
 expect <<EOF
-sin = (- (sqr) (if))
+per_frame = sin = (- (sqr) (if))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "dual use: if = max*int" <<EOF
+per_frame:
 if = max*int
 EOF
 expect <<EOF
-if = (* (max) (int))
+per_frame = if = (* (max) (int))
 EOF
 
 ###############################################################################
