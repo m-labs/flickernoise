@@ -120,8 +120,10 @@ int scan(struct scanner *s)
 
 		<N>"per_frame"[a-z_0-9]*
 					{ return TOK_PER_FRAME; }
-		<N>"per_vertex"		{ return TOK_PER_VERTEX; }
-		<N>"per_pixel"		{ return TOK_PER_PIXEL; }
+		<N>"per_vertex"[a-z_0-9]*
+					{ return TOK_PER_VERTEX; }
+		<N>"per_pixel"[a-z_0-9]*
+					{ return TOK_PER_PIXEL; }
 
 		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);
 					  return TOK_IMAGEFILE; }
