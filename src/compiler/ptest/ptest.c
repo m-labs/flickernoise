@@ -256,7 +256,27 @@ static void parse_only(const char *pgm)
 }
 
 
-static void dump_regs(const int *alloc, const char (*names)[FPVM_MAXSYMLEN],
+/*
+ * "sym" and "field" are used to access a field chosen by the caller in the
+ * "struct sym". For this, the caller provides a buffer (sym) and a pointer to
+ * the respective field inside the buffer. This way, it's perfectly type-safe
+ * and we don't need offsetof acrobatics.
+ */
+
+static const char *lookup_name(int idx, struct sym *sym, const int *field)
+{
+	const struct sym *walk;
+
+	forall_syms(walk) {
+		*sym = *walk;
+		if (*field == idx)
+			return walk->fpvm_sym.name;
+	}
+	return NULL;
+}
+
+
+static void dump_regs(const int *alloc, struct sym *sym, const int *field,
     const float *values, int n)
 {
 	const char *mapped[n];
@@ -266,7 +286,7 @@ static void dump_regs(const int *alloc, const char (*names)[FPVM_MAXSYMLEN],
 		mapped[i] = NULL;
 	for (i = 0; i != n; i++)
 		if (alloc[i] != -1)
-			mapped[alloc[i]] = names[i];
+			mapped[alloc[i]] = lookup_name(i, sym, field);
 	for (i = 0; i != n; i++) {
 		if (!values[i] && !mapped[i])
 			continue;
@@ -280,27 +300,22 @@ static void dump_regs(const int *alloc, const char (*names)[FPVM_MAXSYMLEN],
 
 static void show_patch(const struct patch *patch)
 {
-/*
- * @@@ Disable for now since we have no good way to get the names and the
- * mapping archtecture is still in flux.
- */
-#if 0
 	int i;
+	struct sym sym;
 
 	printf("global:\n");
 	for (i = 0; i != COMP_PFV_COUNT; i++)
 		if (patch->pfv_initial[i])
 			printf("R%03d = %f %s\n", i, patch->pfv_initial[i],
-			    pfv_names[i]);
+			    lookup_name(i, &sym, &sym.pfv_idx));
 	printf("per-frame PFPU fragment:\n");
-	dump_regs(patch->pfv_allocation, pfv_names, patch->perframe_regs,
-	    COMP_PFV_COUNT);
+	dump_regs(patch->pfv_allocation, &sym, &sym.pfv_idx,
+	    patch->perframe_regs, COMP_PFV_COUNT);
 	pfpu_dump(patch->perframe_prog, patch->perframe_prog_length);
 	printf("per-vertex PFPU fragment:\n");
-	dump_regs(patch->pvv_allocation, pvv_names, patch->pervertex_regs,
-	    COMP_PVV_COUNT);
+	dump_regs(patch->pvv_allocation, &sym, &sym.pvv_idx,
+	     patch->pervertex_regs, COMP_PVV_COUNT);
 	pfpu_dump(patch->pervertex_prog, patch->pervertex_prog_length);
-#endif
 }
 
 
