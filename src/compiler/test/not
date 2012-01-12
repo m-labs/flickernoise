@@ -12,15 +12,6 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "not: !a (try to generate code)" -c << EOF
-per_frame: wave_a = !a
-EOF
-expect <<EOF
-FPVM, line 2: Operation not supported: 29 near 'EOF'
-EOF
-
-#------------------------------------------------------------------------------
-
 ptest "not: !0" << EOF
 sx = !0
 EOF
@@ -98,6 +89,25 @@ sx = !1 ? b : c
 EOF
 expect <<EOF
 sx = c
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "not: !sx (generate code)" -c << EOF
+per_frame: wave_a = !sx
+EOF
+sedit '/^per-frame/,/^Eff/p;d'
+expect <<EOF
+per-frame PFPU fragment:
+R003 = 1.000000 fWaveAlpha
+R004 = 1.000000 sx
+0000: EQUAL   R004,R005 <L=2 E=0002> 
+0001: COPY    R000      <L=2 E=0003> 
+0002: COPY    R001      <L=2 E=0004> -> R003
+0003: NOP                            -> R002
+0004: NOP                            -> R006
+0005: VECTOUT R000,R000 <L=0 E=0005> 
+Efficiency: 50%
 EOF
 
 ###############################################################################
