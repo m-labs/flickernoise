@@ -25,12 +25,20 @@ struct sym {
 };
 
 
+extern struct sym well_known[];
+extern int num_well_known;
+extern struct sym *user_syms;
+extern int num_user_syms;
+
 #define	FPVM2SYM(fpvm_sym)	((struct sym *) (fpvm_sym))
+
+#define	forall_syms(p) \
+	for ((p) = well_known; (p) != user_syms+num_user_syms; \
+	    (p) = (p) == well_known+num_well_known ? user_syms : (p)+1)
 
 void symtab_init(void);
 struct sym *unique(const char *s);
 struct sym *unique_n(const char *s, int n);
 void symtab_free(void);
-void symtab_dump(void);
 
 #endif /* !SYMTAB_H */

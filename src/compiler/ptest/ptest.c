@@ -240,8 +240,12 @@ static void parse_only(const char *pgm)
 
 	symtab_init();
 	error = parse(pgm, TOK_START_ASSIGN, &comm);
-	if (symbols)
-		symtab_dump();
+	if (symbols) {
+		const struct sym *sym;
+
+		forall_syms(sym)
+			printf("%s\n", sym->fpvm_sym.name);
+	}
 	symtab_free();
 	if (!error)
 		return;

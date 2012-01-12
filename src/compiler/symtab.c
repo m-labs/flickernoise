@@ -29,9 +29,12 @@ struct key_n {
 struct sym well_known[] = {
 #include "fnp.inc"
 };
+int num_well_known;
 
-static struct sym *user_syms = NULL;
-static int num_user_syms = 0, allocated = 0;
+struct sym *user_syms = NULL;
+int num_user_syms = 0;
+
+static int allocated = 0;
 
 
 /*
@@ -93,8 +96,7 @@ struct sym *unique(const char *s)
 {
 	struct sym *res, *walk, *new;
 
-	res = bsearch(s, well_known, sizeof(well_known)/sizeof(*well_known),
-	    sizeof(*well_known), cmp);
+	res = bsearch(s, well_known, num_well_known, sizeof(*well_known), cmp);
 	if(res)
 		return res;
 	for(walk = user_syms; walk != user_syms+num_user_syms; walk++)
@@ -118,8 +120,8 @@ struct sym *unique_n(const char *s, int n)
 	struct sym *res, *walk, *new;
 
 	assert(n);
-	res = bsearch(&key, well_known, sizeof(well_known)/sizeof(*well_known),
-	    sizeof(*well_known), cmp_n);
+	res = bsearch(&key, well_known, num_well_known, sizeof(*well_known),
+	    cmp_n);
 	if(res)
 		return res;
 	for(walk = user_syms; walk != user_syms+num_user_syms; walk++)
@@ -138,7 +140,8 @@ void symtab_init(void)
 {
 	int i;
 
-	for(i = 0; i != sizeof(well_known)/sizeof(*well_known); i++)
+	num_well_known = sizeof(well_known)/sizeof(*well_known);
+	for(i = 0; i != num_well_known; i++)
 		well_known[i].flags &= SF_FIXED;
 }
 
@@ -153,19 +156,3 @@ void symtab_free(void)
 	user_syms = NULL;
 	num_user_syms = allocated = 0;
 }
-
-
-#ifdef STANDALONE
-
-void symtab_dump(void)
-{
-	int i;
-
-	for(i = 0; i != sizeof(well_known)/sizeof(*well_known); i++)
-		printf("%s\n", well_known[i].fpvm_sym.name);
-	printf("\n");
-	for(i = 0; i != num_user_syms; i++)
-		printf("%s\n", user_syms[i].fpvm_sym.name);
-}
-
-#endif /* STANDALONE */
