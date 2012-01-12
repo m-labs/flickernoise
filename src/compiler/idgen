@@ -50,6 +50,7 @@ sed 's/#.*//;/^ *$/d' $1 | sort | {
 	.fpvm_sym = { .name = "$1" },
 	.pfv_idx = $2,
 	.pvv_idx = $3,
+	.flags = SF_SYSTEM,
 },
 EOF
 		i=`expr $i + 1`

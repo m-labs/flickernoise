@@ -33,6 +33,7 @@
 
 
 	int warn_section = 0;
+	int warn_undefined = 0;
 
 	struct yyParser;
 	static void yy_parse_failed(struct yyParser *yypParser);
@@ -255,6 +256,7 @@ assignments ::= assignments assignment.
 assignments ::= .
 
 assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
+	I->sym->flags |= SF_ASSIGNED;
 	state->error = state->comm->assign_default(state->comm, I->sym, N);
 	free(I);
 	if(state->error) {
@@ -477,6 +479,9 @@ primary_expr(N) ::= TOK_CONSTANT(C). {
 }
 
 primary_expr(N) ::= ident(I). {
+	if(warn_undefined && !(I->sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
+		printf("accessing undefined variable %s\n",
+		    I->sym->fpvm_sym.name);
 	N = node(I->token, I->sym, NULL, NULL, NULL);
 	free(I);
 }

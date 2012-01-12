@@ -333,7 +333,7 @@ static void usage(const char *name)
 "  -n runs   run compilation repeatedly (default: run only once)\n"
 "  -q        quiet operation\n"
 "  -s        dump symbol table after parsing (only if -c is not set)\n"
-"  -Wwarning enable compiler warning (one of: section)\n"
+"  -Wwarning enable compiler warning (one of: section, undefined)\n"
     , name);
 	exit(1);
 }
@@ -368,6 +368,8 @@ int main(int argc, char **argv)
 		case 'W':
 			if (!strcmp(optarg, "section"))
 				warn_section = 1;
+			else if (!strcmp(optarg, "undefined"))
+				warn_undefined = 1;
 			else
 				usage(*argv);
 			break;

@@ -46,6 +46,7 @@ struct parser_comm {
 };
 
 extern int warn_section;
+extern int warn_undefined;
 
 const char *parse(const char *expr, int start_token, struct parser_comm *comm);
 void parse_free_one(struct ast_node *node);

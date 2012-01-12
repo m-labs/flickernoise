@@ -1,0 +1,46 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "-Wundefined: variable defined per-frame" -q -Wundefined <<EOF
+per_frame:
+	foo = 1
+	bar = foo
+per_vertex:
+	bar = foo
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "-Wundefined: variable defined per-vertex" -q -Wundefined <<EOF
+per_vertex:
+	foo = 1
+	bar = foo
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "-Wundefined: variable undefined in per-frame" -q -Wundefined <<EOF
+per_frame:
+	bar = foo
+EOF
+expect <<EOF
+accessing undefined variable foo
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "-Wundefined: variable undefined in per-vertex" -q -Wundefined <<EOF
+per_vertex:
+	bar = foo
+EOF
+expect <<EOF
+accessing undefined variable foo
+EOF
+
+###############################################################################

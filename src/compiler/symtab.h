@@ -14,7 +14,9 @@
 #include <fpvm/symbol.h>
 
 
-#define	SF_FIXED	0
+#define	SF_SYSTEM	(1 << 0)
+#define	SF_ASSIGNED	(1 << 1)
+#define	SF_FIXED	SF_SYSTEM
 
 struct sym {
 	struct fpvm_sym fpvm_sym;
