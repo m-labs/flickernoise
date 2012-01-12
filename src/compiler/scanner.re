@@ -118,12 +118,14 @@ int scan(struct scanner *s)
 		<N>"sqrt"		{ return TOK_SQRT; }
 		<N>"tsign"		{ return TOK_TSIGN; }
 
-		<N>"per_frame"[a-z_0-9]*
-					{ return TOK_PER_FRAME; }
-		<N>"per_vertex"[a-z_0-9]*
-					{ return TOK_PER_VERTEX; }
+		<N>"per_frame"		{ return TOK_PER_FRAME; }
+		<N>"per_vertex"		{ return TOK_PER_VERTEX; }
+		<N>"per_frame"[a-z_0-9]+
+					{ return TOK_PER_FRAME_UGLY; }
+		<N>"per_vertex"[a-z_0-9]+
+					{ return TOK_PER_VERTEX_UGLY; }
 		<N>"per_pixel"[a-z_0-9]*
-					{ return TOK_PER_PIXEL; }
+					{ return TOK_PER_PIXEL_UGLY; }
 
 		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);
 					  return TOK_IMAGEFILE; }

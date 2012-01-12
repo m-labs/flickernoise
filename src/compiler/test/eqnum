@@ -28,4 +28,24 @@ expect <<EOF
 per_vertex = foo = 3
 EOF
 
+#------------------------------------------------------------------------------
+
+ptest_fail "equation numbers: new-style per_frame" <<EOF
+per_frame_0:
+	foo = 1
+EOF
+expect <<EOF
+FPVM, line 1: parse error near ':'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "equation numbers: new-style per_vertex" <<EOF
+per_vertex_2:
+	foo = 2
+EOF
+expect <<EOF
+FPVM, line 1: parse error near ':'
+EOF
+
 ###############################################################################

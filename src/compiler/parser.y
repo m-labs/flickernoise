@@ -322,20 +322,23 @@ assignment ::= context(C). {
 	state->comm->assign_default = C;
 }
 
-context(C) ::= TOK_PER_FRAME TOK_ASSIGN. {
+context(C) ::= old_per_frame TOK_ASSIGN. {
 	IS_STYLE(old_style);
 	C = state->comm->assign_per_frame;
 }
 
-context(C) ::= TOK_PER_VERTEX TOK_ASSIGN. {
+context(C) ::= old_per_vertex TOK_ASSIGN. {
 	IS_STYLE(old_style);
 	C = state->comm->assign_per_vertex;
 }
 
-context(C) ::= TOK_PER_PIXEL TOK_ASSIGN. {
-	IS_STYLE(old_style);
-	C = state->comm->assign_per_vertex;
-}
+old_per_frame ::= TOK_PER_FRAME.
+old_per_frame ::= TOK_PER_FRAME_UGLY.
+
+old_per_vertex ::= TOK_PER_VERTEX.
+old_per_vertex ::= TOK_PER_VERTEX_UGLY.
+old_per_vertex ::= TOK_PER_PIXEL.
+old_per_vertex ::= TOK_PER_PIXEL_UGLY.
 
 opt_semi ::= opt_semi TOK_SEMI.
 

@@ -145,4 +145,14 @@ per_vertex = a = b
 FPVM, line 3: parse error near 'c'
 EOF
 
+#------------------------------------------------------------------------------
+
+ptest_fail "sections: new style has no per_pixel" <<EOF
+per_pixel:
+	no = junk
+EOF
+expect <<EOF
+FPVM, line 1: parse error near ':'
+EOF
+
 ###############################################################################
