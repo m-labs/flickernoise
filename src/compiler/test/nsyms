@@ -22,7 +22,7 @@ echo -n "nsyms: count number of symbols: " 1>&2
 max=0
 ns=0
 np=0
-forall_patches count_syms
+foreach_patch count_syms
 echo $max,$ns/$np >_out
 
 expect <<EOF

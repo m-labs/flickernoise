@@ -231,7 +231,7 @@ start ::= TOK_START_ASSIGN sections. {
 	if(warn_undefined && state->style == old_style) {
 		const struct sym *sym;
 
-		forall_syms(sym)
+		foreach_sym(sym)
 			if(!(sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
 				printf("variable %s is only read, never set\n",
 				    sym->fpvm_sym.name);

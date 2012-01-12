@@ -244,7 +244,7 @@ static void parse_only(const char *pgm)
 		const struct sym *sym;
 		int user = 0;
 
-		forall_syms(sym) {
+		foreach_sym(sym) {
 			if (!user && !(sym->flags & SF_SYSTEM)) {
 				printf("\n");
 				user = 1;
@@ -273,7 +273,7 @@ static const char *lookup_name(int idx, struct sym *sym, const int *field)
 {
 	const struct sym *walk;
 
-	forall_syms(walk) {
+	foreach_sym(walk) {
 		*sym = *walk;
 		if (*field == idx)
 			return walk->fpvm_sym.name;

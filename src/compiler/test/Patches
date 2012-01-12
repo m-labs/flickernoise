@@ -5,7 +5,7 @@
 # won't interfere.
 #
 
-forall_patches()
+foreach_patch()
 {
 for n in \
     "Aderassi - Making time.fnp" \

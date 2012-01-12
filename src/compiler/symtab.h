@@ -32,7 +32,7 @@ extern int num_user_syms;
 
 #define	FPVM2SYM(fpvm_sym)	((struct sym *) (fpvm_sym))
 
-#define	forall_syms(p) \
+#define	foreach_sym(p) \
 	for ((p) = well_known; (p) != user_syms+num_user_syms; \
 	    (p) = (p) == well_known+num_well_known-1 ? user_syms : (p)+1)
 

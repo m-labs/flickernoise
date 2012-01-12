@@ -22,7 +22,7 @@ do_test()
 	expect </dev/null
 }
 
-forall_patches do_test
+foreach_patch do_test
 
 VALGRIND=$valgrind_orig
 
