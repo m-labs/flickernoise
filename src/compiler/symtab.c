@@ -30,8 +30,8 @@ struct sym well_known[] = {
 #include "fnp.inc"
 };
 
-static struct sym *syms = NULL;
-static int num_syms = 0, allocated = 0;
+static struct sym *user_syms = NULL;
+static int num_user_syms = 0, allocated = 0;
 
 
 /*
@@ -64,11 +64,11 @@ static char *strdup_n(const char *s, int n)
 
 static void grow_table(void)
 {
-	if(num_syms != allocated)
+	if(num_user_syms != allocated)
 		return;
 
 	allocated = allocated ? allocated*2 : INITIAL_ALLOC;
-	syms = realloc(syms, allocated*sizeof(*syms));
+	user_syms = realloc(user_syms, allocated*sizeof(*user_syms));
 }
 
 
@@ -91,21 +91,21 @@ static int cmp_n(const void *a, const void *b)
 
 struct sym *unique(const char *s)
 {
-	struct sym *res;
-	struct sym *walk;
+	struct sym *res, *walk, *new;
 
 	res = bsearch(s, well_known, sizeof(well_known)/sizeof(*well_known),
 	    sizeof(*well_known), cmp);
 	if(res)
 		return res;
-	for(walk = syms; walk != syms+num_syms; walk++)
+	for(walk = user_syms; walk != user_syms+num_user_syms; walk++)
 		if(!strcmp(walk->fpvm_sym.name, s))
 			return walk;
 	grow_table();
-	syms[num_syms].fpvm_sym.name = strdup(s);
-	syms[num_syms].pfv_idx = syms[num_syms].pvv_idx = -1;
-	syms[num_syms].flags = 0;
-	return syms+num_syms++;
+	new = user_syms+num_user_syms++;
+	new->fpvm_sym.name = strdup(s);
+	new->pfv_idx = new->pvv_idx = -1;
+	new->flags = 0;
+	return new;
 }
 
 
@@ -115,22 +115,22 @@ struct sym *unique_n(const char *s, int n)
 		.s = s,
 		.n = n,
 	};
-	struct sym *res;
-	struct sym *walk;
+	struct sym *res, *walk, *new;
 
 	assert(n);
 	res = bsearch(&key, well_known, sizeof(well_known)/sizeof(*well_known),
 	    sizeof(*well_known), cmp_n);
 	if(res)
 		return res;
-	for(walk = syms; walk != syms+num_syms; walk++)
+	for(walk = user_syms; walk != user_syms+num_user_syms; walk++)
 		if(!strcmp_n(s, walk->fpvm_sym.name, n))
 			return walk;
 	grow_table();
-	syms[num_syms].fpvm_sym.name = strdup_n(s, n);
-	syms[num_syms].pfv_idx = syms[num_syms].pvv_idx = -1;
-	syms[num_syms].flags = 0;
-	return syms+num_syms++;
+	new = user_syms+num_user_syms++;
+	new->fpvm_sym.name = strdup_n(s, n);
+	new->pfv_idx = new->pvv_idx = -1;
+	new->flags = 0;
+	return new;
 }
 
 
@@ -147,11 +147,11 @@ void symtab_free(void)
 {
 	int i;
 
-	for(i = 0; i != num_syms; i++)
-		free((void *) syms[i].fpvm_sym.name);
-	free(syms);
-	syms = NULL;
-	num_syms = allocated = 0;
+	for(i = 0; i != num_user_syms; i++)
+		free((void *) user_syms[i].fpvm_sym.name);
+	free(user_syms);
+	user_syms = NULL;
+	num_user_syms = allocated = 0;
 }
 
 
@@ -164,8 +164,8 @@ void symtab_dump(void)
 	for(i = 0; i != sizeof(well_known)/sizeof(*well_known); i++)
 		printf("%s\n", well_known[i].fpvm_sym.name);
 	printf("\n");
-	for(i = 0; i != num_syms; i++)
-		printf("%s\n", syms[i].fpvm_sym.name);
+	for(i = 0; i != num_user_syms; i++)
+		printf("%s\n", user_syms[i].fpvm_sym.name);
 }
 
 #endif /* STANDALONE */
