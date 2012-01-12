@@ -242,9 +242,15 @@ static void parse_only(const char *pgm)
 	error = parse(pgm, TOK_START_ASSIGN, &comm);
 	if (symbols) {
 		const struct sym *sym;
+		int user = 0;
 
-		forall_syms(sym)
+		forall_syms(sym) {
+			if (!user && !(sym->flags & SF_SYSTEM)) {
+				printf("\n");
+				user = 1;
+			}
 			printf("%s\n", sym->fpvm_sym.name);
+		}
 	}
 	symtab_free();
 	if (!error)
