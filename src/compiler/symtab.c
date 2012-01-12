@@ -132,7 +132,7 @@ struct sym *unique_n(const char *s, int n)
 }
 
 
-void unique_free(void)
+void symtab_free(void)
 {
 	int i;
 
@@ -146,7 +146,7 @@ void unique_free(void)
 
 #ifdef STANDALONE
 
-void unique_dump(void)
+void symtab_dump(void)
 {
 	int i;
 

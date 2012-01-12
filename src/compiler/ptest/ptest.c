@@ -240,8 +240,8 @@ static void parse_only(const char *pgm)
 
 	error = parse(pgm, TOK_START_ASSIGN, &comm);
 	if (symbols)
-		unique_dump();
-	unique_free();
+		symtab_dump();
+	symtab_free();
 	if (!error)
 		return;
 	fflush(stdout);

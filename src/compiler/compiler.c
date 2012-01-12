@@ -481,13 +481,13 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	if(!finalize_pvv(sc)) goto fail;
 	if(!schedule_pvv(sc)) goto fail;
 
-	unique_free();
+	symtab_free();
 
 	free(sc);
 	return p;
 
 fail:
-	unique_free();
+	symtab_free();
 	free(sc->p);
 	free(sc);
 	return NULL;

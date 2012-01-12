@@ -24,7 +24,7 @@ struct sym {
 
 struct sym *unique(const char *s);
 struct sym *unique_n(const char *s, int n);
-void unique_free(void);
-void unique_dump(void);
+void symtab_free(void);
+void symtab_dump(void);
 
 #endif /* !SYMTAB_H */
