@@ -16,178 +16,180 @@
  */
 
 %include {
-	#include <assert.h>
-	#include <string.h>
-	#include <ctype.h>
-	#include <stdlib.h>
-	#include <malloc.h>
-	#include <math.h>
 
-	#include <fpvm/ast.h>
-	#include <fpvm/fpvm.h>
+#include <assert.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <math.h>
 
-	#include "symtab.h"
-	#include "parser_itf.h"
-	#include "parser_helper.h"
-	#include "parser.h"
+#include <fpvm/ast.h>
+#include <fpvm/fpvm.h>
+
+#include "symtab.h"
+#include "parser_itf.h"
+#include "parser_helper.h"
+#include "parser.h"
 
 
-	int warn_section = 0;
-	int warn_undefined = 0;
+int warn_section = 0;
+int warn_undefined = 0;
 
-	struct yyParser;
-	static void yy_parse_failed(struct yyParser *yypParser);
+struct yyParser;
+static void yy_parse_failed(struct yyParser *yypParser);
 
-	typedef const char *(*assign_callback)(struct parser_comm *comm,
+typedef const char *(*assign_callback)(struct parser_comm *comm,
 	    struct sym *sym, struct ast_node *node);
 
-	#define	FAIL					\
-		do {					\
-			syntax_error(state);		\
-			yy_parse_failed(yypParser);	\
-		} while (0)
+#define	FAIL					\
+	do {					\
+		syntax_error(state);		\
+		yy_parse_failed(yypParser);	\
+	} while (0)
 
-	#define	OTHER_STYLE_new_style	old_style
-	#define	OTHER_STYLE_old_style	new_style
+#define	OTHER_STYLE_new_style	old_style
+#define	OTHER_STYLE_old_style	new_style
 
-	#define	IS_STYLE(which)						\
-		do {							\
-			if(state->style == OTHER_STYLE_##which) {	\
-				FAIL;					\
-				return;					\
-			}						\
-			state->style = which;				\
-		} while (0)
+#define	IS_STYLE(which)						\
+	do {							\
+		if(state->style == OTHER_STYLE_##which) {	\
+			FAIL;					\
+			return;					\
+		}						\
+		state->style = which;				\
+	} while (0)
 
-	static const enum ast_op tok2op[] = {
-		[TOK_IDENT]	= op_ident,
-		[TOK_CONSTANT]	= op_constant,
-		[TOK_PLUS]	= op_plus,
-		[TOK_MINUS]	= op_minus,
-		[TOK_MULTIPLY]	= op_multiply,
-		[TOK_DIVIDE]	= op_divide,
-		[TOK_PERCENT]	= op_percent,
-		[TOK_ABS]	= op_abs,
-		[TOK_ISIN]	= op_isin,
-		[TOK_ICOS]	= op_icos,
-		[TOK_SIN]	= op_sin,
-		[TOK_COS]	= op_cos,
-		[TOK_ABOVE]	= op_above,
-		[TOK_BELOW]	= op_below,
-		[TOK_EQUAL]	= op_equal,
-		[TOK_I2F]	= op_i2f,
-		[TOK_F2I]	= op_f2i,
-		[TOK_IF]	= op_if,
-		[TOK_TSIGN]	= op_tsign,
-		[TOK_QUAKE]	= op_quake,
-		[TOK_SQR]	= op_sqr,
-		[TOK_SQRT]	= op_sqrt,
-		[TOK_INVSQRT]	= op_invsqrt,
-		[TOK_MIN]	= op_min,
-		[TOK_MAX]	= op_max,
-		[TOK_INT]	= op_int,
-	};
+static const enum ast_op tok2op[] = {
+	[TOK_IDENT]	= op_ident,
+	[TOK_CONSTANT]	= op_constant,
+	[TOK_PLUS]	= op_plus,
+	[TOK_MINUS]	= op_minus,
+	[TOK_MULTIPLY]	= op_multiply,
+	[TOK_DIVIDE]	= op_divide,
+	[TOK_PERCENT]	= op_percent,
+	[TOK_ABS]	= op_abs,
+	[TOK_ISIN]	= op_isin,
+	[TOK_ICOS]	= op_icos,
+	[TOK_SIN]	= op_sin,
+	[TOK_COS]	= op_cos,
+	[TOK_ABOVE]	= op_above,
+	[TOK_BELOW]	= op_below,
+	[TOK_EQUAL]	= op_equal,
+	[TOK_I2F]	= op_i2f,
+	[TOK_F2I]	= op_f2i,
+	[TOK_IF]	= op_if,
+	[TOK_TSIGN]	= op_tsign,
+	[TOK_QUAKE]	= op_quake,
+	[TOK_SQR]	= op_sqr,
+	[TOK_SQRT]	= op_sqrt,
+	[TOK_INVSQRT]	= op_invsqrt,
+	[TOK_MIN]	= op_min,
+	[TOK_MAX]	= op_max,
+	[TOK_INT]	= op_int,
+};
 
-	static struct ast_node *node_op(enum ast_op op,
-	    struct ast_node *a, struct ast_node *b, struct ast_node *c)
-	{
-		struct ast_node *n;
+static struct ast_node *node_op(enum ast_op op,
+    struct ast_node *a, struct ast_node *b, struct ast_node *c)
+{
+	struct ast_node *n;
 
-		n = malloc(sizeof(struct ast_node));
-		n->op = op;
-		n->sym = NULL;
-		n->contents.branches.a = a;
-		n->contents.branches.b = b;
-		n->contents.branches.c = c;
-		return n;
-	}
+	n = malloc(sizeof(struct ast_node));
+	n->op = op;
+	n->sym = NULL;
+	n->contents.branches.a = a;
+	n->contents.branches.b = b;
+	n->contents.branches.c = c;
+	return n;
+}
 
-	static struct ast_node *node(int token, struct sym *sym,
-	    struct ast_node *a, struct ast_node *b, struct ast_node *c)
-	{
-		struct ast_node *n;
+static struct ast_node *node(int token, struct sym *sym,
+    struct ast_node *a, struct ast_node *b, struct ast_node *c)
+{
+	struct ast_node *n;
 
-		n = node_op(tok2op[token], a, b, c);
-		n->sym = &sym->fpvm_sym;
-		return n;
-	}
+	n = node_op(tok2op[token], a, b, c);
+	n->sym = &sym->fpvm_sym;
+	return n;
+}
 
-	static struct ast_node *constant(float n)
-	{
-		struct ast_node *node;
+static struct ast_node *constant(float n)
+{
+	struct ast_node *node;
 
-		node = node_op(op_constant, NULL, NULL, NULL);
-		node->contents.constant = n;
-		return node;
-	}
+	node = node_op(op_constant, NULL, NULL, NULL);
+	node->contents.constant = n;
+	return node;
+}
 
-	#define FOLD_UNARY(res, ast_op, arg, expr)			\
-		do {							\
-			if((arg)->op == op_constant) {			\
-				float a = (arg)->contents.constant;	\
+#define FOLD_UNARY(res, ast_op, arg, expr)			\
+	do {							\
+		if((arg)->op == op_constant) {			\
+			float a = (arg)->contents.constant;	\
+								\
+			res = constant(expr);			\
+			parse_free(arg);			\
+		} else {					\
+			res = node_op(ast_op, arg, NULL, NULL);	\
+		}						\
+	} while (0)
+
+#define FOLD_BINARY(res, ast_op, arg_a, arg_b, expr)			\
+	do {								\
+		if((arg_a)->op == op_constant &&			\
+		    (arg_b)->op == op_constant) {			\
+			float a = (arg_a)->contents.constant;		\
+			float b = (arg_b)->contents.constant;		\
 									\
-				res = constant(expr);			\
-				parse_free(arg);			\
-			} else {					\
-				res = node_op(ast_op, arg, NULL, NULL);	\
-			}						\
-		} while (0)
+			res = constant(expr);				\
+			parse_free(arg_a);				\
+			parse_free(arg_b);				\
+		} else {						\
+			res = node_op(ast_op, arg_a, arg_b, NULL);	\
+		}							\
+	} while (0)
 
-	#define FOLD_BINARY(res, ast_op, arg_a, arg_b, expr)		\
-		do {							\
-			if((arg_a)->op == op_constant && 		\
-			    (arg_b)->op == op_constant) {		\
-				float a = (arg_a)->contents.constant;	\
-				float b = (arg_b)->contents.constant;	\
-									\
-				res = constant(expr);			\
-				parse_free(arg_a);			\
-				parse_free(arg_b);			\
-			} else {					\
-				res = node_op(ast_op,			\
-				     arg_a, arg_b, NULL); 		\
-			}						\
-		} while (0)
+static struct ast_node *conditional(struct ast_node *a,
+    struct ast_node *b, struct ast_node *c)
+{
+	if(a->op == op_not) {
+		struct ast_node *next = a->contents.branches.a;
 
-	static struct ast_node *conditional(struct ast_node *a,
-	    struct ast_node *b, struct ast_node *c)
-	{
-		if(a->op == op_not) {
-			struct ast_node *next = a->contents.branches.a;
-
-			parse_free_one(a);
-			return node_op(op_if, next, c, b);
-		}
-		if(a->op != op_constant)
-			return node_op(op_if, a, b, c);
-		if(a->contents.constant) {
-			parse_free(a);
-			parse_free(c);
-			return b;
-		} else {
-			parse_free(a);
-			parse_free(b);
-			return c;
-		}
+		parse_free_one(a);
+		return node_op(op_if, next, c, b);
 	}
-
-	static void syntax_error(struct parser_state *state)
-	{
-		if(!state->error_label) {
-			state->error_label = state->id->label;
-			state->error_lineno = state->id->lineno;
-		}
-	}
-
-	static struct id *symbolify(struct id *id)
-	{
-		const char *p;
-
-		for(p = id->label; isalnum(*p); p++);
-		id->sym = unique_n(id->label, p-id->label);
-		return id;
+	if(a->op != op_constant)
+		return node_op(op_if, a, b, c);
+	if(a->contents.constant) {
+		parse_free(a);
+		parse_free(c);
+		return b;
+	} else {
+		parse_free(a);
+		parse_free(b);
+		return c;
 	}
 }
+
+static void syntax_error(struct parser_state *state)
+{
+	if(!state->error_label) {
+		state->error_label = state->id->label;
+		state->error_lineno = state->id->lineno;
+	}
+}
+
+static struct id *symbolify(struct id *id)
+{
+	const char *p;
+
+	for(p = id->label; isalnum(*p); p++);
+	id->sym = unique_n(id->label, p-id->label);
+	return id;
+}
+
+} /* %include */
+
 
 %start_symbol start
 %extra_argument {struct parser_state *state}
