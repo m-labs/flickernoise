@@ -14,14 +14,18 @@
 #include <fpvm/symbol.h>
 
 
+#define	SF_FIXED	0
+
 struct sym {
 	struct fpvm_sym fpvm_sym;
 	int pfv_idx, pvv_idx;	/* index; -1 if not a variable known to FN */
+	int flags;
 };
 
 
 #define	FPVM2SYM(fpvm_sym)	((struct sym *) (fpvm_sym))
 
+void symtab_init(void);
 struct sym *unique(const char *s);
 struct sym *unique_n(const char *s, int n);
 void symtab_free(void);

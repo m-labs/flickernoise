@@ -238,6 +238,7 @@ static void parse_only(const char *pgm)
 	 };
 	const char *error;
 
+	symtab_init();
 	error = parse(pgm, TOK_START_ASSIGN, &comm);
 	if (symbols)
 		symtab_dump();

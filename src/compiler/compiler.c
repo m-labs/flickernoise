@@ -469,6 +469,8 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	sc->rmc = rmc;
 	sc->linenr = 0;
 
+	symtab_init();
+
 	load_defaults(sc);
 	if(!init_pfv(sc)) goto fail;
 	if(!init_pvv(sc)) goto fail;

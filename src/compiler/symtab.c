@@ -104,6 +104,7 @@ struct sym *unique(const char *s)
 	grow_table();
 	syms[num_syms].fpvm_sym.name = strdup(s);
 	syms[num_syms].pfv_idx = syms[num_syms].pvv_idx = -1;
+	syms[num_syms].flags = 0;
 	return syms+num_syms++;
 }
 
@@ -128,7 +129,17 @@ struct sym *unique_n(const char *s, int n)
 	grow_table();
 	syms[num_syms].fpvm_sym.name = strdup_n(s, n);
 	syms[num_syms].pfv_idx = syms[num_syms].pvv_idx = -1;
+	syms[num_syms].flags = 0;
 	return syms+num_syms++;
+}
+
+
+void symtab_init(void)
+{
+	int i;
+
+	for(i = 0; i != sizeof(well_known)/sizeof(*well_known); i++)
+		well_known[i].flags &= SF_FIXED;
 }
 
 
