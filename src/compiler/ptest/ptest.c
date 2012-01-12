@@ -326,12 +326,13 @@ static void free_buffer(void)
 static void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [-c|-f error] [-n runs] [-q] [-s] [expr]\n\n"
+"usage: %s [-c|-f error] [-n runs] [-q] [-s] [-Wwarning...] [expr]\n\n"
 "  -c        generate code and dump generated code (unless -q is set)\n"
 "  -f error  fail any assignment with specified error message\n"
 "  -n runs   run compilation repeatedly (default: run only once)\n"
 "  -q        quiet operation\n"
 "  -s        dump symbol table after parsing (only if -c is not set)\n"
+"  -Wwarning enable compiler warning (one of: section)\n"
     , name);
 	exit(1);
 }
@@ -344,7 +345,7 @@ int main(int argc, char **argv)
 	unsigned long repeat = 1;
 	char *end;
 
-	while ((c = getopt(argc, argv, "cf:n:qs")) != EOF)
+	while ((c = getopt(argc, argv, "cf:n:qsW:")) != EOF)
 		switch (c) {
 		case 'c':
 			codegen = 1;
@@ -362,6 +363,12 @@ int main(int argc, char **argv)
 			break;
 		case 's':
 			symbols = 1;
+			break;
+		case 'W':
+			if (!strcmp(optarg, "section"))
+				warn_section = 1;
+			else
+				usage(*argv);
 			break;
 		default:
 			usage(*argv);

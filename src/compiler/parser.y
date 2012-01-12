@@ -32,6 +32,8 @@
 	#include "parser.h"
 
 
+	int warn_section = 0;
+
 	struct yyParser;
 	static void yy_parse_failed(struct yyParser *yypParser);
 
@@ -495,7 +497,22 @@ primary_expr(N) ::= ident(I). {
  * for variables should be a rare condition anyway.
  */
 
-ident(O) ::= TOK_IDENT(I).	{ O = I; }
+ident(O) ::= TOK_IDENT(I). {
+	if(warn_section) {
+		if(state->comm->assign_default ==
+		    state->comm->assign_per_frame &&
+		    I->sym->pfv_idx == -1 && I->sym->pvv_idx != -1)
+			printf("using per-vertex variable %s in "
+			    "per-frame section\n", I->sym->fpvm_sym.name);
+		if(state->comm->assign_default ==
+		    state->comm->assign_per_vertex &&
+		    I->sym->pfv_idx != -1 && I->sym->pvv_idx == -1)
+			printf("using per-frame variable %s in "
+			    "per-vertex section\n", I->sym->fpvm_sym.name);
+	}
+	O = I;
+}
+
 ident(O) ::= unary(I).		{ O = symbolify(I); }
 ident(O) ::= unary_misc(I).	{ O = symbolify(I); }
 ident(O) ::= binary(I).		{ O = symbolify(I); }

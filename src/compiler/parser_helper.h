@@ -45,6 +45,8 @@ struct parser_comm {
 	    int number, const char *name);
 };
 
+extern int warn_section;
+
 const char *parse(const char *expr, int start_token, struct parser_comm *comm);
 void parse_free_one(struct ast_node *node);
 void parse_free(struct ast_node *node);

@@ -1,0 +1,80 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "-Wsection: user-defined variables" -q -Wsection <<EOF
+my_a = my_x
+per_frame:
+	my_b = my_y
+per_vertex:
+	my_c = my_z
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "-Wsection: per-frame and per-vertex variable (sx)" -q -Wsection <<EOF
+sx = 1
+per_frame:
+	sx = sx
+per_vertex:
+	sx = sx
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "-Wsection: per-frame only variable (wave_x), access" -q -Wsection <<EOF
+per_frame:
+	foo = wave_x
+per_vertex:
+	bar = wave_x
+EOF
+expect <<EOF
+using per-frame variable wave_x in per-vertex section
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "-Wsection: per-frame only variable (wave_x), assign" -q -Wsection <<EOF
+wave_x = 1
+per_frame:
+	foo = wave_x
+per_vertex:
+	bar = wave_x
+EOF
+expect <<EOF
+using per-frame variable wave_x in per-vertex section
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "-Wsection: per-vertex only variable (_texsize), access" \
+    -q -Wsection <<EOF
+per_frame:
+	foo = _texsize
+per_vertex:
+	bar = _texsize
+EOF
+expect <<EOF
+using per-vertex variable _texsize in per-frame section
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "-Wsection: per-vertex only variable (_texsize), assign" \
+    -q -Wsection <<EOF
+_texsize = 1
+per_frame:
+	foo = _texsize
+per_vertex:
+	bar = _texsize
+EOF
+expect <<EOF
+using per-vertex variable _texsize in per-frame section
+EOF
+
+###############################################################################
