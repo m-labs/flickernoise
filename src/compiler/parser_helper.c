@@ -31,8 +31,17 @@
 #include "parser_helper.h"
 
 
-void verror(struct parser_state *state, const char *fmt, va_list ap)
+static void verror(struct parser_state *state, const char *fmt, va_list ap,
+    int is_error)
 {
+	if(is_error && state->warning) {
+		free((void *) state->error);
+		free((void *) state->error_label);
+		state->error = NULL;
+		state->error_label = NULL;
+	}
+	state->warning = !is_error;
+
 	/*
 	 * If "error" or "error_label" are already set, then we keep the
 	 * previous value. There are two reasons for this:
@@ -60,7 +69,7 @@ void error(struct parser_state *state, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	verror(state, fmt, ap);
+	verror(state, fmt, ap, 1);
 	va_end(ap);
 }
 
@@ -73,7 +82,7 @@ void warn(struct parser_state *state, const char *fmt, ...)
 	vprintf(fmt, ap);
 	putchar('\n');
 #else
-	verror(state, fmt, ap);
+	verror(state, fmt, ap, 0);
 #endif
 	va_end(ap);
 }

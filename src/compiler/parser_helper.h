@@ -49,7 +49,6 @@ struct parser_comm {
 extern int warn_section;
 extern int warn_undefined;
 
-void verror(struct parser_state *state, const char *fmt, va_list ap);
 void error(struct parser_state *state, const char *fmt, ...);
 void warn(struct parser_state *state, const char *fmt, ...);
 

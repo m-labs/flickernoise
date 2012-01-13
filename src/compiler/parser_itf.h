@@ -39,10 +39,14 @@ struct parser_state {
 	struct parser_comm *comm;
 	const char *(*assign)(struct parser_comm *comm,
             struct sym *sym, struct ast_node *node);
+
 	const char *error;	/* malloc'ed error message or NULL */
 	const char *error_label;/* details about the failing token */
 	int error_lineno;
+	int warning;		/* non-zero if we have only a warning */
+
 	const struct id *id;	/* input, for error handling */
+
 	enum {
 		unknown_style,	/* haven't seen any fragment selection yet */
 		old_style,	/* patch uses per_frame=var=expr */
