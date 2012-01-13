@@ -49,9 +49,9 @@ static float bass, mid, treb;
 
 static void sampler_callback(struct frame_descriptor *frd)
 {
-	bass = frd->bass;
-	mid = frd->mid;
-	treb = frd->treb;
+	bass = frd->bass_att;
+	mid = frd->mid_att;
+	treb = frd->treb_att;
 
 	sampler_return(frd);
 }
