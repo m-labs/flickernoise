@@ -37,6 +37,8 @@ struct id {
 struct parser_state {
 	int success;
 	struct parser_comm *comm;
+	const char *(*assign)(struct parser_comm *comm,
+            struct sym *sym, struct ast_node *node);
 	const char *error;	/* malloc'ed error message or NULL */
 	const char *error_label;/* details about the failing token */
 	int error_lineno;

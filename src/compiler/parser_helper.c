@@ -105,6 +105,7 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 	struct scanner *s;
 	struct parser_state state = {
 		.comm = comm,
+		.assign = comm->assign_default,
 		.success = 0,
 		.error = NULL,
 		.error_label = NULL,

@@ -246,12 +246,12 @@ sections ::= assignments per_vertex_label assignments.
 
 per_frame_label ::= TOK_PER_FRAME TOK_COLON. {
 	IS_STYLE(new_style);
-	state->comm->assign_default = state->comm->assign_per_frame;
+	state->assign = state->comm->assign_per_frame;
 }
 
 per_vertex_label ::= TOK_PER_VERTEX TOK_COLON. {
 	IS_STYLE(new_style);
-	state->comm->assign_default = state->comm->assign_per_vertex;
+	state->assign = state->comm->assign_per_vertex;
 }
 
 assignments ::= assignments assignment.
@@ -267,8 +267,8 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 	 * - must not assign to a per-frame system variable
 	 */
 	if(state->comm->assign_per_frame &&
-	    state->comm->assign_default != state->comm->assign_per_frame &&
-	    state->comm->assign_default != state->comm->assign_per_vertex &&
+	    state->assign != state->comm->assign_per_frame &&
+	    state->assign != state->comm->assign_per_vertex &&
 	    I->sym->pfv_idx == -1) {
 		free(I);
 		if(N->op != op_constant || N->contents.constant) {
@@ -278,8 +278,7 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 		}
 		IS_STYLE(new_style);
 	} else {
-		state->error =
-		    state->comm->assign_default(state->comm, I->sym, N);
+		state->error = state->assign(state->comm, I->sym, N);
 		free(I);
 		if(state->error) {
 			FAIL(NULL);
@@ -309,11 +308,9 @@ assignment ::= context(C). {
 	 * per_vertex= tags followed by nothing else. We work around the
 	 * syntax issue by making these tags "sticky".
 	 *
-	 * This subtly changes the semantics. Also, changing assign_default
-	 * is not a good idea, since the caller may rely on it staying the
-	 * same.
+	 * This subtly changes the semantics.
 	 */
-	state->comm->assign_default = C;
+	state->assign = C;
 }
 
 context(C) ::= old_per_frame TOK_ASSIGN. {
@@ -531,13 +528,11 @@ primary_expr(N) ::= ident(I). {
 
 ident(O) ::= TOK_IDENT(I). {
 	if(warn_section) {
-		if(state->comm->assign_default ==
-		    state->comm->assign_per_frame &&
+		if(state->assign == state->comm->assign_per_frame &&
 		    I->sym->pfv_idx == -1 && I->sym->pvv_idx != -1)
 			warn(state, "using per-vertex variable %s in "
 			    "per-frame section", I->sym->fpvm_sym.name);
-		if(state->comm->assign_default ==
-		    state->comm->assign_per_vertex &&
+		if(state->assign == state->comm->assign_per_vertex &&
 		    I->sym->pfv_idx != -1 && I->sym->pvv_idx == -1)
 			warn(state, "using per-frame variable %s in "
 			    "per-vertex section", I->sym->fpvm_sym.name);
