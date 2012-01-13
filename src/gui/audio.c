@@ -33,6 +33,7 @@
 #include "flash.h"
 #include "about.h"
 #include "audio.h"
+#include "resmgr.h"
 #include "../input.h"
 #include "../renderer/sampler.h"
 
@@ -157,6 +158,9 @@ static void ok_callback(mtk_event *e, void *arg)
 	set_config();
 	sampler_stop();
 	input_delete_callback(monitor_update);
+	resmgr_release(RESOURCE_AUDIO);
+	resmgr_release(RESOURCE_DMX_IN);
+	resmgr_release(RESOURCE_SAMPLER);
 }
 
 static void close_callback(mtk_event *e, void *arg)
@@ -166,6 +170,9 @@ static void close_callback(mtk_event *e, void *arg)
 	load_audio_config();
 	sampler_stop();
 	input_delete_callback(monitor_update);
+	resmgr_release(RESOURCE_AUDIO);
+	resmgr_release(RESOURCE_DMX_IN);
+	resmgr_release(RESOURCE_SAMPLER);
 }
 
 void init_audio(void)
@@ -253,6 +260,14 @@ void init_audio(void)
 void open_audio_window(void)
 {
 	if(w_open) return;
+
+	if(!resmgr_acquire_multiple("Audio settings",
+	  RESOURCE_AUDIO,
+	  RESOURCE_DMX_IN,
+	  RESOURCE_SAMPLER,
+	  INVALID_RESOURCE))
+		return;
+
 	w_open = 1;
 	mtk_cmd(appid, "w.open()");
 	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
