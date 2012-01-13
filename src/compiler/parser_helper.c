@@ -70,6 +70,7 @@ void warn(struct parser_state *state, const char *fmt, ...)
 
 	va_start(ap, fmt);
 	vprintf(fmt, ap);
+	putchar('\n');
 	va_end(ap);
 }
 

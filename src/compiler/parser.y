@@ -228,7 +228,7 @@ start ::= TOK_START_ASSIGN sections. {
 		foreach_sym(sym)
 			if(!(sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
 				warn(state,
-				    "variable %s is only read, never set\n",
+				    "variable %s is only read, never set",
 				    sym->fpvm_sym.name);
 	}
 	state->success = 1;
@@ -507,7 +507,7 @@ primary_expr(N) ::= TOK_CONSTANT(C). {
 primary_expr(N) ::= ident(I). {
 	if(warn_undefined && state->style == new_style &&
 	    !(I->sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
-		warn(state, "reading undefined variable %s\n",
+		warn(state, "reading undefined variable %s",
 		    I->sym->fpvm_sym.name);
 	N = node(I->token, I->sym, NULL, NULL, NULL);
 	free(I);
@@ -535,12 +535,12 @@ ident(O) ::= TOK_IDENT(I). {
 		    state->comm->assign_per_frame &&
 		    I->sym->pfv_idx == -1 && I->sym->pvv_idx != -1)
 			warn(state, "using per-vertex variable %s in "
-			    "per-frame section\n", I->sym->fpvm_sym.name);
+			    "per-frame section", I->sym->fpvm_sym.name);
 		if(state->comm->assign_default ==
 		    state->comm->assign_per_vertex &&
 		    I->sym->pfv_idx != -1 && I->sym->pvv_idx == -1)
 			warn(state, "using per-frame variable %s in "
-			    "per-vertex section\n", I->sym->fpvm_sym.name);
+			    "per-vertex section", I->sym->fpvm_sym.name);
 	}
 	O = I;
 }
