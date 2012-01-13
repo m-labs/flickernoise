@@ -75,7 +75,7 @@ ptest_fail "wrap: one assignment containing semicolon (1)" <<EOF
 sx = b +; c
 EOF
 expect <<EOF
-FPVM, line 1: parse error near ';'
+line 1: parse error near ';'
 EOF
 
 #------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ sx = b; + c
 EOF
 expect <<EOF
 sx = b
-FPVM, line 1: parse error near '+'
+line 1: parse error near '+'
 EOF
 
 ###############################################################################

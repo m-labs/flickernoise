@@ -24,7 +24,7 @@ ptest_fail "initial: initialize per-vertex to non-zero" <<EOF
 _texsize = 1
 EOF
 expect <<EOF
-FPVM, line 2: can initialize non-system variables only to zero near 'EOF'
+line 2: can initialize non-system variables only to zero near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ ptest_fail "initial: initialize non-system to non-zero" <<EOF
 foo = 1
 EOF
 expect <<EOF
-FPVM, line 2: can initialize non-system variables only to zero near 'EOF'
+line 2: can initialize non-system variables only to zero near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ ptest_fail "initial: initialize non-system to non-number" <<EOF
 foo = bar
 EOF
 expect <<EOF
-FPVM, line 2: can initialize non-system variables only to zero near 'EOF'
+line 2: can initialize non-system variables only to zero near 'EOF'
 EOF
 
 ###############################################################################

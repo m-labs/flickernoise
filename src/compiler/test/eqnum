@@ -35,7 +35,7 @@ per_frame_0:
 	foo = 1
 EOF
 expect <<EOF
-FPVM, line 1: parse error near ':'
+line 1: parse error near ':'
 EOF
 
 #------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ per_vertex_2:
 	foo = 2
 EOF
 expect <<EOF
-FPVM, line 1: parse error near ':'
+line 1: parse error near ':'
 EOF
 
 ###############################################################################

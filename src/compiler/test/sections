@@ -92,7 +92,7 @@ per_frame:
 EOF
 expect <<EOF
 per_frame = a = b
-FPVM, line 3: parse error near ':'
+line 3: parse error near ':'
 EOF
 
 #------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ per_vertex:
 EOF
 expect <<EOF
 per_vertex = a = b
-FPVM, line 3: parse error near ':'
+line 3: parse error near ':'
 EOF
 
 #------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ per_frame:
 EOF
 expect <<EOF
 per_vertex = a = b
-FPVM, line 3: parse error near ':'
+line 3: parse error near ':'
 EOF
 
 #------------------------------------------------------------------------------
@@ -130,7 +130,7 @@ per_vertex=c=d
 EOF
 expect <<EOF
 per_frame = a = b
-FPVM, line 3: style mismatch near 'c'
+line 3: style mismatch near 'c'
 EOF
 
 #------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ per_frame:
 EOF
 expect <<EOF
 per_vertex = a = b
-FPVM, line 3: style mismatch near 'c'
+line 3: style mismatch near 'c'
 EOF
 
 #------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ per_pixel:
 	no = junk
 EOF
 expect <<EOF
-FPVM, line 1: parse error near ':'
+line 1: parse error near ':'
 EOF
 
 ###############################################################################

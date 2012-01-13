@@ -113,7 +113,7 @@ sx = 9 /*/
 sy = a
 EOF
 expect <<EOF
-FPVM, line 1: parse error near '*/'
+line 1: parse error near '*/'
 EOF
 
 #------------------------------------------------------------------------------
@@ -123,14 +123,14 @@ sx = b + c /* comment
 sy = e + f
 EOF
 expect <<EOF
-FPVM, line 1: parse error near '*'
+line 1: parse error near '*'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "comment: unterminated /* ... without newline" "a = b+c /* comment"
 expect <<EOF
-FPVM, line 1: parse error near '*'
+line 1: parse error near '*'
 EOF
 
 #------------------------------------------------------------------------------

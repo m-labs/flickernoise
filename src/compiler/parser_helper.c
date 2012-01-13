@@ -119,7 +119,7 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 	while(tok != TOK_EOF) {
 		if(tok == TOK_ERROR) {
 			asprintf(&error,
-			    "FPVM, line %d: scan error near '%c'",
+			    "line %d: scan error near '%c'",
 			    s->lineno, printable_char(s->cursor[-1]));
 			ParseFree(p, free);
 			delete_scanner(s);
@@ -167,7 +167,7 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 
 	if(!state.success) {
 		asprintf(&error,
-		    "FPVM, line %d: %s near '%.*s'",
+		    "line %d: %s near '%.*s'",
 		    state.error_lineno,
 		    state.error ? state.error : "parse error",
 		    printable_label(state.error_label), state.error_label);
