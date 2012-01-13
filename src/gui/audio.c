@@ -66,9 +66,9 @@ static void monitor_update(mtk_event *e, int count)
 
 	t = rtems_clock_get_ticks_since_boot();
 	if(t >= next_update) {
-		mtk_cmdf(appid, "ld_bass.barconfig(load, -value %d)", (int)(bass * 100));
-		mtk_cmdf(appid, "ld_mid.barconfig(load, -value %d)", (int)(mid * 100));
-		mtk_cmdf(appid, "ld_treb.barconfig(load, -value %d)", (int)(treb * 100));
+		mtk_cmdf(appid, "ld_bass.barconfig(load, -value %f)", bass);
+		mtk_cmdf(appid, "ld_mid.barconfig(load, -value %f)", mid);
+		mtk_cmdf(appid, "ld_treb.barconfig(load, -value %f)", treb);
 
 		next_update = t + UPDATE_PERIOD;
 	}
@@ -187,9 +187,9 @@ void init_audio(void)
 		"l_bass = new Label(-text \"Bass\")",
 		"l_mid  = new Label(-text \"Mid\")",
 		"l_treb = new Label(-text \"Treb\")",
-		"ld_bass = new LoadDisplay(-from 300 -to 0 -orient vertical)",
-		"ld_mid  = new LoadDisplay(-from 600 -to 0 -orient vertical)",
-		"ld_treb = new LoadDisplay(-from 600 -to 0 -orient vertical)",
+		"ld_bass = new LoadDisplay(-from 3 -to 0 -orient vertical)",
+		"ld_mid  = new LoadDisplay(-from 6 -to 0 -orient vertical)",
+		"ld_treb = new LoadDisplay(-from 6 -to 0 -orient vertical)",
 
 		"l_linevol = new Label(-text \"Line volume\")",
 		"s_linevol = new Scale(-from 0 -to 100 -value 0 -orient vertical)",
