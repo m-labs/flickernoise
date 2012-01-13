@@ -100,7 +100,7 @@ static int printable_label(const char *s)
 	return p-s;
 }
 
-const char *parse(const char *expr, int start_token, struct parser_comm *comm)
+int parse(const char *expr, int start_token, struct parser_comm *comm)
 {
 	struct scanner *s;
 	struct parser_state state = {
@@ -117,6 +117,7 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 	void *p;
 	char *error = NULL;
 
+	comm->msg = NULL;
 	s = new_scanner((unsigned char *)expr);
 	p = ParseAlloc(malloc);
 	Parse(p, start_token, NULL, &state);
@@ -128,7 +129,8 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 			    s->lineno, printable_char(s->cursor[-1]));
 			ParseFree(p, free);
 			delete_scanner(s);
-			return error;
+			comm->msg = error;
+			return 0;
 		}
 
 		identifier = malloc(sizeof(struct id));
@@ -180,8 +182,9 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 		asprintf(&error, "line %d: %s",
 		    state.error_lineno, state.error);
 	free((void *) state.error);
+	comm->msg = error;
 
-	return error;
+	return state.success;
 }
 
 void parse_free_one(struct ast_node *node)

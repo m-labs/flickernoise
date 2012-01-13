@@ -235,11 +235,11 @@ static void parse_only(const char *pgm)
 		.assign_per_frame = assign_per_frame,
 		.assign_per_vertex = assign_per_vertex,
 		.assign_image_name = assign_image_name,
-	 };
-	const char *error;
+	};
+	int ok;
 
 	symtab_init();
-	error = parse(pgm, TOK_START_ASSIGN, &comm);
+	ok = parse(pgm, TOK_START_ASSIGN, &comm);
 	if (symbols) {
 		const struct sym *sym;
 		int user = 0;
@@ -253,11 +253,11 @@ static void parse_only(const char *pgm)
 		}
 	}
 	symtab_free();
-	if (!error)
+	if (ok)
 		return;
 	fflush(stdout);
-	fprintf(stderr, "%s\n", error);
-	free((void *) error);
+	fprintf(stderr, "%s\n", comm.msg);
+	free((void *) comm.msg);
 	exit(1);
 }
 

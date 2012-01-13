@@ -93,14 +93,12 @@ static int compile_chunk(struct fpvm_fragment *fragment, const char *chunk)
 		.assign_per_frame = NULL,	/* crash ... */
 		.assign_per_vertex = NULL,	/* and burn */
 	};
-	const char *error;
 
-	error = parse(chunk, TOK_START_ASSIGN, &comm);
-	if(error) {
-		snprintf(fragment->last_error, FPVM_MAXERRLEN, "%s", error);
-		free((void *) error);
-	}
-	return !error;
+	if(parse(chunk, TOK_START_ASSIGN, &comm))
+		return 1;
+	snprintf(fragment->last_error, FPVM_MAXERRLEN, "%s", comm.msg);
+	free((void *) comm.msg);
+	return 0;
 }
 
 
@@ -431,14 +429,13 @@ static bool parse_patch(struct compiler_sc *sc, const char *patch_code)
 		.assign_per_vertex = assign_per_vertex,
 		.assign_image_name = assign_image_name,
 	};
-	const char *error;
+	int ok;
 
-	error = parse(patch_code, TOK_START_ASSIGN, &comm);
-	if(error) {
-		sc->rmc(error);
-		free((void *) error);
-	}
-	return !error;
+	ok = parse(patch_code, TOK_START_ASSIGN, &comm);
+	if(comm.msg)
+		sc->rmc(comm.msg);
+	free((void *) comm.msg);
+	return ok;
 }
 
 struct patch *patch_compile(const char *basedir, const char *patch_code,

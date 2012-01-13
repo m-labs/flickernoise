@@ -43,6 +43,7 @@ struct parser_comm {
 	    struct sym *sym, struct ast_node *node);
 	const char *(*assign_image_name)(struct parser_comm *comm,
 	    int number, const char *name);
+	const char *msg; /* NULL if neither error nor warning */
 };
 
 extern int warn_section;
@@ -52,7 +53,7 @@ void verror(struct parser_state *state, const char *fmt, va_list ap);
 void error(struct parser_state *state, const char *fmt, ...);
 void warn(struct parser_state *state, const char *fmt, ...);
 
-const char *parse(const char *expr, int start_token, struct parser_comm *comm);
+int parse(const char *expr, int start_token, struct parser_comm *comm);
 void parse_free_one(struct ast_node *node);
 void parse_free(struct ast_node *node);
 
