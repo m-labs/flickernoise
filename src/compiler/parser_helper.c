@@ -69,8 +69,12 @@ void warn(struct parser_state *state, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
+#ifdef STANDALONE
 	vprintf(fmt, ap);
 	putchar('\n');
+#else
+	verror(state, fmt, ap);
+#endif
 	va_end(ap);
 }
 
@@ -165,14 +169,16 @@ const char *parse(const char *expr, int start_token, struct parser_comm *comm)
 
 	free(identifier);
 
-	if(!state.success) {
+	if(!state.success)
 		asprintf(&error,
 		    "line %d: %s near '%.*s'",
 		    state.error_lineno,
 		    state.error ? state.error : "parse error",
 		    printable_label(state.error_label), state.error_label);
-		free((void *) state.error);
-	}
+	if(state.success && state.error)
+		asprintf(&error, "line %d: %s",
+		    state.error_lineno, state.error);
+	free((void *) state.error);
 
 	return error;
 }
