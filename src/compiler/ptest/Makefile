@@ -11,16 +11,20 @@ LDLIBS = -lm
 # ----- Verbosity control -----------------------------------------------------
 
 CC_normal	:= $(CC)
+CP_normal	:= cp
 
 CC_quiet	= @echo "  CC       " $@ && $(CC_normal)
 GEN_quiet       = @echo "  GENERATE " $@ &&
+CP_quiet	= @echo "  CP       " $@ && $(CP_normal)
 
 ifeq ($(V),1)
     CC		= $(CC_normal)
     GEN		=
+    CP		= $(CP_normal)
 else
     CC		= $(CC_quiet)
     GEN		= $(GEN_quiet)
+    CP		= $(CP_quiet)
 endif
 
 # ----- Rules -----------------------------------------------------------------
@@ -52,7 +56,7 @@ ptest:		$(OBJS)
 
 libfpvm.a:
 		$(MAKE) -C $(LIBFPVM_X86)
-		cp $(LIBFPVM_X86)/$@ .
+		$(CP) $(LIBFPVM_X86)/$@ .
 
 # ----- Dependencies ----------------------------------------------------------
 
