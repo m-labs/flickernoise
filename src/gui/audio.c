@@ -33,6 +33,8 @@
 #include "flash.h"
 #include "about.h"
 #include "audio.h"
+#include "../input.h"
+#include "../renderer/sampler.h"
 
 static int appid;
 
@@ -42,6 +44,34 @@ static int line_vol;
 static int line_mute;
 static int mic_vol;
 static int mic_mute;
+
+static float bass, mid, treb;
+
+static void sampler_callback(struct frame_descriptor *frd)
+{
+	bass = frd->bass;
+	mid = frd->mid;
+	treb = frd->treb;
+
+	sampler_return(frd);
+}
+
+#define UPDATE_PERIOD 10
+static rtems_interval next_update;
+
+static void monitor_update(mtk_event *e, int count)
+{
+	rtems_interval t;
+
+	t = rtems_clock_get_ticks_since_boot();
+	if(t >= next_update) {
+		mtk_cmdf(appid, "ld_bass.barconfig(load, -value %d)", (int)(bass * 100));
+		mtk_cmdf(appid, "ld_mid.barconfig(load, -value %d)", (int)(mid * 100));
+		mtk_cmdf(appid, "ld_treb.barconfig(load, -value %d)", (int)(treb * 100));
+
+		next_update = t + UPDATE_PERIOD;
+	}
+}
 
 static void set_level(int channel, unsigned int val)
 {
@@ -125,6 +155,8 @@ static void ok_callback(mtk_event *e, void *arg)
 	w_open = 0;
 	mtk_cmd(appid, "w.close()");
 	set_config();
+	sampler_stop();
+	input_delete_callback(monitor_update);
 }
 
 static void close_callback(mtk_event *e, void *arg)
@@ -132,6 +164,8 @@ static void close_callback(mtk_event *e, void *arg)
 	w_open = 0;
 	mtk_cmd(appid, "w.close()");
 	load_audio_config();
+	sampler_stop();
+	input_delete_callback(monitor_update);
 }
 
 void init_audio(void)
@@ -146,9 +180,9 @@ void init_audio(void)
 		"l_bass = new Label(-text \"Bass\")",
 		"l_mid  = new Label(-text \"Mid\")",
 		"l_treb = new Label(-text \"Treb\")",
-		"ld_bass = new LoadDisplay(-from 0 -to 20 -orient vertical)",
-		"ld_mid  = new LoadDisplay(-from 0 -to 20 -orient vertical)",
-		"ld_treb = new LoadDisplay(-from 0 -to 20 -orient vertical)",
+		"ld_bass = new LoadDisplay(-from 0 -to 300 -orient vertical)",
+		"ld_mid  = new LoadDisplay(-from 0 -to 600 -orient vertical)",
+		"ld_treb = new LoadDisplay(-from 0 -to 600 -orient vertical)",
 
 		"l_linevol = new Label(-text \"Line volume\")",
 		"s_linevol = new Scale(-from 0 -to 100 -value 0 -orient vertical)",
@@ -214,4 +248,7 @@ void open_audio_window(void)
 	if(w_open) return;
 	w_open = 1;
 	mtk_cmd(appid, "w.open()");
+	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
+	input_add_callback(monitor_update);
+	sampler_start(sampler_callback);
 }
