@@ -171,7 +171,7 @@ void open_monitor_window(void)
 {
 	if(w_open) return;
 
-	if(!resmgr_acquire_multiple("monitor",
+	if(!resmgr_acquire_multiple("Variable monitor",
 	  RESOURCE_AUDIO,
 	  RESOURCE_DMX_IN,
 	  RESOURCE_SAMPLER,
