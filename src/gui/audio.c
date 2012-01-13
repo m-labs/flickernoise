@@ -192,35 +192,42 @@ void init_audio(void)
 		"b_mutline = new Button(-text \"Mute\")",
 		"b_mutmic = new Button(-text \"Mute\")",
 
-		"g.place(ld_bass, -column 1 -row 1)",
-		"g.place(l_bass,  -column 1 -row 2)",
-		"g.place(ld_mid,  -column 2 -row 1)",
-		"g.place(l_mid,   -column 2 -row 2)",
-		"g.place(ld_treb, -column 3 -row 1)",
-		"g.place(l_treb,  -column 3 -row 2)",
+		"gv.place(l_linevol, -column 1 -row 1)",
+		"gv.place(s_linevol, -column 1 -row 2)",
+		"gv.place(b_mutline, -column 1 -row 3)",
 
-		"gv.place(l_linevol, -column 4 -row 1)",
-		"gv.place(s_linevol, -column 4 -row 2)",
-		"gv.place(b_mutline, -column 4 -row 3)",
+		"gv.place(l_micvol, -column 2 -row 1)",
+		"gv.place(s_micvol, -column 2 -row 2)",
+		"gv.place(b_mutmic, -column 2 -row 3)",
 
-		"gv.place(l_micvol, -column 5 -row 1)",
-		"gv.place(s_micvol, -column 5 -row 2)",
-		"gv.place(b_mutmic, -column 5 -row 3)",
+		"gv.rowconfig(2, -size 180)",
 
-		"gv.rowconfig(2, -size 150)",
+		"g.place(gv, -column 1 -row 1)",
 
-		"g.place(gv, -column 4 -row 1)",
+		"sep = new Separator(-vertical yes)",
+		"g.place(sep, -column 2 -row 1)",
+
+		"gb = new Grid()",
+
+		"gb.place(l_bass,  -column 1 -row 1)",
+		"gb.place(ld_bass, -column 1 -row 2)",
+		"gb.place(l_mid,   -column 2 -row 1)",
+		"gb.place(ld_mid,  -column 2 -row 2)",
+		"gb.place(l_treb,  -column 3 -row 1)",
+		"gb.place(ld_treb, -column 3 -row 2)",
+
+		"g.place(gb, -column 3 -row 1)",
 
 		"g_btn = new Grid()",
 
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
 
-		"g_btn.columnconfig(1, -size 90)",
-		"g_btn.place(b_ok, -column 5 -row 1)",
-		"g_btn.place(b_cancel, -column 6 -row 1)",
+		"g_btn.place(b_ok, -column 1 -row 1)",
+		"g_btn.place(b_cancel, -column 2 -row 1)",
 
-		"g.place(g_btn, -column 4 -row 2)",
+		"g.rowconfig(2, -size 10)",
+		"g.place(g_btn, -column 3 -row 3)",
 
 		"w = new Window(-content g -title \"Audio settings\")",
 		0);
