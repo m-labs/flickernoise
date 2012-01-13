@@ -180,9 +180,9 @@ void init_audio(void)
 		"l_bass = new Label(-text \"Bass\")",
 		"l_mid  = new Label(-text \"Mid\")",
 		"l_treb = new Label(-text \"Treb\")",
-		"ld_bass = new LoadDisplay(-from 0 -to 300 -orient vertical)",
-		"ld_mid  = new LoadDisplay(-from 0 -to 600 -orient vertical)",
-		"ld_treb = new LoadDisplay(-from 0 -to 600 -orient vertical)",
+		"ld_bass = new LoadDisplay(-from 300 -to 0 -orient vertical)",
+		"ld_mid  = new LoadDisplay(-from 600 -to 0 -orient vertical)",
+		"ld_treb = new LoadDisplay(-from 600 -to 0 -orient vertical)",
 
 		"l_linevol = new Label(-text \"Line volume\")",
 		"s_linevol = new Scale(-from 0 -to 100 -value 0 -orient vertical)",
