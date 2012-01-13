@@ -42,7 +42,7 @@ per_frame:
 	bar = foo
 EOF
 expect <<EOF
-accessing undefined variable foo
+reading undefined variable foo
 EOF
 
 #------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ per_vertex:
 	bar = foo
 EOF
 expect <<EOF
-accessing undefined variable foo
+reading undefined variable foo
 EOF
 
 #------------------------------------------------------------------------------

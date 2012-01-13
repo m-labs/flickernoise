@@ -42,9 +42,9 @@ static void yy_parse_failed(struct yyParser *yypParser);
 typedef const char *(*assign_callback)(struct parser_comm *comm,
 	    struct sym *sym, struct ast_node *node);
 
-#define	FAIL					\
+#define	FAIL(msg)				\
 	do {					\
-		error(state, "parse error");	\
+		error(state, msg);		\
 		yy_parse_failed(yypParser);	\
 	} while (0)
 
@@ -54,7 +54,7 @@ typedef const char *(*assign_callback)(struct parser_comm *comm,
 #define	IS_STYLE(which)						\
 	do {							\
 		if(state->style == OTHER_STYLE_##which) {	\
-			FAIL;					\
+			FAIL("style mismatch");			\
 			return;					\
 		}						\
 		state->style = which;				\
@@ -213,7 +213,7 @@ static struct id *symbolify(struct id *id)
 %type context {assign_callback}
 
 %syntax_error {
-	FAIL;
+	FAIL("parse error");
 }
 
 start ::= TOK_START_EXPR expr(N). {
@@ -272,9 +272,8 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 	    I->sym->pfv_idx == -1) {
 		free(I);
 		if(N->op != op_constant || N->contents.constant) {
-			state->error = strdup("can initialize non-system "
-			    "variables only to zero");
-			FAIL;
+			FAIL("can initialize non-system variables only "
+			    "to zero");
 			return;
 		}
 		IS_STYLE(new_style);
@@ -283,7 +282,7 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 		    state->comm->assign_default(state->comm, I->sym, N);
 		free(I);
 		if(state->error) {
-			FAIL;
+			FAIL(NULL);
 			return;
 		}
 	}
@@ -295,7 +294,7 @@ assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 	    atoi(I->label+9), N->fname);
 	free(I);
 	if(state->error) {
-		FAIL;
+		FAIL(NULL);
 		free((void *) N->fname);
 		free(N);
 		return;
@@ -508,7 +507,7 @@ primary_expr(N) ::= TOK_CONSTANT(C). {
 primary_expr(N) ::= ident(I). {
 	if(warn_undefined && state->style == new_style &&
 	    !(I->sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
-		warn(state, "accessing undefined variable %s\n",
+		warn(state, "reading undefined variable %s\n",
 		    I->sym->fpvm_sym.name);
 	N = node(I->token, I->sym, NULL, NULL, NULL);
 	free(I);
