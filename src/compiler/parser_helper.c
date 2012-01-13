@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <malloc.h>
+
 #include <fpvm/ast.h>
 
 #include "symtab.h"
@@ -28,6 +29,49 @@
 #include "parser.h"
 #include "parser_itf.h"
 #include "parser_helper.h"
+
+
+void verror(struct parser_state *state, const char *fmt, va_list ap)
+{
+	/*
+	 * If "error" or "error_label" are already set, then we keep the
+	 * previous value. There are two reasons for this:
+	 *
+	 * - "error" may have already been set before calling error()
+	 *
+ 	 * - we may be in the process of exiting the parser and are running
+	 *   into false or unrelated problems
+	 */
+
+	if(!state->error) {
+		char *tmp;
+
+		vasprintf(&tmp, fmt, ap);
+		state->error = tmp;
+	}
+	if(!state->error_label) {
+		state->error_label = state->id->label;
+		state->error_lineno = state->id->lineno;
+	}
+}
+
+void error(struct parser_state *state, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	verror(state, fmt, ap);
+	va_end(ap);
+}
+
+void warn(struct parser_state *state, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
+	va_end(ap);
+}
 
 static char printable_char(unsigned char c)
 {

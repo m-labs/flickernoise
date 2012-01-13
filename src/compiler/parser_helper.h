@@ -18,6 +18,8 @@
 #ifndef __PARSER_HELPER_H
 #define __PARSER_HELPER_H
 
+#include <stdarg.h>
+
 #include <fpvm/ast.h>
 #include <fpvm/fpvm.h>
 
@@ -25,6 +27,7 @@
 
 
 struct compiler_sc;
+struct parser_state;
 
 struct parser_comm {
 	union {
@@ -44,6 +47,10 @@ struct parser_comm {
 
 extern int warn_section;
 extern int warn_undefined;
+
+void verror(struct parser_state *state, const char *fmt, va_list ap);
+void error(struct parser_state *state, const char *fmt, ...);
+void warn(struct parser_state *state, const char *fmt, ...);
 
 const char *parse(const char *expr, int start_token, struct parser_comm *comm);
 void parse_free_one(struct ast_node *node);

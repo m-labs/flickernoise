@@ -44,7 +44,7 @@ typedef const char *(*assign_callback)(struct parser_comm *comm,
 
 #define	FAIL					\
 	do {					\
-		syntax_error(state);		\
+		error(state, "parse error");	\
 		yy_parse_failed(yypParser);	\
 	} while (0)
 
@@ -171,14 +171,6 @@ static struct ast_node *conditional(struct ast_node *a,
 	}
 }
 
-static void syntax_error(struct parser_state *state)
-{
-	if(!state->error_label) {
-		state->error_label = state->id->label;
-		state->error_lineno = state->id->lineno;
-	}
-}
-
 static struct id *symbolify(struct id *id)
 {
 	const char *p;
@@ -235,7 +227,8 @@ start ::= TOK_START_ASSIGN sections. {
 
 		foreach_sym(sym)
 			if(!(sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
-				printf("variable %s is only read, never set\n",
+				warn(state,
+				    "variable %s is only read, never set\n",
 				    sym->fpvm_sym.name);
 	}
 	state->success = 1;
@@ -515,7 +508,7 @@ primary_expr(N) ::= TOK_CONSTANT(C). {
 primary_expr(N) ::= ident(I). {
 	if(warn_undefined && state->style == new_style &&
 	    !(I->sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
-		printf("accessing undefined variable %s\n",
+		warn(state, "accessing undefined variable %s\n",
 		    I->sym->fpvm_sym.name);
 	N = node(I->token, I->sym, NULL, NULL, NULL);
 	free(I);
@@ -542,12 +535,12 @@ ident(O) ::= TOK_IDENT(I). {
 		if(state->comm->assign_default ==
 		    state->comm->assign_per_frame &&
 		    I->sym->pfv_idx == -1 && I->sym->pvv_idx != -1)
-			printf("using per-vertex variable %s in "
+			warn(state, "using per-vertex variable %s in "
 			    "per-frame section\n", I->sym->fpvm_sym.name);
 		if(state->comm->assign_default ==
 		    state->comm->assign_per_vertex &&
 		    I->sym->pfv_idx != -1 && I->sym->pvv_idx == -1)
-			printf("using per-frame variable %s in "
+			warn(state, "using per-frame variable %s in "
 			    "per-vertex section\n", I->sym->fpvm_sym.name);
 	}
 	O = I;
