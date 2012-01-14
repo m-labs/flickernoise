@@ -136,7 +136,7 @@ static void reinit_all_pfv(struct patch *p)
 static void set_pfv_from_frd(struct patch *p, struct frame_descriptor *frd)
 {
 	write_pfv(p, pfv_time, frd->time);
-	write_pfv(p, pfv_time, frd->frame);
+	write_pfv(p, pfv_frame, frd->frame);
 	write_pfv(p, pfv_bass, frd->bass);
 	write_pfv(p, pfv_mid, frd->mid);
 	write_pfv(p, pfv_treb, frd->treb);
