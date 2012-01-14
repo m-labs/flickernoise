@@ -391,6 +391,20 @@ static int suitable_for_simple(struct patch *p)
 	return suitable;
 }
 
+static void skip_unsuitable(void)
+{
+	int looped;
+
+	looped = simple_mode_current;
+	while(!suitable_for_simple(patches[simple_mode_current].p)) {
+		simple_mode_current++;
+		if(simple_mode_current == npatches)
+			simple_mode_current = 0;
+		if(looped == simple_mode_current)
+			break;
+	}
+}
+
 static void simple_mode_event(mtk_event *e, int *next)
 {
 	if(e->type != EVENT_TYPE_PRESS)
@@ -405,17 +419,8 @@ static void simple_mode_event(mtk_event *e, int *next)
 
 static void simple_mode_next(int next)
 {
-	int looped;
-
-	looped = simple_mode_current;
-	do {
-		simple_mode_current += next;
-		if(simple_mode_current == npatches)
-			simple_mode_current = 0;
-		if(simple_mode_current < 0)
-			simple_mode_current = npatches - 1;
-	} while(!suitable_for_simple(patches[simple_mode_current].p) &&
-	    (looped != simple_mode_current));
+	simple_mode_current += next;
+	skip_unsuitable();
 	renderer_pulse_patch(patches[simple_mode_current].p);
 	if(as_mode)
 		update_next_as_time();
@@ -503,7 +508,6 @@ static void stop_callback(void)
 static void refresh_callback(mtk_event *e, int count)
 {
 	rtems_interval t;
-	int looped;
 	int index;
 	
 	t = rtems_clock_get_ticks_since_boot();
@@ -518,14 +522,7 @@ static void refresh_callback(mtk_event *e, int count)
 				mtk_cmd(appid, "l_status.set(-text \"Ready.\")");
 				
 				if(simple_mode) {
-					looped = simple_mode_current;
-					while(!suitable_for_simple(patches[simple_mode_current].p)) {
-						simple_mode_current++;
-						if(simple_mode_current == npatches)
-							simple_mode_current = 0;
-						if(looped == simple_mode_current)
-							break;
-					}
+					skip_unsuitable();
 					index = simple_mode_current;
 				} else
 					index = 0;
