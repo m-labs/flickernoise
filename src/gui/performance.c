@@ -200,10 +200,14 @@ static void close_callback(mtk_event *e, void *arg)
 
 static void update_buttons(void)
 {
-	mtk_cmdf(appid, "b_mode_simple.set(-state %s)", simple_mode ? "on" : "off");
-	mtk_cmdf(appid, "b_mode_file.set(-state %s)", !simple_mode ? "on" : "off");
-	mtk_cmdf(appid, "b_mode_simple_dt.set(-state %s)", dt_mode ? "on" : "off");
-	mtk_cmdf(appid, "b_mode_simple_as.set(-state %s)", as_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_simple.set(-state %s)",
+	    simple_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_file.set(-state %s)",
+	    !simple_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_simple_dt.set(-state %s)",
+	    dt_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_simple_as.set(-state %s)",
+	    as_mode ? "on" : "off");
 }
 
 static void simple_callback(mtk_event *e, void *arg)
@@ -397,7 +401,8 @@ static void update_next_as_time(void)
 	rtems_interval t;
 	
 	t = rtems_clock_get_ticks_since_boot();
-	next_as_time = t + AUTOSWITCH_PERIOD_MIN + (rand() % (AUTOSWITCH_PERIOD_MAX - AUTOSWITCH_PERIOD_MIN));
+	next_as_time = t + AUTOSWITCH_PERIOD_MIN +
+	    (rand() % (AUTOSWITCH_PERIOD_MAX - AUTOSWITCH_PERIOD_MIN));
 }
 
 static int suitable_for_simple(struct patch *p)
@@ -525,7 +530,7 @@ static void event_callback(mtk_event *e, int count)
 		 * We can can't show the first title in start_rendering
 		 * because the renderer isn't up yet. So we do it here.
 		 */
-		if (first_event && dt_mode)
+		if(first_event && dt_mode)
 			osd_event(simple_mode_current->filename);
 		next = 0;
 		for(i=0;i<count;i++)
@@ -668,9 +673,10 @@ void start_performance(int simple, int dt, int as)
 	mtk_cmd(appid, "progress.barconfig(load, -value 0)");
 	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
 	input_add_callback(refresh_callback);
-	sc = rtems_task_create(rtems_build_name('C', 'O', 'M', 'P'), 20, 300*1024,
-		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
-		0, &comp_task_id);
+	sc = rtems_task_create(rtems_build_name('C', 'O', 'M', 'P'),
+	    20, 300*1024,
+	    RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
+	    0, &comp_task_id);
 	assert(sc == RTEMS_SUCCESSFUL);
 	sc = rtems_task_start(comp_task_id, comp_task, 0);
 	assert(sc == RTEMS_SUCCESSFUL);
