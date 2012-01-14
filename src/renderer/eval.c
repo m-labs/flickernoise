@@ -312,7 +312,7 @@ static rtems_task eval_task(rtems_task_argument argument)
 		 * will be valid until the renderer has fully stopped.
 		 */
 		for(i=0;i<IMAGE_COUNT;i++)
-			frd->images[i] = p->images[i];
+			frd->images[i] = p->images[i].pixbuf;
 		
 		reinit_all_pfv(p);
 		set_pfv_from_frd(p, frd);
