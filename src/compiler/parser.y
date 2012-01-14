@@ -293,14 +293,12 @@ assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 
 	msg = state->comm->assign_image_name(state->comm,
 	    atoi(I->label+9), N->fname);
-	free(I);
 	if(msg) {
 		FAIL(msg);
 		free((void *) msg);
-		free((void *) N->fname);
-		free(N);
 		return;
 	}
+	free(I);
 	free((void *) N->fname);
 	free(N);
 }

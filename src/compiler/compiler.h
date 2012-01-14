@@ -25,6 +25,8 @@
 #include STANDALONE
 #endif /* STANDALONE */
 
+#include <sys/stat.h>
+
 #include <fpvm/fpvm.h>
 
 #include "../renderer/framedescriptor.h"
@@ -217,9 +219,15 @@ enum {
 #define REQUIRE_MIDI	(1 << 2)
 #define REQUIRE_VIDEO	(1 << 3)
 
+struct image {
+	struct pixbuf *pixbuf;	/* NULL if unused */
+	const char *filename;	/* undefined if unused */
+	struct stat st;
+};
+
 struct patch {
 	/* per-frame */
-	struct pixbuf *images[IMAGE_COUNT];		/* < images used in this patch */
+	struct image images[IMAGE_COUNT];		/* < images used in this patch */
 	float pfv_initial[COMP_PFV_COUNT]; 		/* < patch initial conditions */
 	int pfv_allocation[COMP_PFV_COUNT];		/* < where per-frame variables are mapped in PFPU regf, -1 if unmapped */
 	int perframe_prog_length;			/* < how many instructions in perframe_prog */
@@ -233,14 +241,22 @@ struct patch {
 	/* meta */
 	unsigned int require;				/* < bitmask: dmx, osc, midi, video */
 	void *original;					/* < original patch (with initial register values) */
+	int ref;					/* reference count */
 	struct patch *next;				/* < used when chaining patches in mashups */
 };
 
 typedef void (*report_message)(const char *);
 
+static inline struct patch *patch_clone(struct patch *p)
+{
+	p->ref++;
+	return p;
+}
+
 struct patch *patch_compile(const char *basedir, const char *patch_code, report_message rmc);
 struct patch *patch_compile_filename(const char *filename, const char *patch_code, report_message rmc);
 struct patch *patch_copy(struct patch *p);
 void patch_free(struct patch *p);
+int patch_images_uptodate(const struct patch *p);
 
 #endif /* __COMPILER_H */
