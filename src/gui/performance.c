@@ -391,15 +391,23 @@ static int suitable_for_simple(struct patch *p)
 	return suitable;
 }
 
-static void skip_unsuitable(void)
+static void skip_unsuitable(int next)
 {
 	int looped;
 
 	looped = simple_mode_current;
-	while(!suitable_for_simple(patches[simple_mode_current].p)) {
-		simple_mode_current++;
+	while(1) {
+		simple_mode_current += next;
 		if(simple_mode_current == npatches)
 			simple_mode_current = 0;
+		if(simple_mode_current < 0)
+			simple_mode_current = npatches - 1;
+		if(suitable_for_simple(patches[simple_mode_current].p))
+			break;
+		if(!next) {
+			next = 1;
+			continue;
+		}
 		if(looped == simple_mode_current)
 			break;
 	}
@@ -419,8 +427,7 @@ static void simple_mode_event(mtk_event *e, int *next)
 
 static void simple_mode_next(int next)
 {
-	simple_mode_current += next;
-	skip_unsuitable();
+	skip_unsuitable(next);
 	renderer_pulse_patch(patches[simple_mode_current].p);
 	if(as_mode)
 		update_next_as_time();
@@ -514,7 +521,7 @@ static void start_rendering(void)
 	mtk_cmd(appid, "l_status.set(-text \"Ready.\")");
 				
 	if(simple_mode) {
-		skip_unsuitable();
+		skip_unsuitable(0);
 		index = simple_mode_current;
 	}
 
