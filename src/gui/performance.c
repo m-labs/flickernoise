@@ -284,21 +284,32 @@ static void dummy_rmc(const char *msg)
 
 static struct patch *compile_patch(const char *filename)
 {
-	FILE *fd;
+	FILE *file;
+	struct stat st;
 	int r;
-	char buf[32768];
+	char *buf = NULL;
+	struct patch *p;
 
-	fd = fopen(filename, "r");
-	if(fd == NULL) return NULL;
-	r = fread(buf, 1, 32767, fd);
-	if(r <= 0) {
-		fclose(fd);
+	file = fopen(filename, "r");
+	if(file == NULL)
 		return NULL;
-	}
+	if(fstat(fileno(file), &st) < 0)
+		goto fail;
+	buf = malloc(st.st_size+1);
+	r = fread(buf, 1, st.st_size, file);
+	if(r <= 0)
+		goto fail;
 	buf[r] = 0;
-	fclose(fd);
+	fclose(file);
 
-	return patch_compile_filename(filename, buf, dummy_rmc);
+	p = patch_compile_filename(filename, buf, dummy_rmc);
+	free(buf);
+	return p;
+
+fail:
+	free(buf);
+	fclose(file);
+	return NULL;
 }
 
 static rtems_task comp_task(rtems_task_argument argument)
