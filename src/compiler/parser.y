@@ -278,10 +278,13 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 		}
 		IS_STYLE(new_style);
 	} else {
-		state->error = state->assign(state->comm, I->sym, N);
+		const char *msg;
+
+		msg = state->assign(state->comm, I->sym, N);
 		free(I);
-		if(state->error) {
-			FAIL(NULL);
+		if(msg) {
+			FAIL(msg);
+			free((void *) msg);
 			return;
 		}
 	}
@@ -289,11 +292,14 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 }
 
 assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
-	state->error = state->comm->assign_image_name(state->comm,
+	const char *msg;
+
+	msg = state->comm->assign_image_name(state->comm,
 	    atoi(I->label+9), N->fname);
 	free(I);
-	if(state->error) {
-		FAIL(NULL);
+	if(msg) {
+		FAIL(msg);
+		free((void *) msg);
 		free((void *) N->fname);
 		free(N);
 		return;

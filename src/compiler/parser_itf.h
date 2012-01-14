@@ -40,10 +40,10 @@ struct parser_state {
 	const char *(*assign)(struct parser_comm *comm,
             struct sym *sym, struct ast_node *node);
 
-	const char *error;	/* malloc'ed error message or NULL */
-	const char *error_label;/* details about the failing token */
-	int error_lineno;
-	int warning;		/* non-zero if we have only a warning */
+	const char *msg;	/* malloc'ed diagnostic message or NULL */
+	const char *msg_label;	/* details about the failing token */
+	int msg_lineno;
+	int is_error;		/* non-zero if error (not just warning) */
 
 	const struct id *id;	/* input, for error handling */
 

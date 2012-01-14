@@ -31,37 +31,34 @@
 #include "parser_helper.h"
 
 
-static void verror(struct parser_state *state, const char *fmt, va_list ap,
+static void vmsg(struct parser_state *state, const char *fmt, va_list ap,
     int is_error)
 {
-	if(is_error && state->warning) {
-		free((void *) state->error);
-		free((void *) state->error_label);
-		state->error = NULL;
-		state->error_label = NULL;
+	char *tmp;
+
+	if(is_error && !state->is_error) {
+		free((void *) state->msg);
+		state->msg = NULL;
+		state->is_error = 1;
 	}
-	state->warning = !is_error;
 
 	/*
-	 * If "error" or "error_label" are already set, then we keep the
-	 * previous value. There are two reasons for this:
+	 * If "msg" is already set, then we keep the previous value. There are
+	 * two reasons for this:
 	 *
-	 * - "error" may have already been set before calling error()
+	 * - "msg" may have already been set before calling vmsg()
 	 *
  	 * - we may be in the process of exiting the parser and are running
 	 *   into false or unrelated problems
 	 */
 
-	if(!state->error) {
-		char *tmp;
+	if(state->msg)
+		return;
 
-		vasprintf(&tmp, fmt, ap);
-		state->error = tmp;
-	}
-	if(!state->error_label) {
-		state->error_label = state->id->label;
-		state->error_lineno = state->id->lineno;
-	}
+	vasprintf(&tmp, fmt, ap);
+	state->msg = tmp;
+	state->msg_label = state->id->label;
+	state->msg_lineno = state->id->lineno;
 }
 
 void error(struct parser_state *state, const char *fmt, ...)
@@ -69,7 +66,7 @@ void error(struct parser_state *state, const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	verror(state, fmt, ap, 1);
+	vmsg(state, fmt, ap, 1);
 	va_end(ap);
 }
 
@@ -82,7 +79,7 @@ void warn(struct parser_state *state, const char *fmt, ...)
 	vprintf(fmt, ap);
 	putchar('\n');
 #else
-	verror(state, fmt, ap, 0);
+	vmsg(state, fmt, ap, 0);
 #endif
 	va_end(ap);
 }
@@ -116,8 +113,9 @@ int parse(const char *expr, int start_token, struct parser_comm *comm)
 		.comm = comm,
 		.assign = comm->assign_default,
 		.success = 0,
-		.error = NULL,
-		.error_label = NULL,
+		.msg = NULL,
+		.msg_label = NULL,
+		.is_error = 0,
 		.id = NULL,
 		.style = unknown_style,
 	};
@@ -184,13 +182,13 @@ int parse(const char *expr, int start_token, struct parser_comm *comm)
 	if(!state.success)
 		asprintf(&error,
 		    "line %d: %s near '%.*s'",
-		    state.error_lineno,
-		    state.error ? state.error : "parse error",
-		    printable_label(state.error_label), state.error_label);
-	if(state.success && state.error)
+		    state.msg_lineno,
+		    state.msg ? state.msg : "parse error",
+		    printable_label(state.msg_label), state.msg_label);
+	if(state.success && state.msg)
 		asprintf(&error, "line %d: %s",
-		    state.error_lineno, state.error);
-	free((void *) state.error);
+		    state.msg_lineno, state.msg);
+	free((void *) state.msg);
 	comm->msg = error;
 
 	return state.success;
