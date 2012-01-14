@@ -44,11 +44,13 @@
 struct patch_info {
 	char filename[FILENAME_LEN];
 	struct patch *p;
+	struct stat st;
 	struct patch_info *prev, *next;
 };
 
 static int npatches;
 static struct patch_info *patches = NULL;
+static struct patch_info *cache = NULL;
 static struct patch_info *last_patch = NULL;
 static int simple_mode;
 static struct patch_info *simple_mode_current;
@@ -300,10 +302,9 @@ static void dummy_rmc(const char *msg)
 {
 }
 
-static struct patch *compile_patch(const char *filename)
+static struct patch *compile_patch(const char *filename, const struct stat *st)
 {
 	FILE *file;
-	struct stat st;
 	int r;
 	char *buf = NULL;
 	struct patch *p;
@@ -311,22 +312,30 @@ static struct patch *compile_patch(const char *filename)
 	file = fopen(filename, "r");
 	if(file == NULL)
 		return NULL;
-	if(fstat(fileno(file), &st) < 0)
-		goto fail;
-	buf = malloc(st.st_size+1);
-	r = fread(buf, 1, st.st_size, file);
-	if(r <= 0)
-		goto fail;
+	buf = malloc(st->st_size+1);
+	r = fread(buf, 1, st->st_size, file);
+	if(r <= 0) {
+		free(buf);
+		fclose(file);
+		return NULL;
+	}
+
 	buf[r] = 0;
 	fclose(file);
 
 	p = patch_compile_filename(filename, buf, dummy_rmc);
 	free(buf);
 	return p;
+}
 
-fail:
-	free(buf);
-	fclose(file);
+static struct patch *cache_lookup(const struct patch_info *pi)
+{
+	const struct patch_info *c;
+
+	for(c = cache; c; c = c->next)
+		if(c->st.st_mtime == pi->st.st_mtime &&
+		    !strcmp(c->filename, pi->filename))
+			return patch_clone(c->p);
 	return NULL;
 }
 
@@ -335,7 +344,13 @@ static rtems_task comp_task(rtems_task_argument argument)
 	struct patch_info *pi;
 
 	for(pi = patches; pi; pi = pi->next) {
-		pi->p = compile_patch(pi->filename);
+		if(lstat(pi->filename, &pi->st) < 0) {
+			pi->p = NULL;
+		} else {
+			pi->p = cache_lookup(pi);
+			if(!pi->p)
+				pi->p = compile_patch(pi->filename, &pi->st);
+		}
 		if(!pi->p) {
 			error_patch = pi;
 			break;
@@ -345,18 +360,17 @@ static rtems_task comp_task(rtems_task_argument argument)
 	rtems_task_delete(RTEMS_SELF);
 }
 
-static void free_patches(void)
+static void free_patches(struct patch_info *list)
 {
 	struct patch_info *next;
 
-	while(patches) {
-		next = patches->next;
-		if(patches->p)
-			patch_free(patches->p);
-		free(patches);
-		patches = next;
+	while(list) {
+		next = list->next;
+		if(list->p)
+			patch_free(list->p);
+		free(list);
+		list = next;
 	}
-	last_patch = NULL;
 }
 
 static int keycode_to_index(int keycode)
@@ -551,7 +565,11 @@ static void event_callback(mtk_event *e, int count)
 
 static void stop_callback(void)
 {
-	free_patches();
+	free_patches(cache);
+	cache = patches;
+	patches = NULL;
+	last_patch = NULL;
+
 	started = 0;
 	input_delete_callback(event_callback);
 }
@@ -596,7 +614,9 @@ static void refresh_callback(mtk_event *e, int count)
 		    error_patch->filename);
 		input_delete_callback(refresh_callback);
 		started = 0;
-		free_patches();
+		free_patches(patches);
+		patches = NULL;
+		last_patch = NULL;
 		fb_unblank();
 		return;
 	}

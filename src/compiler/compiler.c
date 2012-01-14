@@ -458,6 +458,7 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	}
 	for(i=0;i<IMAGE_COUNT;i++)
 		sc->p->images[i] = NULL;
+	sc->p->ref = 1;
 	sc->p->require = 0;
 	sc->p->original = NULL;
 	sc->p->next = NULL;
@@ -522,6 +523,7 @@ struct patch *patch_copy(struct patch *p)
 	new_patch = malloc(sizeof(struct patch));
 	assert(new_patch != NULL);
 	memcpy(new_patch, p, sizeof(struct patch));
+	new_patch->ref = 1;
 	new_patch->original = p;
 	new_patch->next = NULL;
 	for(i=0;i<IMAGE_COUNT;i++)
@@ -533,6 +535,9 @@ void patch_free(struct patch *p)
 {
 	int i;
 
+	assert(p->ref);
+	if(--p->ref);
+		return;
 	for(i=0;i<IMAGE_COUNT;i++)
 		pixbuf_dec_ref(p->images[i]);
 	free(p);

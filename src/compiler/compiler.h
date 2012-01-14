@@ -233,10 +233,17 @@ struct patch {
 	/* meta */
 	unsigned int require;				/* < bitmask: dmx, osc, midi, video */
 	void *original;					/* < original patch (with initial register values) */
+	int ref;					/* reference count */
 	struct patch *next;				/* < used when chaining patches in mashups */
 };
 
 typedef void (*report_message)(const char *);
+
+static inline struct patch *patch_clone(struct patch *p)
+{
+	p->ref++;
+	return p;
+}
 
 struct patch *patch_compile(const char *basedir, const char *patch_code, report_message rmc);
 struct patch *patch_compile_filename(const char *filename, const char *patch_code, report_message rmc);
