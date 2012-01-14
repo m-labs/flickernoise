@@ -431,6 +431,8 @@ static void simple_mode_next(int next)
 	renderer_pulse_patch(patches[simple_mode_current].p);
 	if(as_mode)
 		update_next_as_time();
+	if(dt_mode)
+		osd_event(patches[simple_mode_current].filename);
 }
 
 static void configured_mode_event(mtk_event *e)
@@ -481,11 +483,9 @@ static void configured_mode_event(mtk_event *e)
 static void event_callback(mtk_event *e, int count)
 {
 	int i;
-	int index;
 	int next;
 	rtems_interval t;
 
-	index = -1;
 	if(simple_mode) {
 		next = 0;
 		for(i=0;i<count;i++)
@@ -497,8 +497,6 @@ static void event_callback(mtk_event *e, int count)
 		}
 		if(next)
 			simple_mode_next(next);
-		if(dt_mode && (index != -1))
-			osd_event(patches[index].filename);
 	} else {
 		for(i=0;i<count;i++)
 			configured_mode_event(e+i);
