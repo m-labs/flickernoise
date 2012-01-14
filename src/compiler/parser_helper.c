@@ -31,6 +31,9 @@
 #include "parser_helper.h"
 
 
+int warn_section = 1;
+int warn_undefined = 1;
+
 static void vmsg(struct parser_state *state, const char *fmt, va_list ap,
     int is_error)
 {

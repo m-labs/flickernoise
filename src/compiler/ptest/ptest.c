@@ -371,6 +371,9 @@ int main(int argc, char **argv)
 	unsigned long repeat = 1;
 	char *end;
 
+	warn_section = 0;
+	warn_undefined = 0;
+
 	while ((c = getopt(argc, argv, "cf:n:qsW:")) != EOF)
 		switch (c) {
 		case 'c':

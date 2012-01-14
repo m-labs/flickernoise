@@ -33,9 +33,6 @@
 #include "parser.h"
 
 
-int warn_section = 0;
-int warn_undefined = 0;
-
 struct yyParser;
 static void yy_parse_failed(struct yyParser *yypParser);
 
