@@ -179,6 +179,7 @@ static void add_simple_patches(void)
 
 static int appid;
 static int started;
+static int first_event;
 
 static void close_callback(mtk_event *e, void *arg)
 {
@@ -487,6 +488,12 @@ static void event_callback(mtk_event *e, int count)
 	rtems_interval t;
 
 	if(simple_mode) {
+		/*
+		 * We can can't show the first title in start_rendering
+		 * because the renderer isn't up yet. So we do it here.
+		 */
+		if (first_event && dt_mode)
+			osd_event(patches[simple_mode_current].filename);
 		next = 0;
 		for(i=0;i<count;i++)
 			simple_mode_event(e+i, &next);
@@ -501,6 +508,7 @@ static void event_callback(mtk_event *e, int count)
 		for(i=0;i<count;i++)
 			configured_mode_event(e+i);
 	}
+	first_event = 0;
 }
 
 static void stop_callback(void)
@@ -523,6 +531,7 @@ static void start_rendering(void)
 		index = simple_mode_current;
 	}
 
+	first_event = 1;
 	if(!guirender(appid, patches[index].p, stop_callback))
 		stop_callback();
 }
