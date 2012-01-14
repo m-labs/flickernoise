@@ -223,7 +223,9 @@ void init_audio(void)
 		"gb.place(l_treb,  -column 3 -row 1)",
 		"gb.place(ld_treb, -column 3 -row 2)",
 
-		"g.place(gb, -column 3 -row 1)",
+		"gb.rowconfig(2, -size 180)",
+
+		"g.place(gb, -column 3 -row 1 -align nw)",
 
 		"g_btn = new Grid()",
 
