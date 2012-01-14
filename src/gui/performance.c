@@ -55,6 +55,7 @@ static int simple_mode_current;
 static int dt_mode;
 static int as_mode;
 static int input_video;
+static int showing_title;
 
 static int add_patch(const char *filename)
 {
@@ -414,12 +415,19 @@ static void skip_unsuitable(int next)
 	}
 }
 
+static void osd_off(void)
+{
+	showing_title = 0;
+}
+
 static void simple_mode_event(mtk_event *e, int *next)
 {
 	if(e->type != EVENT_TYPE_PRESS)
 		return;
-	if(e->press.code == MTK_KEY_F1)
-		osd_event(patches[simple_mode_current].filename);
+	if(e->press.code == MTK_KEY_F1) {
+		osd_event_cb(patches[simple_mode_current].filename, osd_off);
+		showing_title = 1;
+	}
 	if(e->press.code == MTK_KEY_F11)
 		*next = 1;
 	if(e->press.code == MTK_KEY_F9)
@@ -432,8 +440,8 @@ static void simple_mode_next(int next)
 	renderer_pulse_patch(patches[simple_mode_current].p);
 	if(as_mode)
 		update_next_as_time();
-	if(dt_mode)
-		osd_event(patches[simple_mode_current].filename);
+	if(dt_mode || showing_title)
+		osd_event_cb(patches[simple_mode_current].filename, osd_off);
 }
 
 static void configured_mode_event(mtk_event *e)

@@ -20,6 +20,7 @@
 
 void osd_init(void);
 void osd_event(const char *string);
+void osd_event_cb(const char *string, void (*faded)(void));
 void osd_per_frame(int tmu_fd, unsigned short *dest, int hres, int vres);
 
 #endif /* __OSD_H */

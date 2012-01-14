@@ -34,6 +34,7 @@ static unsigned short int osd_fb[OSD_W*OSD_H] __attribute__((aligned(32)));
 static struct font_context osd_font;
 static int osd_alpha;
 static int osd_timer;
+static void (*osd_callback)(void) = NULL;
 
 static void round_corners(void)
 {
@@ -90,6 +91,12 @@ void osd_event(const char *string)
 	osd_timer = OSD_DURATION;
 }
 
+void osd_event_cb(const char *string, void (*faded)(void))
+{
+	osd_event(string);
+	osd_callback = faded; 
+}
+
 void osd_per_frame(int tmu_fd, unsigned short *dest, int hres, int vres)
 {
 	struct tmu_td td;
@@ -107,8 +114,12 @@ void osd_per_frame(int tmu_fd, unsigned short *dest, int hres, int vres)
 			osd_alpha = 0;
 	}
 	
-	if(osd_alpha == 0)
+	if(osd_alpha == 0) {
+		if(osd_callback)
+			osd_callback();
+		osd_callback = NULL;
 		return;
+	}
 	
 	osd_x = (hres - OSD_W) >> 1;
 	osd_y = vres - OSD_H - 20;
