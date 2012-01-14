@@ -505,45 +505,53 @@ static void stop_callback(void)
 	input_delete_callback(event_callback);
 }
 
+static void start_rendering(void)
+{
+	int index = 0;
+
+	update_next_as_time();
+	input_add_callback(event_callback);
+	mtk_cmd(appid, "l_status.set(-text \"Ready.\")");
+				
+	if(simple_mode) {
+		skip_unsuitable();
+		index = simple_mode_current;
+	}
+
+	if(!guirender(appid, patches[index].p, stop_callback))
+		stop_callback();
+}
+
 static void refresh_callback(mtk_event *e, int count)
 {
 	rtems_interval t;
-	int index;
 	
 	t = rtems_clock_get_ticks_since_boot();
-	if(t >= next_update) {
-		if(compiled_patches >= 0) {
-			mtk_cmdf(appid, "progress.barconfig(load, -value %d)", (100*compiled_patches)/npatches);
-			if(compiled_patches == npatches) {
-				/* All patches compiled. Start rendering. */
-				input_delete_callback(refresh_callback);
-				update_next_as_time();
-				input_add_callback(event_callback);
-				mtk_cmd(appid, "l_status.set(-text \"Ready.\")");
-				
-				if(simple_mode) {
-					skip_unsuitable();
-					index = simple_mode_current;
-				} else
-					index = 0;
-
-				if(!guirender(appid, patches[index].p, stop_callback))
-					stop_callback();
-				return;
-			}
-		} else {
-			int error_patch;
-
-			error_patch = -compiled_patches-1;
-			mtk_cmdf(appid, "l_status.set(-text \"Failed to compile patch %s\")", patches[error_patch].filename);
+	if(t < next_update)
+		return;
+	if(compiled_patches >= 0) {
+		mtk_cmdf(appid, "progress.barconfig(load, -value %d)",
+		    (100*compiled_patches)/npatches);
+		if(compiled_patches == npatches) {
+			/* All patches compiled. Start rendering. */
 			input_delete_callback(refresh_callback);
-			started = 0;
-			free_patches();
-			fb_unblank();
+			start_rendering();
 			return;
 		}
-		next_update = t + UPDATE_PERIOD;
+	} else {
+		int error_patch;
+
+		error_patch = -compiled_patches-1;
+		mtk_cmdf(appid,
+		    "l_status.set(-text \"Failed to compile patch %s\")",
+		    patches[error_patch].filename);
+		input_delete_callback(refresh_callback);
+		started = 0;
+		free_patches();
+		fb_unblank();
+		return;
 	}
+	next_update = t + UPDATE_PERIOD;
 }
 
 void open_performance_window(void)
