@@ -334,7 +334,8 @@ static struct patch *cache_lookup(const struct patch_info *pi)
 
 	for(c = cache; c; c = c->next)
 		if(c->st.st_mtime == pi->st.st_mtime &&
-		    !strcmp(c->filename, pi->filename))
+		    !strcmp(c->filename, pi->filename) &&
+		    patch_images_uptodate(c->p))
 			return patch_clone(c->p);
 	return NULL;
 }

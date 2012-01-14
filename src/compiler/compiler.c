@@ -570,4 +570,20 @@ void patch_free(struct patch *p)
 	free(p);
 }
 
+int patch_images_uptodate(const struct patch *p)
+{
+	const struct image *img;
+	struct stat st;
+
+	for(img = p->images; img != p->images+IMAGE_COUNT; img++) {
+		if(!img->pixbuf)
+			continue;
+		if(lstat(img->filename, &st) < 0)
+			return 0;
+		if(st.st_mtime != img->st.st_mtime)
+			return 0;
+	}
+	return 1;
+}
+
 #endif
