@@ -66,4 +66,22 @@ expect <<EOF
 image 1 = "*** test  -  robust & ness ***"
 EOF
 
+#------------------------------------------------------------------------------
+
+ptest_fail "image: imagefile0=foo" -c <<EOF
+imagefile0=foo
+EOF
+expect <<EOF
+line 2: can initialize non-system variables only to zero near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "image: imagefile3=foo" -c <<EOF
+imagefile3=foo
+EOF
+expect <<EOF
+line 2: image number out of bounds near 'EOF'
+EOF
+
 ###############################################################################

@@ -401,9 +401,11 @@ static const char *assign_image_name(struct parser_comm *comm,
 	struct compiler_sc *sc = comm->u.sc;
 	char *totalname;
 	struct image *img;
+#endif
 
 	if(number > IMAGE_COUNT)
 		return strdup("image number out of bounds");
+#ifndef STANDALONE
 	number--;
 	
 	if(*name == '/')
@@ -433,7 +435,7 @@ static const char *assign_image_name(struct parser_comm *comm,
 		free(totalname);
 		return strdup("cannot load image file");
 	}
-#endif /* STANDALONE */
+#endif /* !STANDALONE */
 	return NULL;
 }
 
