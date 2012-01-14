@@ -1,0 +1,32 @@
+#!/bin/sh
+. ./Common
+. ./Patches
+
+###############################################################################
+
+PATCHDIR=../../../patches
+
+count_syms()
+{
+	
+	s=`${PTST:-../ptest/ptest} -q -s <"$PATCHDIR/$n" | \
+	    sed '1,/^$/d' | wc -l`
+	ns=`expr $ns + $s`
+	np=`expr $np + 1`
+	[ $s -gt $max ] && max=$s
+}
+
+
+echo -n "nsyms: count number of symbols: " 1>&2
+
+max=0
+ns=0
+np=0
+foreach_patch count_syms
+echo $max,$ns/$np >_out
+
+expect <<EOF
+12,108/60
+EOF
+
+###############################################################################

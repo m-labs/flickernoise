@@ -5,153 +5,153 @@
 
 ptest "comment: line with just // " <<EOF
 // this is a comment
-a = b + c
+sx = b + c
 EOF
 expect <<EOF
-a = (+ b c)
+sx = (+ b c)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "comment: line ending with // comment" <<EOF
-a = b + c // comment
-d = e + f
+sx = b + c // comment
+sy = e + f
 EOF
 expect <<EOF
-a = (+ b c)
-d = (+ e f)
+sx = (+ b c)
+sy = (+ e f)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "comment: // after //" <<EOF
-a = b + c // comment // more
-d = e + f
+sx = b + c // comment // more
+sy = e + f
 EOF
 expect <<EOF
-a = (+ b c)
-d = (+ e f)
+sx = (+ b c)
+sy = (+ e f)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "comment: // ending with EOF" "a = b// end"
+ptest "comment: // ending with EOF" "sx = b// end"
 expect <<EOF
-a = b
+sx = b
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "comment: /* ... */" <<EOF
-a = b + c /* comment */
-d = e + f
+sx = b + c /* comment */
+sy = e + f
 EOF
 expect <<EOF
-a = (+ b c)
-d = (+ e f)
+sx = (+ b c)
+sy = (+ e f)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "comment: /* ... newline ... */" <<EOF
-a = b + c /* comment
-more */ d = e + f
+sx = b + c /* comment
+more */ sy = e + f
 EOF
 expect <<EOF
-a = (+ b c)
-d = (+ e f)
+sx = (+ b c)
+sy = (+ e f)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "comment: /* ... * ... */" <<EOF
-a = 1 /* comment * more */
-b = 2
+sx = 1 /* comment * more */
+sy = 2
 EOF
 expect <<EOF
-a = 1
-b = 2
+sx = 1
+sy = 2
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "comment: /* ... ** ... */" <<EOF
-a = 3 /* comment ** more */
-b = 4
+sx = 3 /* comment ** more */
+sy = 4
 EOF
 expect <<EOF
-a = 3
-b = 4
+sx = 3
+sy = 4
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "comment: /* ... **/" <<EOF
-a = 5 /* comment **/
-b = 6
+sx = 5 /* comment **/
+sy = 6
 EOF
 expect <<EOF
-a = 5
-b = 6
+sx = 5
+sy = 6
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "comment: /**/" <<EOF
-a = 7 /**/
-b = 8
+sx = 7 /**/
+sy = 8
 EOF
 expect <<EOF
-a = 7
-b = 8
+sx = 7
+sy = 8
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "comment: /*/ (error)" <<EOF
-a = 9 /*/
-b = a
+sx = 9 /*/
+sy = a
 EOF
 expect <<EOF
-FPVM, line 1: parse error near '*/'
+line 1: parse error near '*/'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "comment: unterminated /* ... with newline" <<EOF
-a = b + c /* comment
-d = e + f
+sx = b + c /* comment
+sy = e + f
 EOF
 expect <<EOF
-FPVM, line 1: parse error near '*'
+line 1: parse error near '*'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "comment: unterminated /* ... without newline" "a = b+c /* comment"
 expect <<EOF
-FPVM, line 1: parse error near '*'
+line 1: parse error near '*'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "comment: multiple /*...*/ comments" <<EOF
-/* */ a /* */
+/* */ sx /* */
 /***/ =  /**/
 /**/  b /* */
 EOF
 expect <<EOF
-a = b
+sx = b
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "comment: [preset00]" <<EOF
   [preset00]
-x=y
+sx=y
 EOF
 expect <<EOF
-x = y
+sx = y
 EOF
 
 ###############################################################################

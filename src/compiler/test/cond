@@ -3,38 +3,38 @@
 
 ###############################################################################
 
-ptest "conditional: x = a ? b : c" <<EOF
-x = a ? b : c
+ptest "conditional: sx = a ? b : c" <<EOF
+sx = a ? b : c
 EOF
 expect <<EOF
-x = (if a b c)
+sx = (if a b c)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "conditional: x = a+b ? c+d : e+f" <<EOF
-x = a+b ? c+d : e+f
+ptest "conditional: sx = a+b ? c+d : e+f" <<EOF
+sx = a+b ? c+d : e+f
 EOF
 expect <<EOF
-x = (if (+ a b) (+ c d) (+ e f))
+sx = (if (+ a b) (+ c d) (+ e f))
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "conditional: x = a ? b ? c : d : e" <<EOF
-x = a ? b ? c : d : e
+ptest "conditional: sx = a ? b ? c : d : e" <<EOF
+sx = a ? b ? c : d : e
 EOF
 expect <<EOF
-x = (if a (if b c d) e)
+sx = (if a (if b c d) e)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "conditional: x = a ? b : c ? d : e" <<EOF
-x = a ? b : c ? d : e
+ptest "conditional: sx = a ? b : c ? d : e" <<EOF
+sx = a ? b : c ? d : e
 EOF
 expect <<EOF
-x = (if a b (if c d e))
+sx = (if a b (if c d e))
 EOF
 
 ###############################################################################

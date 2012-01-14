@@ -4,100 +4,110 @@
 ###############################################################################
 
 ptest "not: !a" << EOF
-x = !a
+sx = !a
 EOF
 expect <<EOF
-x = (! a)
-EOF
-
-#------------------------------------------------------------------------------
-
-ptest_fail "not: !a (try to generate code)" -c << EOF
-per_frame: wave_a = !a
-EOF
-expect <<EOF
-FPVM, line 2: Operation not supported: ! near 'EOF'
+sx = (! a)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "not: !0" << EOF
-x = !0
+sx = !0
 EOF
 expect <<EOF
-x = 1
+sx = 1
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "not: !1" << EOF
-x = !1
+sx = !1
 EOF
 expect <<EOF
-x = 0
+sx = 0
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "not: !a*b" << EOF
-x = !a*b
+sx = !a*b
 EOF
 expect <<EOF
-x = (* (! a) b)
+sx = (* (! a) b)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "not: -!a" << EOF
-x = -!a
+sx = -!a
 EOF
 expect <<EOF
-x = (- (! a))
+sx = (- (! a))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "not: !-b" << EOF
-x = !-b
+sx = !-b
 EOF
 expect <<EOF
-x = (! (- b))
+sx = (! (- b))
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "not: if (!a, b, c)" << EOF
-x = if (!a, b, c)
+sx = if (!a, b, c)
 EOF
 expect <<EOF
-x = (if a c b)
+sx = (if a c b)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "not: !a ? b : c" << EOF
-x = !a ? b : c
+sx = !a ? b : c
 EOF
 expect <<EOF
-x = (if a c b)
+sx = (if a c b)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "not: !0 ? b : c" << EOF
-x = !0 ? b : c
+sx = !0 ? b : c
 EOF
 expect <<EOF
-x = b
+sx = b
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "not: !1 ? b : c" << EOF
-x = !1 ? b : c
+sx = !1 ? b : c
 EOF
 expect <<EOF
-x = c
+sx = c
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "not: !sx (generate code)" -c << EOF
+per_frame: wave_a = !sx
+EOF
+sedit '/^per-frame/,/^Eff/p;d'
+expect <<EOF
+per-frame PFPU fragment:
+R003 = 1.000000 fWaveAlpha
+R004 = 1.000000 sx
+0000: EQUAL   R004,R005 <L=2 E=0002> 
+0001: COPY    R000      <L=2 E=0003> 
+0002: COPY    R001      <L=2 E=0004> -> R003
+0003: NOP                            -> R002
+0004: NOP                            -> R006
+0005: VECTOUT R000,R000 <L=0 E=0005> 
+Efficiency: 50%
 EOF
 
 ###############################################################################

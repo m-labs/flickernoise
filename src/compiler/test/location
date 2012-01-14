@@ -4,13 +4,13 @@
 ###############################################################################
 
 ptest_fail "location: scanner, inside line" <<EOF
-a = b
+rot = b
 x = \` y
 c = d
 EOF
 expect <<EOF
-a = b
-FPVM, line 2: scan error near '\`'
+rot = b
+line 2: scan error near '\`'
 EOF
 
 #------------------------------------------------------------------------------
@@ -21,138 +21,138 @@ a = b
 c = d
 EOF
 expect <<EOF
-FPVM, line 2: scan error near '\`'
+line 2: scan error near '\`'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: scanner, end of line" <<EOF
-a = b
+sx = b
 x = y\`
 c = d
 EOF
 expect <<EOF
-a = b
-FPVM, line 2: scan error near '\`'
+sx = b
+line 2: scan error near '\`'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: parser, inside line" <<EOF
-a = b
+sx = b
 x = * y
 c = d
 EOF
 expect <<EOF
-a = b
-FPVM, line 2: parse error near '*'
+sx = b
+line 2: parse error near '*'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: parser, beginning of line" <<EOF
-a = b
+sx = b
 )x = y
 c = d
 EOF
 expect <<EOF
-a = b
-FPVM, line 2: parse error near ')x'
+sx = b
+line 2: parse error near ')x'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: parser, end of line (1)" <<EOF
-a = b
-x = y(
+sx = b
+sy = y(
 c = d
 EOF
 expect <<EOF
-a = b
-x = y
-FPVM, line 2: parse error near '('
+sx = b
+sy = y
+line 2: parse error near '('
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: parser, end of line (2)" <<EOF
-a = b
+sx = b
 x = )
 c = d
 EOF
 expect <<EOF
-a = b
-FPVM, line 2: parse error near ')'
+sx = b
+line 2: parse error near ')'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: error is end of line" <<EOF
-a = b
+sx = b
 x =
 EOF
 expect <<EOF
-a = b
-FPVM, line 3: parse error near 'EOF'
+sx = b
+line 3: parse error near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: error is EOF" "x="
 expect <<EOF
-FPVM, line 1: parse error near 'EOF'
+line 1: parse error near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: error is identifier" <<EOF
-foo = this is an error
+sx = this is an error
 EOF
 expect <<EOF
-foo = this
-FPVM, line 1: parse error near 'an'
+sx = this
+line 1: parse error near 'an'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: 3rd line" <<EOF
-a = b
-c = d
+sx = b
+sy = d
 )
 EOF
 expect <<EOF
-a = b
-c = d
-FPVM, line 3: parse error near ')'
+sx = b
+sy = d
+line 3: parse error near ')'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: 5th line, with // comments" <<EOF
 // assign a
-a = b
+sx = b
 // assign c
-c = d
+sy = d
 )
 EOF
 expect <<EOF
-a = b
-c = d
-FPVM, line 5: parse error near ')'
+sx = b
+sy = d
+line 5: parse error near ')'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "location: 4th line, with /*...*/ comments" <<EOF
-a = b /* some
+sx = b /* some
 comment */
-c = d
+sy = d
 )
 EOF
 expect <<EOF
-a = b
-c = d
-FPVM, line 4: parse error near ')'
+sx = b
+sy = d
+line 4: parse error near ')'
 EOF
 
 ###############################################################################

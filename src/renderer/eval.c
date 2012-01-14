@@ -72,6 +72,7 @@ static void transfer_pvv_regs(struct patch *p)
 	write_pvv(p, pvv_zoom, read_pfv(p, pfv_zoom));
 
 	write_pvv(p, pvv_time, read_pfv(p, pfv_time));
+	write_pvv(p, pvv_frame, read_pfv(p, pfv_frame));
 	write_pvv(p, pvv_bass, read_pfv(p, pfv_bass));
 	write_pvv(p, pvv_mid, read_pfv(p, pfv_mid));
 	write_pvv(p, pvv_treb, read_pfv(p, pfv_treb));
@@ -135,6 +136,7 @@ static void reinit_all_pfv(struct patch *p)
 static void set_pfv_from_frd(struct patch *p, struct frame_descriptor *frd)
 {
 	write_pfv(p, pfv_time, frd->time);
+	write_pfv(p, pfv_frame, frd->frame);
 	write_pfv(p, pfv_bass, frd->bass);
 	write_pfv(p, pfv_mid, frd->mid);
 	write_pfv(p, pfv_treb, frd->treb);

@@ -28,6 +28,8 @@
 struct id {
 	int token;
 	const char *label;
+	struct sym *sym;
+	const char *fname;
 	float constant;
 	int lineno;
 };
@@ -35,10 +37,16 @@ struct id {
 struct parser_state {
 	int success;
 	struct parser_comm *comm;
-	const char *error;	/* malloc'ed error message or NULL */
-	const char *error_label;/* details about the failing token */
-	int error_lineno;
+	const char *(*assign)(struct parser_comm *comm,
+            struct sym *sym, struct ast_node *node);
+
+	const char *msg;	/* malloc'ed diagnostic message or NULL */
+	const char *msg_label;	/* details about the failing token */
+	int msg_lineno;
+	int is_error;		/* non-zero if error (not just warning) */
+
 	const struct id *id;	/* input, for error handling */
+
 	enum {
 		unknown_style,	/* haven't seen any fragment selection yet */
 		old_style,	/* patch uses per_frame=var=expr */

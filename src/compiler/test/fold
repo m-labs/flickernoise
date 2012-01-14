@@ -3,153 +3,153 @@
 
 ###############################################################################
 
-ptest "constant folding: x = 1+2" << EOF
-x = 1+2
+ptest "constant folding: sx = 1+2" << EOF
+sx = 1+2
 EOF
 expect <<EOF
-x = 3
+sx = 3
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "constant folding: x = 1-2" << EOF
-x = 1-2
+ptest "constant folding: sx = 1-2" << EOF
+sx = 1-2
 EOF
 expect <<EOF
-x = -1
+sx = -1
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "constant folding: x = 2*3" << EOF
-x = 2*3
+ptest "constant folding: sx = 2*3" << EOF
+sx = 2*3
 EOF
 expect <<EOF
-x = 6
+sx = 6
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "constant folding: x = 4/5" << EOF
-x = 4/5
+ptest "constant folding: sx = 4/5" << EOF
+sx = 4/5
 EOF
 expect <<EOF
-x = 0.8
+sx = 0.8
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "constant folding: x = 2.8 % 0.5" << EOF
-x = 2.8 % 0.5
+ptest "constant folding: sx = 2.8 % 0.5" << EOF
+sx = 2.8 % 0.5
 EOF
 expect <<EOF
-x = 0.3
+sx = 0.3
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "constant folding: x = a+1 (nothign to fold)" << EOF
-x = a+1
+ptest "constant folding: sx = a+1 (nothign to fold)" << EOF
+sx = a+1
 EOF
 expect <<EOF
-x = (+ a 1)
+sx = (+ a 1)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "constant folding: x = 1+b (nothign to fold)" << EOF
-x = 1+b
+ptest "constant folding: sx = 1+b (nothign to fold)" << EOF
+sx = 1+b
 EOF
 expect <<EOF
-x = (+ 1 b)
+sx = (+ 1 b)
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "constant folding: above" << EOF
-x = above(1, 2)
-y = above(2, 1)
-z = above(1, 1)
+sx = above(1, 2)
+sy = above(2, 1)
+cx = above(1, 1)
 EOF
 expect <<EOF
-x = 0
-y = 1
-z = 0
+sx = 0
+sy = 1
+cx = 0
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "constant folding: below" << EOF
-x = below(1, 2)
-y = below(2, 1)
-z = below(1, 1)
+sx = below(1, 2)
+sy = below(2, 1)
+cx = below(1, 1)
 EOF
 expect <<EOF
-x = 1
-y = 0
-z = 0
+sx = 1
+sy = 0
+cx = 0
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "constant folding: equal" << EOF
-x = equal(1, 2)
-y = equal(2, 1)
-z = equal(1, 1)
+sx = equal(1, 2)
+sy = equal(2, 1)
+cx = equal(1, 1)
 EOF
 expect <<EOF
-x = 0
-y = 0
-z = 1
+sx = 0
+sy = 0
+cx = 1
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "constant folding: max" << EOF
-x = max(2, 3)
-y = max(3, 2)
+sx = max(2, 3)
+sy = max(3, 2)
 EOF
 expect <<EOF
-x = 3
-y = 3
+sx = 3
+sy = 3
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "constant folding: min" << EOF
-x = min(2, 3)
-y = min(3, 2)
+sx = min(2, 3)
+sy = min(3, 2)
 EOF
 expect <<EOF
-x = 2
-y = 2
+sx = 2
+sy = 2
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "constant folding: unary minus" << EOF
-x = -2
+sx = -2
 EOF
 expect <<EOF
-x = -2
+sx = -2
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "constant folding: sqr" << EOF
-x = sqr(3)
+sx = sqr(3)
 EOF
 expect <<EOF
-x = 9
+sx = 9
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest "constant folding: sqrt" << EOF
-x = sqrt(2.25)
+sx = sqrt(2.25)
 EOF
 expect <<EOF
-x = 1.5
+sx = 1.5
 EOF
 
 ###############################################################################

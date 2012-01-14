@@ -20,7 +20,7 @@
 #include <string.h>
 #include <malloc.h>
 
-#include "unique.h"
+#include "symtab.h"
 #include "scanner.h"
 
 #define YYCTYPE     unsigned char
@@ -118,10 +118,14 @@ int scan(struct scanner *s)
 		<N>"sqrt"		{ return TOK_SQRT; }
 		<N>"tsign"		{ return TOK_TSIGN; }
 
-		<N>"per_frame"[a-z_0-9]*
-					{ return TOK_PER_FRAME; }
+		<N>"per_frame"		{ return TOK_PER_FRAME; }
 		<N>"per_vertex"		{ return TOK_PER_VERTEX; }
-		<N>"per_pixel"		{ return TOK_PER_PIXEL; }
+		<N>"per_frame"[a-z_0-9]+
+					{ return TOK_PER_FRAME_UGLY; }
+		<N>"per_vertex"[a-z_0-9]+
+					{ return TOK_PER_VERTEX_UGLY; }
+		<N>"per_pixel"[a-z_0-9]*
+					{ return TOK_PER_PIXEL_UGLY; }
 
 		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);
 					  return TOK_IMAGEFILE; }
@@ -158,13 +162,13 @@ int scan(struct scanner *s)
 	*/
 }
 
-const char *get_unique_token(struct scanner *s)
+struct sym *get_symbol(struct scanner *s)
 {
 	return unique_n((const char *) s->old_cursor,
 	    s->cursor - s->old_cursor);
 }
 
-const char *get_token(struct scanner *s)
+const char *get_name(struct scanner *s)
 {
 	char *buf;
 	int n;

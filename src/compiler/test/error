@@ -7,35 +7,35 @@ ptest_fail "syntax error: x = backtick" <<EOF
 x = \`
 EOF
 expect <<EOF
-FPVM, line 1: scan error near '\`'
+line 1: scan error near '\`'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "syntax error: x = a b" <<EOF
-x = a b
+ptest_fail "syntax error: sx = a b" <<EOF
+sx = a b
 EOF
 expect <<EOF
-x = a
-FPVM, line 2: parse error near 'EOF'
+sx = a
+line 2: parse error near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "syntax error: x = a + + b" <<EOF
-x = a + + b
+ptest_fail "syntax error: sx = a + + b" <<EOF
+sx = a + + b
 EOF
 expect <<EOF
-FPVM, line 1: parse error near '+'
+line 1: parse error near '+'
 EOF
 
 #------------------------------------------------------------------------------
 
 ptest_fail "inject code generation error" -f "codegen" <<EOF
-x = a + b
+sx = a + b
 EOF
 expect <<EOF
-FPVM, line 2: codegen near 'EOF'
+line 2: codegen near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ ptest_fail "syntax error: sin/*foo*/sin/*bar*/sin" <<EOF
 sin/*foo*/sin/*bar*/sin
 EOF
 expect <<EOF
-FPVM, line 1: parse error near 'sin'
+line 1: parse error near 'sin'
 EOF
 
 ###############################################################################

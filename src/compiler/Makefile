@@ -7,18 +7,24 @@ all:
 # ----- Tests -----------------------------------------------------------------
 
 test tests:     all
-		LANG= sh -c \
-		    'passed=0 && cd test && \
-		    for n in [a-z]*; do \
-		    [ $$n != core ] && SCRIPT=$$n . ./$$n; done; \
-		    echo "Passed all $$passed tests"'
+		LANG= sh -c						\
+		    'passed=0 && failed=0 && cd test &&			\
+		    for n in [a-z]*; do					\
+		    [ $$n != core ] && SCRIPT=$$n . ./$$n; done;	\
+		    if [ $$failed = 0 ]; then				\
+		        echo "Passed all $$passed tests";		\
+		    else						\
+			total=`expr $$passed + $$failed`;		\
+		        echo "Failed $$failed/$$total tests";		\
+			exit 1;						\
+		    fi'
 
 valgrind:
 		VALGRIND="valgrind -q" $(MAKE) tests
 
 leak leaks:
 		VALGRIND="valgrind -q --leak-check=full --show-reachable=yes" \
-		    $(MAKE) tests
+		    FAIL_ON_ERROR=false $(MAKE) tests
 
 # ----- Cleanup ---------------------------------------------------------------
 

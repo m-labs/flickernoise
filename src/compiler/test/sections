@@ -4,10 +4,10 @@
 ###############################################################################
 
 ptest "sections: only global" <<EOF
-foo = bar
+sx = bar
 EOF
 expect <<EOF
-foo = bar
+sx = bar
 EOF
 
 #------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ EOF
 #------------------------------------------------------------------------------
 
 ptest "sections: global, per frame, then per vertex" <<EOF
-x = y
+sx = y
 per_frame:
 	a = b
 	c = d
@@ -62,7 +62,7 @@ per_vertex:
 	g = h
 EOF
 expect <<EOF
-x = y
+sx = y
 per_frame = a = b
 per_frame = c = d
 per_vertex = e = f
@@ -92,7 +92,7 @@ per_frame:
 EOF
 expect <<EOF
 per_frame = a = b
-FPVM, line 3: parse error near ':'
+line 3: parse error near ':'
 EOF
 
 #------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ per_vertex:
 EOF
 expect <<EOF
 per_vertex = a = b
-FPVM, line 3: parse error near ':'
+line 3: parse error near ':'
 EOF
 
 #------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ per_frame:
 EOF
 expect <<EOF
 per_vertex = a = b
-FPVM, line 3: parse error near ':'
+line 3: parse error near ':'
 EOF
 
 #------------------------------------------------------------------------------
@@ -130,7 +130,7 @@ per_vertex=c=d
 EOF
 expect <<EOF
 per_frame = a = b
-FPVM, line 3: parse error near 'c'
+line 3: style mismatch near 'c'
 EOF
 
 #------------------------------------------------------------------------------
@@ -142,7 +142,17 @@ per_frame:
 EOF
 expect <<EOF
 per_vertex = a = b
-FPVM, line 3: parse error near 'c'
+line 3: style mismatch near 'c'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "sections: new style has no per_pixel" <<EOF
+per_pixel:
+	no = junk
+EOF
+expect <<EOF
+line 1: parse error near ':'
 EOF
 
 ###############################################################################

@@ -23,12 +23,13 @@
 #include <string.h>
 
 #include <fpvm/fpvm.h>
+#include <fpvm/symbol.h>
 #include <fpvm/ast.h>
 #include <fpvm/schedulers.h>
 #include <fpvm/pfpu.h>
 
 #include "../pixbuf/pixbuf.h"
-#include "unique.h"
+#include "symtab.h"
 #include "parser_helper.h"
 #include "parser.h"
 #include "compiler.h"
@@ -65,10 +66,10 @@ static void init_fpvm(struct fpvm_fragment *fragment, int vector_mode)
 	 * the same. We can get rid of these calls to unique() later.
 	 */
 
-	_Xi = unique("_Xi");
-	_Xo = unique("_Xo");
-	_Yi = unique("_Yi");
-	_Yo = unique("_Yo");
+	_Xi = &unique("_Xi")->fpvm_sym;
+	_Xo = &unique("_Xo")->fpvm_sym;
+	_Yi = &unique("_Yi")->fpvm_sym;
+	_Yo = &unique("_Yo")->fpvm_sym;
 	fpvm_do_init(fragment, vector_mode);
 }
 
@@ -76,9 +77,9 @@ static void init_fpvm(struct fpvm_fragment *fragment, int vector_mode)
 
 
 static const char *assign_chunk(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
-	if(fpvm_do_assign(comm->u.fragment, label, node))
+	if(fpvm_do_assign(comm->u.fragment, &sym->fpvm_sym, node))
 		return NULL;
 	else
 		return strdup(fpvm_get_last_error(comm->u.fragment));
@@ -92,14 +93,12 @@ static int compile_chunk(struct fpvm_fragment *fragment, const char *chunk)
 		.assign_per_frame = NULL,	/* crash ... */
 		.assign_per_vertex = NULL,	/* and burn */
 	};
-	const char *error;
 
-	error = parse(chunk, TOK_START_ASSIGN, &comm);
-	if(error) {
-		snprintf(fragment->last_error, FPVM_MAXERRLEN, "%s", error);
-		free((void *) error);
-	}
-	return !error;
+	if(parse(chunk, TOK_START_ASSIGN, &comm))
+		return 1;
+	snprintf(fragment->last_error, FPVM_MAXERRLEN, "%s", comm.msg);
+	free((void *) comm.msg);
+	return 0;
 }
 
 
@@ -107,139 +106,9 @@ static int compile_chunk(struct fpvm_fragment *fragment, const char *chunk)
 /* PER-FRAME VARIABLES                                          */
 /****************************************************************/
 
-const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN] = {
-	"sx",
-	"sy",
-	"cx",
-	"cy",
-	"rot",
-	"dx",
-	"dy",
-	"zoom",
-	"decay",
-	"wave_mode",
-	"wave_scale",
-	"wave_additive",
-	"wave_usedots",
-	"wave_brighten",
-	"wave_thick",
-	"wave_x",
-	"wave_y",
-	"wave_r",
-	"wave_g",
-	"wave_b",
-	"wave_a",
-
-	"ob_size",
-	"ob_r",
-	"ob_g",
-	"ob_b",
-	"ob_a",
-	"ib_size",
-	"ib_r",
-	"ib_g",
-	"ib_b",
-	"ib_a",
-
-	"nMotionVectorsX",
-	"nMotionVectorsY",
-	"mv_dx",
-	"mv_dy",
-	"mv_l",
-	"mv_r",
-	"mv_g",
-	"mv_b",
-	"mv_a",
-
-	"bTexWrap",
-
-	"time",
-	"bass",
-	"mid",
-	"treb",
-	"bass_att",
-	"mid_att",
-	"treb_att",
-
-	"warp",
-	"fWarpAnimSpeed",
-	"fWarpScale",
-
-	"q1",
-	"q2",
-	"q3",
-	"q4",
-	"q5",
-	"q6",
-	"q7",
-	"q8",
-
-	"fVideoEchoAlpha",
-	"fVideoEchoZoom",
-	"nVideoEchoOrientation",
-
-	"dmx1",
-	"dmx2",
-	"dmx3",
-	"dmx4",
-	"dmx5",
-	"dmx6",
-	"dmx7",
-	"dmx8",
-
-	"idmx1",
-	"idmx2",
-	"idmx3",
-	"idmx4",
-	"idmx5",
-	"idmx6",
-	"idmx7",
-	"idmx8",
-
-	"osc1",
-	"osc2",
-	"osc3",
-	"osc4",
-
-	"midi1",
-	"midi2",
-	"midi3",
-	"midi4",
-	"midi5",
-	"midi6",
-	"midi7",
-	"midi8",
-
-	"video_a",
-
-	"image1_a",
-	"image1_x",
-	"image1_y",
-	"image1_zoom",
-	"image2_a",
-	"image2_x",
-	"image2_y",
-	"image2_zoom"
-};
-
-static int pfv_from_name(const char *name)
+static int pfv_from_sym(const struct sym *sym)
 {
-	int i;
-
-	for(i=0;i<COMP_PFV_COUNT;i++) {
-		if(strcmp(pfv_names[i], name) == 0)
-			return i;
-	}
-
-	if(strcmp(name, "fDecay") == 0) return pfv_decay;
-	if(strcmp(name, "nWaveMode") == 0) return pfv_wave_mode;
-	if(strcmp(name, "fWaveScale") == 0) return pfv_wave_scale;
-	if(strcmp(name, "bAdditiveWaves") == 0) return pfv_wave_additive;
-	if(strcmp(name, "bWaveDots") == 0) return pfv_wave_usedots;
-	if(strcmp(name, "bMaximizeWaveColor") == 0) return pfv_wave_brighten;
-	if(strcmp(name, "bWaveThick") == 0) return pfv_wave_thick;
-	if(strcmp(name, "fWaveAlpha") == 0) return pfv_wave_a;
-	return -1;
+	return sym->pfv_idx;
 }
 
 static void pfv_update_patch_requires(struct compiler_sc *sc, int pfv)
@@ -314,12 +183,12 @@ static void all_initials_to_pfv(struct compiler_sc *sc)
 		initial_to_pfv(sc, i);
 }
 
-static void pfv_bind_callback(void *_sc, const char *sym, int reg)
+static void pfv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
 	int pfv;
 
-	pfv = pfv_from_name(sym);
+	pfv = pfv_from_sym(FPVM2SYM(sym));
 	if(pfv >= 0) {
 		pfv_update_patch_requires(sc, pfv);
 		sc->p->pfv_allocation[pfv] = reg;
@@ -377,76 +246,9 @@ static bool schedule_pfv(struct compiler_sc *sc)
 /* PER-VERTEX VARIABLES                                         */
 /****************************************************************/
 
-const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN] = {
-	/* System */
-	"_texsize",
-	"_hmeshsize",
-	"_vmeshsize",
-
-	/* MilkDrop */
-	"sx",
-	"sy",
-	"cx",
-	"cy",
-	"rot",
-	"dx",
-	"dy",
-	"zoom",
-
-	"time",
-	"bass",
-	"mid",
-	"treb",
-	"bass_att",
-	"mid_att",
-	"treb_att",
-
-	"warp",
-	"fWarpAnimSpeed",
-	"fWarpScale",
-
-	"q1",
-	"q2",
-	"q3",
-	"q4",
-	"q5",
-	"q6",
-	"q7",
-	"q8",
-
-	"idmx1",
-	"idmx2",
-	"idmx3",
-	"idmx4",
-	"idmx5",
-	"idmx6",
-	"idmx7",
-	"idmx8",
-
-	"osc1",
-	"osc2",
-	"osc3",
-	"osc4",
-
-	"midi1",
-	"midi2",
-	"midi3",
-	"midi4",
-	"midi5",
-	"midi6",
-	"midi7",
-	"midi8",
-};
-
-static int pvv_from_name(const char *name)
+static int pvv_from_sym(const struct sym *sym)
 {
-	int i;
-
-	for(i=0;i<COMP_PVV_COUNT;i++) {
-		if(strcmp(pvv_names[i], name) == 0)
-			return i;
-	}
-	return -1;
+	return sym->pvv_idx;
 }
 
 static void pvv_update_patch_requires(struct compiler_sc *sc, int pvv)
@@ -459,12 +261,12 @@ static void pvv_update_patch_requires(struct compiler_sc *sc, int pvv)
 		sc->p->require |= REQUIRE_MIDI;
 }
 
-static void pvv_bind_callback(void *_sc, const char *sym, int reg)
+static void pvv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
 	int pvv;
 
-	pvv = pvv_from_name(sym);
+	pvv = pvv_from_sym(FPVM2SYM(sym));
 	if(pvv >= 0) {
 		pvv_update_patch_requires(sc, pvv);
 		sc->p->pvv_allocation[pvv] = reg;
@@ -540,13 +342,13 @@ static bool schedule_pvv(struct compiler_sc *sc)
 /****************************************************************/
 
 static const char *assign_default(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
 	struct compiler_sc *sc = comm->u.sc;
 	int pfv;
 	float v;
 
-	pfv = pfv_from_name(label);
+	pfv = pfv_from_sym(sym);
 	if(pfv < 0)
 		return strdup("unknown parameter");
 
@@ -571,24 +373,24 @@ static const char *assign_default(struct parser_comm *comm,
 }
 
 static const char *assign_fragment(struct fpvm_fragment *frag,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
-	if(fpvm_do_assign(frag, label, node))
+	if(fpvm_do_assign(frag, &sym->fpvm_sym, node))
 		return NULL;
 	else
 		return strdup(fpvm_get_last_error(frag));
 }
 
 static const char *assign_per_frame(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
-	return assign_fragment(&comm->u.sc->pfv_fragment, label, node);
+	return assign_fragment(&comm->u.sc->pfv_fragment, sym, node);
 }
 
 static const char *assign_per_vertex(struct parser_comm *comm,
-    const char *label, struct ast_node *node)
+    struct sym *sym, struct ast_node *node)
 {
-	return assign_fragment(&comm->u.sc->pvv_fragment, label, node);
+	return assign_fragment(&comm->u.sc->pvv_fragment, sym, node);
 }
 
 static const char *assign_image_name(struct parser_comm *comm,
@@ -627,14 +429,13 @@ static bool parse_patch(struct compiler_sc *sc, const char *patch_code)
 		.assign_per_vertex = assign_per_vertex,
 		.assign_image_name = assign_image_name,
 	};
-	const char *error;
+	int ok;
 
-	error = parse(patch_code, TOK_START_ASSIGN, &comm);
-	if(error) {
-		sc->rmc(error);
-		free((void *) error);
-	}
-	return !error;
+	ok = parse(patch_code, TOK_START_ASSIGN, &comm);
+	if(comm.msg)
+		sc->rmc(comm.msg);
+	free((void *) comm.msg);
+	return ok;
 }
 
 struct patch *patch_compile(const char *basedir, const char *patch_code,
@@ -665,6 +466,8 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	sc->rmc = rmc;
 	sc->linenr = 0;
 
+	symtab_init();
+
 	load_defaults(sc);
 	if(!init_pfv(sc)) goto fail;
 	if(!init_pvv(sc)) goto fail;
@@ -677,13 +480,13 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	if(!finalize_pvv(sc)) goto fail;
 	if(!schedule_pvv(sc)) goto fail;
 
-	unique_free();
+	symtab_free();
 
 	free(sc);
 	return p;
 
 fail:
-	unique_free();
+	symtab_free();
 	free(sc->p);
 	free(sc);
 	return NULL;

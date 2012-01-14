@@ -3,56 +3,46 @@
 
 ###############################################################################
 
-ptest "fold conditional: sx = a ? b : c (nothing to fold)" << EOF
-sx = a ? b : c
+ptest "initial: initialize non-system to zero" <<EOF
+foo = 0
 EOF
 expect <<EOF
-sx = (if a b c)
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "fold conditional: sx = 1 ? b : c" << EOF
-sx = 1 ? b : c
+ptest "initial: initialize per-frame to non-zero" <<EOF
+wave_x = 1
 EOF
 expect <<EOF
-sx = b
+wave_x = 1
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "fold conditional: sx = 0 ? b : c" << EOF
-sx = 0 ? b : c
+ptest_fail "initial: initialize per-vertex to non-zero" <<EOF
+_texsize = 1
 EOF
 expect <<EOF
-sx = c
+line 2: can initialize non-system variables only to zero near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "fold conditional: sx = if(a, b, c) (nothing to fold)" << EOF
-sx = if(a, b, c)
+ptest_fail "initial: initialize non-system to non-zero" <<EOF
+foo = 1
 EOF
 expect <<EOF
-sx = (if a b c)
+line 2: can initialize non-system variables only to zero near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "fold conditional: sx = if(1, b, c)" << EOF
-sx = if(1, b, c)
+ptest_fail "initial: initialize non-system to non-number" <<EOF
+foo = bar
 EOF
 expect <<EOF
-sx = b
-EOF
-
-#------------------------------------------------------------------------------
-
-ptest "fold conditional: sx = if(0, b,c)" << EOF
-sx = if(0, b, c)
-EOF
-expect <<EOF
-sx = c
+line 2: can initialize non-system variables only to zero near 'EOF'
 EOF
 
 ###############################################################################

@@ -18,16 +18,16 @@
 #ifndef __PARSER_HELPER_H
 #define __PARSER_HELPER_H
 
+#include <stdarg.h>
+
 #include <fpvm/ast.h>
 #include <fpvm/fpvm.h>
 
+#include "symtab.h"
 
-/* virtual operation - for use inside the parser only */
-enum {
-	op_not  = op_vops+1,
-};
 
 struct compiler_sc;
+struct parser_state;
 
 struct parser_comm {
 	union {
@@ -36,16 +36,23 @@ struct parser_comm {
 		struct compiler_sc *sc;
 	} u;
 	const char *(*assign_default)(struct parser_comm *comm,
-	    const char *label, struct ast_node *node);
+	    struct sym *sym, struct ast_node *node);
 	const char *(*assign_per_frame)(struct parser_comm *comm,
-	    const char *label, struct ast_node *node);
+	    struct sym *sym, struct ast_node *node);
 	const char *(*assign_per_vertex)(struct parser_comm *comm,
-	    const char *label, struct ast_node *node);
+	    struct sym *sym, struct ast_node *node);
 	const char *(*assign_image_name)(struct parser_comm *comm,
 	    int number, const char *name);
+	const char *msg; /* NULL if neither error nor warning */
 };
 
-const char *parse(const char *expr, int start_token, struct parser_comm *comm);
+extern int warn_section;
+extern int warn_undefined;
+
+void error(struct parser_state *state, const char *fmt, ...);
+void warn(struct parser_state *state, const char *fmt, ...);
+
+int parse(const char *expr, int start_token, struct parser_comm *comm);
 void parse_free_one(struct ast_node *node);
 void parse_free(struct ast_node *node);
 

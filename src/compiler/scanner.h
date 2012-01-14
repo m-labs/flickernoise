@@ -44,12 +44,12 @@ void delete_scanner(struct scanner *s);
 /* get to the next token and return its type */
 int scan(struct scanner *s);
 
-/* get the unique string comprising the current token
+/* get the symbol for the unique string comprising the current token
  */
-const char *get_unique_token(struct scanner *s);
+struct sym *get_symbol(struct scanner *s);
 
-/* like get_unique_token, but malloc'ed non-unique string */
-const char *get_token(struct scanner *s);
+/* malloc'ed non-unique string */
+const char *get_name(struct scanner *s);
 
 float get_constant(struct scanner *s);
 

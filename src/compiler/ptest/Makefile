@@ -4,23 +4,27 @@ LIBFPVM_X86 = $(MMDIR)/software/libfpvm/x86-linux
 
 CFLAGS_STANDALONE = -DSTANDALONE=\"standalone.h\"
 CFLAGS = -Wall -g -I.. -I. $(CFLAGS_STANDALONE)
-OBJS = ptest.o scanner.o parser.o parser_helper.o unique.o compiler.o \
+OBJS = ptest.o scanner.o parser.o parser_helper.o symtab.o compiler.o \
        libfpvm.a
 LDLIBS = -lm
 
 # ----- Verbosity control -----------------------------------------------------
 
 CC_normal	:= $(CC)
+CP_normal	:= cp
 
 CC_quiet	= @echo "  CC       " $@ && $(CC_normal)
 GEN_quiet       = @echo "  GENERATE " $@ &&
+CP_quiet	= @echo "  CP       " $@ && $(CP_normal)
 
 ifeq ($(V),1)
     CC		= $(CC_normal)
     GEN		=
+    CP		= $(CP_normal)
 else
     CC		= $(CC_quiet)
     GEN		= $(GEN_quiet)
+    CP		= $(CP_quiet)
 endif
 
 # ----- Rules -----------------------------------------------------------------
@@ -52,7 +56,7 @@ ptest:		$(OBJS)
 
 libfpvm.a:
 		$(MAKE) -C $(LIBFPVM_X86)
-		cp $(LIBFPVM_X86)/$@ .
+		$(CP) $(LIBFPVM_X86)/$@ .
 
 # ----- Dependencies ----------------------------------------------------------
 
@@ -60,7 +64,7 @@ libfpvm.a:
 scanner.o:	../parser.h
 parser_helper.o: ../parser.h
 ptest.o:	../parser.h
-unique.o:	../fnp.inc
+symtab.o:	../fnp.inc
 compiler.o:	../infra-fnp.h
 
 # ----- Cleanup ---------------------------------------------------------------

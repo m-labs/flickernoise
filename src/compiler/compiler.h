@@ -77,6 +77,7 @@ enum {
 	pfv_tex_wrap,
 
 	pfv_time,
+	pfv_frame,
 	pfv_bass,
 	pfv_mid,
 	pfv_treb,
@@ -164,6 +165,7 @@ enum {
 	pvv_zoom,
 
 	pvv_time,
+	pvv_frame,
 	pvv_bass,
 	pvv_mid,
 	pvv_treb,
@@ -235,9 +237,6 @@ struct patch {
 };
 
 typedef void (*report_message)(const char *);
-
-extern const char pfv_names[COMP_PFV_COUNT][FPVM_MAXSYMLEN];
-extern const char pvv_names[COMP_PVV_COUNT][FPVM_MAXSYMLEN];
 
 struct patch *patch_compile(const char *basedir, const char *patch_code, report_message rmc);
 struct patch *patch_compile_filename(const char *filename, const char *patch_code, report_message rmc);
