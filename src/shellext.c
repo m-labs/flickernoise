@@ -149,7 +149,7 @@ static int main_fbgrab(int argc, char **argv)
 	return ret;
 }
 
-rtems_shell_cmd_t shellext_viwrite = {
+static rtems_shell_cmd_t shellext_viwrite = {
 	"viwrite",			/* name */
 	"viwrite register value",	/* usage */
 	"flickernoise",			/* topic */
@@ -158,7 +158,7 @@ rtems_shell_cmd_t shellext_viwrite = {
 	NULL				/* next */
 };
 
-rtems_shell_cmd_t shellext_viread = {
+static rtems_shell_cmd_t shellext_viread = {
 	"viread",			/* name */
 	"viread register",		/* usage */
 	"flickernoise",			/* topic */
@@ -167,7 +167,7 @@ rtems_shell_cmd_t shellext_viread = {
 	&shellext_viwrite		/* next */
 };
 
-rtems_shell_cmd_t shellext_erase = {
+static rtems_shell_cmd_t shellext_erase = {
 	"erase",			/* name */
 	"erase device",			/* usage */
 	"flickernoise",			/* topic */
