@@ -179,7 +179,6 @@ static int main_pfpu(int argc, char **argv)
 	};
 	char **arg;
 	float *r = regs+PFPU_SPREG_COUNT, *rr;
-	int hex = 0;
 	int fd, res;
 
 	for(arg = argv+1; arg != argv+argc; arg++) {
@@ -188,7 +187,6 @@ static int main_pfpu(int argc, char **argv)
 		} else if(!strncmp(*arg, "0x", 2)) {
 			u.i = strtoul(*arg, NULL, 0);
 			*r++ = u.f;
-			hex = 1;
 		} else if(strlen(*arg) == 8) {
 			program[td.progsize++] = strtoul(*arg, NULL, 16);
 		} else {
@@ -213,12 +211,8 @@ static int main_pfpu(int argc, char **argv)
 	for(rr = regs+PFPU_SPREG_COUNT; r != rr; rr++) {
 		if(rr != regs+PFPU_SPREG_COUNT)
 			putchar(' ');
-		if(hex) {
-			u.f = *rr;
-			printf("0x%08x", u.i);
-		} else {
-			printf("%g", *rr);
-		}
+		u.f = *rr;
+		printf("0x%08x %g", u.i, *rr);
 	}
 	putchar('\n');
 
