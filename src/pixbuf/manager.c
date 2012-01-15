@@ -16,6 +16,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "pixbuf.h"
@@ -83,19 +84,26 @@ void pixbuf_dec_ref(struct pixbuf *p)
 struct pixbuf *pixbuf_get(char *filename)
 {
 	struct pixbuf *p;
-	
+	FILE *file;
+
 	p = pixbuf_search(filename);
 	if(p != NULL) {
 		pixbuf_inc_ref(p);
 		return p;
 	}
-	
+
+	file = fopen(filename, "rb");
+	if(!file)
+		return NULL;
+
 	/* try all loaders */
-	p = pixbuf_load_png(filename);
-	if(p != NULL) return p;
-	p = pixbuf_load_jpeg(filename);
-	if(p != NULL) return p;
-	
-	/* no loader was successful */
-	return NULL;
+	p = pixbuf_load_png(file);
+	if(!p) {
+		rewind(file);
+		p = pixbuf_load_jpeg(file);
+	}
+	if(p)
+		p->filename = strdup(filename);
+	fclose(file);
+	return p;
 }

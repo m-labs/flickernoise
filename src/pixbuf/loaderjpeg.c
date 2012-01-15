@@ -37,25 +37,20 @@ static void my_error_exit(j_common_ptr cinfo)
 	longjmp(myerr->setjmp_buffer, 1);
 }
 
-struct pixbuf *pixbuf_load_jpeg(char *filename)
+struct pixbuf *pixbuf_load_jpeg(FILE *file)
 {
-	struct pixbuf *ret;
-	FILE *fd;
+	struct pixbuf *ret = NULL;
 	struct jpeg_decompress_struct cinfo;
 	struct my_error_mgr jerr;
 	unsigned char *pixels;
 	int i;
 	unsigned char **row_pointers;
 	
-	ret = NULL;
-	fd = fopen(filename, "rb");
-	if(fd == NULL) goto free0;
-	
 	cinfo.err = jpeg_std_error((struct jpeg_error_mgr *)&jerr);
 	jerr.pub.error_exit = my_error_exit;
 	if(setjmp(jerr.setjmp_buffer)) goto free2;
 	jpeg_create_decompress(&cinfo);
-	jpeg_stdio_src(&cinfo, fd);
+	jpeg_stdio_src(&cinfo, file);
 	jpeg_read_header(&cinfo, TRUE);
 		
 	cinfo.out_color_space = JCS_RGB;
@@ -76,7 +71,6 @@ struct pixbuf *pixbuf_load_jpeg(char *filename)
 
 	ret = pixbuf_new(cinfo.image_width, cinfo.image_height);
 	if(ret == NULL) goto free5;
-	ret->filename = strdup(filename);
 	if(!pixbuf_dither(ret->pixels, row_pointers, cinfo.image_width, cinfo.image_height, 0)) {
 		pixbuf_dec_ref(ret);
 		ret = NULL;
@@ -91,7 +85,5 @@ free3:
 	free(pixels);
 free2:
 	jpeg_destroy_decompress(&cinfo);
-	fclose(fd);
-free0:
 	return ret;
 }

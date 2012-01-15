@@ -29,10 +29,9 @@
 #warning Floating point PNG is slow
 #endif
 
-struct pixbuf *pixbuf_load_png(char *filename)
+struct pixbuf *pixbuf_load_png(FILE *file)
 {
 	struct pixbuf *ret;
-	FILE *fd;
 	unsigned char header[8];
 	png_structp png_ptr;
 	png_infop info_ptr;
@@ -44,9 +43,7 @@ struct pixbuf *pixbuf_load_png(char *filename)
 	int y;
 
 	ret = NULL;
-	fd = fopen(filename, "r");
-	if(fd == NULL) goto free0;
-	fread(header, 1, 8, fd);
+	fread(header, 1, 8, file);
 	if(png_sig_cmp(header, 0, 8)) goto free1;
 
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
@@ -55,7 +52,7 @@ struct pixbuf *pixbuf_load_png(char *filename)
 	if(info_ptr == NULL) goto free2;
 
 	if(setjmp(png_jmpbuf(png_ptr))) goto free3;
-	png_init_io(png_ptr, fd);
+	png_init_io(png_ptr, file);
 	png_set_sig_bytes(png_ptr, 8);
 	png_read_info(png_ptr, info_ptr);
 
@@ -81,7 +78,6 @@ struct pixbuf *pixbuf_load_png(char *filename)
 
 	ret = pixbuf_new(width, height);
 	if(ret == NULL) goto free4;
-	ret->filename = strdup(filename);
 	if(!pixbuf_dither(ret->pixels, row_pointers, width, height, color_type == PNG_COLOR_TYPE_RGBA)) {
 		pixbuf_dec_ref(ret);
 		ret = NULL;
@@ -97,7 +93,5 @@ free3:
 free2:
 	png_destroy_read_struct(&png_ptr, NULL, NULL);
 free1:
-	fclose(fd);
-free0:
 	return ret;
 }

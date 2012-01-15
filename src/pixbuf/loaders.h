@@ -18,9 +18,11 @@
 #ifndef __PIXBUF_LOADERS_H
 #define __PIXBUF_LOADERS_H
 
+#include <stdio.h>
+
 #include "pixbuf.h"
 
-struct pixbuf *pixbuf_load_png(char *filename);
-struct pixbuf *pixbuf_load_jpeg(char *filename);
+struct pixbuf *pixbuf_load_png(FILE *file);
+struct pixbuf *pixbuf_load_jpeg(FILE *file);
 
 #endif /* __PIXBUF_LOADERS_H */
