@@ -18,9 +18,12 @@
 #ifndef __PIXBUF_PIXBUF_H
 #define __PIXBUF_PIXBUF_H
 
+#include <sys/stat.h>
+
 struct pixbuf {
 	int refcnt;
 	char *filename;
+	struct stat st;
 	struct pixbuf *next;
 	int width, height;
 	unsigned short pixels[];

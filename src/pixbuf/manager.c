@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "pixbuf.h"
 #include "loaders.h"
@@ -42,9 +43,13 @@ struct pixbuf *pixbuf_new(int width, int height)
 struct pixbuf *pixbuf_search(char *filename)
 {
 	struct pixbuf *p;
-	
+	struct stat st;
+
+	if(lstat(filename, &st) < 0)
+		return NULL;
 	for(p = head; p; p = p->next)
-		if(strcmp(p->filename, filename) == 0)
+		if(strcmp(p->filename, filename) == 0 &&
+		    st.st_mtime == p->st.st_mtime)
 			return p;
 	return NULL;
 }
@@ -92,6 +97,7 @@ struct pixbuf *pixbuf_get(char *filename)
 	}
 	if(p) {
 		p->filename = strdup(filename);
+		fstat(fileno(file), &p->st);
 		if(!p->filename) {
 			free(p);
 			p = NULL;
