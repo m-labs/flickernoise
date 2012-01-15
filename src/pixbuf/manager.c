@@ -43,12 +43,9 @@ struct pixbuf *pixbuf_search(char *filename)
 {
 	struct pixbuf *p;
 	
-	p = head;
-	while(p != NULL) {
-		if((p->filename != NULL) && (strcmp(p->filename, filename) == 0))
+	for(p = head; p; p = p->next)
+		if(strcmp(p->filename, filename) == 0)
 			return p;
-		p = p->next;
-	}
 	return NULL;
 }
 
@@ -60,25 +57,16 @@ void pixbuf_inc_ref(struct pixbuf *p)
 
 void pixbuf_dec_ref(struct pixbuf *p)
 {
-	struct pixbuf *prev;
+	struct pixbuf **anchor;
 	
-	if(p != NULL) {
-		p->refcnt--;
-		if(p->refcnt == 0) {
-			if(p == head) {
-				head = head->next;
-				free(p->filename);
-				free(p);
-			} else {
-				prev = head;
-				while(prev->next != p)
-					prev = prev->next;
-				prev->next = p->next;
-				free(p->filename);
-				free(p);
-			}
-		}
-	}
+	if(!p)
+		return;
+	if(--p->refcnt)
+		return;
+	for(anchor = &head; *anchor != p; anchor = &(*anchor)->next);
+	*anchor = p->next;
+	free(p->filename);
+	free(p);
 }
 
 struct pixbuf *pixbuf_get(char *filename)
@@ -102,8 +90,13 @@ struct pixbuf *pixbuf_get(char *filename)
 		rewind(file);
 		p = pixbuf_load_jpeg(file);
 	}
-	if(p)
+	if(p) {
 		p->filename = strdup(filename);
+		if(!p->filename) {
+			free(p);
+			p = NULL;
+		}
+	}
 	fclose(file);
 	return p;
 }
