@@ -35,5 +35,6 @@ void pixbuf_inc_ref(struct pixbuf *p);
 void pixbuf_dec_ref(struct pixbuf *p);
 
 struct pixbuf *pixbuf_get(char *filename);
+struct pixbuf *pixbuf_update(struct pixbuf *p);
 
 #endif /* __PIXBUF_PIXBUF_H */

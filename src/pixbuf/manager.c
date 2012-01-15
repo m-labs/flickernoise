@@ -106,3 +106,16 @@ struct pixbuf *pixbuf_get(char *filename)
 	fclose(file);
 	return p;
 }
+
+struct pixbuf *pixbuf_update(struct pixbuf *p)
+{
+	struct stat st;
+
+	if(lstat(p->filename, &st) < 0)
+		return NULL;
+	if(st.st_mtime == p->st.st_mtime) {
+		p->refcnt++;
+		return p;
+	}
+	return pixbuf_get(p->filename);
+}
