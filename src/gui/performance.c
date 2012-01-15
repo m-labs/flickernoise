@@ -41,41 +41,54 @@
 
 #define FILENAME_LEN 384
 
-#define MAX_PATCHES 64
-
 struct patch_info {
 	char filename[FILENAME_LEN];
 	struct patch *p;
+	struct stat st;
+	struct patch_info *prev, *next;
 };
 
 static int npatches;
-static struct patch_info patches[MAX_PATCHES];
+static struct patch_info *patches = NULL;
+static struct patch_info *cache = NULL;
+static struct patch_info *last_patch = NULL;
 static int simple_mode;
-static int simple_mode_current;
+static struct patch_info *simple_mode_current;
 static int dt_mode;
 static int as_mode;
 static int input_video;
 static int showing_title;
 
-static int add_patch(const char *filename)
+static struct patch_info *add_patch(const char *filename)
 {
-	int i;
+	struct patch_info *pi;
 
-	for(i=0;i<npatches;i++) {
-		if(strcmp(patches[i].filename, filename) == 0)
-			return i;
-	}
-	if(npatches == MAX_PATCHES) return -1;
-	strcpy(patches[npatches].filename, filename);
-	patches[npatches].p = NULL;
-	return npatches++;
+	for(pi = patches; pi; pi = pi->next)
+		if(strcmp(pi->filename, filename) == 0)
+			return pi;
+
+	pi = malloc(sizeof(struct patch_info));
+	if(!pi)
+		return NULL;
+	strcpy(pi->filename, filename);
+	pi->p = NULL;
+	if(last_patch)
+		last_patch->next = pi;
+	else
+		patches = pi;
+	pi->next = NULL;
+	pi->prev = last_patch;
+	last_patch = pi;
+	npatches++;
+
+	return pi;
 }
 
-static int keyboard_patches[26];
-static int ir_patches[64];
+static struct patch_info *keyboard_patches[26];
+static struct patch_info *ir_patches[64];
 static int midi_channel;
-static int midi_patches[128];
-static int osc_patches[64];
+static struct patch_info *midi_patches[128];
+static struct patch_info *osc_patches[64];
 
 static void add_firstpatch(void)
 {
@@ -100,7 +113,7 @@ static void add_keyboard_patches(void)
 		if(filename != NULL)
 			keyboard_patches[i] = add_patch(filename);
 		else
-			keyboard_patches[i] = -1;
+			keyboard_patches[i] = NULL;
 	}
 }
 
@@ -116,7 +129,7 @@ static void add_ir_patches(void)
 		if(filename != NULL)
 			ir_patches[i] = add_patch(filename);
 		else
-			ir_patches[i] = -1;
+			ir_patches[i] = NULL;
 	}
 }
 
@@ -133,7 +146,7 @@ static void add_midi_patches(void)
 		if(filename != NULL)
 			midi_patches[i] = add_patch(filename);
 		else
-			midi_patches[i] = -1;
+			midi_patches[i] = NULL;
 	}
 }
 
@@ -149,7 +162,7 @@ static void add_osc_patches(void)
 		if(filename != NULL)
 			osc_patches[i] = add_patch(filename);
 		else
-			osc_patches[i] = -1;
+			osc_patches[i] = NULL;
 	}
 }
 
@@ -189,10 +202,14 @@ static void close_callback(mtk_event *e, void *arg)
 
 static void update_buttons(void)
 {
-	mtk_cmdf(appid, "b_mode_simple.set(-state %s)", simple_mode ? "on" : "off");
-	mtk_cmdf(appid, "b_mode_file.set(-state %s)", !simple_mode ? "on" : "off");
-	mtk_cmdf(appid, "b_mode_simple_dt.set(-state %s)", dt_mode ? "on" : "off");
-	mtk_cmdf(appid, "b_mode_simple_as.set(-state %s)", as_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_simple.set(-state %s)",
+	    simple_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_file.set(-state %s)",
+	    !simple_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_simple_dt.set(-state %s)",
+	    dt_mode ? "on" : "off");
+	mtk_cmdf(appid, "b_mode_simple_as.set(-state %s)",
+	    as_mode ? "on" : "off");
 }
 
 static void simple_callback(mtk_event *e, void *arg)
@@ -277,6 +294,7 @@ void init_performance(void)
 }
 
 static int compiled_patches;
+struct patch_info *error_patch;
 #define UPDATE_PERIOD 20
 static rtems_interval next_update;
 
@@ -284,10 +302,9 @@ static void dummy_rmc(const char *msg)
 {
 }
 
-static struct patch *compile_patch(const char *filename)
+static struct patch *compile_patch(const char *filename, const struct stat *st)
 {
 	FILE *file;
-	struct stat st;
 	int r;
 	char *buf = NULL;
 	struct patch *p;
@@ -295,44 +312,65 @@ static struct patch *compile_patch(const char *filename)
 	file = fopen(filename, "r");
 	if(file == NULL)
 		return NULL;
-	if(fstat(fileno(file), &st) < 0)
-		goto fail;
-	buf = malloc(st.st_size+1);
-	r = fread(buf, 1, st.st_size, file);
-	if(r <= 0)
-		goto fail;
+	buf = malloc(st->st_size+1);
+	r = fread(buf, 1, st->st_size, file);
+	if(r <= 0) {
+		free(buf);
+		fclose(file);
+		return NULL;
+	}
+
 	buf[r] = 0;
 	fclose(file);
 
 	p = patch_compile_filename(filename, buf, dummy_rmc);
 	free(buf);
 	return p;
+}
 
-fail:
-	free(buf);
-	fclose(file);
+static struct patch *cache_lookup(const struct patch_info *pi)
+{
+	const struct patch_info *c;
+
+	for(c = cache; c; c = c->next)
+		if(c->st.st_mtime == pi->st.st_mtime &&
+		    !strcmp(c->filename, pi->filename) &&
+		    patch_images_uptodate(c->p))
+			return patch_clone(c->p);
 	return NULL;
 }
 
 static rtems_task comp_task(rtems_task_argument argument)
 {
-	for(;compiled_patches<npatches;compiled_patches++) {
-		patches[compiled_patches].p = compile_patch(patches[compiled_patches].filename);
-		if(patches[compiled_patches].p == NULL) {
-			compiled_patches = -compiled_patches-1;
+	struct patch_info *pi;
+
+	for(pi = patches; pi; pi = pi->next) {
+		if(lstat(pi->filename, &pi->st) < 0) {
+			pi->p = NULL;
+		} else {
+			pi->p = cache_lookup(pi);
+			if(!pi->p)
+				pi->p = compile_patch(pi->filename, &pi->st);
+		}
+		if(!pi->p) {
+			error_patch = pi;
 			break;
 		}
+		compiled_patches++;
 	}
 	rtems_task_delete(RTEMS_SELF);
 }
 
-static void free_patches(void)
+static void free_patches(struct patch_info *list)
 {
-	int i;
+	struct patch_info *next;
 
-	for(i=0;i<npatches;i++) {
-		if(patches[i].p != NULL)
-			patch_free(patches[i].p);
+	while(list) {
+		next = list->next;
+		if(list->p)
+			patch_free(list->p);
+		free(list);
+		list = next;
 	}
 }
 
@@ -378,7 +416,8 @@ static void update_next_as_time(void)
 	rtems_interval t;
 	
 	t = rtems_clock_get_ticks_since_boot();
-	next_as_time = t + AUTOSWITCH_PERIOD_MIN + (rand() % (AUTOSWITCH_PERIOD_MAX - AUTOSWITCH_PERIOD_MIN));
+	next_as_time = t + AUTOSWITCH_PERIOD_MIN +
+	    (rand() % (AUTOSWITCH_PERIOD_MAX - AUTOSWITCH_PERIOD_MIN));
 }
 
 static int suitable_for_simple(struct patch *p)
@@ -395,16 +434,21 @@ static int suitable_for_simple(struct patch *p)
 
 static void skip_unsuitable(int next)
 {
-	int looped;
+	const struct patch_info *looped;
 
 	looped = simple_mode_current;
 	while(1) {
-		simple_mode_current += next;
-		if(simple_mode_current == npatches)
-			simple_mode_current = 0;
-		if(simple_mode_current < 0)
-			simple_mode_current = npatches - 1;
-		if(suitable_for_simple(patches[simple_mode_current].p))
+		if(next == 1) {
+			simple_mode_current = simple_mode_current->next;
+			if(!simple_mode_current)
+				simple_mode_current = patches;
+		}
+		if(next == -1) {
+			simple_mode_current = simple_mode_current->prev;
+			if(!simple_mode_current)
+				simple_mode_current = last_patch;
+		}
+		if(suitable_for_simple(simple_mode_current->p))
 			break;
 		if(!next) {
 			next = 1;
@@ -425,7 +469,7 @@ static void simple_mode_event(mtk_event *e, int *next)
 	if(e->type != EVENT_TYPE_PRESS)
 		return;
 	if(e->press.code == MTK_KEY_F1) {
-		osd_event_cb(patches[simple_mode_current].filename, osd_off);
+		osd_event_cb(simple_mode_current->filename, osd_off);
 		showing_title = 1;
 	}
 	if(e->press.code == MTK_KEY_F11)
@@ -437,55 +481,56 @@ static void simple_mode_event(mtk_event *e, int *next)
 static void simple_mode_next(int next)
 {
 	skip_unsuitable(next);
-	renderer_pulse_patch(patches[simple_mode_current].p);
+	renderer_pulse_patch(simple_mode_current->p);
 	if(as_mode)
 		update_next_as_time();
 	if(dt_mode || showing_title)
-		osd_event_cb(patches[simple_mode_current].filename, osd_off);
+		osd_event_cb(simple_mode_current->filename, osd_off);
 }
 
 static void configured_mode_event(mtk_event *e)
 {
+	struct patch_info *pi;
 	int index;
 
 	if(e->type == EVENT_TYPE_PRESS) {
 		index = keycode_to_index(e->press.code);
 		if(index != -1) {
-			index = keyboard_patches[index];
-			if(index != -1)
-				renderer_add_patch(patches[index].p);
-				}
+			pi = keyboard_patches[index];
+			if(pi)
+				renderer_add_patch(pi->p);
+		}
 	} else if(e->type == EVENT_TYPE_RELEASE) {
 		index = keycode_to_index(e->release.code);
 		if(index != -1) {
-			index = keyboard_patches[index];
-			if(index != -1)
-				renderer_del_patch(patches[index].p);
+			pi = keyboard_patches[index];
+			if(pi)
+				renderer_del_patch(pi->p);
 		}
 	} else if(e->type == EVENT_TYPE_IR) {
 		index = e->press.code;
-		index = ir_patches[index];
-		if(index != -1)
-			renderer_pulse_patch(patches[index].p);
+		pi = ir_patches[index];
+		if(pi)
+			renderer_pulse_patch(pi->p);
 	} else if(e->type == EVENT_TYPE_MIDI_NOTEON) {
 		if(((e->press.code & 0x0f0000) >> 16) == midi_channel) {
 			index = e->press.code & 0x7f;
-			index = midi_patches[index];
-			if(index != -1)
-				renderer_add_patch(patches[index].p);
+			pi = midi_patches[index];
+			if(pi)
+				renderer_add_patch(pi->p);
 		}
 	} else if(e->type == EVENT_TYPE_MIDI_NOTEOFF) {
 		if(((e->press.code & 0x0f0000) >> 16) == midi_channel) {
 			index = e->press.code & 0x7f;
-			index = midi_patches[index];
-			if(index != -1)
-				renderer_del_patch(patches[index].p);
+			pi = midi_patches[index];
+			if(pi)
+				renderer_del_patch(pi->p);
 		}
 	} else if(e->type == EVENT_TYPE_OSC) {
 		index = e->press.code & 0x3f;
-		index = osc_patches[index];
-		if(index != -1)
-			renderer_pulse_patch(patches[index].p);
+		pi = osc_patches[index];
+		if(pi)
+			renderer_pulse_patch(pi->p);
 	}
 }
 
@@ -500,8 +545,8 @@ static void event_callback(mtk_event *e, int count)
 		 * We can can't show the first title in start_rendering
 		 * because the renderer isn't up yet. So we do it here.
 		 */
-		if (first_event && dt_mode)
-			osd_event(patches[simple_mode_current].filename);
+		if(first_event && dt_mode)
+			osd_event(simple_mode_current->filename);
 		next = 0;
 		for(i=0;i<count;i++)
 			simple_mode_event(e+i, &next);
@@ -521,14 +566,18 @@ static void event_callback(mtk_event *e, int count)
 
 static void stop_callback(void)
 {
-	free_patches();
+	free_patches(cache);
+	cache = patches;
+	patches = NULL;
+	last_patch = NULL;
+
 	started = 0;
 	input_delete_callback(event_callback);
 }
 
 static void start_rendering(void)
 {
-	int index = 0;
+	struct patch_info *first = patches;
 
 	update_next_as_time();
 	input_add_callback(event_callback);
@@ -536,11 +585,11 @@ static void start_rendering(void)
 				
 	if(simple_mode) {
 		skip_unsuitable(0);
-		index = simple_mode_current;
+		first = simple_mode_current;
 	}
 
 	first_event = 1;
-	if(!guirender(appid, patches[index].p, stop_callback))
+	if(!guirender(appid, first->p, stop_callback))
 		stop_callback();
 }
 
@@ -551,7 +600,7 @@ static void refresh_callback(mtk_event *e, int count)
 	t = rtems_clock_get_ticks_since_boot();
 	if(t < next_update)
 		return;
-	if(compiled_patches >= 0) {
+	if(!error_patch) {
 		mtk_cmdf(appid, "progress.barconfig(load, -value %d)",
 		    (100*compiled_patches)/npatches);
 		if(compiled_patches == npatches) {
@@ -561,15 +610,14 @@ static void refresh_callback(mtk_event *e, int count)
 			return;
 		}
 	} else {
-		int error_patch;
-
-		error_patch = -compiled_patches-1;
 		mtk_cmdf(appid,
 		    "l_status.set(-text \"Failed to compile patch %s\")",
-		    patches[error_patch].filename);
+		    error_patch->filename);
 		input_delete_callback(refresh_callback);
 		started = 0;
-		free_patches();
+		free_patches(patches);
+		patches = NULL;
+		last_patch = NULL;
 		fb_unblank();
 		return;
 	}
@@ -615,7 +663,6 @@ void start_performance(int simple, int dt, int as)
 
 	/* build patch list */
 	npatches = 0;
-	simple_mode_current = 0;
 	if(simple) {
 		input_video = check_input_video();
 		add_simple_patches();
@@ -638,16 +685,19 @@ void start_performance(int simple, int dt, int as)
 		add_midi_patches();
 		add_osc_patches();
 	}
+	simple_mode_current = patches;
 
 	/* start patch compilation task */
 	compiled_patches = 0;
+	error_patch = NULL;
 	mtk_cmd(appid, "l_status.set(-text \"Compiling patches...\")");
 	mtk_cmd(appid, "progress.barconfig(load, -value 0)");
 	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
 	input_add_callback(refresh_callback);
-	sc = rtems_task_create(rtems_build_name('C', 'O', 'M', 'P'), 20, 300*1024,
-		RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
-		0, &comp_task_id);
+	sc = rtems_task_create(rtems_build_name('C', 'O', 'M', 'P'),
+	    20, 300*1024,
+	    RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
+	    0, &comp_task_id);
 	assert(sc == RTEMS_SUCCESSFUL);
 	sc = rtems_task_start(comp_task_id, comp_task, 0);
 	assert(sc == RTEMS_SUCCESSFUL);

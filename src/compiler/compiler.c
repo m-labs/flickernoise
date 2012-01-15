@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include <fpvm/fpvm.h>
 #include <fpvm/symbol.h>
@@ -399,9 +400,12 @@ static const char *assign_image_name(struct parser_comm *comm,
 #ifndef STANDALONE
 	struct compiler_sc *sc = comm->u.sc;
 	char *totalname;
+	struct image *img;
+#endif
 
 	if(number > IMAGE_COUNT)
 		return strdup("image number out of bounds");
+#ifndef STANDALONE
 	number--;
 	
 	if(*name == '/')
@@ -413,10 +417,25 @@ static const char *assign_image_name(struct parser_comm *comm,
 		strcpy(totalname, sc->basedir);
 		strcat(totalname, name);
 	}
-	pixbuf_dec_ref(sc->p->images[number]);
-	sc->p->images[number] = pixbuf_get(totalname);
-	free(totalname);
-#endif /* STANDALONE */
+
+	img = sc->p->images+number;
+	pixbuf_dec_ref(img->pixbuf);
+	free((void *) img->filename);
+	img->pixbuf = NULL;
+	img->filename = NULL;
+
+	if(lstat(totalname, &img->st) < 0) {
+		free(totalname);
+		return strdup("image file not found");
+	}
+	img->pixbuf = pixbuf_get(totalname);
+	if(img->pixbuf) {
+		img->filename = totalname;
+	} else {
+		free(totalname);
+		return strdup("cannot load image file");
+	}
+#endif /* !STANDALONE */
 	return NULL;
 }
 
@@ -456,8 +475,11 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 		free(sc);
 		return NULL;
 	}
-	for(i=0;i<IMAGE_COUNT;i++)
-		sc->p->images[i] = NULL;
+	for(i=0;i<IMAGE_COUNT;i++) {
+		sc->p->images[i].pixbuf = NULL;
+		sc->p->images[i].filename = NULL;
+	}
+	sc->p->ref = 1;
 	sc->p->require = 0;
 	sc->p->original = NULL;
 	sc->p->next = NULL;
@@ -517,25 +539,51 @@ struct patch *patch_compile_filename(const char *filename,
 struct patch *patch_copy(struct patch *p)
 {
 	struct patch *new_patch;
-	int i;
+	struct image *img;
 
 	new_patch = malloc(sizeof(struct patch));
 	assert(new_patch != NULL);
 	memcpy(new_patch, p, sizeof(struct patch));
+	new_patch->ref = 1;
 	new_patch->original = p;
 	new_patch->next = NULL;
-	for(i=0;i<IMAGE_COUNT;i++)
-		pixbuf_inc_ref(new_patch->images[i]);
+	for(img = new_patch->images;
+	    img != new_patch->images+IMAGE_COUNT; img++) {
+		if(img->filename)
+			img->filename = strdup(img->filename);
+		pixbuf_inc_ref(img->pixbuf);
+	}
 	return new_patch;
 }
 
 void patch_free(struct patch *p)
 {
-	int i;
+	struct image *img;
 
-	for(i=0;i<IMAGE_COUNT;i++)
-		pixbuf_dec_ref(p->images[i]);
+	assert(p->ref);
+	if(--p->ref);
+		return;
+	for(img = p->images; img != p->images+IMAGE_COUNT; img++) {
+		pixbuf_dec_ref(img->pixbuf);
+		free((void *) img->filename);
+	}
 	free(p);
+}
+
+int patch_images_uptodate(const struct patch *p)
+{
+	const struct image *img;
+	struct stat st;
+
+	for(img = p->images; img != p->images+IMAGE_COUNT; img++) {
+		if(!img->pixbuf)
+			continue;
+		if(lstat(img->filename, &st) < 0)
+			return 0;
+		if(st.st_mtime != img->st.st_mtime)
+			return 0;
+	}
+	return 1;
 }
 
 #endif
