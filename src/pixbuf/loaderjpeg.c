@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
+#include <string.h>
 #include <jpeglib.h>
 
 #include "pixbuf.h"
@@ -75,6 +76,7 @@ struct pixbuf *pixbuf_load_jpeg(char *filename)
 
 	ret = pixbuf_new(cinfo.image_width, cinfo.image_height);
 	if(ret == NULL) goto free5;
+	ret->filename = strdup(filename);
 	if(!pixbuf_dither(ret->pixels, row_pointers, cinfo.image_width, cinfo.image_height, 0)) {
 		pixbuf_dec_ref(ret);
 		ret = NULL;
