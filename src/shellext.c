@@ -23,13 +23,21 @@
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <bsp/milkymist_pfpu.h>
+#include <bsp/milkymist_tmu.h>
 
 #include "shellext.h"
 #include "fbgrab.h"
+
+#ifndef PFPU_SPREG_COUNT
+#define	PFPU_SPREG_COUNT 2
+#endif
 
 static int main_viwrite(int argc, char **argv)
 {
@@ -149,6 +157,74 @@ static int main_fbgrab(int argc, char **argv)
 	return ret;
 }
 
+static int main_pfpu(int argc, char **argv)
+{
+	static unsigned int dummy[2]
+	    __attribute__((aligned(sizeof(struct tmu_vertex))));
+	union {
+		float f;
+		unsigned i;
+	} u;
+	unsigned int program[PFPU_PROGSIZE];
+	float regs[PFPU_REG_COUNT];
+	struct pfpu_td td = {
+		.output = dummy,
+		.hmeshlast = 0,
+		.vmeshlast = 0,
+		.program = program,
+		.progsize = 0,
+		.registers = regs,
+		.update = true,
+		.invalidate = false
+	};
+	char **arg;
+	float *r = regs+PFPU_SPREG_COUNT, *rr;
+	int hex = 0;
+	int fd, res;
+
+	for(arg = argv+1; arg != argv+argc; arg++) {
+		if(strchr(*arg, '.')) {
+			*r++ = atof(*arg);
+		} else if(!strncmp(*arg, "0x", 2)) {
+			u.i = strtoul(*arg, NULL, 0);
+			*r++ = u.f;
+			hex = 1;
+		} else if(strlen(*arg) == 8) {
+			program[td.progsize++] = strtoul(*arg, NULL, 16);
+		} else {
+			fprintf(stderr, "don't understand \"%s\"\n", *arg);
+			return 1;
+		}
+	}
+
+	fd = open("/dev/pfpu", O_RDWR);
+	if(fd < 0) {
+		perror("/dev/pfpu");
+		return 2;
+	}
+	res = ioctl(fd, PFPU_EXECUTE, &td);
+	close(fd);
+
+	if(res < 0) {
+		perror("ioctl(PFPU_EXECUTE)");
+		return 2;
+	}
+
+	for(rr = regs+PFPU_SPREG_COUNT; r != rr; rr++) {
+		if(rr != regs+PFPU_SPREG_COUNT)
+			putchar(' ');
+		if(hex) {
+			u.f = *rr;
+			printf("0x%08x", u.i);
+		} else {
+			printf("%g", *rr);
+		}
+	}
+	putchar('\n');
+
+	return 0;
+}
+
 static rtems_shell_cmd_t shellext_viwrite = {
 	"viwrite",			/* name */
 	"viwrite register value",	/* usage */
@@ -176,11 +252,20 @@ static rtems_shell_cmd_t shellext_erase = {
 	&shellext_viread		/* next */
 };
 
-rtems_shell_cmd_t shellext = {
+static rtems_shell_cmd_t shellext_fbgrab = {
 	"fbgrab",			/* name */
 	"fbgrab file.png",		/* usage */
 	"flickernoise",			/* topic */
 	main_fbgrab,			/* command */
 	NULL,				/* alias */
 	&shellext_erase			/* next */
+};
+
+rtems_shell_cmd_t shellext = {
+	"pfpu",				/* name */
+	"pfpu reg ... code ...",	/* usage */
+	"flickernoise",			/* topic */
+	main_pfpu,			/* command */
+	NULL,				/* alias */
+	&shellext_fbgrab		/* next */
 };
