@@ -149,7 +149,7 @@ static struct ast_node *constant(float n)
 static struct ast_node *conditional(struct ast_node *a,
     struct ast_node *b, struct ast_node *c)
 {
-	if(a->op == op_not) {
+	if(a->op == op_bnot) {
 		struct ast_node *next = a->contents.branches.a;
 
 		parse_free_one(a);
@@ -364,7 +364,7 @@ equal_expr(N) ::= equal_expr(A) TOK_NE rel_expr(B). {
 	struct ast_node *tmp;
 
 	FOLD_BINARY(tmp, op_equal, A, B, a == b);
-	FOLD_UNARY(N, op_not, tmp, !a);
+	FOLD_UNARY(N, op_bnot, tmp, !a);
 }
 
 rel_expr(N) ::= add_expr(A). {
@@ -383,14 +383,14 @@ rel_expr(N) ::= rel_expr(A) TOK_LE add_expr(B). {
 	struct ast_node *tmp;
 
 	FOLD_BINARY(tmp, op_above, A, B, a > b);
-	FOLD_UNARY(N, op_not, tmp, !a);
+	FOLD_UNARY(N, op_bnot, tmp, !a);
 }
 
 rel_expr(N) ::= rel_expr(A) TOK_GE add_expr(B). {
 	struct ast_node *tmp;
 
 	FOLD_BINARY(tmp, op_below, A, B, a < b);
-	FOLD_UNARY(N, op_not, tmp, !a);
+	FOLD_UNARY(N, op_bnot, tmp, !a);
 }
 
 add_expr(N) ::= mult_expr(A). {
@@ -430,7 +430,7 @@ unary_expr(N) ::= TOK_MINUS unary_expr(A). {
 }
 
 unary_expr(N) ::= TOK_NOT unary_expr(A). {
-	FOLD_UNARY(N, op_not, A, !a);
+	FOLD_UNARY(N, op_bnot, A, !a);
 }
 
 
