@@ -101,6 +101,7 @@ int scan(struct scanner *s)
 		<N>"above"		{ return TOK_ABOVE; }
 		<N>"abs"		{ return TOK_ABS; }
 		<N>"below"		{ return TOK_BELOW; }
+		<N>"bnot"		{ return TOK_BNOT; }
 		<N>"cos"		{ return TOK_COS; }
 		<N>"equal"		{ return TOK_EQUAL; }
 		<N>"f2i"		{ return TOK_F2I; }

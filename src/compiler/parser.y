@@ -84,6 +84,7 @@ static const enum ast_op tok2op[] = {
 	[TOK_MIN]	= op_min,
 	[TOK_MAX]	= op_max,
 	[TOK_INT]	= op_int,
+	[TOK_BNOT]	= op_bnot,
 };
 
 static struct ast_node *node_op(enum ast_op op,
@@ -450,6 +451,10 @@ primary_expr(N) ::= TOK_SQRT TOK_LPAREN expr(A) TOK_RPAREN. {
 	FOLD_UNARY(N, op_sqrt, A, sqrtf(a));
 }
 
+primary_expr(N) ::= TOK_BNOT TOK_LPAREN expr(A) TOK_RPAREN. {
+	FOLD_UNARY(N, op_bnot, A, !a);
+}
+
 
 /* ----- Binary functions -------------------------------------------------- */
 
@@ -559,6 +564,7 @@ unary_misc(O) ::= TOK_QUAKE(I).	{ O = I; }
 unary_misc(O) ::= TOK_SIN(I).	{ O = I; }
 unary(O) ::= TOK_SQR(I).	{ O = I; }
 unary(O) ::= TOK_SQRT(I).	{ O = I; }
+unary(O) ::= TOK_BNOT(I).	{ O = I; }
 
 binary(O) ::= TOK_ABOVE(I).	{ O = I; }
 binary(O) ::= TOK_BELOW(I).	{ O = I; }
