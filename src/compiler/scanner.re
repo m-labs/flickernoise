@@ -100,8 +100,10 @@ int scan(struct scanner *s)
 
 		<N>"above"		{ return TOK_ABOVE; }
 		<N>"abs"		{ return TOK_ABS; }
+		<N>"band"		{ return TOK_BAND; }
 		<N>"below"		{ return TOK_BELOW; }
 		<N>"bnot"		{ return TOK_BNOT; }
+		<N>"bor"		{ return TOK_BOR; }
 		<N>"cos"		{ return TOK_COS; }
 		<N>"equal"		{ return TOK_EQUAL; }
 		<N>"f2i"		{ return TOK_F2I; }
@@ -150,6 +152,8 @@ int scan(struct scanner *s)
 		<N>">"			{ return TOK_GT; }
 		<N>"<="			{ return TOK_LE; }
 		<N>">="			{ return TOK_GE; }
+		<N>"&&"			{ return TOK_ANDAND; }
+		<N>"||"			{ return TOK_OROR; }
 
 		<N,FNAME1>"="		{ if (YYGETCONDITION() == yycFNAME1)
 						YYSETCONDITION(yycFNAME2);

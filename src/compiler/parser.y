@@ -85,6 +85,8 @@ static const enum ast_op tok2op[] = {
 	[TOK_MAX]	= op_max,
 	[TOK_INT]	= op_int,
 	[TOK_BNOT]	= op_bnot,
+	[TOK_BAND]	= op_band,
+	[TOK_BOR]	= op_bor,
 };
 
 static struct ast_node *node_op(enum ast_op op,
@@ -192,6 +194,8 @@ static struct id *symbolify(struct id *id)
 
 %type expr {struct ast_node *}
 %type cond_expr {struct ast_node *}
+%type bool_or_expr {struct ast_node *}
+%type bool_and_expr {struct ast_node *}
 %type equal_expr {struct ast_node *}
 %type rel_expr {struct ast_node *}
 %type add_expr {struct ast_node *}
@@ -201,6 +205,8 @@ static struct id *symbolify(struct id *id)
 
 %destructor expr { free($$); }
 %destructor cond_expr { free($$); }
+%destructor bool_or_expr { free($$); }
+%destructor bool_and_expr { free($$); }
 %destructor equal_expr { free($$); }
 %destructor rel_expr { free($$); }
 %destructor add_expr { free($$); }
@@ -349,8 +355,24 @@ cond_expr(N) ::= equal_expr(A). {
 	N = A;
 }
 
-cond_expr(N) ::= equal_expr(A) TOK_QUESTION expr(B) TOK_COLON cond_expr(C). {
+cond_expr(N) ::= bool_or_expr(A) TOK_QUESTION expr(B) TOK_COLON cond_expr(C). {
 	N = conditional(A, B, C);
+}
+
+bool_or_expr(N) ::= bool_and_expr(A). {
+	N = A;
+}
+
+bool_or_expr(N) ::= bool_or_expr(A) TOK_OROR bool_and_expr(B). {
+	FOLD_BINARY(N, op_bor, A, B, a || b);
+}
+
+bool_and_expr(N) ::= equal_expr(A). {
+	N = A;
+}
+
+bool_and_expr(N) ::= bool_and_expr(A) TOK_ANDAND equal_expr(B). {
+	FOLD_BINARY(N, op_band, A, B, a && b);
 }
 
 equal_expr(N) ::= rel_expr(A). {
@@ -485,6 +507,14 @@ primary_expr(N) ::= TOK_MIN TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
 	FOLD_BINARY(N, op_min, A, B, a < b ? a : b);
 }
 
+primary_expr(N) ::= TOK_BAND TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
+	FOLD_BINARY(N, op_band, A, B, a && b);
+}
+
+primary_expr(N) ::= TOK_BOR TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
+	FOLD_BINARY(N, op_bor, A, B, a || b);
+}
+
 
 /* ----- Trinary functions ------------------------------------------------- */
 
@@ -567,7 +597,9 @@ unary(O) ::= TOK_SQRT(I).	{ O = I; }
 unary(O) ::= TOK_BNOT(I).	{ O = I; }
 
 binary(O) ::= TOK_ABOVE(I).	{ O = I; }
+binary(O) ::= TOK_BAND(I).	{ O = I; }
 binary(O) ::= TOK_BELOW(I).	{ O = I; }
+binary(O) ::= TOK_BOR(I).	{ O = I; }
 binary(O) ::= TOK_EQUAL(I).	{ O = I; }
 binary(O) ::= TOK_MAX(I).	{ O = I; }
 binary(O) ::= TOK_MIN(I).	{ O = I; }

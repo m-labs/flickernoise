@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "fpvm/pfpu.h"
+#include "fpvm/schedulers.h"
 
 #include "../parser_helper.h"
 #include "../parser.h"
@@ -340,6 +341,33 @@ static void compile(const char *pgm)
 	 * free(3) has the same effect in this case.
 	 */
 	free(patch);
+}
+
+
+static void compile_raw(const char *pgm)
+{
+	struct patch patch;
+	struct compiler_sc sc = {
+		.p = &patch
+	};
+	struct patch *p;
+
+	memset(&patch, 0, sizeof(patch));
+	patch.rmc = report;
+
+	if (!parse_patch(&sc, pgm)) {
+		symtab_free();
+		exit(1);
+	}
+	patch.perframe_prog_length = fpvm_default_schedule(&sc.pfv_fragment,
+	    (unsigned *) patch.perframe_prog,
+	    (unsigned *) patch.perframe_regs);
+	patch.pervertex_prog_length = fpvm_default_schedule(&sc.pvv_fragment,
+	    (unsigned *) patch.pervertex_prog,
+	    (unsigned *) patch.pervertex_regs);
+
+	if (!quiet)
+		show_patch(p);
 }
 
 
