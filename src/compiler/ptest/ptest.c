@@ -344,6 +344,7 @@ static void compile(const char *pgm)
 }
 
 
+#if 0
 static void compile_raw(const char *pgm)
 {
 	struct patch patch;
@@ -369,6 +370,7 @@ static void compile_raw(const char *pgm)
 	if (!quiet)
 		show_patch(p);
 }
+#endif
 
 
 static void free_buffer(void)
