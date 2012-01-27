@@ -32,6 +32,8 @@
 #include "cp.h"
 #include "../input.h"
 #include "videoin.h"
+#include "../compiler/compiler.h"
+#include "guirender.h"
 
 static int appid;
 
@@ -193,8 +195,41 @@ static void close_videoin_window(void)
 	resmgr_release(RESOURCE_VIDEOIN);
 }
 
+static void dummy_rmc(const char *msg)
+{
+}
+
+static void stop_callback(void)
+{
+	if(!resmgr_acquire("Video in settings", RESOURCE_VIDEOIN))
+		return;
+
+	video_fd = open("/dev/video", O_RDWR);
+	if(video_fd == -1) {
+		perror("Unable to open video device");
+		resmgr_release(RESOURCE_VIDEOIN);
+		return;
+	}
+	input_add_callback(preview_update);
+}
+
 static void fullscreen_callback(mtk_event *e, void *arg)
 {
+	struct patch *p;
+	char *dummy_filename = "FS";
+	char *code = "video_a=1;decay=0;";
+
+	p = patch_compile_filename(dummy_filename, code, dummy_rmc);
+	if(p == NULL)
+		return;
+
+	close(video_fd);
+	input_delete_callback(preview_update);
+	resmgr_release(RESOURCE_VIDEOIN);
+
+	guirender(appid, p, stop_callback);
+
+	patch_free(p);
 }
 
 static void ok_callback(mtk_event *e, void *arg)
