@@ -141,8 +141,8 @@ static struct sysconfig sysconfig = {
 	.ip = 0xc0a8002a,	/* 192.168.0.42 */
 	.netmask = 0xffffff00,	/* 255.255.255.0 */
 	.gateway = 0xc0a80001,	/* 192.168.0.1 */
-	.dns1 = 0xd043dede,	/* 208.67.222.222 */
-	.dns2 = 0xd043dedc,	/* 208.67.222.220 */
+	.dns1 = 0x08080808,	/* 8.8.8.8 */
+	.dns2 = 0x08080404,	/* 8.8.4.4 */
 	.autostart_as = 1
 };
 
