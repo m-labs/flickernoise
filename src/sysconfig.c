@@ -138,8 +138,11 @@ static struct sysconfig sysconfig = {
 	.language = SC_LANGUAGE_ENGLISH,
 	.keyboard_layout = SC_KEYBOARD_LAYOUT_US,
 	.dhcp_enable = 1,
-	.ip = 0xc0a8002a,
-	.netmask = 0xffffff00,
+	.ip = 0xc0a8002a,	/* 192.168.0.42 */
+	.netmask = 0xffffff00,	/* 255.255.255.0 */
+	.gateway = 0xc0a80001,	/* 192.168.0.1 */
+	.dns1 = 0x08080808,	/* 8.8.8.8 */
+	.dns2 = 0x08080404,	/* 8.8.4.4 */
 	.autostart_as = 1
 };
 
@@ -358,16 +361,29 @@ void sysconfig_get_ipconfig(int *dhcp_enable, unsigned int *ip, unsigned int *ne
 {
 	*dhcp_enable = sysconfig.dhcp_enable;
 
-	if(ip != NULL)
-		*ip = ifconfig_get_ip(SIOCGIFADDR);
-	if(netmask != NULL)
-		*netmask = ifconfig_get_ip(SIOCGIFNETMASK);
-	if(gateway != NULL)
-		*gateway = route_get_gateway();
-	if(dns1 != NULL)
-		*dns1 = rtems_bsdnet_nameserver_count > 0 ? rtems_bsdnet_nameserver[0].s_addr : 0;
-	if(dns2 != NULL)
-		*dns2 = rtems_bsdnet_nameserver_count > 1 ? rtems_bsdnet_nameserver[1].s_addr : 0;
+	if(*dhcp_enable) {
+		if(ip != NULL)
+			*ip = ifconfig_get_ip(SIOCGIFADDR);
+		if(netmask != NULL)
+			*netmask = ifconfig_get_ip(SIOCGIFNETMASK);
+		if(gateway != NULL)
+			*gateway = route_get_gateway();
+		if(dns1 != NULL)
+			*dns1 = rtems_bsdnet_nameserver_count > 0 ? rtems_bsdnet_nameserver[0].s_addr : 0;
+		if(dns2 != NULL)
+			*dns2 = rtems_bsdnet_nameserver_count > 1 ? rtems_bsdnet_nameserver[1].s_addr : 0;
+	} else {
+		if(ip != NULL)
+			*ip = sysconfig.ip;
+		if(netmask != NULL)
+			*netmask = sysconfig.netmask;
+		if(gateway != NULL)
+			*gateway = sysconfig.gateway;
+		if(dns1 != NULL)
+			*dns1 = sysconfig.dns1;
+		if(dns2 != NULL)
+			*dns2 = sysconfig.dns2;
+	}
 }
 
 void sysconfig_get_credentials(char *login, char *password)
@@ -523,16 +539,18 @@ void sysconfig_set_ipconfig(int dhcp_enable, unsigned int ip, unsigned int netma
 	}
 
 	sysconfig.dhcp_enable = dhcp_enable;
-	if(ip != 0)
-		sysconfig.ip = ip;
-	if(netmask != 0)
-		sysconfig.netmask = netmask;
-	if(gateway != 0)
-		sysconfig.gateway = gateway;
-	if(dns1 != 0)
-		sysconfig.dns1 = dns1;
-	if(dns2 != 0)
-		sysconfig.dns2 = dns2;
+	if(!dhcp_enable) {
+		if(ip != 0)
+			sysconfig.ip = ip;
+		if(netmask != 0)
+			sysconfig.netmask = netmask;
+		if(gateway != 0)
+			sysconfig.gateway = gateway;
+		if(dns1 != 0)
+			sysconfig.dns1 = dns1;
+		if(dns2 != 0)
+			sysconfig.dns2 = dns2;
+	}
 }
 
 void sysconfig_set_credentials(char *login, char *password)
