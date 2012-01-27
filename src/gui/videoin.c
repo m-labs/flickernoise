@@ -193,6 +193,10 @@ static void close_videoin_window(void)
 	resmgr_release(RESOURCE_VIDEOIN);
 }
 
+static void fullscreen_callback(mtk_event *e, void *arg)
+{
+}
+
 static void ok_callback(mtk_event *e, void *arg)
 {
 	set_config();
@@ -280,11 +284,13 @@ void init_videoin(void)
 		"g.rowconfig(10, -size 10)",
 
 		"g_btn = new Grid()",
+		"b_fullscreen = new Button(-text \"Full Screen\")",
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
-		"g_btn.columnconfig(1, -size 190)",
-		"g_btn.place(b_ok, -column 2 -row 1)",
-		"g_btn.place(b_cancel, -column 3 -row 1)",
+		"g_btn.place(b_fullscreen, -column 1 -row 1)",
+		"g_btn.columnconfig(2, -size 100)",
+		"g_btn.place(b_ok, -column 3 -row 1)",
+		"g_btn.place(b_cancel, -column 4 -row 1)",
 		"g.place(g_btn, -column 1 -row 11)",
 
 		"w = new Window(-content g -title \"Video input settings\" -worky 30)",
@@ -301,6 +307,8 @@ void init_videoin(void)
 	mtk_bind(appid, "s_brightness", "change", slide_callback, (void *)CONTROL_BRIGHTNESS);
 	mtk_bind(appid, "s_contrast", "change", slide_callback, (void *)CONTROL_CONTRAST);
 	mtk_bind(appid, "s_hue", "change", slide_callback, (void *)CONTROL_HUE);
+
+	mtk_bind(appid, "b_fullscreen", "commit", fullscreen_callback, NULL);
 
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", close_callback, NULL);
