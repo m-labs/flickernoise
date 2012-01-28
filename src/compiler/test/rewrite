@@ -10,4 +10,45 @@ equiv1 "rewrite: prettier Krash - Digital Flame" \
 sedit s/swapcolour/swap/g
 equiv2 <Data/flame.fnp
 
+#------------------------------------------------------------------------------
+
+#
+# The original used rand(3) instead of sin(3), but we don't have that (yet ?)
+#
+
+equiv1 "rewrite: per_frame_2 from Unchained - A Matter Of Taste (Remix)" <<EOF
+per_frame_2=entropy=if(bnot(entropy),2,if(equal(pulse,-9.42),1+sin(3),entropy));
+EOF
+equiv2 <<EOF
+per_frame:
+	entropy = !entropy ? 2 :
+	    pulse == -9.42 ? 1+sin(3) : entropy;
+EOF
+
+#------------------------------------------------------------------------------
+
+equiv1 "rewrite: per_frame_12 from Unchained - A Matter Of Taste (Remix)" <<EOF
+per_frame_12=pulse=if(above(abs(pulse),9.42),-9.42,pulse+.1*bor(bor(bass_changed*bnot(treb_changed),treb_changed*bnot(bass_changed))*bnot(mid_changed),mid_changed)+(mid+bass+treb)*entropy*.01);
+EOF
+equiv2 <<EOF
+per_frame:
+	pulse = abs(pulse) > 9.42 ? -9.42 :
+	    pulse+
+	    0.1*(
+	        (bass_changed*!treb_changed || treb_changed*!bass_changed)*
+		  !mid_changed ||
+		mid_changed)+
+	    (mid+bass+treb)*entropy*0.01;
+EOF
+
+#
+# This could be written even more cleanly as
+#
+#	pulse = abs(pulse) > 9.42 ? -9.42 :
+#	    pulse+
+#	    0.1*(mid_changed ? 1 :
+#	        bass_changed*!treb_changed || treb_changed*!bass_changed)+
+#	    0.01*(mid+bass+treb)*entropy;
+#
+
 ###############################################################################
