@@ -60,7 +60,7 @@ static void comp_report(struct compiler_sc *sc, const char *format, ...)
 	sc->rmc(outbuf);
 }
 
-static void init_fpvm(struct fpvm_fragment *fragment, int vector_mode)
+void init_fpvm(struct fpvm_fragment *fragment, int vector_mode)
 {
 	/*
 	 * We need to pass these through unique() because the parser does

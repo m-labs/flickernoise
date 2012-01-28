@@ -344,33 +344,62 @@ static void compile(const char *pgm)
 }
 
 
-#if 0
-static void compile_raw(const char *pgm)
+static const char *assign_raw(struct parser_comm *comm,
+    struct sym *sym, struct ast_node *node)
 {
-	struct patch patch;
-	struct compiler_sc sc = {
-		.p = &patch
-	};
-	struct patch *p;
+	struct fpvm_fragment *frag = comm->u.fragment;
 
-	memset(&patch, 0, sizeof(patch));
-	patch.rmc = report;
-
-	if (!parse_patch(&sc, pgm)) {
-		symtab_free();
-		exit(1);
-	}
-	patch.perframe_prog_length = fpvm_default_schedule(&sc.pfv_fragment,
-	    (unsigned *) patch.perframe_prog,
-	    (unsigned *) patch.perframe_regs);
-	patch.pervertex_prog_length = fpvm_default_schedule(&sc.pvv_fragment,
-	    (unsigned *) patch.pervertex_prog,
-	    (unsigned *) patch.pervertex_regs);
-
-	if (!quiet)
-		show_patch(p);
+	if(fpvm_do_assign(frag, &sym->fpvm_sym, node))
+		return NULL;
+	else
+		return strdup(fpvm_get_last_error(frag));
 }
-#endif
+
+
+static const char *assign_raw_fail(struct parser_comm *comm,
+    struct sym *sym, struct ast_node *node)
+{
+	return strdup("unsupported assignment mode");
+}
+
+
+static const char *assign_image_fail(struct parser_comm *comm,
+    int number, const char *name)
+{
+	if (!quiet)
+		printf("image %d = \"%s\"\n", number, name);
+	return NULL;
+}
+
+
+static void compile_vm(const char *pgm)
+{
+	struct fpvm_fragment fragment;
+	struct parser_comm comm = {
+		.u.fragment = &fragment,
+		.assign_default = assign_raw,
+		.assign_per_frame = assign_raw,
+		.assign_per_vertex = assign_raw_fail,
+		.assign_image_name = assign_image_fail,
+	};
+	int ok;
+
+	init_fpvm(&fragment, 0);
+	fpvm_set_bind_mode(&fragment, FPVM_BIND_ALL);
+	symtab_init();
+	ok = parse(pgm, TOK_START_ASSIGN, &comm);
+
+	if (ok)
+		fpvm_dump(&fragment);
+	symtab_free();
+	if (ok)
+		return;
+
+	fflush(stdout);
+	fprintf(stderr, "%s\n", comm.msg);
+	free((void *) comm.msg);
+	exit(1);
+}
 
 
 static void free_buffer(void)
@@ -382,8 +411,9 @@ static void free_buffer(void)
 static void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [-c|-f error] [-n runs] [-q] [-s] [-Wwarning...] [expr]\n\n"
+"usage: %s [-c [-c]|-f error] [-n runs] [-q] [-s] [-Wwarning...] [expr]\n\n"
 "  -c        generate code and dump generated code (unless -q is set)\n"
+"  -c -c     generate and dump VM code\n"
 "  -f error  fail any assignment with specified error message\n"
 "  -n runs   run compilation repeatedly (default: run only once)\n"
 "  -q        quiet operation\n"
@@ -407,7 +437,7 @@ int main(int argc, char **argv)
 	while ((c = getopt(argc, argv, "cf:n:qsW:")) != EOF)
 		switch (c) {
 		case 'c':
-			codegen = 1;
+			codegen++;
 			break;
 		case 'f':
 			fail = optarg;
@@ -450,12 +480,20 @@ int main(int argc, char **argv)
 		usage(*argv);
 	}
 
-	while (repeat--) {
-		if (codegen)
-			compile(buffer);
-		else
+	while (repeat--)
+		switch (codegen) {
+		case 0:
 			parse_only(buffer);
-	}
+			break;
+		case 1:
+			compile(buffer);
+			break;
+		case 2:
+			compile_vm(buffer);
+			break;
+		default:
+			usage(*argv);
+		}
 
 	return 0;
 }
