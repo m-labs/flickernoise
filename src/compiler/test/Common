@@ -67,9 +67,8 @@ sedit()
 equiv1()
 {
 	echo -n "$1: " 1>&2
-	one=$2
-	shift 2
-	$VALGRIND ${PTST:-../ptest/ptest} "$@" <"$one" >_out 2>&1 || {
+	shift
+	$VALGRIND ${PTST:-../ptest/ptest} "$@" >_out 2>&1 || {
 		echo FAILED "($SCRIPT)" 1>&2
 		cat _out
 		rm -f _out
@@ -80,9 +79,7 @@ equiv1()
 
 equiv2()
 {
-	two=$1
-	shift
-	$VALGRIND ${PTST:-../ptest/ptest} "$@" <"$two" >_two 2>&1 || {
+	$VALGRIND ${PTST:-../ptest/ptest} "$@" >_two 2>&1 || {
 		echo FAILED "($SCRIPT)" 1>&2
 		cat _two
 		rm -f _out _two
