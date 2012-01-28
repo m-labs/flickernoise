@@ -98,3 +98,13 @@ equiv2()
 	rm -f _out _two _diff
 	passed=`expr ${passed:-0} + 1`
 }
+
+
+fpvm()
+{
+	one=$1
+	shift
+	ptest "$one" -c -c "$@"
+	${PRVM:-../ptest/prvm.pl} _out >_tmp || exit 1
+	mv _tmp _out
+}
