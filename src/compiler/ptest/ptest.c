@@ -138,6 +138,12 @@ static void dump_ast(const struct ast_node *ast)
 	case op_bnot:
 		op("!", ast);
 		break;
+	case op_band:
+		op("&&", ast);
+		break;
+	case op_bor:
+		op("||", ast);
+		break;
 	default:
 		abort();
 	}

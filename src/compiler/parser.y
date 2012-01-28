@@ -351,7 +351,7 @@ expr(N) ::= cond_expr(A). {
 	N = A;
 }
 
-cond_expr(N) ::= equal_expr(A). {
+cond_expr(N) ::= bool_or_expr(A). {
 	N = A;
 }
 
