@@ -261,19 +261,42 @@ end:
 	rtems_task_delete(RTEMS_SELF);
 }
 
+static void midi_ctrl_event(mtk_event *e)
+{
+	int chan, ctrl, value;
+
+	chan = (e->press.code & 0x0f0000) >> 16;
+	ctrl = (e->press.code & 0x7f00) >> 8;
+	value = e->press.code & 0x7f;
+
+	if(chan == midi_channel)
+		midi_controllers[ctrl] = value;
+}
+
+static void midi_pitch_event(mtk_event *e)
+{
+	int chan, value;
+
+	chan = (e->press.code & 0x0f0000) >> 16;
+	value = e->press.code & 0x7f;
+
+	if(chan == midi_channel)
+		midi_controllers[128] = value;
+}
+
 static void event_callback(mtk_event *e, int count)
 {
 	int i;
 
-	for(i=0;i<count;i++) {
-		if(e[i].type == EVENT_TYPE_MIDI_CONTROLLER) {
-			if(((e[i].press.code & 0x0f0000) >> 16) == midi_channel)
-				midi_controllers[(e[i].press.code & 0x7f00) >> 8] = e[i].press.code & 0x7f;
-		} else if(e[i].type == EVENT_TYPE_MIDI_PITCH) {
-			if(((e[i].press.code & 0x0f0000) >> 16) == midi_channel)
-				midi_controllers[128] = e[i].press.code & 0x7f;
+	for(i=0;i<count;i++)
+		switch(e[i].type) {
+			case EVENT_TYPE_MIDI_CONTROLLER:
+				midi_ctrl_event(e+i);
+				break;
+			case EVENT_TYPE_MIDI_PITCH:
+				midi_pitch_event(e+i);
+				break;
 		}
-	}
 }
 
 static rtems_id sampler_task_id;
