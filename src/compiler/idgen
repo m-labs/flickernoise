@@ -51,6 +51,7 @@ sed 's/#.*//;/^ *$/d' $1 | LANG=C sort | {
 	.pfv_idx = $2,
 	.pvv_idx = $3,
 	.flags = SF_SYSTEM,
+	.cvar = -1,
 },
 EOF
 		i=`expr $i + 1`

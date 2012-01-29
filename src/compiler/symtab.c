@@ -107,6 +107,7 @@ struct sym *unique(const char *s)
 	new->fpvm_sym.name = strdup(s);
 	new->pfv_idx = new->pvv_idx = -1;
 	new->flags = 0;
+	new->cvar = -1;
 	return new;
 }
 
@@ -132,6 +133,7 @@ struct sym *unique_n(const char *s, int n)
 	new->fpvm_sym.name = strdup_n(s, n);
 	new->pfv_idx = new->pvv_idx = -1;
 	new->flags = 0;
+	new->cvar = -1;
 	return new;
 }
 

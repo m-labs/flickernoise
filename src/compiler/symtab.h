@@ -12,6 +12,7 @@
 #define	SYMTAB_H
 
 #include <fpvm/symbol.h>
+#include "compiler.h"
 
 
 #define	SF_SYSTEM	(1 << 0)
@@ -21,6 +22,7 @@
 struct sym {
 	struct fpvm_sym fpvm_sym;
 	int pfv_idx, pvv_idx;	/* index; -1 if not a variable known to FN */
+	int cvar;		/* -1 if not a control variable */
 	int flags;
 };
 
