@@ -58,6 +58,8 @@ static void write_pvv(struct patch *p, int pvv, float x)
 
 static void transfer_pvv_regs(struct patch *p)
 {
+	const struct cvar *cv;
+
 	write_pvv(p, pvv_texsize, renderer_texsize << TMU_FIXEDPOINT_SHIFT);
 	write_pvv(p, pvv_hmeshsize, 1.0/(float)renderer_hmeshlast);
 	write_pvv(p, pvv_vmeshsize, 1.0/(float)renderer_vmeshlast);
@@ -115,6 +117,10 @@ static void transfer_pvv_regs(struct patch *p)
 	write_pvv(p, pvv_midi6, read_pfv(p, pfv_midi6));
 	write_pvv(p, pvv_midi7, read_pfv(p, pfv_midi7));
 	write_pvv(p, pvv_midi8, read_pfv(p, pfv_midi8));
+
+	for(cv = p->cvars; cv != p->cvars+p->ncvars; cv++)
+		if(cv->pvv_reg >= 0)
+			p->pervertex_regs[cv->pvv_reg] = cv->val;
 }
 
 static void reinit_pfv(struct patch *p, int pfv)
@@ -129,12 +135,15 @@ static void reinit_pfv(struct patch *p, int pfv)
 static void reinit_all_pfv(struct patch *p)
 {
 	int i;
+
 	for(i=0;i<COMP_PFV_COUNT;i++)
 		reinit_pfv(p, i);
 }
 
 static void set_pfv_from_frd(struct patch *p, struct frame_descriptor *frd)
 {
+	const struct cvar *cv;
+
 	write_pfv(p, pfv_time, frd->time);
 	write_pfv(p, pfv_frame, frd->frame);
 	write_pfv(p, pfv_bass, frd->bass);
@@ -166,6 +175,10 @@ static void set_pfv_from_frd(struct patch *p, struct frame_descriptor *frd)
 	write_pfv(p, pfv_midi6, frd->midi[5]);
 	write_pfv(p, pfv_midi7, frd->midi[6]);
 	write_pfv(p, pfv_midi8, frd->midi[7]);
+
+	for(cv = p->cvars; cv != p->cvars+p->ncvars; cv++)
+		if(cv->pfv_reg >= 0)
+			p->perframe_regs[cv->pfv_reg] = cv->val;
 }
 
 static void set_frd_from_pfv(struct patch *p, struct frame_descriptor *frd)
