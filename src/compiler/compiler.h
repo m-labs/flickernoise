@@ -30,6 +30,7 @@
 #include <fpvm/fpvm.h>
 
 #include "../renderer/framedescriptor.h"
+#include "../renderer/stimuli.h"
 #include "../pixbuf/pixbuf.h"
 
 enum {
@@ -225,6 +226,12 @@ struct image {
 	struct stat st;
 };
 
+struct cvar {
+	float val;	/* current value */
+	int pfv_reg;	/* per-frame register */
+	int pvv_reg;	/* per-vertex register */
+};
+
 struct patch {
 	/* per-frame */
 	struct image images[IMAGE_COUNT];	/* images used in this patch */
@@ -254,6 +261,11 @@ struct patch {
 				   values) */
 	int ref;		/* reference count */
 	struct patch *next;	/* used when chaining patches in mashups */
+
+	/* unified input events */
+	struct stimuli *stim;	/* control variable hierarchy */
+	int ncvars;		/* number of control variables */
+	struct cvar *cvars;	/* control variables */
 };
 
 typedef void (*report_message)(const char *);

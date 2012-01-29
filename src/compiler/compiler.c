@@ -483,6 +483,9 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	sc->p->require = 0;
 	sc->p->original = NULL;
 	sc->p->next = NULL;
+	sc->p->stim = NULL;
+	sc->p->ncvars = 0;
+	sc->p->cvars = NULL;
 
 	sc->basedir = basedir;
 	sc->rmc = rmc;
@@ -553,6 +556,13 @@ struct patch *patch_copy(struct patch *p)
 			img->filename = strdup(img->filename);
 		pixbuf_inc_ref(img->pixbuf);
 	}
+	new_patch->stim = stim_get(p->stim);
+	if(p->ncvars) {
+		size_t size = p->ncvars*sizeof(struct cvar);
+
+		new_patch->cvars = malloc(size);
+		memcpy(new_patch->cvars, p->cvars, size);
+	}
 	return new_patch;
 }
 
@@ -567,6 +577,8 @@ void patch_free(struct patch *p)
 		pixbuf_dec_ref(img->pixbuf);
 		free((void *) img->filename);
 	}
+	stim_put(p->stim);
+	free(p->cvars);
 	free(p);
 }
 
