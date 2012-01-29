@@ -187,13 +187,16 @@ static void all_initials_to_pfv(struct compiler_sc *sc)
 static void pfv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
+	struct sym *s = FPVM2SYM(sym);
 	int pfv;
 
-	pfv = pfv_from_sym(FPVM2SYM(sym));
+	pfv = pfv_from_sym(s);
 	if(pfv >= 0) {
 		pfv_update_patch_requires(sc, pfv);
 		sc->p->pfv_allocation[pfv] = reg;
 	}
+	if(s->cvar != -1)
+		sc->p->cvars[s->cvar].pfv_reg = reg;
 }
 
 static bool init_pfv(struct compiler_sc *sc)
@@ -265,13 +268,16 @@ static void pvv_update_patch_requires(struct compiler_sc *sc, int pvv)
 static void pvv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
+	struct sym *s = FPVM2SYM(sym);
 	int pvv;
 
-	pvv = pvv_from_sym(FPVM2SYM(sym));
+	pvv = pvv_from_sym(s);
 	if(pvv >= 0) {
 		pvv_update_patch_requires(sc, pvv);
 		sc->p->pvv_allocation[pvv] = reg;
 	}
+	if(s->cvar != -1)
+		sc->p->cvars[s->cvar].pvv_reg = reg;
 }
 
 static bool init_pvv(struct compiler_sc *sc)
