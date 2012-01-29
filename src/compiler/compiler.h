@@ -227,29 +227,42 @@ struct image {
 
 struct patch {
 	/* per-frame */
-	struct image images[IMAGE_COUNT];		/* < images used in this patch */
-	float pfv_initial[COMP_PFV_COUNT]; 		/* < patch initial conditions */
-	int pfv_allocation[COMP_PFV_COUNT];		/* < where per-frame variables are mapped in PFPU regf, -1 if unmapped */
-	int perframe_prog_length;			/* < how many instructions in perframe_prog */
-	unsigned int perframe_prog[PFPU_PROGSIZE];	/* < PFPU per-frame microcode */
-	float perframe_regs[PFPU_REG_COUNT];		/* < PFPU initial per-frame regf */
+	struct image images[IMAGE_COUNT];	/* images used in this patch */
+	float pfv_initial[COMP_PFV_COUNT];	/* patch initial conditions */
+	int pfv_allocation[COMP_PFV_COUNT];	/* where per-frame variables
+						   are mapped in PFPU regf,
+						   -1 if unmapped */
+	int perframe_prog_length;		/* how many instructions in
+						   perframe_prog */
+	unsigned int perframe_prog[PFPU_PROGSIZE];
+						/* PFPU per-frame microcode */
+	float perframe_regs[PFPU_REG_COUNT];	/* PFPU initial per-frame
+						   register file */
 	/* per-vertex */
-	int pvv_allocation[COMP_PVV_COUNT];		/* < where per-vertex variables are mapped in PFPU regf, -1 if unmapped */
-	int pervertex_prog_length;			/* < how many instructions in pervertex_prog */
-	unsigned int pervertex_prog[PFPU_PROGSIZE];	/* < PFPU per-vertex microcode */
-	float pervertex_regs[PFPU_REG_COUNT];		/* < PFPU initial per-vertex regf */
+	int pvv_allocation[COMP_PVV_COUNT];	/* where per-vertex variables
+						   are mapped in PFPU regf,
+						   -1 if unmapped */
+	int pervertex_prog_length;		/* how many instructions in
+						   pervertex_prog */
+	unsigned int pervertex_prog[PFPU_PROGSIZE];
+						/* PFPU per-vertex microcode */
+	float pervertex_regs[PFPU_REG_COUNT];	/* PFPU initial per-vertex
+						   regf */
 	/* meta */
-	unsigned int require;				/* < bitmask: dmx, osc, midi, video */
-	void *original;					/* < original patch (with initial register values) */
-	int ref;					/* reference count */
-	struct patch *next;				/* < used when chaining patches in mashups */
+	unsigned int require;	/* bitmask: dmx, osc, midi, video */
+	void *original;		/* original patch (with initial register
+				   values) */
+	int ref;		/* reference count */
+	struct patch *next;	/* used when chaining patches in mashups */
 };
 
 typedef void (*report_message)(const char *);
 
 void init_fpvm(struct fpvm_fragment *fragment, int vector_mode);
-struct patch *patch_compile(const char *basedir, const char *patch_code, report_message rmc);
-struct patch *patch_compile_filename(const char *filename, const char *patch_code, report_message rmc);
+struct patch *patch_compile(const char *basedir, const char *patch_code,
+    report_message rmc);
+struct patch *patch_compile_filename(const char *filename,
+    const char *patch_code, report_message rmc);
 struct patch *patch_copy(struct patch *p);
 void patch_free(struct patch *p);
 struct patch *patch_refresh(struct patch *p);
