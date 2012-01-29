@@ -31,6 +31,8 @@
 #include "../osc.h"
 #include "../config.h"
 #include "../input.h"
+#include "renderer.h"
+#include "stimuli.h"
 #include "sampler.h"
 
 struct snd_history {
@@ -261,7 +263,7 @@ end:
 	rtems_task_delete(RTEMS_SELF);
 }
 
-static void midi_ctrl_event(mtk_event *e)
+static void midi_ctrl_event(struct patch *p, mtk_event *e)
 {
 	int chan, ctrl, value;
 
@@ -271,7 +273,13 @@ static void midi_ctrl_event(mtk_event *e)
 
 	if(chan == midi_channel)
 		midi_controllers[ctrl] = value;
+	stim_midi_ctrl(p->stim, chan, ctrl, value);
 }
+
+/*
+ * @@@ convert pitch events to stimuli later. Need to decide whether giving
+ * them another stimulus type or using the control #128 hack.
+ */
 
 static void midi_pitch_event(mtk_event *e)
 {
@@ -286,17 +294,21 @@ static void midi_pitch_event(mtk_event *e)
 
 static void event_callback(mtk_event *e, int count)
 {
+	struct patch *p;
 	int i;
 
+	renderer_lock_patch();
+	p = renderer_get_patch(0);
 	for(i=0;i<count;i++)
 		switch(e[i].type) {
 			case EVENT_TYPE_MIDI_CONTROLLER:
-				midi_ctrl_event(e+i);
+				midi_ctrl_event(p, e+i);
 				break;
 			case EVENT_TYPE_MIDI_PITCH:
 				midi_pitch_event(e+i);
 				break;
 		}
+	renderer_unlock_patch();
 }
 
 static rtems_id sampler_task_id;
