@@ -46,5 +46,6 @@ int stim_add(struct stimuli *s, int chan, int ctrl, float *var,
 struct stimuli *stim_new(void);
 struct stimuli *stim_get(struct stimuli *s);
 void stim_put(struct stimuli *s);
+void stim_redirect(struct stimuli *s, const float *old, float *new);
 
 #endif /* STIMULI_H */

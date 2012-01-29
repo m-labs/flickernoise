@@ -108,3 +108,19 @@ void stim_put(struct stimuli *s)
 		}
 	free(s);
 }
+
+void stim_redirect(struct stimuli *s, const float *old, float *new)
+{
+	int i, j;
+	struct s_midi_ctrl *ct;
+
+	if(!s)
+		return;
+	for(i = 0; i != MIDI_CHANS; i++)
+		if(s->midi[i])
+			for(j = 0; j != MIDI_CTRLS; j++) {
+					ct = s->midi[i]->ctrl[j];
+					if (ct)
+						ct->var = new+(ct->var-old);
+				}
+}

@@ -563,6 +563,7 @@ struct patch *patch_copy(struct patch *p)
 		new_patch->cvars = malloc(size);
 		memcpy(new_patch->cvars, p->cvars, size);
 	}
+	stim_redirect(p->stim, &p->cvars->val, &new_patch->cvars->val);
 	return new_patch;
 }
 
