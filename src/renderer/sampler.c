@@ -273,7 +273,8 @@ static void midi_ctrl_event(struct patch *p, mtk_event *e)
 
 	if(chan == midi_channel)
 		midi_controllers[ctrl] = value;
-	stim_midi_ctrl(p->stim, chan, ctrl, value);
+	if(p)
+		stim_midi_ctrl(p->stim, chan, ctrl, value);
 }
 
 /*
