@@ -41,10 +41,10 @@ typedef const char *(*assign_callback)(struct parser_comm *comm,
 	    struct sym *sym, struct ast_node *node);
 typedef void (*midi_proc)(struct s_midi_ctrl *ct, int value);
 
-#define	FAIL(msg)				\
-	do {					\
-		error(state, msg);		\
-		yy_parse_failed(yypParser);	\
+#define	FAIL(msg, ...)					\
+	do {						\
+		error(state, msg, ##__VA_ARGS__);	\
+		yy_parse_failed(yypParser);		\
 	} while (0)
 
 #define	OTHER_STYLE_new_style	old_style
@@ -315,11 +315,11 @@ assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN expr(A) TOK_COMMA
 	}
 	if(!p->stim)
 		p->stim = stim_new();
-	/* @@@ check range ! */
 	sym->stim_regs = stim_add(p->stim,
 	    A->contents.constant, B->contents.constant, P);
 	if(!sym->stim_regs) {
-		FAIL("stim_add failed\n");
+		FAIL("cannot add stimulus for MIDI channel %d control %d\n",
+		    (int) A->contents.constant, (int) B->contents.constant);
 		return;
 	}
 	parse_free(A);

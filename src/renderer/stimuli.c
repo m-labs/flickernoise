@@ -66,6 +66,8 @@ struct stim_regs *stim_add(struct stimuli *s, int chan, int ctrl,
 	struct s_midi_chan *ch;
 	struct s_midi_ctrl *ct;
 
+	if(chan < 0 || chan > 15 || ctrl < 0 || ctrl > 127)
+		return NULL;
 	if(!s->midi[chan]) {
 		s->midi[chan] = calloc(1, sizeof(struct s_midi_chan));
 		if(!s->midi[chan])
