@@ -52,6 +52,7 @@
 #include "yaffs.h"
 #include "version.h"
 #include "renderer/videoinreconf.h"
+#include "renderer/renderer.h"
 #include "shellext.h"
 #include "sysconfig.h"
 #include "fb.h"
@@ -95,6 +96,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_osc();
 	init_messagebox();
 	init_performance();
+	init_renderer();
 	init_cp();
 	init_keyboard();
 	init_ir();

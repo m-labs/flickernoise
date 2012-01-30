@@ -144,7 +144,7 @@ struct patch *renderer_get_patch(int spin)
 	return current_patch;
 }
 
-void renderer_start(int framebuffer_fd, struct patch *p)
+void init_renderer(void)
 {
 	rtems_status_code sc;
 
@@ -156,7 +156,10 @@ void renderer_start(int framebuffer_fd, struct patch *p)
 		&patch_lock
 	);
 	assert(sc == RTEMS_SUCCESSFUL);
+}
 
+void renderer_start(int framebuffer_fd, struct patch *p)
+{
 	assert(mashup_head == NULL);
 	mashup_head = patch_copy(p);
 	current_patch = mashup_head;
@@ -189,5 +192,5 @@ void renderer_stop(void)
 		patch_free(mashup_head);
 		mashup_head = p;
 	}
-	rtems_semaphore_delete(patch_lock);
+	current_patch = NULL;
 }
