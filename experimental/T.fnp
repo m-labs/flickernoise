@@ -1,0 +1,77 @@
+/*
+ * Highly experimental variant of Tornado (Rain Dance MIDI RMX)
+ */
+fDecay=0.9950000
+fVideoEchoZoom=2.000000
+fVideoEchoAlpha=0.000000
+nVideoEchoOrientation=0
+nWaveMode=2
+bAdditiveWaves=0
+bWaveDots=0
+bMaximizeWaveColor=1
+bTexWrap=1
+mv_a=0
+nMotionVectorsX=12
+nMotionVectorsY=9
+fWaveAlpha=3.000000
+fWaveScale=3.020000
+fWarpAnimSpeed=1.000000
+fWarpScale=2.853000
+zoom=1.031000
+rot=0.000000
+cx=0.500000
+cy=0.500000
+dx=0.000000
+dy=0.000000
+warp=0.309000
+sx=1.000000
+sy=1.000000
+wave_r=0.600000
+wave_g=0.600000
+wave_b=0.600000
+wave_x=0.500000
+wave_y=0.500000
+
+/* MIDI settings for Faderfox LV3 */
+
+whirl = midi(0, 7);			// fader 1
+growth = midi(1, 7);			// fader 2
+radius = midi(2, 7);			// fader 3
+sensitivity = midi(3, 7);		// fader 4
+
+twist = midi(0, 24, accel_linear);	// encoder 1
+theta = midi(0, 25, accel_cyclic);	// encoder 2
+
+red = midi(4, 7);			// fader 5
+green = midi(5, 7);			// fader 6
+blue = midi(6, 7);			// fader 7
+change = midi(7, 7);			// fader 8
+
+offcenter = midi(8, 4);			// FX1
+xoff = midi(8, 1);
+yoff = midi(8, 2);
+shift = midi(9, 4);			// FX2
+xshift = midi(9, 1);
+yshift = midi(9, 2);
+
+per_frame:
+	wave_scale = sensitivity*20;
+	t = time*change*5;
+	wave_r = red*( 0.60*sin(0.933*t) + 0.40*sin(1.045*t) );
+	wave_g = green*( 0.60*sin(0.900*t) + 0.40*sin(0.956*t) );
+	wave_b = blue*( 0.60*sin(0.910*t) + 0.40*sin(0.920*t) );
+	rot = whirl*2+twist/10;
+	dist = radius/5;
+	theta = theta*6.2832;
+//	cx = offcenter ? 0.5+(xoff-0.5)*0.3 : 0.5;
+//	cy = offcenter ? 0.5+(0.5-yoff)*0.3 : 0.5;
+	sx = offcenter ? 0.2*(xoff-0.5)+1 : 1;
+	sy = offcenter ? 0.2*(yoff-0.5)+1 : 1;
+	wave_x = cx+cos(theta)*dist;
+	wave_y = cy-sin(theta)*dist;
+	dx = shift ? (xshift-0.5)*0.2 : 0;
+	dy = shift ? (yshift-0.5)*0.2 : 0;
+	zoom = 0.9+growth/5;
+
+per_vertex:
+	rot = rot + (rad-0.4)*1.7*max(0,min((bass_att-1.1)*1.5,5));
