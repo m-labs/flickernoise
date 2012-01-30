@@ -195,8 +195,8 @@ static void pfv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 		pfv_update_patch_requires(sc, pfv);
 		sc->p->pfv_allocation[pfv] = reg;
 	}
-	if(s->cvar != -1)
-		sc->p->cvars[s->cvar].pfv_reg = reg;
+	if(s->stim_regs)
+		s->stim_regs->pfv = sc->p->perframe_regs+reg;
 }
 
 static bool init_pfv(struct compiler_sc *sc)
@@ -276,8 +276,8 @@ static void pvv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 		pvv_update_patch_requires(sc, pvv);
 		sc->p->pvv_allocation[pvv] = reg;
 	}
-	if(s->cvar != -1)
-		sc->p->cvars[s->cvar].pvv_reg = reg;
+	if(s->stim_regs)
+		s->stim_regs->pvv = sc->p->pervertex_regs+reg;
 }
 
 static bool init_pvv(struct compiler_sc *sc)
@@ -490,8 +490,6 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	sc->p->original = NULL;
 	sc->p->next = NULL;
 	sc->p->stim = NULL;
-	sc->p->ncvars = 0;
-	sc->p->cvars = NULL;
 
 	sc->basedir = basedir;
 	sc->rmc = rmc;
@@ -543,21 +541,6 @@ struct patch *patch_compile_filename(const char *filename,
 	return p;
 }
 
-struct cvar *patch_add_cvar(struct patch *p)
-{
-	struct cvar *old = p->cvars;
-	struct cvar *cv;
-
-	p->ncvars++;
-	p->cvars = realloc(old, sizeof(struct cvar)*p->ncvars);
-	if(old)
-		stim_redirect(p->stim, &old->val, &p->cvars->val);
-	cv = p->cvars+p->ncvars-1;
-	cv->val = 0;
-	cv->pfv_reg = cv->pvv_reg = -1;
-	return cv;
-}
-
 #ifndef STANDALONE
 
 struct patch *patch_copy(struct patch *p)
@@ -578,13 +561,7 @@ struct patch *patch_copy(struct patch *p)
 		pixbuf_inc_ref(img->pixbuf);
 	}
 	new_patch->stim = stim_get(p->stim);
-	if(p->ncvars) {
-		size_t size = p->ncvars*sizeof(struct cvar);
-
-		new_patch->cvars = malloc(size);
-		memcpy(new_patch->cvars, p->cvars, size);
-	}
-	stim_redirect(p->stim, &p->cvars->val, &new_patch->cvars->val);
+	stim_redirect(p->stim, p, new_patch);
 	return new_patch;
 }
 
@@ -600,7 +577,6 @@ void patch_free(struct patch *p)
 		free((void *) img->filename);
 	}
 	stim_put(p->stim);
-	free(p->cvars);
 	free(p);
 }
 

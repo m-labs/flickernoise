@@ -16,9 +16,14 @@
 
 void midi_proc_linear(struct s_midi_ctrl *ct, int value)
 {
-	*ct->var = (float) value/127.0;
-}
+	float f;
 
+	f = (float) value/127.0;
+	if(ct->regs.pfv)
+		*ct->regs.pfv = f;
+	if(ct->regs.pvv)
+		*ct->regs.pvv = f;
+}
 
 void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value)
 {
@@ -26,7 +31,7 @@ void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value)
 		ct->last += value;
 	else
 		ct->last -= 128-value;
-	*ct->var = (float) (ct->last & 0x7f)/127.0;
+	midi_proc_linear(ct, ct->last & 0x7f);
 }
 
 void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value)
@@ -40,7 +45,7 @@ void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value)
 		if(ct->last & 0x80)
 			ct->last = 0;
 	}
-	*ct->var = (float) ct->last/127.0;
+	midi_proc_linear(ct, ct->last);
 }
 
 
@@ -55,8 +60,7 @@ void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value)
 	}
 }
 
-
-int stim_add(struct stimuli *s, int chan, int ctrl, float *var,
+struct stim_regs *stim_add(struct stimuli *s, int chan, int ctrl,
     void (*proc)(struct s_midi_ctrl *ct, int value))
 {
 	struct s_midi_chan *ch;
@@ -65,23 +69,22 @@ int stim_add(struct stimuli *s, int chan, int ctrl, float *var,
 	if(!s->midi[chan]) {
 		s->midi[chan] = calloc(1, sizeof(struct s_midi_chan));
 		if(!s->midi[chan])
-			return 0;
+			return NULL;
 	}
 	ch = s->midi[chan];
 
 	if(!ch->ctrl[ctrl]) {
 		ch->ctrl[ctrl] = calloc(1, sizeof(struct s_midi_ctrl));
 		if(!ch->ctrl[ctrl])
-			return 0;
+			return NULL;
 	}
 	ct = ch->ctrl[ctrl];
 
 	ct->proc = proc;
-	ct->var = var;
+	ct->regs.pfv = ct->regs.pvv = NULL;
 
-	return 1;
+	return &ct->regs;
 }
-
 
 struct stimuli *stim_new(void)
 {
@@ -92,7 +95,6 @@ struct stimuli *stim_new(void)
 		s->ref = 1;
 	return s;
 }
-
 
 struct stimuli *stim_get(struct stimuli *s)
 {
@@ -118,18 +120,24 @@ void stim_put(struct stimuli *s)
 	free(s);
 }
 
-void stim_redirect(struct stimuli *s, const float *old, float *new)
+void stim_redirect(struct stimuli *s, const void *old, void *new)
 {
 	int i, j;
 	struct s_midi_ctrl *ct;
 
 	if(!s)
 		return;
-	for(i = 0; i != MIDI_CHANS; i++)
-		if(s->midi[i])
-			for(j = 0; j != MIDI_CTRLS; j++) {
-					ct = s->midi[i]->ctrl[j];
-					if (ct)
-						ct->var = new+(ct->var-old);
-				}
+	for(i = 0; i != MIDI_CHANS; i++) {
+		if(!s->midi[i])
+			continue;
+		for(j = 0; j != MIDI_CTRLS; j++) {
+			ct = s->midi[i]->ctrl[j];
+			if (!ct)
+				continue;
+			if(ct->regs.pfv)
+				ct->regs.pfv = new+((void *) ct->regs.pfv-old);
+			if(ct->regs.pvv)
+				ct->regs.pvv = new+((void *) ct->regs.pvv-old);
+		}
+	}
 }

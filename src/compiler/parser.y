@@ -28,6 +28,7 @@
 #include <fpvm/fpvm.h>
 
 #include "symtab.h"
+#include "compiler.h"
 #include "parser.h"
 #include "parser_itf.h"
 #include "parser_helper.h"
@@ -302,10 +303,9 @@ assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN expr(A) TOK_COMMA
 	/* @@@ clean up this mess later */
 	struct patch *p = *(struct patch **) state->comm->u.sc;
 	struct sym *sym = I->sym;
-	struct cvar *cvar;
 
 	free(I);
-	if(sym->cvar != -1) {
+	if(sym->stim_regs) {
 		FAIL("duplicate control variable");
 		return;
 	}
@@ -313,13 +313,12 @@ assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN expr(A) TOK_COMMA
 		FAIL("midi(chan, ctrl) arguments must be constants");
 		return;
 	}
-	cvar = patch_add_cvar(p);
-	sym->cvar = cvar-p->cvars;
 	if(!p->stim)
 		p->stim = stim_new();
 	/* @@@ check range ! */
-	if(!stim_add(p->stim, A->contents.constant, B->contents.constant,
-	    &cvar->val, P)) {
+	sym->stim_regs = stim_add(p->stim,
+	    A->contents.constant, B->contents.constant, P);
+	if(!sym->stim_regs) {
 		FAIL("stim_add failed\n");
 		return;
 	}

@@ -17,11 +17,14 @@
 #define	MIDI_CHANS	16
 #define	MIDI_CTRLS	128
 
+struct stim_regs {
+	float *pfv, *pvv;	/* NULL if unused */
+};
 
 struct s_midi_ctrl {
 	void (*proc)(struct s_midi_ctrl *sct, int value);
-	float *var;
-	uint8_t last;	/* for midi_proc_accel */
+	struct stim_regs regs;
+	uint8_t last;		/* for midi_proc_accel */
 };
 
 struct s_midi_chan {
@@ -42,11 +45,11 @@ void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value);
 void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value);
 
 void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value);
-int stim_add(struct stimuli *s, int chan, int ctrl, float *var,
+struct stim_regs *stim_add(struct stimuli *s, int chan, int ctrl,
     void (*proc)(struct s_midi_ctrl *ct, int value));
 struct stimuli *stim_new(void);
 struct stimuli *stim_get(struct stimuli *s);
 void stim_put(struct stimuli *s);
-void stim_redirect(struct stimuli *s, const float *old, float *new);
+void stim_redirect(struct stimuli *s, const void *old, void *new);
 
 #endif /* STIMULI_H */

@@ -62,13 +62,13 @@ per_frame:
 	wave_b = blue*( 0.60*sin(0.910*t) + 0.40*sin(0.920*t) );
 	rot = whirl*2+twist/10;
 	dist = radius/5;
-	theta = theta*6.2832;
 //	cx = offcenter ? 0.5+(xoff-0.5)*0.3 : 0.5;
 //	cy = offcenter ? 0.5+(0.5-yoff)*0.3 : 0.5;
 	sx = offcenter ? 0.2*(xoff-0.5)+1 : 1;
 	sy = offcenter ? 0.2*(yoff-0.5)+1 : 1;
-	wave_x = cx+cos(theta)*dist;
-	wave_y = cy-sin(theta)*dist;
+	tmp = theta*6.2832;
+	wave_x = cx+cos(tmp)*dist;
+	wave_y = cy-sin(tmp)*dist;
 	dx = shift ? (xshift-0.5)*0.2 : 0;
 	dy = shift ? (yshift-0.5)*0.2 : 0;
 	zoom = 0.9+growth/5;
