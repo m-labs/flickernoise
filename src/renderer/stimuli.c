@@ -10,6 +10,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 #include "stimuli.h"
 
@@ -104,13 +105,15 @@ struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan, int ctrl,
 	return &ct->regs;
 }
 
-struct stimuli *stim_new(void)
+struct stimuli *stim_new(const void *target)
 {
 	struct stimuli *s;
 
 	s = calloc(1, sizeof(struct stimuli));
-	if(s)
+	if(s) {
 		s->ref = 1;
+		s->target = target;
+	}
 	return s;
 }
 
@@ -138,10 +141,11 @@ void stim_put(struct stimuli *s)
 	free(s);
 }
 
-void stim_redirect(struct stimuli *s, const void *old, void *new)
+void stim_redirect(struct stimuli *s, void *new)
 {
 	int i, j;
 	struct s_midi_ctrl *ct;
+	ptrdiff_t d = new-s->target;
 
 	if(!s)
 		return;
@@ -153,9 +157,10 @@ void stim_redirect(struct stimuli *s, const void *old, void *new)
 			if (!ct)
 				continue;
 			if(ct->regs.pfv)
-				ct->regs.pfv = new+((void *) ct->regs.pfv-old);
+				ct->regs.pfv = (void *) ct->regs.pfv+d;
 			if(ct->regs.pvv)
-				ct->regs.pvv = new+((void *) ct->regs.pvv-old);
+				ct->regs.pvv = (void *) ct->regs.pvv+d;
 		}
 	}
+	s->target = new;
 }

@@ -34,6 +34,7 @@ struct s_midi_chan {
 struct stimuli {
 	struct s_midi_chan *midi[MIDI_CHANS];
 	int ref;
+	const void *target;	/* reference address for pointer relocation */
 };
 
 
@@ -48,9 +49,9 @@ void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value);
 void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value);
 struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan, int ctrl,
     void (*proc)(struct s_midi_ctrl *ct, int value));
-struct stimuli *stim_new(void);
+struct stimuli *stim_new(const void *target);
 struct stimuli *stim_get(struct stimuli *s);
 void stim_put(struct stimuli *s);
-void stim_redirect(struct stimuli *s, const void *old, void *new);
+void stim_redirect(struct stimuli *s, void *new);
 
 #endif /* STIMULI_H */

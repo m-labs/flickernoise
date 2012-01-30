@@ -544,7 +544,7 @@ struct patch *patch_compile_filename(const char *filename,
 struct stimuli *compiler_get_stimulus(struct compiler_sc *sc)
 {
 	if(!sc->p->stim)
-                sc->p->stim = stim_new();
+                sc->p->stim = stim_new(sc->p);
 	return sc->p->stim;
 }
 
@@ -568,7 +568,7 @@ struct patch *patch_copy(struct patch *p)
 		pixbuf_inc_ref(img->pixbuf);
 	}
 	new_patch->stim = stim_get(p->stim);
-	stim_redirect(p->stim, p, new_patch);
+	stim_redirect(p->stim, new_patch);
 	return new_patch;
 }
 
