@@ -60,7 +60,7 @@ void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value)
 	}
 }
 
-struct stim_regs *stim_add(struct stimuli *s, int chan, int ctrl,
+struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan, int ctrl,
     void (*proc)(struct s_midi_ctrl *ct, int value))
 {
 	struct s_midi_chan *ch;

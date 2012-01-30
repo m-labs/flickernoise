@@ -45,7 +45,7 @@ void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value);
 void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value);
 
 void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value);
-struct stim_regs *stim_add(struct stimuli *s, int chan, int ctrl,
+struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan, int ctrl,
     void (*proc)(struct s_midi_ctrl *ct, int value));
 struct stimuli *stim_new(void);
 struct stimuli *stim_get(struct stimuli *s);
