@@ -261,12 +261,14 @@ struct patch {
 };
 
 typedef void (*report_message)(const char *);
+struct compiler_sc;
 
 void init_fpvm(struct fpvm_fragment *fragment, int vector_mode);
 struct patch *patch_compile(const char *basedir, const char *patch_code,
     report_message rmc);
 struct patch *patch_compile_filename(const char *filename,
     const char *patch_code, report_message rmc);
+struct stimuli *compiler_get_stimulus(struct compiler_sc *sc);
 struct patch *patch_copy(struct patch *p);
 void patch_free(struct patch *p);
 struct patch *patch_refresh(struct patch *p);

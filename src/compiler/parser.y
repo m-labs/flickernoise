@@ -300,9 +300,8 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 
 assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN expr(A) TOK_COMMA
     expr(B) midi_proc(P) TOK_RPAREN opt_semi. {
-	/* @@@ clean up this mess later */
-	struct patch *p = *(struct patch **) state->comm->u.sc;
 	struct sym *sym = I->sym;
+	struct stimuli *stim = compiler_get_stimulus(state->comm->u.sc);
 
 	free(I);
 	if(sym->stim_regs) {
@@ -313,9 +312,7 @@ assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN expr(A) TOK_COMMA
 		FAIL("midi(chan, ctrl) arguments must be constants");
 		return;
 	}
-	if(!p->stim)
-		p->stim = stim_new();
-	sym->stim_regs = stim_add(p->stim,
+	sym->stim_regs = stim_add(stim,
 	    A->contents.constant, B->contents.constant, P);
 	if(!sym->stim_regs) {
 		FAIL("cannot add stimulus for MIDI channel %d control %d\n",

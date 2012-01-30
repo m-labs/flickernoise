@@ -541,6 +541,13 @@ struct patch *patch_compile_filename(const char *filename,
 	return p;
 }
 
+struct stimuli *compiler_get_stimulus(struct compiler_sc *sc)
+{
+	if(!sc->p->stim)
+                sc->p->stim = stim_new();
+	return sc->p->stim;
+}
+
 #ifndef STANDALONE
 
 struct patch *patch_copy(struct patch *p)
@@ -598,4 +605,4 @@ struct patch *patch_refresh(struct patch *p)
 	return p;
 }
 
-#endif
+#endif /* !STANDALONE */
