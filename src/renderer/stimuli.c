@@ -14,13 +14,22 @@
 #include "stimuli.h"
 
 
-void midi_proc_lin(struct s_midi_ctrl *ct, int value)
+void midi_proc_linear(struct s_midi_ctrl *ct, int value)
 {
 	*ct->var = (float) value/127.0;
 }
 
 
-void midi_proc_accel(struct s_midi_ctrl *ct, int value)
+void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value)
+{
+	if(value < 64)
+		ct->last += value;
+	else
+		ct->last -= 128-value;
+	*ct->var = (float) (ct->last & 0x7f)/127.0;
+}
+
+void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value)
 {
 	if(value < 64) {
 		ct->last += value;

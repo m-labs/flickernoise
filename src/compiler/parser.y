@@ -38,6 +38,7 @@ static void yy_parse_failed(struct yyParser *yypParser);
 
 typedef const char *(*assign_callback)(struct parser_comm *comm,
 	    struct sym *sym, struct ast_node *node);
+typedef void (*midi_proc)(struct s_midi_ctrl *ct, int value);
 
 #define	FAIL(msg)				\
 	do {					\
@@ -215,6 +216,7 @@ static struct id *symbolify(struct id *id)
 %destructor primary_expr { free($$); }
 
 %type context {assign_callback}
+%type midi_proc {midi_proc}
 
 %syntax_error {
 	FAIL("parse error");
@@ -296,7 +298,7 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 }
 
 assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN expr(A) TOK_COMMA
-    expr(B) TOK_RPAREN opt_semi. {
+    expr(B) midi_proc(P) TOK_RPAREN opt_semi. {
 	/* @@@ clean up this mess later */
 	struct patch *p = *(struct patch **) state->comm->u.sc;
 	struct sym *sym = I->sym;
@@ -317,12 +319,28 @@ assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN expr(A) TOK_COMMA
 		p->stim = stim_new();
 	/* @@@ check range ! */
 	if(!stim_add(p->stim, A->contents.constant, B->contents.constant,
-	    &cvar->val, midi_proc_lin)) {
+	    &cvar->val, P)) {
 		FAIL("stim_add failed\n");
 		return;
 	}
 	parse_free(A);
 	parse_free(B);
+}
+
+midi_proc(P) ::= . {
+	P = midi_proc_linear;
+}
+
+midi_proc(P) ::= TOK_COMMA TOK_LINEAR. {
+	P = midi_proc_linear;
+}
+
+midi_proc(P) ::= TOK_COMMA TOK_ACCEL_LINEAR. {
+	P = midi_proc_accel_linear;
+}
+
+midi_proc(P) ::= TOK_COMMA TOK_ACCEL_CYCLIC. {
+	P = midi_proc_accel_cyclic;
 }
 
 assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
@@ -612,6 +630,9 @@ ident(O) ::= binary(I).		{ O = symbolify(I); }
 ident(O) ::= binary_misc(I).	{ O = symbolify(I); }
 ident(O) ::= ternary(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_MIDI(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_LINEAR(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_ACCEL_LINEAR(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_ACCEL_CYCLIC(I).	{ O = symbolify(I); }
 
 unary_misc(O) ::= TOK_ABS(I).	{ O = I; }
 unary_misc(O) ::= TOK_COS(I).	{ O = I; }

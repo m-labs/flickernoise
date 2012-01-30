@@ -131,6 +131,9 @@ int scan(struct scanner *s)
 					{ return TOK_PER_PIXEL_UGLY; }
 
 		<N>"midi"		{ return TOK_MIDI; }
+		<N>"linear"		{ return TOK_LINEAR; }
+		<N>"accel_linear"	{ return TOK_ACCEL_LINEAR; }
+		<N>"accel_cyclic"	{ return TOK_ACCEL_CYCLIC; }
 
 		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);
 					  return TOK_IMAGEFILE; }
