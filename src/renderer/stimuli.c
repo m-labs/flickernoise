@@ -8,9 +8,9 @@
  * the Free Software Foundation, version 3 of the License.
  */
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include "stimuli.h"
 
