@@ -315,7 +315,7 @@ assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN expr(A) TOK_COMMA
 	sym->stim_regs = stim_add_midi_ctrl(stim,
 	    A->contents.constant, B->contents.constant, P);
 	if(!sym->stim_regs) {
-		FAIL("cannot add stimulus for MIDI channel %d control %d\n",
+		FAIL("cannot add stimulus for MIDI channel %d control %d",
 		    (int) A->contents.constant, (int) B->contents.constant);
 		return;
 	}
