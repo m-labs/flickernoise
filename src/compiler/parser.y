@@ -28,9 +28,9 @@
 #include <fpvm/fpvm.h>
 
 #include "symtab.h"
+#include "parser.h"
 #include "parser_itf.h"
 #include "parser_helper.h"
-#include "parser.h"
 
 
 struct yyParser;
@@ -293,6 +293,36 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 		}
 	}
 	parse_free(N);
+}
+
+assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN expr(A) TOK_COMMA
+    expr(B) TOK_RPAREN opt_semi. {
+	/* @@@ clean up this mess later */
+	struct patch *p = *(struct patch **) state->comm->u.sc;
+	struct sym *sym = I->sym;
+	struct cvar *cvar;
+
+	free(I);
+	if(sym->cvar != -1) {
+		FAIL("duplicate control variable");
+		return;
+	}
+	if(A->op != op_constant || B->op != op_constant) {
+		FAIL("midi(chan, ctrl) arguments must be constants");
+		return;
+	}
+	cvar = patch_add_cvar(p);
+	sym->cvar = cvar-p->cvars;
+	if(!p->stim)
+		p->stim = stim_new();
+	/* @@@ check range ! */
+	if(!stim_add(p->stim, A->contents.constant, B->contents.constant,
+	    &cvar->val, midi_proc_lin)) {
+		FAIL("stim_add failed\n");
+		return;
+	}
+	parse_free(A);
+	parse_free(B);
 }
 
 assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
@@ -581,6 +611,7 @@ ident(O) ::= unary_misc(I).	{ O = symbolify(I); }
 ident(O) ::= binary(I).		{ O = symbolify(I); }
 ident(O) ::= binary_misc(I).	{ O = symbolify(I); }
 ident(O) ::= ternary(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_MIDI(I).	{ O = symbolify(I); }
 
 unary_misc(O) ::= TOK_ABS(I).	{ O = I; }
 unary_misc(O) ::= TOK_COS(I).	{ O = I; }

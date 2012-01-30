@@ -130,6 +130,8 @@ int scan(struct scanner *s)
 		<N>"per_pixel"[a-z_0-9]*
 					{ return TOK_PER_PIXEL_UGLY; }
 
+		<N>"midi"		{ return TOK_MIDI; }
+
 		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);
 					  return TOK_IMAGEFILE; }
 
