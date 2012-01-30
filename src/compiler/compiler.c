@@ -568,7 +568,8 @@ struct patch *patch_copy(struct patch *p)
 		pixbuf_inc_ref(img->pixbuf);
 	}
 	new_patch->stim = stim_get(p->stim);
-	stim_redirect(p->stim, new_patch);
+	if(p->stim)
+		stim_redirect(p->stim, new_patch);
 	return new_patch;
 }
 
