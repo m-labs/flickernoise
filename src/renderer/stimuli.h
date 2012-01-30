@@ -42,6 +42,7 @@ void midi_proc_linear(struct s_midi_ctrl *ct, int value);
 
 /* "Acceleration" (signed 7 bit delta value) with linear mapping */
 void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value);
+void midi_proc_accel_unbounded(struct s_midi_ctrl *ct, int value);
 void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value);
 
 void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value);

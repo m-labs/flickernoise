@@ -39,7 +39,8 @@ growth = midi(1, 7);			// fader 2
 radius = midi(2, 7);			// fader 3
 sensitivity = midi(3, 7);		// fader 4
 
-twist = midi(0, 24, accel_linear);	// encoder 1
+twist = midi(0, 24, accel_unbounded);	// encoder 1
+reset_twist = midi(0, 28);		// encoder 1 push
 theta = midi(0, 25, accel_cyclic);	// encoder 2
 
 red = midi(4, 7);			// fader 5
@@ -72,6 +73,8 @@ per_frame:
 	dx = shift ? (xshift-0.5)*0.2 : 0;
 	dy = shift ? (yshift-0.5)*0.2 : 0;
 	zoom = 0.9+growth/5;
+	twist = last_reset_twist == reset_twist+1 ? twist : 0;
+	last_reset_twist = reset_twist+1; // avoid 0, so first push is change
 
 per_vertex:
 	rot = rot + (rad-0.4)*1.7*max(0,min((bass_att-1.1)*1.5,5));

@@ -133,6 +133,7 @@ int scan(struct scanner *s)
 		<N>"midi"		{ return TOK_MIDI; }
 		<N>"linear"		{ return TOK_LINEAR; }
 		<N>"accel_linear"	{ return TOK_ACCEL_LINEAR; }
+		<N>"accel_unbounded"	{ return TOK_ACCEL_UNBOUNDED; }
 		<N>"accel_cyclic"	{ return TOK_ACCEL_CYCLIC; }
 
 		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);

@@ -335,6 +335,10 @@ midi_proc(P) ::= TOK_COMMA TOK_ACCEL_LINEAR. {
 	P = midi_proc_accel_linear;
 }
 
+midi_proc(P) ::= TOK_COMMA TOK_ACCEL_UNBOUNDED. {
+	P = midi_proc_accel_unbounded;
+}
+
 midi_proc(P) ::= TOK_COMMA TOK_ACCEL_CYCLIC. {
 	P = midi_proc_accel_cyclic;
 }
