@@ -543,6 +543,18 @@ struct patch *patch_compile_filename(const char *filename,
 	return p;
 }
 
+struct cvar *patch_add_cvar(struct patch *p)
+{
+	struct cvar *cv;
+
+	p->ncvars++;
+	p->cvars = realloc(p->cvars, sizeof(struct cvar)*p->ncvars);
+	cv = p->cvars+p->ncvars-1;
+	cv->val = 0;
+	cv->pfv_reg = cv->pvv_reg = -1;
+	return cv;
+}
+
 #ifndef STANDALONE
 
 struct patch *patch_copy(struct patch *p)
