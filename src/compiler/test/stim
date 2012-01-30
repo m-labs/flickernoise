@@ -1,0 +1,88 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "stimuli: midi(0, 0)" -c -q << EOF
+foo = midi(0, 0)
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli: midi(15, 127)" -c -q << EOF
+foo = midi(15, 127)
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "stimuli: midi(16, 0)" -c -q << EOF
+foo = midi(16, 0)
+EOF
+expect <<EOF
+line 2: cannot add stimulus for MIDI channel 16 control 0 near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "stimuli: midi(0, 128)" -c -q << EOF
+foo = midi(0, 128)
+EOF
+expect <<EOF
+line 2: cannot add stimulus for MIDI channel 0 control 128 near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "stimuli: midi(-1, 0)" -c -q << EOF
+foo = midi(-1, 0)
+EOF
+expect <<EOF
+line 2: cannot add stimulus for MIDI channel -1 control 0 near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "stimuli: midi(0, -1)" -c -q << EOF
+foo = midi(0, -1)
+EOF
+expect <<EOF
+line 2: cannot add stimulus for MIDI channel 0 control -1 near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli: midi(0, 0, linear)" -c -q << EOF
+foo = midi(0, 0, linear)
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli: midi(0, 0, accel_linear)" -c -q << EOF
+foo = midi(0, 0, accel_linear)
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli: midi(0, 0, accel_unbounded)" -c -q << EOF
+foo = midi(0, 0, accel_unbounded)
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli: midi(0, 0, accel_cyclic)" -c -q << EOF
+foo = midi(0, 0, accel_cyclic)
+EOF
+expect <<EOF
+EOF
+
+###############################################################################
