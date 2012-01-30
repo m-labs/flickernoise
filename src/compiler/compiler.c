@@ -545,10 +545,13 @@ struct patch *patch_compile_filename(const char *filename,
 
 struct cvar *patch_add_cvar(struct patch *p)
 {
+	struct cvar *old = p->cvars;
 	struct cvar *cv;
 
 	p->ncvars++;
-	p->cvars = realloc(p->cvars, sizeof(struct cvar)*p->ncvars);
+	p->cvars = realloc(old, sizeof(struct cvar)*p->ncvars);
+	if(old)
+		stim_redirect(p->stim, &old->val, &p->cvars->val);
 	cv = p->cvars+p->ncvars-1;
 	cv->val = 0;
 	cv->pfv_reg = cv->pvv_reg = -1;
