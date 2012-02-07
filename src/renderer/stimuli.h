@@ -32,11 +32,14 @@ struct s_midi_chan {
 };
 
 struct stimuli {
-	struct s_midi_chan *midi[MIDI_CHANS];
+	struct s_midi_chan *midi[MIDI_CHANS+1];
 	int ref;
 	const void *target;	/* reference address for pointer relocation */
 };
 
+/*
+ * Channel numbers are one-based. midi[0] is currently unused.
+ */
 
 /* Linear mapping [0, 127] -> [0, 1] */
 void midi_proc_linear(struct s_midi_ctrl *ct, int value);

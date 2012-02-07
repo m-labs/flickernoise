@@ -274,7 +274,7 @@ static void midi_ctrl_event(struct patch *p, mtk_event *e)
 	if(chan == midi_channel)
 		midi_controllers[ctrl] = value;
 	if(p)
-		stim_midi_ctrl(p->stim, chan, ctrl, value);
+		stim_midi_ctrl(p->stim, chan+1, ctrl, value);
 }
 
 /*

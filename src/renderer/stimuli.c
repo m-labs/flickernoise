@@ -65,7 +65,6 @@ void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value)
 	midi_proc_linear(ct, ct->last);
 }
 
-
 void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value)
 {
 	struct s_midi_ctrl *ct;
@@ -83,7 +82,7 @@ struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan, int ctrl,
 	struct s_midi_chan *ch;
 	struct s_midi_ctrl *ct;
 
-	if(chan < 0 || chan > 15 || ctrl < 0 || ctrl > 127)
+	if(chan < 0 || chan > MIDI_CHANS || ctrl < 0 || ctrl > 127)
 		return NULL;
 	if(!s->midi[chan]) {
 		s->midi[chan] = calloc(1, sizeof(struct s_midi_chan));
@@ -132,7 +131,7 @@ void stim_put(struct stimuli *s)
 		return;
 	if(--s->ref)
 		return;
-	for(i = 0; i != MIDI_CHANS; i++)
+	for(i = 0; i != MIDI_CHANS+1; i++)
 		if(s->midi[i]) {
 			for(j = 0; j != MIDI_CTRLS; j++)
 				free(s->midi[i]->ctrl[j]);
@@ -149,7 +148,7 @@ void stim_redirect(struct stimuli *s, void *new)
 
 	if(!s)
 		return;
-	for(i = 0; i != MIDI_CHANS; i++) {
+	for(i = 0; i != MIDI_CHANS+1; i++) {
 		if(!s->midi[i])
 			continue;
 		for(j = 0; j != MIDI_CTRLS; j++) {
