@@ -39,9 +39,9 @@ growth = midi(2, 7);			// fader 2
 radius = midi(3, 7);			// fader 3
 sensitivity = midi(4, 7);		// fader 4
 
-twist = midi(1, 24, accel_unbounded);	// encoder 1
-reset_twist = midi(1, 28);		// encoder 1 push
-theta = midi(1, 25, accel_cyclic);	// encoder 2
+twist = midi(, 24, accel_unbounded);	// encoder 1
+reset_twist = midi(, 28);		// encoder 1 push
+theta = midi(, 25, accel_cyclic);		// encoder 2
 
 red = midi(5, 7);			// fader 5
 green = midi(6, 7);			// fader 6

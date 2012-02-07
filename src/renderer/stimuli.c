@@ -69,8 +69,19 @@ void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value)
 {
 	struct s_midi_ctrl *ct;
 
-	if(s && s->midi[chan]) {
+	if(!s)
+		return;
+
+	if(s->midi[chan]) {
 		ct = s->midi[chan]->ctrl[ctrl];
+		if(ct) {
+			ct->proc(ct, value);
+			return;
+		}
+	}
+
+	if(s->midi[0]) {
+		ct = s->midi[0]->ctrl[ctrl];
 		if(ct)
 			ct->proc(ct, value);
 	}

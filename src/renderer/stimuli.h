@@ -38,7 +38,8 @@ struct stimuli {
 };
 
 /*
- * Channel numbers are one-based. midi[0] is currently unused.
+ * Channel numbers are one-based. Channel 0 acts as a catch-all when used with
+ * stim_add_midi_ctrl.
  */
 
 /* Linear mapping [0, 127] -> [0, 1] */

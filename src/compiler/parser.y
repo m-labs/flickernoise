@@ -217,7 +217,10 @@ static struct id *symbolify(struct id *id)
 %destructor primary_expr { free($$); }
 
 %type context {assign_callback}
+%type opt_expr {struct ast_node *}
 %type midi_proc {midi_proc}
+
+%destructor opt_expr { parse_free($$); }
 
 %syntax_error {
 	FAIL("parse error");
@@ -298,31 +301,50 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 	parse_free(N);
 }
 
-assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN expr(A) TOK_COMMA
+assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN opt_expr(A) TOK_COMMA
     expr(B) midi_proc(P) TOK_RPAREN opt_semi. {
 	struct sym *sym = I->sym;
 	struct stimuli *stim = compiler_get_stimulus(state->comm->u.sc);
+	int chan = 0; /* wildcard */
 
 	free(I);
 	if(sym->stim_regs) {
 		FAIL("duplicate control variable");
 		return;
 	}
-	if(A->op != op_constant || B->op != op_constant) {
-		FAIL("midi(chan, ctrl) arguments must be constants");
+	if(A) {
+		if(A->op != op_constant) {
+			FAIL("MIDI channel must be a constant");
+			return;
+		}
+		chan = A->contents.constant;
+		if(!chan) {
+			FAIL("MIDI channel must be >= 1");
+			return;
+		}
+	}
+	if(B->op != op_constant) {
+		FAIL("MIDI controller must be a constant");
 		return;
 	}
-	sym->stim_regs = stim_add_midi_ctrl(stim,
-	    A->contents.constant, B->contents.constant, P);
+	sym->stim_regs = stim_add_midi_ctrl(stim, chan,
+	    B->contents.constant, P);
 	if(!sym->stim_regs) {
 		FAIL("cannot add stimulus for MIDI channel %d control %d",
-		    (int) A->contents.constant, (int) B->contents.constant);
+		    chan, (int) B->contents.constant);
 		return;
 	}
 	parse_free(A);
 	parse_free(B);
 }
 
+opt_expr(E) ::= . {
+	E = NULL;
+}
+
+opt_expr(E) ::= expr(A). {
+	E = A;
+}
 midi_proc(P) ::= . {
 	P = midi_proc_linear;
 }
