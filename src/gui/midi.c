@@ -277,19 +277,25 @@ static void controller_event(int controller, int value)
 
 static void midi_event(mtk_event *e, int count)
 {
-	int i;
+	int i, chan;
 
 	for(i=0;i<count;i++) {
-		if((e[i].type == EVENT_TYPE_MIDI_NOTEON) || (e[i].type == EVENT_TYPE_MIDI_CONTROLLER) || (e[i].type == EVENT_TYPE_MIDI_PITCH)) {
-			if(((e[i].press.code & 0x0f0000) >> 16) == mtk_req_i(appid, "e_channel.text")) {
-				if(e[i].type == EVENT_TYPE_MIDI_NOTEON)
-					note_event(e[i].press.code & 0x7f);
-				else if(e[i].type == EVENT_TYPE_MIDI_CONTROLLER)
-					controller_event((e[i].press.code & 0x7f00) >> 8, e[i].press.code & 0x7f);
-				else
-					/* EVENT_TYPE_MIDI_PITCH */
-					controller_event(128, e[i].press.code & 0x7f);
-			}
+		chan = (e[i].press.code & 0x0f0000) >> 16;
+		if(chan != mtk_req_i(appid, "e_channel.text"))
+			continue;
+		switch(e[i].type) {
+			case EVENT_TYPE_MIDI_NOTEON:
+				note_event(e[i].press.code & 0x7f);
+				break;
+			case EVENT_TYPE_MIDI_CONTROLLER:
+				controller_event(
+				    (e[i].press.code & 0x7f00) >> 8,
+				    e[i].press.code & 0x7f);
+				break;
+			case EVENT_TYPE_MIDI_PITCH:
+				/* EVENT_TYPE_MIDI_PITCH */
+				controller_event(128, e[i].press.code & 0x7f);
+				break;
 		}
 	}
 }
