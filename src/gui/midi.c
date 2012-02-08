@@ -268,11 +268,18 @@ static void note_event(int code)
 	mtk_cmdf(appid, "e_note.set(-text \"%s\")", note);
 }
 
-static void controller_event(int controller, int value)
+static void controller_event(int chan, int controller, int value)
 {
-	mtk_cmdf(appid, "l_lastctl.set(-text \"%d (%d)\")", controller, value);
-	if(learn != -1)
-		mtk_cmdf(appid, "e_midi%d.set(-text \"%d\")", learn, controller);
+	if(chan == mtk_req_i(appid, "e_channel.text")) {
+		mtk_cmdf(appid, "l_lastctl.set(-text \"%d.%d = %d\")",
+		    chan, controller, value);
+		if(learn != -1)
+			mtk_cmdf(appid, "e_midi%d.set(-text \"%d\")",
+			    learn, controller);
+	} else {
+		mtk_cmdf(appid, "l_lastctl.set(-text \"(%d.%d = %d)\")",
+		    chan, controller, value);
+	}
 }
 
 static void midi_event(mtk_event *e, int count)
@@ -281,20 +288,20 @@ static void midi_event(mtk_event *e, int count)
 
 	for(i=0;i<count;i++) {
 		chan = (e[i].press.code & 0x0f0000) >> 16;
-		if(chan != mtk_req_i(appid, "e_channel.text"))
-			continue;
 		switch(e[i].type) {
 			case EVENT_TYPE_MIDI_NOTEON:
-				note_event(e[i].press.code & 0x7f);
+				if(chan == mtk_req_i(appid, "e_channel.text"))
+					note_event(e[i].press.code & 0x7f);
 				break;
 			case EVENT_TYPE_MIDI_CONTROLLER:
-				controller_event(
+				controller_event(chan,
 				    (e[i].press.code & 0x7f00) >> 8,
 				    e[i].press.code & 0x7f);
 				break;
 			case EVENT_TYPE_MIDI_PITCH:
 				/* EVENT_TYPE_MIDI_PITCH */
-				controller_event(128, e[i].press.code & 0x7f);
+				controller_event(chan, 128,
+				    e[i].press.code & 0x7f);
 				break;
 		}
 	}
