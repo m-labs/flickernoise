@@ -174,3 +174,92 @@ void stim_redirect(struct stimuli *s, void *new)
 	}
 	s->target = new;
 }
+
+/* ----- Input device database --------------------------------------------- */
+
+static void (*map[dt_last][ft_last])(struct s_midi_ctrl *sct, int value) = {
+	[dt_range] = {
+		[ft_range] =		midi_proc_linear,
+		[ft_unbounded] =	midi_proc_linear,
+		[ft_cyclic] =		midi_proc_linear,
+		[ft_button] =		NULL, /* @@@ */
+		[ft_toggle] =		NULL, /* @@@ */
+	},
+	[dt_diff] = {
+		[ft_range] =		midi_proc_accel_linear,
+		[ft_unbounded] =	midi_proc_accel_unbounded,
+		[ft_cyclic] =		midi_proc_accel_cyclic,
+		[ft_button] =		NULL, /* @@@ */
+		[ft_toggle] =		NULL, /* @@@ */
+	},
+	[dt_button] = {
+		[ft_range] =		midi_proc_linear,
+		[ft_unbounded] =	midi_proc_linear,
+		[ft_cyclic] =		midi_proc_linear,
+		[ft_button] =		midi_proc_linear,
+		[ft_toggle] =		NULL, /* @@@ */
+	},
+	[dt_toggle] = {
+		[ft_range] =		midi_proc_linear,
+		[ft_unbounded] =	midi_proc_linear,
+		[ft_cyclic] =		midi_proc_linear,
+		[ft_button] =		NULL,
+		[ft_toggle] =		midi_proc_linear,
+	},
+};
+
+static struct stim_db_midi *db = NULL, **last = &db;
+
+struct stim_db_midi *stim_db_midi(const char *selector)
+{
+	struct stim_db_midi *dev;
+
+	dev = malloc(sizeof(struct stim_db_midi));
+	if(!dev)
+		return NULL;
+	dev->selector = selector;
+	dev->ctrls = NULL;
+	dev->next = NULL;
+	*last = dev;
+	last = &dev->next;
+	return dev;
+}
+
+int stim_db_midi_ctrl(struct stim_db_midi *dev, const void *handle,
+    enum stim_midi_dev_type type, int chan, int ctrl)
+{
+	struct stim_db_midi_ctrl **p;
+
+	for(p = &dev->ctrls; *p; p= &(*p)->next)
+		if((*p)->handle == handle)
+			return 0;
+	*p = malloc(sizeof(struct stim_db_midi_ctrl));
+	if(!*p)
+		return 0;
+	(*p)->handle = handle;
+	(*p)->chan = chan;
+	(*p)->ctrl = ctrl;
+	(*p)->type = type;
+	(*p)->next = NULL;
+	return 1;
+}
+
+static struct stim_regs *do_bind(struct stimuli *s,
+    const struct stim_db_midi_ctrl *ctrl, enum stim_midi_fn_type fn)
+{
+	return stim_add_midi_ctrl(s, ctrl->chan, ctrl->ctrl,
+	    map[ctrl->type][fn]);
+}
+
+struct stim_regs *stim_bind(struct stimuli *s, const void *handle,
+    enum stim_midi_fn_type fn)
+{
+	const struct stim_db_midi *dev;
+	const struct stim_db_midi_ctrl *ctrl;
+
+	for(dev = db; dev; dev = dev->next)
+		for(ctrl = db->ctrls; ctrl; ctrl = ctrl->next)
+			if(ctrl->handle == handle)
+				return do_bind(s, ctrl, fn);
+	return NULL;
+}
