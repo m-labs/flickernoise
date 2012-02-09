@@ -345,8 +345,9 @@ assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN opt_expr(A) TOK_COMMA
 
 assignment ::= midi_device TOK_LBRACE midi_inputs TOK_RBRACE opt_semi.
 
-midi_device ::= TOK_MIDI. {
-	midi_dev = stim_db_midi(NULL);
+midi_device ::= TOK_MIDI TOK_STRING(S). {
+	midi_dev = stim_db_midi(S->label);
+	free(S);
 }
 
 midi_inputs ::= .

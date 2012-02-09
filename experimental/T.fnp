@@ -32,7 +32,7 @@ wave_b=0.600000
 wave_x=0.500000
 wave_y=0.500000
 
-midi {
+midi "Faderfox LV3" {
 	fader1 = range(1, 7);
 	fader2 = range(2, 7);
 	fader3 = range(3, 7);

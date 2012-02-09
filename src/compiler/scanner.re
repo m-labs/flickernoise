@@ -147,6 +147,7 @@ int scan(struct scanner *s)
 					  return TOK_IMAGEFILE; }
 
 		<N>[a-zA-Z_0-9]+	{ return TOK_IDENT; }
+		<N>'"'[^"\x00\n\r]*'"'	{ return TOK_STRING; }
 
 		<N>"+"			{ return TOK_PLUS; }
 		<N>"-"			{ return TOK_MINUS; }
@@ -197,6 +198,18 @@ const char *get_name(struct scanner *s)
 	buf = malloc(n+1);
 	memcpy(buf, s->old_cursor, n);
 	buf[n] = 0;
+	return buf;
+}
+
+const char *get_string(struct scanner *s)
+{
+	char *buf;
+	int n;
+
+	n = s->cursor - s->old_cursor;
+	buf = malloc(n-1);
+	memcpy(buf, s->old_cursor+1, n-2);
+	buf[n-2] = 0;
 	return buf;
 }
 
