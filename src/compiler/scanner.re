@@ -136,6 +136,13 @@ int scan(struct scanner *s)
 		<N>"accel_unbounded"	{ return TOK_ACCEL_UNBOUNDED; }
 		<N>"accel_cyclic"	{ return TOK_ACCEL_CYCLIC; }
 
+		<N>"range"		{ return TOK_RANGE; }
+		<N>"differential"	{ return TOK_DIFF; }
+		<N>"button"		{ return TOK_BUTTON; }
+		<N>"toggle"		{ return TOK_TOGGLE; }
+		<N>"cyclic"		{ return TOK_CYCLIC; }
+		<N>"unbounded"		{ return TOK_UNBOUNDED; }
+
 		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);
 					  return TOK_IMAGEFILE; }
 
@@ -160,6 +167,8 @@ int scan(struct scanner *s)
 		<N>">="			{ return TOK_GE; }
 		<N>"&&"			{ return TOK_ANDAND; }
 		<N>"||"			{ return TOK_OROR; }
+		<N>"{"			{ return TOK_LBRACE; }
+		<N>"}"			{ return TOK_RBRACE; }
 
 		<N,FNAME1>"="		{ if (YYGETCONDITION() == yycFNAME1)
 						YYSETCONDITION(yycFNAME2);

@@ -41,6 +41,8 @@ typedef const char *(*assign_callback)(struct parser_comm *comm,
 	    struct sym *sym, struct ast_node *node);
 typedef void (*midi_proc)(struct s_midi_ctrl *ct, int value);
 
+static struct stim_db_midi *midi_dev;
+
 #define	FAIL(msg, ...)					\
 	do {						\
 		error(state, msg, ##__VA_ARGS__);	\
@@ -219,6 +221,9 @@ static struct id *symbolify(struct id *id)
 %type context {assign_callback}
 %type opt_expr {struct ast_node *}
 %type midi_proc {midi_proc}
+%type midi_dev_type {enum stim_midi_dev_type}
+%type midi_chan {int}
+%type midi_ctrl {int}
 
 %destructor opt_expr { parse_free($$); }
 
@@ -336,6 +341,60 @@ assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN opt_expr(A) TOK_COMMA
 	}
 	parse_free(A);
 	parse_free(B);
+}
+
+assignment ::= midi_device TOK_LBRACE midi_inputs TOK_RBRACE opt_semi.
+
+midi_device ::= TOK_MIDI. {
+	midi_dev = stim_db_midi(NULL);
+}
+
+midi_inputs ::= .
+
+midi_inputs ::= midi_inputs midi_input.
+
+midi_input ::= ident(I) TOK_ASSIGN midi_dev_type(T) TOK_LPAREN midi_chan(CH)
+    TOK_COMMA midi_ctrl(CT) TOK_RPAREN opt_semi. {
+	int ok;
+
+	ok = stim_db_midi_ctrl(midi_dev, I->sym, T, CH, CT);
+	if(!ok) {
+		FAIL("cannot add MIDI input \"%s\"", I->sym->fpvm_sym.name);
+		free(I);
+		return;
+	}
+	free(I);
+}
+
+midi_dev_type(T) ::= TOK_RANGE.		{ T = dt_range; }
+midi_dev_type(T) ::= TOK_DIFF.		{ T = dt_diff; }
+midi_dev_type(T) ::= TOK_BUTTON.	{ T = dt_button; }
+midi_dev_type(T) ::= TOK_TOGGLE.	{ T = dt_toggle; }
+
+midi_chan(C) ::= expr(E). {
+	if(E->op != op_constant) {
+		FAIL("MIDI channel must be a constant");
+		return;
+	}
+	C = E->contents.constant;
+	if(C < 1 || C > MIDI_CHANS) {
+		FAIL("MIDI channel must be within 1-%d", MIDI_CHANS);
+		return;
+	}
+	parse_free(E);
+}
+
+midi_ctrl(C) ::= expr(E). {
+	if(E->op != op_constant) {
+		FAIL("MIDI controller must be a constant");
+		return;
+	}
+	C = E->contents.constant;
+	if(C < 0 || C >= MIDI_CTRLS) {
+		FAIL("MIDI controller must be within 0-%d", MIDI_CTRLS-1);
+		return;
+	}
+	parse_free(E);
 }
 
 opt_expr(E) ::= . {
@@ -655,6 +714,12 @@ ident(O) ::= TOK_MIDI(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_LINEAR(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_ACCEL_LINEAR(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_ACCEL_CYCLIC(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_RANGE(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_DIFF(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_BUTTON(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_TOGGLE(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_CYCLIC(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_UNBOUNDED(I).	{ O = symbolify(I); }
 
 unary_misc(O) ::= TOK_ABS(I).	{ O = I; }
 unary_misc(O) ::= TOK_COS(I).	{ O = I; }

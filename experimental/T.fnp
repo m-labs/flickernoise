@@ -32,6 +32,30 @@ wave_b=0.600000
 wave_x=0.500000
 wave_y=0.500000
 
+midi {
+	fader1 = range(1, 7);
+	fader2 = range(2, 7);
+	fader3 = range(3, 7);
+	fader4 = range(4, 7);
+	fader5 = range(5, 7);
+	fader6 = range(6, 7);
+	fader7 = range(7, 7);
+	fader8 = range(8, 7);
+
+	enc1 = differential(1, 24);
+	enc2 = differential(1, 25);
+
+	enc1_push = button(1, 28);
+
+	fx1 = toggle(9, 4);
+	joy1x = range(9, 1);
+	joy1y = range(9, 2);
+
+	fx2 = toggle(10, 4);
+	joy2x = range(10, 1);
+	joy2y = range(10, 2);
+}
+
 /* MIDI settings for Faderfox LV3 */
 
 whirl = midi(1, 7);			// fader 1
