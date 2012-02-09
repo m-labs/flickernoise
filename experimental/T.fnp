@@ -58,26 +58,26 @@ midi "Faderfox LV3" {
 
 /* MIDI settings for Faderfox LV3 */
 
-whirl = midi(1, 7);			// fader 1
-growth = midi(2, 7);			// fader 2
-radius = midi(3, 7);			// fader 3
-sensitivity = midi(4, 7);		// fader 4
+whirl = range(fader1);
+growth = range(fader2);
+radius = range(fader3);
+sensitivity = range(fader4);
 
-twist = midi(, 24, accel_unbounded);	// encoder 1
-reset_twist = midi(, 28);		// encoder 1 push
-theta = midi(, 25, accel_cyclic);		// encoder 2
+twist = unbounded(enc1);
+reset_twist = button(enc1_push);
+theta = cyclic(enc2);		// encoder 1 push
 
-red = midi(5, 7);			// fader 5
-green = midi(6, 7);			// fader 6
-blue = midi(7, 7);			// fader 7
-change = midi(8, 7);			// fader 8
+red = range(fader5);
+green = range(fader6);
+blue = range(fader7);
+change = range(fader8);
 
-offcenter = midi(9, 4);			// FX1
-xoff = midi(9, 1);
-yoff = midi(9, 2);
-shift = midi(10, 4);			// FX2
-xshift = midi(10, 1);
-yshift = midi(10, 2);
+offcenter = toggle(fx1);			// FX1
+xoff = range(joy1x);
+yoff = range(joy1y);
+shift = toggle(fx2);			// FX2
+xshift = range(joy2x);
+yshift = range(joy2y);
 
 per_frame:
 	wave_scale = sensitivity*20;

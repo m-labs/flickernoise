@@ -222,6 +222,7 @@ static struct id *symbolify(struct id *id)
 %type opt_expr {struct ast_node *}
 %type midi_proc {midi_proc}
 %type midi_dev_type {enum stim_midi_dev_type}
+%type midi_fn_type {enum stim_midi_fn_type}
 %type midi_chan {int}
 %type midi_ctrl {int}
 
@@ -397,6 +398,27 @@ midi_ctrl(C) ::= expr(E). {
 	}
 	parse_free(E);
 }
+
+assignment ::= ident(I) TOK_ASSIGN midi_fn_type(T) TOK_LPAREN ident(D)
+    TOK_RPAREN opt_semi.  {
+	struct sym *sym = I->sym;
+	struct stimuli *stim = compiler_get_stimulus(state->comm->u.sc);
+
+	free(I);
+	sym->stim_regs = stim_bind(stim, D->sym, T);
+	free(D);
+	if(!sym->stim_regs) {
+		FAIL("cannot add stimulus for MIDI input \"%s\"",
+		    sym->fpvm_sym.name);
+		return;
+	}
+}
+
+midi_fn_type(T) ::= TOK_RANGE.		{ T = ft_range; }
+midi_fn_type(T) ::= TOK_UNBOUNDED.	{ T = ft_unbounded; }
+midi_fn_type(T) ::= TOK_CYCLIC.		{ T = ft_cyclic; }
+midi_fn_type(T) ::= TOK_BUTTON.		{ T = ft_button; }
+midi_fn_type(T) ::= TOK_TOGGLE.		{ T = ft_toggle; }
 
 opt_expr(E) ::= . {
 	E = NULL;
