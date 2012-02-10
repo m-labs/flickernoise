@@ -78,13 +78,16 @@ static void openok_callback(void *arg)
 	FILE *fd;
 	int r;
 
-	get_filedialog_selection(fileopen_dlg, current_filename, sizeof(current_filename));
+	get_filedialog_selection(fileopen_dlg,
+	    current_filename, sizeof(current_filename));
 	modified = 0;
 	update_wintitle();
 
 	fd = fopen(current_filename, "r");
 	if(!fd) {
-		mtk_cmdf(appid, "status.set(-text \"Unable to open file (%s)\")", strerror(errno));
+		mtk_cmdf(appid,
+		    "status.set(-text \"Unable to open file (%s)\")",
+		    strerror(errno));
 		return;
 	}
 	r = fread(buf, 1, sizeof(buf), fd);
@@ -105,17 +108,23 @@ static void save_current(void)
 
 	fd = fopen(current_filename, "w");
 	if(!fd) {
-		mtk_cmdf(appid, "status.set(-text \"Unable to open file (%s)\")", strerror(errno));
+		mtk_cmdf(appid,
+		    "status.set(-text \"Unable to open file (%s)\")",
+		    strerror(errno));
 		return;
 	}
 	mtk_req(appid, buf, sizeof(buf), "ed.text");
 	if(fwrite(buf, 1, strlen(buf), fd) < 0) {
-		mtk_cmdf(appid, "status.set(-text \"Unable to write file (%s)\")", strerror(errno));
+		mtk_cmdf(appid,
+		    "status.set(-text \"Unable to write file (%s)\")",
+		    strerror(errno));
 		fclose(fd);
 		return;
 	}
 	if(fclose(fd) != 0)
-		mtk_cmdf(appid, "status.set(-text \"Unable to close file (%s)\")", strerror(errno));
+		mtk_cmdf(appid,
+		    "status.set(-text \"Unable to close file (%s)\")",
+		    strerror(errno));
 }
 
 static void saveas_callback(mtk_event *e, void *arg)
@@ -136,7 +145,8 @@ static void save_callback(mtk_event *e, void *arg)
 
 static void saveasok_callback(void *arg)
 {
-	get_filedialog_selection(filesave_dlg, current_filename, sizeof(current_filename));
+	get_filedialog_selection(filesave_dlg,
+	    current_filename, sizeof(current_filename));
 	modified = 0;
 	update_wintitle();
 	save_current();
@@ -215,8 +225,10 @@ void init_patcheditor(void)
 		"w = new Window(-content g -title \"untitled\" -workw 400 -workh 300)",
 		0);
 
-	fileopen_dlg = create_filedialog("Open patch", 0, "fnp", openok_callback, NULL, NULL, NULL);
-	filesave_dlg = create_filedialog("Save patch", 1, "fnp", saveasok_callback, NULL, NULL, NULL);
+	fileopen_dlg = create_filedialog("Open patch", 0, "fnp",
+	    openok_callback, NULL, NULL, NULL);
+	filesave_dlg = create_filedialog("Save patch", 1, "fnp",
+	    saveasok_callback, NULL, NULL, NULL);
 
 	mtk_bind(appid, "b_new", "commit", new_callback, NULL);
 	mtk_bind(appid, "b_open", "commit", openbtn_callback, NULL);
