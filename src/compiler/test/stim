@@ -3,92 +3,104 @@
 
 ###############################################################################
 
-ptest "stimuli: midi(1, 0)" -c -q << EOF
-foo = midi(1, 0)
+ptest "stimuli: range(1, 0)" -c -q << EOF
+midi "foo" {
+	bar = range(1, 0);
+}
 EOF
 expect <<EOF
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli: midi(16, 127)" -c -q << EOF
-foo = midi(16, 127)
+ptest "stimuli: range(16, 127)" -c -q << EOF
+midi "foo" {
+	bar = range(16, 127)
+}
 EOF
 expect <<EOF
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli: midi(17, 0)" -c -q << EOF
-foo = midi(17, 0)
+ptest_fail "stimuli: range(17, 0)" -c -q << EOF
+midi "foo" {
+	bar = range(17, 0);
+}
 EOF
 expect <<EOF
-line 2: cannot add stimulus for MIDI channel 17 control 0 near 'EOF'
+line 2: MIDI channel must be within 1-16 near ');'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli: midi(1, 128)" -c -q << EOF
-foo = midi(1, 128)
+ptest_fail "stimuli: range(1, 128)" -c -q << EOF
+midi "foo" {
+	bar = range(1, 128);
+}
 EOF
 expect <<EOF
-line 2: cannot add stimulus for MIDI channel 1 control 128 near 'EOF'
+line 2: MIDI controller must be within 0-127 near ');'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli: midi(0, 0)" -c -q << EOF
-foo = midi(0, 0)
+ptest_fail "stimuli: range(0, 0)" -c -q << EOF
+midi "foo" {
+	bar = range(0, 0);
+}
 EOF
 expect <<EOF
-line 2: MIDI channel must be >= 1 near 'EOF'
+line 2: MIDI channel must be within 1-16 near ');'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli: midi(1, -1)" -c -q << EOF
-foo = midi(1, -1)
+ptest_fail "stimuli: range(1, -1)" -c -q << EOF
+midi "foo" {
+	bar = range(1, -1);
+}
 EOF
 expect <<EOF
-line 2: cannot add stimulus for MIDI channel 1 control -1 near 'EOF'
+line 2: MIDI controller must be within 0-127 near ');'
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli: midi(1, 0, linear)" -c -q << EOF
-foo = midi(1, 0, linear)
-EOF
-expect <<EOF
-EOF
-
-#------------------------------------------------------------------------------
-
-ptest "stimuli: midi(1, 0, accel_linear)" -c -q << EOF
-foo = midi(1, 0, accel_linear)
-EOF
-expect <<EOF
-EOF
-
-#------------------------------------------------------------------------------
-
-ptest "stimuli: midi(1, 0, accel_unbounded)" -c -q << EOF
-foo = midi(1, 0, accel_unbounded)
+ptest "stimuli: differential(1, 0)" -c -q << EOF
+midi "foo" {
+	bar = differential(1, 0);
+}
 EOF
 expect <<EOF
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli: midi(1, 0, accel_cyclic)" -c -q << EOF
-foo = midi(1, 0, accel_cyclic)
+ptest "stimuli: button(1, 0)" -c -q << EOF
+midi "foo" {
+	bar = button(1, 0);
+}
 EOF
 expect <<EOF
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli: midi(, 0) (wildcard)" -c -q << EOF
-foo = midi(, 0)
+ptest "stimuli: toggle(1, 0)" -c -q << EOF
+midi "foo" {
+	bar = toggle(1, 0);
+}
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli: range(0) (wildcard)" -c -q << EOF
+midi "foo" {
+	bar = range(0);
+}
 EOF
 expect <<EOF
 EOF
