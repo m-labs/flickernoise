@@ -83,6 +83,7 @@ void stim_redirect(struct stimuli *s, void *new);
 struct stim_db_midi *stim_db_midi(const char *selector);
 int stim_db_midi_ctrl(struct stim_db_midi *dev, const void *handle,
     enum stim_midi_dev_type type, int chan, int ctrl);
+void stim_db_free(void);
 struct stim_regs *stim_bind(struct stimuli *s, const void *handle,
     enum stim_midi_fn_type fn);
 

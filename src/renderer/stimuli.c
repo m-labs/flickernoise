@@ -257,6 +257,30 @@ int stim_db_midi_ctrl(struct stim_db_midi *dev, const void *handle,
 	return 1;
 }
 
+static void free_db_midi_ctrls(struct stim_db_midi_ctrl *ctrls)
+{
+	struct stim_db_midi_ctrl *next;
+
+	while(ctrls) {
+		next = ctrls->next;
+		free(ctrls);
+		ctrls = next;
+	}
+}
+
+void stim_db_free(void)
+{
+	struct stim_db_midi *next;
+
+	while(db) {
+		next = db->next;
+		free_db_midi_ctrls(db->ctrls);
+		free((void *) db->selector);
+		free(db);
+		db = next;
+	}
+}
+
 
 /* ----- Input device to variable binding ---------------------------------- */
 
