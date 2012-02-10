@@ -26,7 +26,10 @@ static void midi_add(struct s_midi_ctrl *ct, int value)
 		*ct->regs.pvv += f;
 }
 
-void midi_proc_linear(struct s_midi_ctrl *ct, int value)
+
+/* Linear mapping [0, 127] -> [0, 1] */
+
+static void midi_proc_linear(struct s_midi_ctrl *ct, int value)
 {
 	float f;
 
@@ -37,7 +40,9 @@ void midi_proc_linear(struct s_midi_ctrl *ct, int value)
 		*ct->regs.pvv = f;
 }
 
-void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value)
+/* "Acceleration" (signed 7 bit delta value) with linear mapping */
+
+static void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value)
 {
 	if(value < 64)
 		ct->last += value;
@@ -46,12 +51,12 @@ void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value)
 	midi_proc_linear(ct, ct->last & 0x7f);
 }
 
-void midi_proc_accel_unbounded(struct s_midi_ctrl *ct, int value)
+static void midi_proc_accel_unbounded(struct s_midi_ctrl *ct, int value)
 {
 	midi_add(ct, value < 64 ? value : value-128);
 }
 
-void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value)
+static void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value)
 {
 	if(value < 64) {
 		ct->last += value;
@@ -87,8 +92,8 @@ void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value)
 	}
 }
 
-struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan, int ctrl,
-    void (*proc)(struct s_midi_ctrl *ct, int value))
+static struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan,
+    int ctrl, void (*proc)(struct s_midi_ctrl *ct, int value))
 {
 	struct s_midi_chan *ch;
 	struct s_midi_ctrl *ct;

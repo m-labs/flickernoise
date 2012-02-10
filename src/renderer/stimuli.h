@@ -74,17 +74,7 @@ struct stim_db_midi {
  * stim_add_midi_ctrl.
  */
 
-/* Linear mapping [0, 127] -> [0, 1] */
-void midi_proc_linear(struct s_midi_ctrl *ct, int value);
-
-/* "Acceleration" (signed 7 bit delta value) with linear mapping */
-void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value);
-void midi_proc_accel_unbounded(struct s_midi_ctrl *ct, int value);
-void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value);
-
 void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value);
-struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan, int ctrl,
-    void (*proc)(struct s_midi_ctrl *ct, int value));
 struct stimuli *stim_new(const void *target);
 struct stimuli *stim_get(struct stimuli *s);
 void stim_put(struct stimuli *s);
