@@ -1,0 +1,87 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "stimuli, input, MIDI: range -> range" -c -q << EOF
+midi "foo" { bar = range(1, 0); }
+var = range(bar);
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: range -> unbounded" -c -q << EOF
+midi "foo" { bar = range(1, 0); }
+var = unbounded(bar);
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: range -> cyclic" -c -q << EOF
+midi "foo" { bar = range(1, 0); }
+var = cyclic(bar);
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: range -> button" -c -q << EOF
+midi "foo" { bar = range(1, 0); }
+var = button(bar);
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: range -> toggle" -c -q << EOF
+midi "foo" { bar = range(1, 0); }
+var = toggle(bar);
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: differential -> range" -c -q << EOF
+midi "foo" { bar = range(1, 0); }
+var = range(bar);
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: button -> button" -c -q << EOF
+midi "foo" { bar = button(1, 0); }
+var = button(bar);
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: toggle -> range" -c -q << EOF
+midi "foo" { bar = toggle(1, 0); }
+var = range(bar);
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "stimuli, input, MIDI: toggle -> button" -c -q << EOF
+midi "foo" { bar = toggle(1, 0); }
+var = button(bar);
+EOF
+expect <<EOF
+line 3: cannot add stimulus for MIDI input "var" near 'EOF'
+EOF
+
+
+###############################################################################
