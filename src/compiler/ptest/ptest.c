@@ -26,6 +26,7 @@
 static int quiet = 0;
 static int symbols = 0;
 static const char *fail = NULL;
+static const char *trace_var = NULL;
 static const char *buffer;
 
 
@@ -332,6 +333,63 @@ static void show_patch(const struct patch *patch)
 }
 
 
+static struct midi {
+	int chan, ctrl, value;
+	struct midi *next;
+} *midi = NULL, **last_midi = &midi;
+
+
+static void add_midi(const char *s)
+{
+	int chan, ctrl, value;
+
+	if (sscanf(s, "%d.%d=%d", &chan, &ctrl, &value) == 3);
+	else if (sscanf(s, "%d=%d", &ctrl, &value) == 2)
+		chan = 1;
+	else {
+		fprintf(stderr, "don't understand \"%s\"\n", s);
+		exit(1);
+	}
+	*last_midi = malloc(sizeof(struct midi));
+	if (!*last_midi) {
+		perror("malloc");
+		exit(1);
+	}
+	(*last_midi)->chan = chan;
+	(*last_midi)->ctrl = ctrl;
+	(*last_midi)->value = value;
+	(*last_midi)->next = NULL;
+	last_midi = &(*last_midi)->next;
+}
+
+
+static void play_midi(struct patch *patch)
+{
+	struct sym *sym;
+	float f = 0;
+
+	sym = unique(trace_var);
+	if (!sym) {
+		fprintf(stderr, "can't find trace variable \"%s\"\n",
+		    trace_var);
+		exit(1);
+	}
+	if (!sym->stim_regs) {
+		fprintf(stderr, "\"%s\" is not a control variable\n",
+		    trace_var);
+		exit(1);
+	}
+	sym->stim_regs->pfv = &f;
+
+	while (midi) {
+		stim_midi_ctrl(patch->stim,
+		    midi->chan, midi->ctrl, midi->value);
+		printf("%g\n", f);
+		midi = midi->next;
+	}
+}
+
+
 static void compile(const char *pgm)
 {
 	struct patch *patch;
@@ -341,6 +399,8 @@ static void compile(const char *pgm)
 		exit(1);
 	if (!quiet)
 		show_patch(patch);
+	if (trace_var)
+		play_midi(patch);
 	/*
 	 * We can't use patch_free here because that function also accesses
 	 * image data, which isn't available in standalone builds. A simple
@@ -417,15 +477,19 @@ static void free_buffer(void)
 static void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [-c [-c]|-f error] [-n runs] [-q] [-s] [-Wwarning...] [expr]\n\n"
+"usage: %s [-c [-c]|-f error] [-m [chan.]ctrl=value ...] [-n runs]\n"
+"       %*s [-q] [-s] [-v var] [-Wwarning ...] [expr]\n\n"
 "  -c        generate code and dump generated code (unless -q is set)\n"
 "  -c -c     generate and dump VM code\n"
 "  -f error  fail any assignment with specified error message\n"
+"  -m [chan.]ctrl=value\n"
+"            send a MIDI message to the stimuli subsystem\n"
 "  -n runs   run compilation repeatedly (default: run only once)\n"
 "  -q        quiet operation\n"
 "  -s        dump symbol table after parsing (only if -c is not set)\n"
+"  -v var    trace the specified variable (used with -m)\n"
 "  -Wwarning enable compiler warning (one of: section, undefined)\n"
-    , name);
+    , name, (int) strlen(name), "");
 	exit(1);
 }
 
@@ -440,13 +504,16 @@ int main(int argc, char **argv)
 	warn_section = 0;
 	warn_undefined = 0;
 
-	while ((c = getopt(argc, argv, "cf:n:qsW:")) != EOF)
+	while ((c = getopt(argc, argv, "cf:m:n:qsv:W:")) != EOF)
 		switch (c) {
 		case 'c':
 			codegen++;
 			break;
 		case 'f':
 			fail = optarg;
+			break;
+		case 'm':
+			add_midi(optarg);
 			break;
 		case 'n':
 			repeat = strtoul(optarg, &end, 0);
@@ -458,6 +525,9 @@ int main(int argc, char **argv)
 			break;
 		case 's':
 			symbols = 1;
+			break;
+		case 'v':
+			trace_var = optarg;
 			break;
 		case 'W':
 			if (!strcmp(optarg, "section"))
