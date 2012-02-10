@@ -40,9 +40,9 @@ static void midi_proc_linear(struct s_midi_ctrl *ct, int value)
 		*ct->regs.pvv = f;
 }
 
-/* "Acceleration" (signed 7 bit delta value) with linear mapping */
+/* Differential (signed 7 bit delta value) with linear mapping */
 
-static void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value)
+static void midi_proc_diff_cyclic(struct s_midi_ctrl *ct, int value)
 {
 	if(value < 64)
 		ct->last += value;
@@ -51,12 +51,12 @@ static void midi_proc_accel_cyclic(struct s_midi_ctrl *ct, int value)
 	midi_proc_linear(ct, ct->last & 0x7f);
 }
 
-static void midi_proc_accel_unbounded(struct s_midi_ctrl *ct, int value)
+static void midi_proc_diff_unbounded(struct s_midi_ctrl *ct, int value)
 {
 	midi_add(ct, value < 64 ? value : value-128);
 }
 
-static void midi_proc_accel_linear(struct s_midi_ctrl *ct, int value)
+static void midi_proc_diff_linear(struct s_midi_ctrl *ct, int value)
 {
 	if(value < 64) {
 		ct->last += value;
@@ -191,9 +191,9 @@ static void (*map[dt_last][ft_last])(struct s_midi_ctrl *sct, int value) = {
 		[ft_toggle] =		NULL, /* @@@ */
 	},
 	[dt_diff] = {
-		[ft_range] =		midi_proc_accel_linear,
-		[ft_unbounded] =	midi_proc_accel_unbounded,
-		[ft_cyclic] =		midi_proc_accel_cyclic,
+		[ft_range] =		midi_proc_diff_linear,
+		[ft_unbounded] =	midi_proc_diff_unbounded,
+		[ft_cyclic] =		midi_proc_diff_cyclic,
 		[ft_button] =		NULL, /* @@@ */
 		[ft_toggle] =		NULL, /* @@@ */
 	},
