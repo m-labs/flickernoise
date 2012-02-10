@@ -85,6 +85,8 @@ static void midi_proc_range_button(struct s_midi_ctrl *ct, int value)
 
 static void midi_proc_diff_button(struct s_midi_ctrl *ct, int value)
 {
+	if(!value)
+		return;
 	if(value & 0x40)
 		regs_set(&ct->regs, 0);
 	else
