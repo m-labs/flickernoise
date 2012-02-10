@@ -31,6 +31,8 @@
 #include "../input.h"
 #include "guirender.h"
 
+#define	MAX_PATCH_SIZE	32767
+
 static int appid;
 static struct filedialog *fileopen_dlg;
 static struct filedialog *filesave_dlg;
@@ -72,7 +74,7 @@ static void openbtn_callback(mtk_event *e, void *arg)
 
 static void openok_callback(void *arg)
 {
-	char buf[32768];
+	char buf[MAX_PATCH_SIZE+1];
 	FILE *fd;
 	int r;
 
@@ -85,7 +87,7 @@ static void openok_callback(void *arg)
 		mtk_cmdf(appid, "status.set(-text \"Unable to open file (%s)\")", strerror(errno));
 		return;
 	}
-	r = fread(buf, 1, 32767, fd);
+	r = fread(buf, 1, sizeof(buf), fd);
 	fclose(fd);
 	if(r < 0) {
 		mtk_cmd(appid, "status.set(-text \"Unable to read file\")");
@@ -98,7 +100,7 @@ static void openok_callback(void *arg)
 
 static void save_current(void)
 {
-	char buf[32768];
+	char buf[MAX_PATCH_SIZE+1];
 	FILE *fd;
 
 	fd = fopen(current_filename, "w");
@@ -106,7 +108,7 @@ static void save_current(void)
 		mtk_cmdf(appid, "status.set(-text \"Unable to open file (%s)\")", strerror(errno));
 		return;
 	}
-	mtk_req(appid, buf, 32768, "ed.text");
+	mtk_req(appid, buf, sizeof(buf), "ed.text");
 	if(fwrite(buf, 1, strlen(buf), fd) < 0) {
 		mtk_cmdf(appid, "status.set(-text \"Unable to write file (%s)\")", strerror(errno));
 		fclose(fd);
@@ -148,10 +150,10 @@ static void rmc(const char *m)
 static void run_callback(mtk_event *e, void *arg)
 {
 	struct patch *p;
-	char code[32768];
+	char code[MAX_PATCH_SIZE+1];
 
 	mtk_cmd(appid, "status.set(-text \"Ready.\")");
-	mtk_req(appid, code, 32768, "ed.text");
+	mtk_req(appid, code, sizeof(code), "ed.text");
 	p = patch_compile_filename(current_filename, code, rmc);
 	if(p == NULL)
 		return;
