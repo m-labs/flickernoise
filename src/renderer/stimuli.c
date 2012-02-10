@@ -15,6 +15,9 @@
 #include "stimuli.h"
 
 
+/* ----- Low-level register update (MIDI) ---------------------------------- */
+
+
 static void midi_set(struct s_midi_ctrl *ct, float f)
 {
 	if(ct->regs.pfv)
@@ -33,6 +36,10 @@ static void midi_add(struct s_midi_ctrl *ct, int value)
 	if(ct->regs.pvv)
 		*ct->regs.pvv += f;
 }
+
+
+/* ----- MIDI processors --------------------------------------------------- */
+
 
 /* Linear mapping [0, 127] -> [0, 1] */
 
@@ -92,6 +99,10 @@ static void midi_proc_button_toggle(struct s_midi_ctrl *ct, int value)
 	midi_set(ct, ct->last);
 }
 
+
+/* ----- MIDI message handling --------------------------------------------- */
+
+
 void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value)
 {
 	struct s_midi_ctrl *ct;
@@ -113,6 +124,10 @@ void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value)
 			ct->proc(ct, value);
 	}
 }
+
+
+/* ----- Stimulus maintenance ---------------------------------------------- */
+
 
 static struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan,
     int ctrl, void (*proc)(struct s_midi_ctrl *ct, int value))
@@ -202,38 +217,9 @@ void stim_redirect(struct stimuli *s, void *new)
 	s->target = new;
 }
 
+
 /* ----- Input device database --------------------------------------------- */
 
-static void (*map[dt_last][ft_last])(struct s_midi_ctrl *sct, int value) = {
-	[dt_range] = {
-		[ft_range] =		midi_proc_linear,
-		[ft_unbounded] =	midi_proc_linear,
-		[ft_cyclic] =		midi_proc_linear,
-		[ft_button] =		midi_proc_range_button,
-		[ft_toggle] =		midi_proc_range_button,
-	},
-	[dt_diff] = {
-		[ft_range] =		midi_proc_diff_linear,
-		[ft_unbounded] =	midi_proc_diff_unbounded,
-		[ft_cyclic] =		midi_proc_diff_cyclic,
-		[ft_button] =		midi_proc_diff_button,
-		[ft_toggle] =		midi_proc_diff_button,
-	},
-	[dt_button] = {
-		[ft_range] =		midi_proc_linear,
-		[ft_unbounded] =	midi_proc_linear,
-		[ft_cyclic] =		midi_proc_linear,
-		[ft_button] =		midi_proc_linear,
-		[ft_toggle] =		midi_proc_button_toggle,
-	},
-	[dt_toggle] = {
-		[ft_range] =		midi_proc_linear,
-		[ft_unbounded] =	midi_proc_linear,
-		[ft_cyclic] =		midi_proc_linear,
-		[ft_button] =		NULL,
-		[ft_toggle] =		midi_proc_linear,
-	},
-};
 
 static struct stim_db_midi *db = NULL, **last = &db;
 
@@ -270,6 +256,41 @@ int stim_db_midi_ctrl(struct stim_db_midi *dev, const void *handle,
 	(*p)->next = NULL;
 	return 1;
 }
+
+
+/* ----- Input device to variable binding ---------------------------------- */
+
+
+static void (*map[dt_last][ft_last])(struct s_midi_ctrl *sct, int value) = {
+	[dt_range] = {
+		[ft_range] =		midi_proc_linear,
+		[ft_unbounded] =	midi_proc_linear,
+		[ft_cyclic] =		midi_proc_linear,
+		[ft_button] =		midi_proc_range_button,
+		[ft_toggle] =		midi_proc_range_button,
+	},
+	[dt_diff] = {
+		[ft_range] =		midi_proc_diff_linear,
+		[ft_unbounded] =	midi_proc_diff_unbounded,
+		[ft_cyclic] =		midi_proc_diff_cyclic,
+		[ft_button] =		midi_proc_diff_button,
+		[ft_toggle] =		midi_proc_diff_button,
+	},
+	[dt_button] = {
+		[ft_range] =		midi_proc_linear,
+		[ft_unbounded] =	midi_proc_linear,
+		[ft_cyclic] =		midi_proc_linear,
+		[ft_button] =		midi_proc_linear,
+		[ft_toggle] =		midi_proc_button_toggle,
+	},
+	[dt_toggle] = {
+		[ft_range] =		midi_proc_linear,
+		[ft_unbounded] =	midi_proc_linear,
+		[ft_cyclic] =		midi_proc_linear,
+		[ft_button] =		NULL,
+		[ft_toggle] =		midi_proc_linear,
+	},
+};
 
 static struct stim_regs *do_bind(struct stimuli *s,
     const struct stim_db_midi_ctrl *ctrl, enum stim_midi_fn_type fn)
