@@ -43,11 +43,12 @@ EOF
 #------------------------------------------------------------------------------
 
 ptest "stimuli, input, MIDI: range -> button" -c -q \
-    -v sx -m 0=63 -m 0=127 -m 0=0 <<EOF
+    -v sx -m 0=63 -m 0=64 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = range(1, 0); }
 sx = button(bar);
 EOF
 expect <<EOF
+0
 1
 1
 0
@@ -56,11 +57,12 @@ EOF
 #------------------------------------------------------------------------------
 
 ptest "stimuli, input, MIDI: range -> toggle" -c -q \
-    -v sx -m 0=63 -m 0=127 -m 0=0 <<EOF
+    -v sx -m 0=63 -m 0=64 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = range(1, 0); }
 sx = toggle(bar);
 EOF
 expect <<EOF
+0
 1
 1
 0

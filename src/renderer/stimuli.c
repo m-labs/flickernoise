@@ -80,7 +80,7 @@ static void midi_proc_diff_linear(struct s_midi_ctrl *ct, int value)
 
 static void midi_proc_range_button(struct s_midi_ctrl *ct, int value)
 {
-	regs_set(&ct->regs, !!value);
+	regs_set(&ct->regs, value > 63);
 }
 
 static void midi_proc_diff_button(struct s_midi_ctrl *ct, int value)
