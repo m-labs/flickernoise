@@ -1,0 +1,534 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{fullpage}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{epsfig}
+\usepackage{moreverb}
+\usepackage{nicefrac}
+
+\newenvironment{expose}{\vskip3mm\qquad\begin{raggedright}}{%
+\end{raggedright}\vskip3mm}
+
+\begin{document}
+
+\title{Using MIDI in Flickernoise Patches}
+\author{Werner Almesberger \\
+  {\normalsize werner@almesberger.net}}
+
+\maketitle
+
+
+% -----------------------------------------------------------------------------
+
+
+\section{Introduction}
+
+This document describes the architecture of the MIDI control @@@
+
+Note that this work is still in progress. For example,
+\begin{itemize}
+  \item the MIDI device specifications should not have to be part of
+    patches,
+  \item Flickernoise should only consider devices that are really present, and
+  \item we should support other events that just MIDI control message,
+    such as other MIDI message types, DMX, keyboard, IR remote, etc.
+\end{itemize}
+
+
+% -----------------------------------------------------------------------------
+
+
+\section{Quick start}
+
+While the finer details of MIDI controls can get complicated, the
+elements in the following example are often all that is needed to
+make full use of many MIDI devices:
+
+\begin{listing}{1}
+midi "Gizmo" {
+	main = fader(102);
+	aux = pot(103);
+	but1 = button(16);
+	but2 = button(17);
+}
+
+sensitivity = linear(main);
+
+per_frame:
+	wave_scale = sensitivity*10;
+	sensitivity = sensitivity*0.99;
+\end{listing}
+
+In lines 1 through 6 we describe the controls the MIDI device called
+``Gizmo'' provides. In this case, we have one fader, one potentiometer,
+and two buttons. We assign them names that represent their role: {\tt main}
+for the principal fader, {\tt aux} for the potentiometer, and so on.
+
+The numbers are the respective MIDI controller numbers the device uses.
+They can be found with the MIDI monitor function of the ``MIDI settings''
+dialog in Flickernoise.
+
+In line 8, we bind the {\tt main} control to a variable. This variable is
+then used in per-frame and per-vertex equations. As line 12 shows, one
+can also change this variable, e.g., to make the sensitivity slowly decay
+if there is no input from the MIDI device.
+
+
+% -----------------------------------------------------------------------------
+
+
+\section{Architecture}
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{MIDI control message}
+
+- MIDI: 0-127
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{...}
+
+
+% -----------------------------------------------------------------------------
+
+\section{Configuration process}
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Device database}
+
+Device specifications are added to the device database with 
+- global section
+
+\begin{listing}{1}
+midi "dev1" {
+	main = fader(1, 102);
+	aux = pot(1, 103);
+	but1 = button(1, 16);
+	but2 = button(1, 17);
+	tog = toggle(1, 24);
+}
+\end{listing}
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Binding}
+
+In order to use a control in a patch, we have to establish a connection
+between the control element (in the device database) and a patch
+variable. We call such a variable a {\em control variable}.
+
+Control variables are bound with a construct that looks like a
+variable assignment:
+
+\begin{expose}
+{\tt {\em control\_variable} = {\em function}({\em element\_name});}
+\end{expose}
+
+{\em control\_variable} can be a pre-defined per-frame or per-vertex
+variable or it can be a user-defined variable. Variables that are
+updated by Flickernose itself, e.g., {\tt time} or {\tt bass}, cannot
+be used as control variables.
+
+{\em function} describes how the patch expects the control to behave.
+Flickernoise then tries to adapt the behaviour of the actual device
+to what the patch expects. The following functions are available:
+
+\begin{description}
+  \item[\tt range]
+    The control variable has a value between 0 and 1, depending on the
+    setting of the device. This is commonly used for faders and
+    potentiometers.
+  \item[{\tt unbounded}, {\tt cyclic}]
+    These are special functions used with some rotary encoders. They
+    are described in detail in section \ref{diff}. With other control
+    elements, they behave just like {\tt range}.
+  \item[\tt button]
+    The control variable receives the value 1 when the button is
+    pressed and returns to zero when it is released. When applied to
+    elements that send values between 0 and 1, the value is rounded
+    and the control acts like a {\tt toggle}.
+  \item[\tt toggle]
+    The value of the control variable changes between 0 and 1 each
+    time the element -- typically a button -- is actuated. 
+\end{description}
+
+{\em element\_name} is the name of the control element, as in the
+device database.
+
+\begin{figure}[!tb]
+\begin{center}
+\includegraphics{bind}
+\end{center}
+\caption{When binding a control variable, information from the device
+  database, a translation map, and the table of patch variables is
+  combined into a stimulus entry.}
+\label{bind}
+\end{figure}
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Event processing}
+
+\begin{figure}[!tb]
+\begin{center}
+\includegraphics{stim}
+\end{center}
+\caption{When a MIDI control message is received, Flickernoise looks
+  for a matching stimulus and processes the value accordingly.}
+\label{stim}
+\end{figure}
+
+Figure \ref{stim} illustrates how events are translated into changes
+of control variables.
+
+Each time a MIDI control message arrives, Flickernoise looks for a
+stimulus that matches the event type, i.e., MIDI control, the channel
+number and the controller number (1). If no matching entry exists,
+the event is ignored.
+
+The stimulus tells Flickernoise which translator to use and where
+to store the result. In our example, we have a {\tt pot} to {\tt range}
+translation, which is simply a division by 127 (2). The result,
+$\nicefrac{28}{127}=0.220$, is stored in the location of the variable
+{\tt var} (3).
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Writing to control variables}
+
+- pfv
+- pvv
+- continuity
+
+exercised to avoid any of the per-defined variables that are updated
+
+% -----------------------------------------------------------------------------
+
+
+\section{Control devices}
+
+In the section below, we describe the various control elements, their
+declaration, and their behaviour. In the example, we show the physical
+state of the element, the value a MIDI control may typically send for
+the element in that state, and then the resulting values for the
+various translations.
+
+Since {\tt range}, {\tt unbounded}, and {\tt cycle} only differ from
+each other in one case, they are usually abbreviated as just
+``{\tt range}, $\ldots$''.
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Faders}
+
+Faders are slide potentiometers that normally cover the whole
+range of values a MIDI controller can send: 0--127. They
+retain their position when released.
+
+Fader elements of a device are declared with {\tt fader()} and
+are typically bound with {\tt range()}:
+
+\begin{listing}{1}
+midi ... {
+	name = fader(...);
+}
+
+var = range(name);
+\end{listing}
+
+The following example shows how Flickernoise maps faders to control
+variables. We start with the fader in the 0\% position, move it to
+the 40\%, then 60\%, and the 100\% position. At the end, we return
+it to the 0\% position.
+
+\begin{expose}
+\begin{tabular}{lcccccl}
+  \raisebox{6mm}{User input} &
+  \includegraphics{fader-0.pdf} &
+  \includegraphics{fader-40.pdf} &
+  \includegraphics{fader-60.pdf} &
+  \includegraphics{fader-100.pdf} &
+  \includegraphics{fader-0.pdf} \\
+  \cmidrule(r){1-6}
+  MIDI value &
+  & 51 & 76 & 127 & 0 \\
+  \midrule
+  Translation
+  & 0 & 0.4 & 0.6 & 1 & 0 & \tt range, $\ldots$ \\
+  & 0 & 0   & 1   & 1 & 0 & \tt button, toggle \\
+\end{tabular}
+\end{expose}
+
+The mapping is quite straightforward: {\tt range}, {\tt unbounded},
+and {\tt cycle} produce a value from 0 to 1 corresponding to the
+position of the knob. {\tt button} and {\tt toggle} produce 0 if
+the knob is the lower half of the range, 1 if it is in the upper half.
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Rotary potentiometers}
+
+Rotary potentiometers work exactly like faders except that they are
+declared with {\tt pot()}:\footnote{The current implementation does
+not distinguish at all between {\tt fader} and {\tt pot}, but they
+may be represented with different symbols in a future GUI.}
+
+\begin{listing}{1}
+midi ... {
+	name = pot(...);
+}
+
+var = range(name);
+\end{listing}
+
+They have mechanical stops at the beginning and at the end of
+their range, which distinguishes them from the rotary encoders described
+in the next section.
+
+The example below shows a potentiometer that travels over an angle
+of $270^{\circ}$:
+
+\begin{expose}
+\begin{tabular}{lccccl}
+  \raisebox{6mm}{User input} &
+  \includegraphics{pot-0.pdf} &
+  \includegraphics{pot-90.pdf} &
+  \includegraphics{pot-180.pdf} &
+  \includegraphics{pot-270.pdf} \\
+  \cmidrule(r){1-5}
+  MIDI value &
+  & 42 & 85 & 127  \\
+  \midrule
+  Translation
+  & 0 & 0.33 & 0.67 & 1 &  \tt range, $\ldots$ \\
+  & 0 & 0    & 1   & 1 &  \tt button, toggle \\
+\end{tabular}
+\end{expose}
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Rotary encoders acting as potentiometers}
+
+Rotary encoders look similar to potentiometers but differ from them
+by not having a mechanical stop. This means that they can be turned
+indefinitely in the same direction.
+
+MIDI devices usually emulate the behaviour of potentiometers by ignoring
+any turns at the end of the value range. When the direction is reversed,
+the values change immediately.
+
+Rotary encoders acting as potentiometers are also declared with
+{\tt pot} and bound with {\tt range}.
+
+The example below shows a rotary encoder covering the full value range
+in one $360^{\circ}$ turn that is first turned $450^{\circ}$ clockwise
+and then $45^{\circ}$ counterclockwise:
+
+\begin{expose}
+\begin{tabular}{lcccccl}
+  \raisebox{6mm}{User input} &
+  \includegraphics{enc-0.pdf} &
+  \includegraphics{enc-90.pdf} &
+  \includegraphics{enc-270.pdf} &
+  \includegraphics{enc-450.pdf} &
+  \includegraphics{enc-405.pdf} \\
+  \cmidrule(r){1-6}
+  MIDI value &
+  & 32 & 96 & 127 & 121  \\
+  \midrule
+  Translation
+  & 0 & 0.25 & 0.75 & 1 & 0.875 & \tt range, $\ldots$ \\
+  & 0 & 0    & 1    & 1 & 1     & \tt button, toggle \\
+\end{tabular}
+\end{expose}
+
+Note that it stops at MIDI value 127 at the third turn and the
+remaining $90^{\circ}$ are ignored.
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Push buttons}
+
+Push buttons are activated by pressing them and they return to the
+inactive state when released. Buttons can only be either fully on or
+fully off, without intermediate values.
+
+Push buttons are declared with {\tt button()} and bound with
+{\tt button()} or {\tt toggle()}:
+
+\begin{listing}{1}
+midi ... {
+	name = button(...);
+}
+
+var = button(name);
+\end{listing}
+
+The alternative {\tt toggle()} turns the control on when the button
+is pressed the first time and then off again when pressed the second
+time.
+
+Example:
+
+\begin{expose}
+\begin{tabular}{lcccccl}
+  \raisebox{5mm}{User input} &
+  \includegraphics{button-up.pdf} &
+  \includegraphics{button-down.pdf} &
+  \includegraphics{button-up.pdf} &
+  \includegraphics{button-down.pdf} &
+  \includegraphics{button-up.pdf} \\
+  \cmidrule(r){1-6}
+  MIDI value &
+  & 127 & 0 & 127 & 0\\
+  \midrule
+  Translation
+  & 0 & 1 & 0 & 1 & 0 & \tt range, $\ldots$, button \\
+  & 0 & 1 & 1 & 0 & 0 & \tt toggle \\
+\end{tabular}
+\end{expose}
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Toggles}
+
+A toggle button or switch flips from on to off each time it is
+actuated. Toggles are declared with {\tt toggle()} and typically
+bound with {\tt toggle()} as well:
+
+\begin{listing}{1}
+midi ... {
+	name = toggle(...);
+}
+
+var = toggle(name);
+\end{listing}
+
+In the example below, we indicate whether the control is activated
+by a lamp next to the button:
+
+\begin{expose}
+\begin{tabular}{lcccccl}
+  \raisebox{6mm}{User input} &
+  \includegraphics{toggle-off.pdf} &
+  \includegraphics{toggle-act.pdf} &
+  \includegraphics{toggle-on.pdf} &
+  \includegraphics{toggle-deact.pdf} &
+  \includegraphics{toggle-off.pdf} \\
+  \cmidrule(r){1-6}
+  MIDI value &
+  & 127 & 0 & 127 & 0\\
+  \midrule
+  Translation
+  & 0 & 1 & 1 & 0 & 0 & all \\
+\end{tabular}
+\end{expose}
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{One-way buttons}
+
+Some devices have buttons that send a MIDI event only when pressed but
+not when released. E.g.,
+
+\begin{expose}
+\begin{tabular}{lcccccl}
+  \raisebox{5mm}{User input} &
+  \includegraphics{button-up.pdf} &
+  \includegraphics{button-down.pdf} &
+  \includegraphics{button-up.pdf} &
+  \includegraphics{button-down.pdf} &
+  \includegraphics{button-up.pdf} \\
+  \cmidrule(r){1-6}
+  MIDI value &
+  & 127 &  & 127 & \\
+\end{tabular}
+\end{expose}
+
+Since the control variables in Flickernoise reflect the state of a
+control and not events, we cannot directly use such devices. However,
+by exploiting the ability to overwrite a control variable, we can
+simulate a release as follows:
+
+\begin{listing}{1}
+midi ... {
+	name = button(...);
+}
+
+var = button(name);
+
+per_frame:
+	/* use "var" */
+	var = 0;
+\end{listing}
+
+When the button is pressed, it will set {\tt var} to 1. At the next
+frame, this value can be used. At the end of the frame (and before
+running per-vertex equations), it is reset to zero. {\tt var} thus
+acts like a {\tt button} control variable where the button is always
+pressed for exactly one frame duration.
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Differential encoders}
+\label{diff}
+
+\begin{expose}
+\begin{tabular}{lccccccl}
+  \raisebox{6mm}{User input} &
+  \includegraphics{dial-0.pdf} &
+  \includegraphics{dial-90.pdf} &
+  \includegraphics{dial-180.pdf} &
+  \includegraphics{dial-360.pdf} &
+  \includegraphics{dial-405.pdf} &
+  \includegraphics{dial-315.pdf} \\
+  \cmidrule(r){1-7}
+  MIDI value &
+  & 32 & 32 & 64 & 16 & 96 \\
+  \midrule
+  Translation
+  & 0 & 0.25 & 0.5 & 1 & 1 & 0.75 & \tt range \\
+  & 0 & 0.25 & 0.5 & 1 & 1.125 & 0.875 & \tt unbounded \\
+  & 0 & 0.25 & 0.5 & 0 & 0.125 & 0.875 & \tt cyclic \\
+%  & 0 & 1 & 1 & 0 & \tt button, toggle \\
+\end{tabular}
+\end{expose}
+
+%   The control variable can assume any value, including negative
+%   values and values greater than one. This can be used with
+%   certain rotary encoders. If the device in question has no
+%   meaningful way to input unbounded values, {\tt unbounded} acts
+%   like {\tt range}.
+%   The control variable has a value between 0 and 1, like with
+%   {\tt range}, but if the control element tries to move outside the
+%   range, the value wraps around. 
+\end{document}
