@@ -15,6 +15,14 @@
 #include "stimuli.h"
 
 
+static void midi_set(struct s_midi_ctrl *ct, float f)
+{
+	if(ct->regs.pfv)
+		*ct->regs.pfv = f;
+	if(ct->regs.pvv)
+		*ct->regs.pvv = f;
+}
+
 static void midi_add(struct s_midi_ctrl *ct, int value)
 {
 	float f;
@@ -26,18 +34,11 @@ static void midi_add(struct s_midi_ctrl *ct, int value)
 		*ct->regs.pvv += f;
 }
 
-
 /* Linear mapping [0, 127] -> [0, 1] */
 
 static void midi_proc_linear(struct s_midi_ctrl *ct, int value)
 {
-	float f;
-
-	f = (float) value/127.0;
-	if(ct->regs.pfv)
-		*ct->regs.pfv = f;
-	if(ct->regs.pvv)
-		*ct->regs.pvv = f;
+	midi_set(ct, (float) value/127.0);
 }
 
 /* Differential (signed 7 bit delta value) with linear mapping */
