@@ -295,8 +295,12 @@ static void (*map[dt_last][ft_last])(struct s_midi_ctrl *sct, int value) = {
 static struct stim_regs *do_bind(struct stimuli *s,
     const struct stim_db_midi_ctrl *ctrl, enum stim_midi_fn_type fn)
 {
-	return stim_add_midi_ctrl(s, ctrl->chan, ctrl->ctrl,
-	    map[ctrl->type][fn]);
+	void (*proc)(struct s_midi_ctrl *ct, int value);
+
+	proc = map[ctrl->type][fn];
+	if(!proc)
+		return NULL;
+	return stim_add_midi_ctrl(s, ctrl->chan, ctrl->ctrl, proc);
 }
 
 struct stim_regs *stim_bind(struct stimuli *s, const void *handle,
