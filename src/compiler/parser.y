@@ -220,11 +220,11 @@ static struct id *symbolify(struct id *id)
 
 %type context {assign_callback}
 %type opt_expr {struct ast_node *}
+%type opt_arg {struct ast_node *}
 %type midi_proc {midi_proc}
 %type midi_dev_type {enum stim_midi_dev_type}
 %type midi_fn_type {enum stim_midi_fn_type}
-%type midi_chan {int}
-%type midi_ctrl {int}
+%type midi_addr{struct { int chan, ctrl; }}
 
 %destructor opt_expr { parse_free($$); }
 
@@ -355,11 +355,11 @@ midi_inputs ::= .
 
 midi_inputs ::= midi_inputs midi_input.
 
-midi_input ::= ident(I) TOK_ASSIGN midi_dev_type(T) TOK_LPAREN midi_chan(CH)
-    TOK_COMMA midi_ctrl(CT) TOK_RPAREN opt_semi. {
+midi_input ::= ident(I) TOK_ASSIGN midi_dev_type(T) TOK_LPAREN midi_addr(M)
+    TOK_RPAREN opt_semi. {
 	int ok;
 
-	ok = stim_db_midi_ctrl(midi_dev, I->sym, T, CH, CT);
+	ok = stim_db_midi_ctrl(midi_dev, I->sym, T, M.chan, M.ctrl);
 	if(!ok) {
 		FAIL("cannot add MIDI input \"%s\"", I->sym->fpvm_sym.name);
 		free(I);
@@ -373,30 +373,33 @@ midi_dev_type(T) ::= TOK_DIFF.		{ T = dt_diff; }
 midi_dev_type(T) ::= TOK_BUTTON.	{ T = dt_button; }
 midi_dev_type(T) ::= TOK_TOGGLE.	{ T = dt_toggle; }
 
-midi_chan(C) ::= expr(E). {
-	if(E->op != op_constant) {
-		FAIL("MIDI channel must be a constant");
-		return;
+midi_addr(M) ::= expr(A) opt_arg(B). {
+	if(B) {
+		if(A->op != op_constant) {
+			FAIL("MIDI channel must be a constant");
+			return;
+		}
+		M.chan = A->contents.constant;
+		if(M.chan < 1 || M.chan > MIDI_CHANS) {
+			FAIL("MIDI channel must be within 1-%d", MIDI_CHANS);
+			return;
+		}
+	} else {
+		B = A;
+		A = NULL;
+		M.chan = 0;
 	}
-	C = E->contents.constant;
-	if(C < 1 || C > MIDI_CHANS) {
-		FAIL("MIDI channel must be within 1-%d", MIDI_CHANS);
-		return;
-	}
-	parse_free(E);
-}
-
-midi_ctrl(C) ::= expr(E). {
-	if(E->op != op_constant) {
+	if(B->op != op_constant) {
 		FAIL("MIDI controller must be a constant");
 		return;
 	}
-	C = E->contents.constant;
-	if(C < 0 || C >= MIDI_CTRLS) {
+	M.ctrl = B->contents.constant;
+	if(M.ctrl < 0 || M.ctrl >= MIDI_CTRLS) {
 		FAIL("MIDI controller must be within 0-%d", MIDI_CTRLS-1);
 		return;
 	}
-	parse_free(E);
+	parse_free(A);
+	parse_free(B);
 }
 
 assignment ::= ident(I) TOK_ASSIGN midi_fn_type(T) TOK_LPAREN ident(D)
@@ -420,6 +423,14 @@ midi_fn_type(T) ::= TOK_CYCLIC.		{ T = ft_cyclic; }
 midi_fn_type(T) ::= TOK_BUTTON.		{ T = ft_button; }
 midi_fn_type(T) ::= TOK_TOGGLE.		{ T = ft_toggle; }
 
+opt_arg(E) ::= . {
+	E = NULL;
+}
+
+opt_arg(E) ::= TOK_COMMA expr(A). {
+	E = A;
+}
+
 opt_expr(E) ::= . {
 	E = NULL;
 }
@@ -427,6 +438,7 @@ opt_expr(E) ::= . {
 opt_expr(E) ::= expr(A). {
 	E = A;
 }
+
 midi_proc(P) ::= . {
 	P = midi_proc_linear;
 }

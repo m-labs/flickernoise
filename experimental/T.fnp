@@ -42,10 +42,10 @@ midi "Faderfox LV3" {
 	fader7 = range(7, 7);
 	fader8 = range(8, 7);
 
-	enc1 = differential(1, 24);
-	enc2 = differential(1, 25);
+	enc1 = differential(24);
+	enc2 = differential(25);
 
-	enc1_push = button(1, 28);
+	enc1_push = button(28);
 
 	fx1 = toggle(9, 4);
 	joy1x = range(9, 1);
