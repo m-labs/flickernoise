@@ -76,7 +76,8 @@ static void openok_callback(void *arg)
 {
 	char buf[MAX_PATCH_SIZE+1];
 	FILE *fd;
-	int r;
+	int r, n = 0;
+	char *p, *d;
 
 	get_filedialog_selection(fileopen_dlg,
 	    current_filename, sizeof(current_filename));
@@ -97,6 +98,25 @@ static void openok_callback(void *arg)
 		return;
 	}
 	buf[r] = 0;
+
+	for(p = buf; *p; p++)
+		if(*p == '"')
+			n++;
+	if(r+n > MAX_PATCH_SIZE) {
+		mtk_cmd(appid,
+		    "status.set(-text \"No room to expand quotes\")");
+		return;
+	}
+
+	d = p+n;
+	do {
+		*d = *p;
+		if(*p == '"')
+			*--d = '\\';
+		p--;
+	}
+	while(d-- != buf);
+
 	mtk_cmdf(appid, "ed.set(-text \"%s\")", buf);
 	mtk_cmd(appid, "edf.expose(0, 0)");
 }
