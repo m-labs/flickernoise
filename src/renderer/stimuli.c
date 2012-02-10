@@ -15,26 +15,26 @@
 #include "stimuli.h"
 
 
-/* ----- Low-level register update (MIDI) ---------------------------------- */
+/* ----- Low-level register update  ---------------------------------------- */
 
 
-static void midi_set(struct s_midi_ctrl *ct, float f)
+static void regs_set(struct stim_regs *regs, float f)
 {
-	if(ct->regs.pfv)
-		*ct->regs.pfv = f;
-	if(ct->regs.pvv)
-		*ct->regs.pvv = f;
+	if(regs->pfv)
+		*regs->pfv = f;
+	if(regs->pvv)
+		*regs->pvv = f;
 }
 
-static void midi_add(struct s_midi_ctrl *ct, int value)
+static void regs_add(struct stim_regs *regs, int value)
 {
 	float f;
 
 	f = (float) value/127.0;
-	if(ct->regs.pfv)
-		*ct->regs.pfv += f;
-	if(ct->regs.pvv)
-		*ct->regs.pvv += f;
+	if(regs->pfv)
+		*regs->pfv += f;
+	if(regs->pvv)
+		*regs->pvv += f;
 }
 
 
@@ -45,7 +45,7 @@ static void midi_add(struct s_midi_ctrl *ct, int value)
 
 static void midi_proc_linear(struct s_midi_ctrl *ct, int value)
 {
-	midi_set(ct, (float) value/127.0);
+	regs_set(&ct->regs, (float) value/127.0);
 }
 
 /* Differential (signed 7 bit delta value) with linear mapping */
@@ -61,7 +61,7 @@ static void midi_proc_diff_cyclic(struct s_midi_ctrl *ct, int value)
 
 static void midi_proc_diff_unbounded(struct s_midi_ctrl *ct, int value)
 {
-	midi_add(ct, value < 64 ? value : value-128);
+	regs_add(&ct->regs, value < 64 ? value : value-128);
 }
 
 static void midi_proc_diff_linear(struct s_midi_ctrl *ct, int value)
@@ -80,15 +80,15 @@ static void midi_proc_diff_linear(struct s_midi_ctrl *ct, int value)
 
 static void midi_proc_range_button(struct s_midi_ctrl *ct, int value)
 {
-	midi_set(ct, !!value);
+	regs_set(&ct->regs, !!value);
 }
 
 static void midi_proc_diff_button(struct s_midi_ctrl *ct, int value)
 {
 	if(value & 0x40)
-		midi_set(ct, 0);
+		regs_set(&ct->regs, 0);
 	else
-		midi_set(ct, 1);
+		regs_set(&ct->regs, 1);
 }
 
 static void midi_proc_button_toggle(struct s_midi_ctrl *ct, int value)
@@ -96,7 +96,7 @@ static void midi_proc_button_toggle(struct s_midi_ctrl *ct, int value)
 	if(!value)
 		return;
 	ct->last = !ct->last;
-	midi_set(ct, ct->last);
+	regs_set(&ct->regs, ct->last);
 }
 
 
