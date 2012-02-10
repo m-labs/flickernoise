@@ -131,11 +131,6 @@ int scan(struct scanner *s)
 					{ return TOK_PER_PIXEL_UGLY; }
 
 		<N>"midi"		{ return TOK_MIDI; }
-		<N>"linear"		{ return TOK_LINEAR; }
-		<N>"accel_linear"	{ return TOK_ACCEL_LINEAR; }
-		<N>"accel_unbounded"	{ return TOK_ACCEL_UNBOUNDED; }
-		<N>"accel_cyclic"	{ return TOK_ACCEL_CYCLIC; }
-
 		<N>"range"		{ return TOK_RANGE; }
 		<N>"differential"	{ return TOK_DIFF; }
 		<N>"button"		{ return TOK_BUTTON; }

@@ -39,7 +39,6 @@ static void yy_parse_failed(struct yyParser *yypParser);
 
 typedef const char *(*assign_callback)(struct parser_comm *comm,
 	    struct sym *sym, struct ast_node *node);
-typedef void (*midi_proc)(struct s_midi_ctrl *ct, int value);
 
 static struct stim_db_midi *midi_dev;
 
@@ -219,14 +218,12 @@ static struct id *symbolify(struct id *id)
 %destructor primary_expr { free($$); }
 
 %type context {assign_callback}
-%type opt_expr {struct ast_node *}
 %type opt_arg {struct ast_node *}
-%type midi_proc {midi_proc}
 %type midi_dev_type {enum stim_midi_dev_type}
 %type midi_fn_type {enum stim_midi_fn_type}
 %type midi_addr{struct { int chan, ctrl; }}
 
-%destructor opt_expr { parse_free($$); }
+%destructor opt_arg { parse_free($$); }
 
 %syntax_error {
 	FAIL("parse error");
@@ -305,43 +302,6 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 		}
 	}
 	parse_free(N);
-}
-
-assignment ::= ident(I) TOK_ASSIGN TOK_MIDI TOK_LPAREN opt_expr(A) TOK_COMMA
-    expr(B) midi_proc(P) TOK_RPAREN opt_semi. {
-	struct sym *sym = I->sym;
-	struct stimuli *stim = compiler_get_stimulus(state->comm->u.sc);
-	int chan = 0; /* wildcard */
-
-	free(I);
-	if(sym->stim_regs) {
-		FAIL("duplicate control variable");
-		return;
-	}
-	if(A) {
-		if(A->op != op_constant) {
-			FAIL("MIDI channel must be a constant");
-			return;
-		}
-		chan = A->contents.constant;
-		if(!chan) {
-			FAIL("MIDI channel must be >= 1");
-			return;
-		}
-	}
-	if(B->op != op_constant) {
-		FAIL("MIDI controller must be a constant");
-		return;
-	}
-	sym->stim_regs = stim_add_midi_ctrl(stim, chan,
-	    B->contents.constant, P);
-	if(!sym->stim_regs) {
-		FAIL("cannot add stimulus for MIDI channel %d control %d",
-		    chan, (int) B->contents.constant);
-		return;
-	}
-	parse_free(A);
-	parse_free(B);
 }
 
 assignment ::= midi_device TOK_LBRACE midi_inputs TOK_RBRACE opt_semi.
@@ -429,34 +389,6 @@ opt_arg(E) ::= . {
 
 opt_arg(E) ::= TOK_COMMA expr(A). {
 	E = A;
-}
-
-opt_expr(E) ::= . {
-	E = NULL;
-}
-
-opt_expr(E) ::= expr(A). {
-	E = A;
-}
-
-midi_proc(P) ::= . {
-	P = midi_proc_linear;
-}
-
-midi_proc(P) ::= TOK_COMMA TOK_LINEAR. {
-	P = midi_proc_linear;
-}
-
-midi_proc(P) ::= TOK_COMMA TOK_ACCEL_LINEAR. {
-	P = midi_proc_accel_linear;
-}
-
-midi_proc(P) ::= TOK_COMMA TOK_ACCEL_UNBOUNDED. {
-	P = midi_proc_accel_unbounded;
-}
-
-midi_proc(P) ::= TOK_COMMA TOK_ACCEL_CYCLIC. {
-	P = midi_proc_accel_cyclic;
 }
 
 assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
@@ -746,9 +678,6 @@ ident(O) ::= binary(I).		{ O = symbolify(I); }
 ident(O) ::= binary_misc(I).	{ O = symbolify(I); }
 ident(O) ::= ternary(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_MIDI(I).	{ O = symbolify(I); }
-ident(O) ::= TOK_LINEAR(I).	{ O = symbolify(I); }
-ident(O) ::= TOK_ACCEL_LINEAR(I).	{ O = symbolify(I); }
-ident(O) ::= TOK_ACCEL_CYCLIC(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_RANGE(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_DIFF(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_BUTTON(I).	{ O = symbolify(I); }
