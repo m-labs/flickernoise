@@ -248,7 +248,7 @@ start ::= TOK_START_ASSIGN sections. {
 }
 
 
-/* ----- Sections and assignments ------------------------------------------ */
+/* ----- New-style sections and assignments -------------------------------- */
 
 
 sections ::= assignments.
@@ -270,6 +270,10 @@ per_vertex_label ::= TOK_PER_VERTEX TOK_COLON. {
 assignments ::= assignments assignment.
 
 assignments ::= .
+
+
+/* ----- Variable assignments ---------------------------------------------- */
+
 
 assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 	I->sym->flags |= SF_ASSIGNED;
@@ -303,6 +307,9 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 	}
 	parse_free(N);
 }
+
+/* ----- MIDI device database ---------------------------------------------- */
+
 
 assignment ::= midi_device TOK_LBRACE midi_inputs TOK_RBRACE opt_semi.
 
@@ -362,6 +369,10 @@ midi_addr(M) ::= expr(A) opt_arg(B). {
 	parse_free(B);
 }
 
+
+/* ----- MIDI binding ------------------------------------------------------ */
+
+
 assignment ::= ident(I) TOK_ASSIGN midi_fn_type(T) TOK_LPAREN ident(D)
     TOK_RPAREN opt_semi.  {
 	struct sym *sym = I->sym;
@@ -391,6 +402,10 @@ opt_arg(E) ::= TOK_COMMA expr(A). {
 	E = A;
 }
 
+
+/* ----- Image files ------------------------------------------------------- */
+
+
 assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 	const char *msg;
 
@@ -405,6 +420,10 @@ assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 	free((void *) N->fname);
 	free(N);
 }
+
+
+/* ----- Old-style sections ------------------------------------------------ */
+
 
 assignment ::= context(C). {
 	/*
@@ -434,6 +453,10 @@ old_per_vertex ::= TOK_PER_VERTEX.
 old_per_vertex ::= TOK_PER_VERTEX_UGLY.
 old_per_vertex ::= TOK_PER_PIXEL.
 old_per_vertex ::= TOK_PER_PIXEL_UGLY.
+
+
+/* ----- Semicolons as optional separators or terminators ------------------ */
+
 
 opt_semi ::= opt_semi TOK_SEMI.
 
