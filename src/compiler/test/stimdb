@@ -3,7 +3,7 @@
 
 ###############################################################################
 
-ptest "stimuli: range(1, 0)" -c -q << EOF
+ptest "stimuli, DB, MIDI: range(1, 0)" -c -q << EOF
 midi "foo" {
 	bar = range(1, 0);
 }
@@ -13,7 +13,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli: range(16, 127)" -c -q << EOF
+ptest "stimuli, DB, MIDI: range(16, 127)" -c -q << EOF
 midi "foo" {
 	bar = range(16, 127)
 }
@@ -23,7 +23,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli: range(17, 0)" -c -q << EOF
+ptest_fail "stimuli, DB, MIDI: range(17, 0)" -c -q << EOF
 midi "foo" {
 	bar = range(17, 0);
 }
@@ -34,7 +34,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli: range(1, 128)" -c -q << EOF
+ptest_fail "stimuli, DB, MIDI: range(1, 128)" -c -q << EOF
 midi "foo" {
 	bar = range(1, 128);
 }
@@ -45,7 +45,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli: range(0, 0)" -c -q << EOF
+ptest_fail "stimuli, DB, MIDI: range(0, 0)" -c -q << EOF
 midi "foo" {
 	bar = range(0, 0);
 }
@@ -56,7 +56,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli: range(1, -1)" -c -q << EOF
+ptest_fail "stimuli, DB, MIDI: range(1, -1)" -c -q << EOF
 midi "foo" {
 	bar = range(1, -1);
 }
@@ -67,7 +67,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli: differential(1, 0)" -c -q << EOF
+ptest "stimuli, DB, MIDI: differential(1, 0)" -c -q << EOF
 midi "foo" {
 	bar = differential(1, 0);
 }
@@ -77,7 +77,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli: button(1, 0)" -c -q << EOF
+ptest "stimuli, DB, MIDI: button(1, 0)" -c -q << EOF
 midi "foo" {
 	bar = button(1, 0);
 }
@@ -87,7 +87,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli: toggle(1, 0)" -c -q << EOF
+ptest "stimuli, DB, MIDI: toggle(1, 0)" -c -q << EOF
 midi "foo" {
 	bar = toggle(1, 0);
 }
@@ -97,7 +97,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli: range(0) (wildcard)" -c -q << EOF
+ptest "stimuli, DB, MIDI: range(0) (wildcard)" -c -q << EOF
 midi "foo" {
 	bar = range(0);
 }
