@@ -71,6 +71,14 @@ static void midi_proc_diff_linear(struct s_midi_ctrl *ct, int value)
 	midi_proc_linear(ct, ct->last);
 }
 
+static void midi_proc_button_toggle(struct s_midi_ctrl *ct, int value)
+{
+	if(!value)
+		return;
+	ct->last = !ct->last;
+	midi_set(ct, ct->last);
+}
+
 void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value)
 {
 	struct s_midi_ctrl *ct;
@@ -203,7 +211,7 @@ static void (*map[dt_last][ft_last])(struct s_midi_ctrl *sct, int value) = {
 		[ft_unbounded] =	midi_proc_linear,
 		[ft_cyclic] =		midi_proc_linear,
 		[ft_button] =		midi_proc_linear,
-		[ft_toggle] =		NULL, /* @@@ */
+		[ft_toggle] =		midi_proc_button_toggle,
 	},
 	[dt_toggle] = {
 		[ft_range] =		midi_proc_linear,
