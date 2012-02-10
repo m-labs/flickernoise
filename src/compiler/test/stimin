@@ -86,6 +86,60 @@ EOF
 
 #------------------------------------------------------------------------------
 
+ptest "stimuli, input, MIDI: differential -> unbounded" -c -q \
+    -v sx -m 0=127 -m 0=63 -m 0=0 -m 0=63 -m 0=63 -m 0=64 -m 0=66 -m 0=64 <<EOF
+midi "foo" { bar = differential(1, 0); }
+sx = unbounded(bar);
+EOF
+expect <<EOF
+-0.00787402
+0.488189
+0.488189
+0.984252
+1.48031
+0.976378
+0.488189
+-0.015748
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: differential -> cyclic" -c -q \
+    -v sx -m 0=127 -m 0=63 -m 0=0 -m 0=63 -m 0=63 -m 0=64 -m 0=66 -m 0=64 <<EOF
+midi "foo" { bar = differential(1, 0); }
+sx = cyclic(bar);
+EOF
+expect <<EOF
+1
+0.488189
+0.488189
+0.984252
+0.472441
+0.976378
+0.488189
+0.992126
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: differential -> button" -c -q \
+    -v sx -m 0=127 -m 0=63 -m 0=0 -m 0=63 -m 0=63 -m 0=64 -m 0=0 -m 0=64 <<EOF
+midi "foo" { bar = differential(1, 0); }
+sx = button(bar);
+EOF
+expect <<EOF
+0
+1
+1
+1
+1
+0
+0
+0
+EOF
+
+#------------------------------------------------------------------------------
+
 ptest "stimuli, input, MIDI: button -> button" -c -q \
     -v sx -m 0=127 -m 0=0 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = button(1, 0); }
@@ -96,6 +150,21 @@ expect <<EOF
 0
 1
 0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: button -> toggle" -c -q \
+    -v sx -m 0=127 -m 0=0 -m 0=127 -m 0=0 -m 0=127 <<EOF
+midi "foo" { bar = button(1, 0); }
+sx = toggle(bar);
+EOF
+expect <<EOF
+1
+1
+0
+0
+1
 EOF
 
 #------------------------------------------------------------------------------
