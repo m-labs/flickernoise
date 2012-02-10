@@ -510,6 +510,7 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	if(!schedule_pvv(sc)) goto fail;
 
 	symtab_free();
+	stim_db_free(); /* @@@ */
 
 	free(sc);
 	return p;
