@@ -3,79 +3,118 @@
 
 ###############################################################################
 
-ptest "stimuli, input, MIDI: range -> range" -c -q << EOF
+ptest "stimuli, input, MIDI: range -> range" -c -q \
+    -v sx -m 0=63 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = range(1, 0); }
-var = range(bar);
+sx = range(bar);
 EOF
 expect <<EOF
+0.496063
+1
+0
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: range -> unbounded" -c -q << EOF
+ptest "stimuli, input, MIDI: range -> unbounded" -c -q \
+    -v sx -m 0=64 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = range(1, 0); }
-var = unbounded(bar);
+sx = unbounded(bar);
 EOF
 expect <<EOF
+0.503937
+1
+0
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: range -> cyclic" -c -q << EOF
+ptest "stimuli, input, MIDI: range -> cyclic" -c -q \
+    -v sx -m 0=63 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = range(1, 0); }
-var = cyclic(bar);
+sx = cyclic(bar);
 EOF
 expect <<EOF
+0.496063
+1
+0
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: range -> button" -c -q << EOF
+ptest "stimuli, input, MIDI: range -> button" -c -q \
+    -v sx -m 0=63 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = range(1, 0); }
-var = button(bar);
+sx = button(bar);
 EOF
 expect <<EOF
+1
+1
+0
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: range -> toggle" -c -q << EOF
+ptest "stimuli, input, MIDI: range -> toggle" -c -q \
+    -v sx -m 0=63 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = range(1, 0); }
-var = toggle(bar);
+sx = toggle(bar);
 EOF
 expect <<EOF
+1
+1
+0
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: differential -> range" -c -q << EOF
-midi "foo" { bar = range(1, 0); }
-var = range(bar);
+ptest "stimuli, input, MIDI: differential -> range" -c -q \
+    -v sx -m 0=127 -m 0=63 -m 0=0 -m 0=63 -m 0=63 -m 0=64 -m 0=66 -m 0=64 <<EOF
+midi "foo" { bar = differential(1, 0); }
+sx = range(bar);
 EOF
 expect <<EOF
+0
+0.496063
+0.496063
+0.992126
+1
+0.496063
+0.00787402
+0
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: button -> button" -c -q << EOF
+ptest "stimuli, input, MIDI: button -> button" -c -q \
+    -v sx -m 0=127 -m 0=0 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = button(1, 0); }
-var = button(bar);
+sx = button(bar);
 EOF
 expect <<EOF
+1
+0
+1
+0
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: toggle -> range" -c -q << EOF
+ptest "stimuli, input, MIDI: toggle -> range" -c -q \
+    -v sx -m 0=127 -m 0=0 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = toggle(1, 0); }
-var = range(bar);
+sx = range(bar);
 EOF
 expect <<EOF
+1
+0
+1
+0
 EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli, input, MIDI: toggle -> button" -c -q << EOF
+ptest_fail "stimuli, input, MIDI: toggle -> button" -c -q <<EOF
 midi "foo" { bar = toggle(1, 0); }
 var = button(bar);
 EOF
