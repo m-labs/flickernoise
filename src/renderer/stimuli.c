@@ -313,7 +313,7 @@ static void (*map[dt_last][ft_last])(struct s_midi_ctrl *sct, int value) = {
 		[ft_range] =		midi_proc_linear,
 		[ft_unbounded] =	midi_proc_linear,
 		[ft_cyclic] =		midi_proc_linear,
-		[ft_button] =		NULL,
+		[ft_button] =		midi_proc_linear,
 		[ft_toggle] =		midi_proc_linear,
 	},
 };

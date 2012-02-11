@@ -185,12 +185,16 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli, input, MIDI: toggle -> button" -c -q <<EOF
+ptest "stimuli, input, MIDI: toggle -> button" -c -q \
+    -v sx -m 0=127 -m 0=0 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = toggle(1, 0); }
-var = button(bar);
+sx = button(bar);
 EOF
 expect <<EOF
-line 3: cannot add stimulus for MIDI input "var" near 'EOF'
+1
+0
+1
+0
 EOF
 
 
