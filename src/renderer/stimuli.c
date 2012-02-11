@@ -26,17 +26,6 @@ static void regs_set(struct stim_regs *regs, float f)
 		*regs->pvv = f;
 }
 
-static void regs_add(struct stim_regs *regs, int value)
-{
-	float f;
-
-	f = (float) value/127.0;
-	if(regs->pfv)
-		*regs->pfv += f;
-	if(regs->pvv)
-		*regs->pvv += f;
-}
-
 
 /* ----- MIDI processors --------------------------------------------------- */
 
@@ -61,7 +50,8 @@ static void midi_proc_diff_cyclic(struct s_midi_ctrl *ct, int value)
 
 static void midi_proc_diff_unbounded(struct s_midi_ctrl *ct, int value)
 {
-	regs_add(&ct->regs, value < 64 ? value : value-128);
+	ct->last += value < 64 ? value : value-128;
+	regs_set(&ct->regs, (float) ct->last/127.0);
 }
 
 static void midi_proc_diff_linear(struct s_midi_ctrl *ct, int value)
