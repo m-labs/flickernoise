@@ -3,9 +3,9 @@
 
 ###############################################################################
 
-ptest "stimuli, input, MIDI: range -> range" -c -q \
+ptest "stimuli, input, MIDI: fader -> range" -c -q \
     -v sx -m 0=63 -m 0=127 -m 0=0 <<EOF
-midi "foo" { bar = range(1, 0); }
+midi "foo" { bar = fader(1, 0); }
 sx = range(bar);
 EOF
 expect <<EOF
@@ -16,9 +16,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: range -> unbounded" -c -q \
+ptest "stimuli, input, MIDI: fader -> unbounded" -c -q \
     -v sx -m 0=64 -m 0=127 -m 0=0 <<EOF
-midi "foo" { bar = range(1, 0); }
+midi "foo" { bar = fader(1, 0); }
 sx = unbounded(bar);
 EOF
 expect <<EOF
@@ -29,9 +29,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: range -> cyclic" -c -q \
+ptest "stimuli, input, MIDI: fader -> cyclic" -c -q \
     -v sx -m 0=63 -m 0=127 -m 0=0 <<EOF
-midi "foo" { bar = range(1, 0); }
+midi "foo" { bar = fader(1, 0); }
 sx = cyclic(bar);
 EOF
 expect <<EOF
@@ -42,9 +42,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: range -> button" -c -q \
+ptest "stimuli, input, MIDI: fader -> button" -c -q \
     -v sx -m 0=63 -m 0=64 -m 0=127 -m 0=0 <<EOF
-midi "foo" { bar = range(1, 0); }
+midi "foo" { bar = fader(1, 0); }
 sx = button(bar);
 EOF
 expect <<EOF
@@ -56,9 +56,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: range -> toggle" -c -q \
+ptest "stimuli, input, MIDI: fader -> toggle" -c -q \
     -v sx -m 0=63 -m 0=64 -m 0=127 -m 0=0 <<EOF
-midi "foo" { bar = range(1, 0); }
+midi "foo" { bar = fader(1, 0); }
 sx = toggle(bar);
 EOF
 expect <<EOF

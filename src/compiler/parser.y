@@ -335,7 +335,8 @@ midi_input ::= ident(I) TOK_ASSIGN midi_dev_type(T) TOK_LPAREN midi_addr(M)
 	free(I);
 }
 
-midi_dev_type(T) ::= TOK_RANGE.		{ T = dt_range; }
+midi_dev_type(T) ::= TOK_FADER.		{ T = dt_range; }
+midi_dev_type(T) ::= TOK_POT.		{ T = dt_range; }
 midi_dev_type(T) ::= TOK_DIFF.		{ T = dt_diff; }
 midi_dev_type(T) ::= TOK_BUTTON.	{ T = dt_button; }
 midi_dev_type(T) ::= TOK_TOGGLE.	{ T = dt_toggle; }
@@ -701,10 +702,12 @@ ident(O) ::= binary(I).		{ O = symbolify(I); }
 ident(O) ::= binary_misc(I).	{ O = symbolify(I); }
 ident(O) ::= ternary(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_MIDI(I).	{ O = symbolify(I); }
-ident(O) ::= TOK_RANGE(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_FADER(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_POT(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_DIFF(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_BUTTON(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_TOGGLE(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_RANGE(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_CYCLIC(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_UNBOUNDED(I).	{ O = symbolify(I); }
 

@@ -3,9 +3,9 @@
 
 ###############################################################################
 
-ptest "stimuli, DB, MIDI: range(1, 0)" -c -q << EOF
+ptest "stimuli, DB, MIDI: fader(1, 0)" -c -q << EOF
 midi "foo" {
-	bar = range(1, 0);
+	bar = fader(1, 0);
 }
 EOF
 expect <<EOF
@@ -13,9 +13,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, DB, MIDI: range(16, 127)" -c -q << EOF
+ptest "stimuli, DB, MIDI: fader(16, 127)" -c -q << EOF
 midi "foo" {
-	bar = range(16, 127)
+	bar = fader(16, 127)
 }
 EOF
 expect <<EOF
@@ -23,9 +23,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli, DB, MIDI: range(17, 0)" -c -q << EOF
+ptest_fail "stimuli, DB, MIDI: fader(17, 0)" -c -q << EOF
 midi "foo" {
-	bar = range(17, 0);
+	bar = fader(17, 0);
 }
 EOF
 expect <<EOF
@@ -34,9 +34,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli, DB, MIDI: range(1, 128)" -c -q << EOF
+ptest_fail "stimuli, DB, MIDI: fader(1, 128)" -c -q << EOF
 midi "foo" {
-	bar = range(1, 128);
+	bar = fader(1, 128);
 }
 EOF
 expect <<EOF
@@ -45,9 +45,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli, DB, MIDI: range(0, 0)" -c -q << EOF
+ptest_fail "stimuli, DB, MIDI: fader(0, 0)" -c -q << EOF
 midi "foo" {
-	bar = range(0, 0);
+	bar = fader(0, 0);
 }
 EOF
 expect <<EOF
@@ -56,13 +56,23 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "stimuli, DB, MIDI: range(1, -1)" -c -q << EOF
+ptest_fail "stimuli, DB, MIDI: fader(1, -1)" -c -q << EOF
 midi "foo" {
-	bar = range(1, -1);
+	bar = fader(1, -1);
 }
 EOF
 expect <<EOF
 line 2: MIDI controller must be within 0-127 near ');'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, DB, MIDI: pot(1, 0)" -c -q << EOF
+midi "foo" {
+	bar = pot(1, 0);
+}
+EOF
+expect <<EOF
 EOF
 
 #------------------------------------------------------------------------------
@@ -97,9 +107,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, DB, MIDI: range(0) (wildcard)" -c -q << EOF
+ptest "stimuli, DB, MIDI: fader(0) (wildcard)" -c -q << EOF
 midi "foo" {
-	bar = range(0);
+	bar = fader(0);
 }
 EOF
 expect <<EOF
