@@ -121,8 +121,7 @@ load: $(BINDIR)/flickernoise.bin
 	cp $< /var/lib/tftpboot/boot.bin
 
 flash:
-	(cd ../flash && ./flash.sh rescue)
-	(cd ../flash && ./flash.sh)
+	cd ../flash && ./flash.sh
 
 clean:
 	rm -f $(BINDIR)/flickernoise $(BINDIR)/flickernoise.bin 
