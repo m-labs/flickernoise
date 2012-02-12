@@ -114,7 +114,7 @@ midi "dev1" {
 	aux = pot(1, 103);
 	but1 = button(1, 16);
 	but2 = button(1, 17);
-	tog = toggle(1, 24);
+	tog = switch(1, 24);
 }
 \end{listing}
 
@@ -157,8 +157,8 @@ to what the patch expects. The following functions are available:
     The control variable receives the value 1 when the button is
     pressed and returns to zero when it is released. When applied to
     elements that send values between 0 and 1, the value is rounded
-    and the control acts like a {\tt toggle}.
-  \item[\tt toggle]
+    and the control acts like a {\tt switch}.
+  \item[\tt switch]
     The value of the control variable changes between 0 and 1 each
     time the element -- typically a button -- is actuated. 
 \end{description}
@@ -272,13 +272,13 @@ it to the 0\% position.
   \midrule
   Translation
   & 0 & 0.4 & 0.6 & 1 & 0 & \tt range, $\ldots$ \\
-  & 0 & 0   & 1   & 1 & 0 & \tt button, toggle \\
+  & 0 & 0   & 1   & 1 & 0 & \tt button, switch \\
 \end{tabular}
 \end{expose}
 
 The mapping is quite straightforward: {\tt range}, {\tt unbounded},
 and {\tt cycle} produce a value from 0 to 1 corresponding to the
-position of the knob. {\tt button} and {\tt toggle} produce 0 if
+position of the knob. {\tt button} and {\tt switch} produce 0 if
 the knob is the lower half of the range, 1 if it is in the upper half.
 
 
@@ -320,7 +320,7 @@ of $270^{\circ}$:
   \midrule
   Translation
   & 0 & 0.33 & 0.67 & 1 &  \tt range, $\ldots$ \\
-  & 0 & 0    & 1   & 1 &  \tt button, toggle \\
+  & 0 & 0    & 1   & 1 &  \tt button, switch \\
 \end{tabular}
 \end{expose}
 
@@ -359,7 +359,7 @@ and then $45^{\circ}$ counterclockwise:
   \midrule
   Translation
   & 0 & 0.25 & 0.75 & 1 & 0.875 & \tt range, $\ldots$ \\
-  & 0 & 0    & 1    & 1 & 1     & \tt button, toggle \\
+  & 0 & 0    & 1    & 1 & 1     & \tt button, switch \\
 \end{tabular}
 \end{expose}
 
@@ -377,7 +377,7 @@ inactive state when released. Buttons can only be either fully on or
 fully off, without intermediate values.
 
 Push buttons are declared with {\tt button()} and bound with
-{\tt button()} or {\tt toggle()}:
+{\tt button()} or {\tt switch()}:
 
 \begin{listing}{1}
 midi ... {
@@ -387,7 +387,7 @@ midi ... {
 var = button(name);
 \end{listing}
 
-The alternative {\tt toggle()} turns the control on when the button
+The alternative {\tt switch()} turns the control on when the button
 is pressed the first time and then off again when pressed the second
 time.
 
@@ -407,7 +407,7 @@ Example:
   \midrule
   Translation
   & 0 & 1 & 0 & 1 & 0 & \tt range, $\ldots$, button \\
-  & 0 & 1 & 1 & 0 & 0 & \tt toggle \\
+  & 0 & 1 & 1 & 0 & 0 & \tt switch \\
 \end{tabular}
 \end{expose}
 
@@ -415,37 +415,35 @@ Example:
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-\subsection{Toggles}
+\subsection{Switches}
 
-A toggle button or switch flips from on to off each time it is
-actuated. Toggles are declared with {\tt toggle()} and typically
-bound with {\tt toggle()} as well:
+A switch is set to either on or off and retains its state until
+actuated again. Switches are declared with {\tt switch()} and typically
+bound with {\tt switch()} as well:
 
 \begin{listing}{1}
 midi ... {
-	name = toggle(...);
+	name = switch(...);
 }
 
-var = toggle(name);
+var = switch(name);
 \end{listing}
 
 In the example below, we indicate whether the control is activated
 by a lamp next to the button:
 
 \begin{expose}
-\begin{tabular}{lcccccl}
+\begin{tabular}{lcccl}
   \raisebox{6mm}{User input} &
-  \includegraphics{toggle-off.pdf} &
-  \includegraphics{toggle-act.pdf} &
-  \includegraphics{toggle-on.pdf} &
-  \includegraphics{toggle-deact.pdf} &
-  \includegraphics{toggle-off.pdf} \\
-  \cmidrule(r){1-6}
+  \includegraphics{switch-off.pdf} &
+  \includegraphics{switch-on.pdf} &
+  \includegraphics{switch-off.pdf} \\
+  \cmidrule(r){1-4}
   MIDI value &
-  & 127 & 0 & 127 & 0\\
+  & 127 & 0 \\
   \midrule
   Translation
-  & 0 & 1 & 1 & 0 & 0 & all \\
+  & 0 & 1 & 0 & all \\
 \end{tabular}
 \end{expose}
 
@@ -519,7 +517,7 @@ pressed for exactly one frame duration.
   & 0 & 0.25 & 0.5 & 1 & 1 & 0.75 & \tt range \\
   & 0 & 0.25 & 0.5 & 1 & 1.125 & 0.875 & \tt unbounded \\
   & 0 & 0.25 & 0.5 & 0 & 0.125 & 0.875 & \tt cyclic \\
-%  & 0 & 1 & 1 & 0 & \tt button, toggle \\
+%  & 0 & 1 & 1 & 0 & \tt button, switch \\
 \end{tabular}
 \end{expose}
 

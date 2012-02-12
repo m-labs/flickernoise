@@ -5,7 +5,7 @@ PICEXT = pdf
 
 PICS = bind stim \
        button-up button-down \
-       toggle-off toggle-on toggle-act toggle-deact \
+       switch-off switch-on \
        fader-0 fader-40 fader-60 fader-100 \
        pot-0 pot-90 pot-180 pot-270 \
        enc-0 enc-90 enc-270 enc-450 enc-405 \
@@ -34,17 +34,11 @@ button-up.$(PICEXT):	button.fig
 button-down.$(PICEXT):	button.fig
 			$(call fig2pdf, button finger)
 
-toggle-off.$(PICEXT):	button.fig
-			$(call fig2pdf, toggle unlit)
+switch-off.$(PICEXT):	switch.fig
+			$(call fig2pdf, switch off)
 
-toggle-on.$(PICEXT):	button.fig
-			$(call fig2pdf, toggle lit)
-
-toggle-act.$(PICEXT):	button.fig
-			$(call fig2pdf, toggle lit finger)
-
-toggle-deact.$(PICEXT):	button.fig
-			$(call fig2pdf, toggle unlit finger)
+switch-on.$(PICEXT):	switch.fig
+			$(call fig2pdf, switch on)
 
 fader-0.$(PICEXT):	fader.fig
 			$(call fig2pdf, min)
