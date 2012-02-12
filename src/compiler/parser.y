@@ -339,7 +339,7 @@ midi_dev_type(T) ::= TOK_FADER.		{ T = dt_range; }
 midi_dev_type(T) ::= TOK_POT.		{ T = dt_range; }
 midi_dev_type(T) ::= TOK_DIFF.		{ T = dt_diff; }
 midi_dev_type(T) ::= TOK_BUTTON.	{ T = dt_button; }
-midi_dev_type(T) ::= TOK_TOGGLE.	{ T = dt_toggle; }
+midi_dev_type(T) ::= TOK_SWITCH.	{ T = dt_switch; }
 
 midi_addr(M) ::= expr(A) opt_arg(B). {
 	if(B) {
@@ -393,7 +393,7 @@ midi_fn_type(T) ::= TOK_RANGE.		{ T = ft_range; }
 midi_fn_type(T) ::= TOK_UNBOUNDED.	{ T = ft_unbounded; }
 midi_fn_type(T) ::= TOK_CYCLIC.		{ T = ft_cyclic; }
 midi_fn_type(T) ::= TOK_BUTTON.		{ T = ft_button; }
-midi_fn_type(T) ::= TOK_TOGGLE.		{ T = ft_toggle; }
+midi_fn_type(T) ::= TOK_SWITCH.		{ T = ft_switch; }
 
 opt_arg(E) ::= . {
 	E = NULL;
@@ -706,7 +706,7 @@ ident(O) ::= TOK_FADER(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_POT(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_DIFF(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_BUTTON(I).	{ O = symbolify(I); }
-ident(O) ::= TOK_TOGGLE(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_SWITCH(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_RANGE(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_CYCLIC(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_UNBOUNDED(I).	{ O = symbolify(I); }

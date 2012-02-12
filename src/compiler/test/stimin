@@ -56,10 +56,10 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: fader -> toggle" -c -q \
+ptest "stimuli, input, MIDI: fader -> switch" -c -q \
     -v sx -m 0=63 -m 0=64 -m 0=127 -m 0=0 <<EOF
 midi "foo" { bar = fader(1, 0); }
-sx = toggle(bar);
+sx = switch(bar);
 EOF
 expect <<EOF
 0
@@ -156,10 +156,10 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: button -> toggle" -c -q \
+ptest "stimuli, input, MIDI: button -> switch" -c -q \
     -v sx -m 0=127 -m 0=0 -m 0=127 -m 0=0 -m 0=127 <<EOF
 midi "foo" { bar = button(1, 0); }
-sx = toggle(bar);
+sx = switch(bar);
 EOF
 expect <<EOF
 1
@@ -171,9 +171,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: toggle -> range" -c -q \
+ptest "stimuli, input, MIDI: switch -> range" -c -q \
     -v sx -m 0=127 -m 0=0 -m 0=127 -m 0=0 <<EOF
-midi "foo" { bar = toggle(1, 0); }
+midi "foo" { bar = switch(1, 0); }
 sx = range(bar);
 EOF
 expect <<EOF
@@ -185,9 +185,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, input, MIDI: toggle -> button" -c -q \
+ptest "stimuli, input, MIDI: switch -> button" -c -q \
     -v sx -m 0=127 -m 0=0 -m 0=127 -m 0=0 <<EOF
-midi "foo" { bar = toggle(1, 0); }
+midi "foo" { bar = switch(1, 0); }
 sx = button(bar);
 EOF
 expect <<EOF

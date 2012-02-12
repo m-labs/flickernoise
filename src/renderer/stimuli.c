@@ -83,7 +83,7 @@ static void midi_proc_diff_button(struct s_midi_ctrl *ct, int value)
 		regs_set(&ct->regs, 1);
 }
 
-static void midi_proc_button_toggle(struct s_midi_ctrl *ct, int value)
+static void midi_proc_button_switch(struct s_midi_ctrl *ct, int value)
 {
 	if(!value)
 		return;
@@ -283,28 +283,28 @@ static void (*map[dt_last][ft_last])(struct s_midi_ctrl *sct, int value) = {
 		[ft_unbounded] =	midi_proc_linear,
 		[ft_cyclic] =		midi_proc_linear,
 		[ft_button] =		midi_proc_range_button,
-		[ft_toggle] =		midi_proc_range_button,
+		[ft_switch] =		midi_proc_range_button,
 	},
 	[dt_diff] = {
 		[ft_range] =		midi_proc_diff_linear,
 		[ft_unbounded] =	midi_proc_diff_unbounded,
 		[ft_cyclic] =		midi_proc_diff_cyclic,
 		[ft_button] =		midi_proc_diff_button,
-		[ft_toggle] =		midi_proc_diff_button,
+		[ft_switch] =		midi_proc_diff_button,
 	},
 	[dt_button] = {
 		[ft_range] =		midi_proc_linear,
 		[ft_unbounded] =	midi_proc_linear,
 		[ft_cyclic] =		midi_proc_linear,
 		[ft_button] =		midi_proc_linear,
-		[ft_toggle] =		midi_proc_button_toggle,
+		[ft_switch] =		midi_proc_button_switch,
 	},
-	[dt_toggle] = {
+	[dt_switch] = {
 		[ft_range] =		midi_proc_linear,
 		[ft_unbounded] =	midi_proc_linear,
 		[ft_cyclic] =		midi_proc_linear,
 		[ft_button] =		midi_proc_linear,
-		[ft_toggle] =		midi_proc_linear,
+		[ft_switch] =		midi_proc_linear,
 	},
 };
 

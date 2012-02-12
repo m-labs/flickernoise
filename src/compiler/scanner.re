@@ -135,7 +135,7 @@ int scan(struct scanner *s)
 		<N>"pot"		{ return TOK_POT; }
 		<N>"differential"	{ return TOK_DIFF; }
 		<N>"button"		{ return TOK_BUTTON; }
-		<N>"toggle"		{ return TOK_TOGGLE; }
+		<N>"switch"		{ return TOK_SWITCH; }
 		<N>"range"		{ return TOK_RANGE; }
 		<N>"cyclic"		{ return TOK_CYCLIC; }
 		<N>"unbounded"		{ return TOK_UNBOUNDED; }

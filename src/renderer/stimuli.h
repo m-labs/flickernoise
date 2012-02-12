@@ -21,7 +21,7 @@ enum stim_midi_dev_type {
 	dt_range,	/* 0-127, holds value */
 	dt_diff,	/* differential, 0 = 0, 1 = +1, 127 = -1, ... */
 	dt_button,	/* button, 0 = up, 127 = down */
-	dt_toggle,	/* toggle, 0 = off, 127 = on */
+	dt_switch,	/* switch, 0 = off, 127 = on */
 	dt_last
 };
 
@@ -30,7 +30,7 @@ enum stim_midi_fn_type {
 	ft_unbounded,	/* additive, use with caution */
 	ft_cyclic,	/* wraps around 0 <-> 1 */
 	ft_button,	/* 0 = up, 1 = down */
-	ft_toggle,	/* 0 = off, 1 = on */
+	ft_switch,	/* 0 = off, 1 = on */
 	ft_last
 	
 };

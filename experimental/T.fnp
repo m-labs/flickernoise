@@ -47,11 +47,11 @@ midi "Faderfox LV3" {
 
 	enc1_push = button(28);
 
-	fx1 = toggle(9, 4);
+	fx1 = switch(9, 4);
 	joy1x = fader(9, 1);
 	joy1y = fader(9, 2);
 
-	fx2 = toggle(10, 4);
+	fx2 = switch(10, 4);
 	joy2x = fader(10, 1);
 	joy2y = fader(10, 2);
 }
@@ -72,10 +72,10 @@ green = range(fader6);
 blue = range(fader7);
 change = range(fader8);
 
-offcenter = toggle(fx1);			// FX1
+offcenter = switch(fx1);		// FX1
 xoff = range(joy1x);
 yoff = range(joy1y);
-shift = toggle(fx2);			// FX2
+shift = switch(fx2);			// FX2
 xshift = range(joy2x);
 yshift = range(joy2y);
 

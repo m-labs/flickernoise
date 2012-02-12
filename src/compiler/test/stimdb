@@ -97,9 +97,9 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "stimuli, DB, MIDI: toggle(1, 0)" -c -q << EOF
+ptest "stimuli, DB, MIDI: switch(1, 0)" -c -q << EOF
 midi "foo" {
-	bar = toggle(1, 0);
+	bar = switch(1, 0);
 }
 EOF
 expect <<EOF
