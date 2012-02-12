@@ -387,6 +387,12 @@ assignment ::= ident(I) TOK_ASSIGN midi_fn_type(T) TOK_LPAREN ident(D)
 		free(D);
 		return;
 	}
+	if(sym->stim_regs) {
+		FAIL("\"%s\" is already used as control variable",
+		    sym->fpvm_sym.name);
+		free(D);
+		return;
+	}
 	sym->stim_regs = stim_bind(stim, D->sym, T);
 	free(D);
 	if(!sym->stim_regs) {
