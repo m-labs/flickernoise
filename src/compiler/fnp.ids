@@ -59,14 +59,14 @@ mv_a		pfv_mv_a	-1
 
 bTexWrap	pfv_tex_wrap	-1
 
-time		pfv_time	pvv_time
-frame		pfv_frame	pvv_frame
-bass		pfv_bass	pvv_bass
-mid		pfv_mid		pvv_mid
-treb		pfv_treb	pvv_treb
-bass_att	pfv_bass_att	pvv_bass_att
-mid_att		pfv_mid_att	pvv_mid_att
-treb_att	pfv_treb_att	pvv_treb_att
+time		pfv_time	pvv_time	SF_LIVE
+frame		pfv_frame	pvv_frame	SF_LIVE
+bass		pfv_bass	pvv_bass	SF_LIVE
+mid		pfv_mid		pvv_mid		SF_LIVE
+treb		pfv_treb	pvv_treb	SF_LIVE
+bass_att	pfv_bass_att	pvv_bass_att	SF_LIVE
+mid_att		pfv_mid_att	pvv_mid_att	SF_LIVE
+treb_att	pfv_treb_att	pvv_treb_att	SF_LIVE
 
 warp		pfv_warp	pvv_warp
 fWarpAnimSpeed	pfv_warp_anim_speed pvv_warp_anim_speed
@@ -94,28 +94,28 @@ dmx6		pfv_dmx6	-1
 dmx7		pfv_dmx7	-1
 dmx8		pfv_dmx8	-1
 
-idmx1		pfv_idmx1	pvv_idmx1
-idmx2		pfv_idmx2	pvv_idmx2
-idmx3		pfv_idmx3	pvv_idmx3
-idmx4		pfv_idmx4	pvv_idmx4
-idmx5		pfv_idmx5	pvv_idmx5
-idmx6		pfv_idmx6	pvv_idmx6
-idmx7		pfv_idmx7	pvv_idmx7
-idmx8		pfv_idmx8	pvv_idmx8
+idmx1		pfv_idmx1	pvv_idmx1	SF_LIVE
+idmx2		pfv_idmx2	pvv_idmx2	SF_LIVE
+idmx3		pfv_idmx3	pvv_idmx3	SF_LIVE
+idmx4		pfv_idmx4	pvv_idmx4	SF_LIVE
+idmx5		pfv_idmx5	pvv_idmx5	SF_LIVE
+idmx6		pfv_idmx6	pvv_idmx6	SF_LIVE
+idmx7		pfv_idmx7	pvv_idmx7	SF_LIVE
+idmx8		pfv_idmx8	pvv_idmx8	SF_LIVE
 
-osc1		pfv_osc1	pvv_osc1
-osc2		pfv_osc2	pvv_osc2
-osc3		pfv_osc3	pvv_osc3
-osc4		pfv_osc4	pvv_osc4
+osc1		pfv_osc1	pvv_osc1	SF_LIVE
+osc2		pfv_osc2	pvv_osc2	SF_LIVE
+osc3		pfv_osc3	pvv_osc3	SF_LIVE
+osc4		pfv_osc4	pvv_osc4	SF_LIVE
 
-midi1		pfv_midi1	pvv_midi1
-midi2		pfv_midi2	pvv_midi2
-midi3		pfv_midi3	pvv_midi3
-midi4		pfv_midi4	pvv_midi4
-midi5		pfv_midi5	pvv_midi5
-midi6		pfv_midi6	pvv_midi6
-midi7		pfv_midi7	pvv_midi7
-midi8		pfv_midi8	pvv_midi8
+midi1		pfv_midi1	pvv_midi1	SF_LIVE
+midi2		pfv_midi2	pvv_midi2	SF_LIVE
+midi3		pfv_midi3	pvv_midi3	SF_LIVE
+midi4		pfv_midi4	pvv_midi4	SF_LIVE
+midi5		pfv_midi5	pvv_midi5	SF_LIVE
+midi6		pfv_midi6	pvv_midi6	SF_LIVE
+midi7		pfv_midi7	pvv_midi7	SF_LIVE
+midi8		pfv_midi8	pvv_midi8	SF_LIVE
 
 video_a		pfv_video_a	-1
 

@@ -15,9 +15,10 @@
 #include "../renderer/stimuli.h"
 
 
-#define	SF_SYSTEM	(1 << 0)
-#define	SF_ASSIGNED	(1 << 1)
-#define	SF_FIXED	SF_SYSTEM
+#define	SF_SYSTEM	(1 << 0)	/* variable is predefined */
+#define	SF_ASSIGNED	(1 << 1)	/* variable has been assigned to */
+#define	SF_LIVE		(1 << 2)	/* variable is written to by FN */
+#define	SF_FIXED	(SF_SYSTEM | SF_LIVE)
 
 struct sym {
 	struct fpvm_sym fpvm_sym;

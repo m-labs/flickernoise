@@ -308,6 +308,7 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 	parse_free(N);
 }
 
+
 /* ----- MIDI device database ---------------------------------------------- */
 
 
@@ -380,6 +381,12 @@ assignment ::= ident(I) TOK_ASSIGN midi_fn_type(T) TOK_LPAREN ident(D)
 	struct stimuli *stim = compiler_get_stimulus(state->comm->u.sc);
 
 	free(I);
+	if(sym->flags & SF_LIVE) {
+		FAIL("\"%s\" cannot be used as control variable",
+		    sym->fpvm_sym.name);
+		free(D);
+		return;
+	}
 	sym->stim_regs = stim_bind(stim, D->sym, T);
 	free(D);
 	if(!sym->stim_regs) {
