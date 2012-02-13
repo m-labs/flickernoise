@@ -19,13 +19,17 @@
 
 \maketitle
 
+\begin{abstract}
+This document describes how MIDI 
+\end{abstract}
+
+%\setcounter{tocdepth}{1}
+\tableofcontents
 
 % -----------------------------------------------------------------------------
 
 
 \section{Introduction}
-
-This document describes the architecture of the MIDI control @@@
 
 Note that this work is still in progress. For example,
 \begin{itemize}
@@ -54,7 +58,7 @@ midi "Gizmo" {
 	but2 = button(17);
 }
 
-sensitivity = linear(main);
+sensitivity = range(main);
 
 per_frame:
 	wave_scale = sensitivity*10;
@@ -81,32 +85,89 @@ if there is no input from the MIDI device.
 
 \section{Architecture}
 
+When a MIDI device is1
+\begin{figure}[!tb]
+\begin{center}
+\includegraphics{arch.pdf}
+\end{center}
+\caption{Input event processing in Flickernoise.}
+\label{arch}
+\end{figure}
+
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-\subsection{MIDI control message}
+\subsection{MIDI control messages}
 
-- MIDI: 0-127
+A MIDI device sends a message each time one of its elements is actuated.
+There are various types of elements, keys, pitch wheels, controls, etc.
+Controls can be all sorts of things, including faders, potentiometers,
+and push buttons.
+
+For now, we only consider controls. When a control is actuated, the
+MIDI device generates a MIDI Control Change messages, as shown in
+figure \ref{msg}.
+
+\begin{figure}[!tb]
+\begin{center}
+\includegraphics{msg.pdf}
+\end{center}
+\caption{Anatomy of a MIDI Control Change message.}
+\label{msg}
+\end{figure}
+
+Channel numbers are encoded as values from 0 to 15 in the actual
+MIDI message but are commonly presented as 1 to 16 to the user.
+Also Flickernoise follows this convention.
+
+Most MIDI devices use a single channel. The number of this channel
+can sometimes be set by the user. The controller numbers are typically
+fixed.
+
+Flickernoise uses the message type, the channel number, and the controller
+number to determine where to send the value. 
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-\subsection{...}
+\subsection{@@@}
 
+
+@@@
 
 % -----------------------------------------------------------------------------
 
-\section{Configuration process}
+
+\section{Using controls in patches}
+
+@@@
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 \subsection{Device database}
 
+The device database tells Flickernoise how to identify MIDI
+devices and how to 
 Device specifications are added to the device database with 
 - global section
+
+\begin{expose}
+{\tt midi} {\em identification} \verb"{" {\em element $\ldots$} \verb"}"
+\end{expose}
+
+Each element has the following syntax:
+
+\begin{expose}
+{\tt {\em name} =
+  {\em device\_type}($\left[\hbox{\em channel}\verb","\right]$
+  {\em control\_number});}
+\end{expose}
+
+{\em channel} is the MIDI channel number, from 1 to 16. If the channel
+is omitted, the element will match any channel.
 
 \begin{listing}{1}
 midi "dev1" {
@@ -114,7 +175,7 @@ midi "dev1" {
 	aux = pot(1, 103);
 	but1 = button(1, 16);
 	but2 = button(1, 17);
-	tog = switch(1, 24);
+	sw = switch(1, 24);
 }
 \end{listing}
 
@@ -137,8 +198,9 @@ variable assignment:
 
 {\em control\_variable} can be a pre-defined per-frame or per-vertex
 variable or it can be a user-defined variable. Variables that are
-updated by Flickernose itself, e.g., {\tt time} or {\tt bass}, cannot
-be used as control variables.
+updated by Flickernoise itself cannot be used as control variables.
+These variables are
+\input nocvars.inc
 
 {\em function} describes how the patch expects the control to behave.
 Flickernoise then tries to adapt the behaviour of the actual device
@@ -156,11 +218,10 @@ to what the patch expects. The following functions are available:
   \item[\tt button]
     The control variable receives the value 1 when the button is
     pressed and returns to zero when it is released. When applied to
-    elements that send values between 0 and 1, the value is rounded
-    and the control acts like a {\tt switch}.
+    elements that send values between 0 and 1, the value is rounded.
   \item[\tt switch]
-    The value of the control variable changes between 0 and 1 each
-    time the element -- typically a button -- is actuated. 
+    The control variable can be set to 0 or 1 and retains the value
+    until the element is actuated again.
 \end{description}
 
 {\em element\_name} is the name of the control element, as in the
@@ -168,7 +229,7 @@ device database.
 
 \begin{figure}[!tb]
 \begin{center}
-\includegraphics{bind}
+\includegraphics{bind.pdf}
 \end{center}
 \caption{When binding a control variable, information from the device
   database, a translation map, and the table of patch variables is
@@ -184,7 +245,7 @@ device database.
 
 \begin{figure}[!tb]
 \begin{center}
-\includegraphics{stim}
+\includegraphics{stim.pdf}
 \end{center}
 \caption{When a MIDI control message is received, Flickernoise looks
   for a matching stimulus and processes the value accordingly.}
@@ -211,11 +272,39 @@ $\nicefrac{28}{127}=0.220$, is stored in the location of the variable
 
 \subsection{Writing to control variables}
 
-- pfv
-- pvv
-- continuity
+A patch can overwrite the values control variables. In the case of
+per-frame variables, they retain their modified content across
+frames until a new event arrives. The new event will always overwrite
+the previous value of the variable without regard for any changes that
+may have been made.
 
-exercised to avoid any of the per-defined variables that are updated
+Changes to per-vertex variables are lost at the end of the program.
+
+It is sometimes desirable to make a control change a variable relative
+to a value set by the patch. The following example illustrates how
+this can be accomplished:
+
+\begin{listing}{1}
+cvar = range(foo);
+
+per_frame:
+	var = var+cvar-last;
+	last = cvar;
+	/* ... use "var" ... */
+	var = condition ? new_value : var;
+\end{listing}
+
+Instead of writing to the control variable {\tt cvar} directly, we
+propagate any relative changes of {\tt cvar} to {\tt var} in lines
+4 and 5, and only modify {\tt var} in line 7.
+
+Note that {\tt var} may assume values outside the range $0\ldots 1$.
+If this is not desirable, it can be clipped after line 4 with
+
+\begin{listing}{1}
+	var = max(min(var, 1), 0);
+\end{listing}
+
 
 % -----------------------------------------------------------------------------
 
@@ -429,12 +518,11 @@ midi ... {
 var = switch(name);
 \end{listing}
 
-In the example below, we indicate whether the control is activated
-by a lamp next to the button:
+Switches behave the same for all functions:
 
 \begin{expose}
 \begin{tabular}{lcccl}
-  \raisebox{6mm}{User input} &
+  \raisebox{4mm}{User input} &
   \includegraphics{switch-off.pdf} &
   \includegraphics{switch-on.pdf} &
   \includegraphics{switch-off.pdf} \\

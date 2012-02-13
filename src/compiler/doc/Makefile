@@ -3,7 +3,7 @@ fig2pdf = ./figfilt $(1) <$< | \
 
 PICEXT = pdf
 
-PICS = bind stim \
+PICS = arch msg bind stim \
        button-up button-down \
        switch-off switch-on \
        fader-0 fader-40 fader-60 fader-100 \
@@ -12,15 +12,23 @@ PICS = bind stim \
        dial-0 dial-90 dial-180 dial-360 \
        dial-405 dial-315
 
+GEN = nocvars.inc
+
 .PHONY:			all xpdf clean
 
 all:			midi.pdf
 
-midi.pdf:		midi.tex $(PICS:%=%.$(PICEXT))
+midi.pdf:		midi.tex $(PICS:%=%.$(PICEXT)) $(GEN)
 			pdflatex midi
 
 xpdf:			midi.pdf
 			xpdf $<
+
+arch.pdf:		arch.fig
+			fig2dev -L pdf -m 0.9 $< $@ || { rm -rf $@; exit 1; }
+
+msg.pdf:		msg.fig
+			fig2dev -L pdf -m 0.9 $< $@ || { rm -rf $@; exit 1; }
 
 bind.pdf:		bind.fig
 			fig2dev -L pdf -m 0.9 $< $@ || { rm -rf $@; exit 1; }
@@ -97,6 +105,10 @@ dial-405.$(PICEXT):	dial.fig
 dial-315.$(PICEXT):	dial.fig
 			$(call fig2pdf, 315deg ccw)
 
+nocvars.inc:		../fnp.ids
+			./mknocvars <$< >$@ || { rm -f $@; exit 1; }
+
 clean:
 			rm -f $(PICS:%=%.$(PICEXT))
+			rm -f $(GEN)
 			rm -f midi.aux midi.log
