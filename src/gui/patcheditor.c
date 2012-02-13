@@ -72,12 +72,37 @@ static void openbtn_callback(mtk_event *e, void *arg)
 	open_filedialog(fileopen_dlg);
 }
 
+static char *protect_string(const char *s)
+{
+	int n = 0;
+	const char *p;
+	char *buf, *d;
+
+	for(p = s; *p; p++)
+		if(*p == '"')
+			n++;
+
+	buf = malloc(p-s+n+1);
+	if(!buf)
+		return NULL;
+
+	d = buf;
+	for(p = s; *p; p++) {
+		if(*p == '"')
+			*d++ = '\\';
+		*d++ = *p;
+	}
+	*d = 0;
+
+	return buf;
+}
+
 static void openok_callback(void *arg)
 {
 	char buf[MAX_PATCH_SIZE+1];
 	FILE *fd;
-	int r, n = 0;
-	char *p, *d;
+	int r;
+	char *s;
 
 	get_filedialog_selection(fileopen_dlg,
 	    current_filename, sizeof(current_filename));
@@ -99,25 +124,15 @@ static void openok_callback(void *arg)
 	}
 	buf[r] = 0;
 
-	for(p = buf; *p; p++)
-		if(*p == '"')
-			n++;
-	if(r+n > MAX_PATCH_SIZE) {
+	s = protect_string(buf);
+	if(!s) {
 		mtk_cmd(appid,
 		    "status.set(-text \"No room to expand quotes\")");
 		return;
 	}
+	mtk_cmdf(appid, "ed.set(-text \"%s\")", s);
+	free(s);
 
-	d = p+n;
-	do {
-		*d = *p;
-		if(*p == '"')
-			*--d = '\\';
-		p--;
-	}
-	while(d-- != buf);
-
-	mtk_cmdf(appid, "ed.set(-text \"%s\")", buf);
 	mtk_cmd(appid, "edf.expose(0, 0)");
 }
 
