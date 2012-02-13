@@ -10,7 +10,7 @@ PICS = arch msg bind stim \
        pot-0 pot-90 pot-180 pot-270 \
        enc-0 enc-90 enc-270 enc-450 enc-405 \
        dial-0 dial-90 dial-180 dial-360 \
-       dial-405 dial-315
+       dial-405 dial-405-idle dial-315 dial-45 dial-135 dial-315f
 
 GEN = nocvars.inc
 
@@ -18,7 +18,7 @@ GEN = nocvars.inc
 
 all:			midi.pdf
 
-midi.pdf:		midi.tex $(PICS:%=%.$(PICEXT)) $(GEN)
+midi.pdf:		midi.tex floats.inc $(PICS:%=%.$(PICEXT)) $(GEN)
 			pdflatex midi
 
 xpdf:			midi.pdf
@@ -102,8 +102,20 @@ dial-360.$(PICEXT):	dial.fig
 dial-405.$(PICEXT):	dial.fig
 			$(call fig2pdf, 45deg cw-slow)
 
+dial-405-idle.$(PICEXT): dial.fig
+			$(call fig2pdf, 45deg)
+
 dial-315.$(PICEXT):	dial.fig
 			$(call fig2pdf, 315deg ccw)
+
+dial-45.$(PICEXT):	dial.fig
+			$(call fig2pdf, 45deg ccw-slow)
+
+dial-135.$(PICEXT):	dial.fig
+			$(call fig2pdf, 135deg ccw-fast)
+
+dial-315f.$(PICEXT):	dial.fig
+			$(call fig2pdf, 315deg ccw-fast)
 
 nocvars.inc:		../fnp.ids
 			./mknocvars <$< >$@ || { rm -f $@; exit 1; }
