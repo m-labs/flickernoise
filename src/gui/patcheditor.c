@@ -40,6 +40,31 @@ static struct filedialog *filesave_dlg;
 static int modified;
 static char current_filename[384];
 
+static char *protect_string(const char *s)
+{
+	int n = 0;
+	const char *p;
+	char *buf, *d;
+
+	for(p = s; *p; p++)
+		if(*p == '"')
+			n++;
+
+	buf = malloc(p-s+n+1);
+	if(!buf)
+		return NULL;
+
+	d = buf;
+	for(p = s; *p; p++) {
+		if(*p == '"')
+			*d++ = '\\';
+		*d++ = *p;
+	}
+	*d = 0;
+
+	return buf;
+}
+
 static void update_wintitle(void)
 {
 	const char *short_filename;
@@ -70,31 +95,6 @@ static void new_callback(mtk_event *e, void *arg)
 static void openbtn_callback(mtk_event *e, void *arg)
 {
 	open_filedialog(fileopen_dlg);
-}
-
-static char *protect_string(const char *s)
-{
-	int n = 0;
-	const char *p;
-	char *buf, *d;
-
-	for(p = s; *p; p++)
-		if(*p == '"')
-			n++;
-
-	buf = malloc(p-s+n+1);
-	if(!buf)
-		return NULL;
-
-	d = buf;
-	for(p = s; *p; p++) {
-		if(*p == '"')
-			*d++ = '\\';
-		*d++ = *p;
-	}
-	*d = 0;
-
-	return buf;
 }
 
 static void openok_callback(void *arg)
@@ -189,7 +189,9 @@ static void saveasok_callback(void *arg)
 
 static void rmc(const char *m)
 {
+	m = protect_string(m);
 	mtk_cmdf(appid, "status.set(-text \"%s\")", m);
+	free((void *) m);
 }
 
 static void run_callback(mtk_event *e, void *arg)
