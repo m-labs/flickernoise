@@ -9,10 +9,14 @@
  */
 
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "stimuli.h"
+
+
+static uint8_t midi_last[MIDI_CHANS][MIDI_CTRLS];
 
 
 /* ----- Low-level register update  ---------------------------------------- */
@@ -98,6 +102,8 @@ static void midi_proc_button_switch(struct s_midi_ctrl *ct, int value)
 void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value)
 {
 	struct s_midi_ctrl *ct;
+
+	midi_last[chan][ctrl] = value;
 
 	if(!s)
 		return;
@@ -185,6 +191,20 @@ void stim_put(struct stimuli *s)
 	free(s);
 }
 
+static void reset_control(struct s_midi_ctrl *ct, int chan, int ctrl)
+{
+	void (*proc)(struct s_midi_ctrl *sct, int value);
+
+	proc = ct->proc;
+	if(!proc)
+		return;
+	if(proc == midi_proc_diff_cyclic || proc == midi_proc_diff_unbounded ||
+	    proc == midi_proc_diff_linear)
+		proc(ct, 0);
+	else
+		proc(ct, midi_last[chan][ctrl]);
+}
+
 void stim_redirect(struct stimuli *s, void *new)
 {
 	int i, j;
@@ -204,6 +224,7 @@ void stim_redirect(struct stimuli *s, void *new)
 				ct->regs.pfv = (void *) ct->regs.pfv+d;
 			if(ct->regs.pvv)
 				ct->regs.pvv = (void *) ct->regs.pvv+d;
+			reset_control(ct, i, j);
 		}
 	}
 	s->target = new;
