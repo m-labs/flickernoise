@@ -292,6 +292,7 @@ void stim_db_free(void)
 		free(db);
 		db = next;
 	}
+	last = &db;
 }
 
 
