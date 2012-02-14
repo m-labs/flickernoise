@@ -348,7 +348,7 @@ struct stim_regs *stim_bind(struct stimuli *s, const void *handle,
 	const struct stim_db_midi_ctrl *ctrl;
 
 	for(dev = db; dev; dev = dev->next)
-		for(ctrl = db->ctrls; ctrl; ctrl = ctrl->next)
+		for(ctrl = dev->ctrls; ctrl; ctrl = ctrl->next)
 			if(ctrl->handle == handle)
 				return do_bind(s, ctrl, fn);
 	return NULL;
