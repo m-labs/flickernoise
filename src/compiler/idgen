@@ -56,7 +56,7 @@ sed 's/#.*//;/^ *$/d' $1 | LANG=C sort | {
 	.pfv_idx = $2,
 	.pvv_idx = $3,
 	.flags = $flags,
-	.stim_regs = NULL,
+	.stim = NULL,
 },
 EOF
 		i=`expr $i + 1`

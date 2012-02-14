@@ -188,6 +188,7 @@ static void pfv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
 	struct sym *s = FPVM2SYM(sym);
+	struct sym_stim *r;
 	int pfv;
 
 	pfv = pfv_from_sym(s);
@@ -195,8 +196,8 @@ static void pfv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 		pfv_update_patch_requires(sc, pfv);
 		sc->p->pfv_allocation[pfv] = reg;
 	}
-	if(s->stim_regs)
-		s->stim_regs->pfv = sc->p->perframe_regs+reg;
+	for(r = s->stim; r; r = r->next)
+		r->regs->pfv = sc->p->perframe_regs+reg;
 }
 
 static bool init_pfv(struct compiler_sc *sc)
@@ -269,6 +270,7 @@ static void pvv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
 	struct sym *s = FPVM2SYM(sym);
+	struct sym_stim *r;
 	int pvv;
 
 	pvv = pvv_from_sym(s);
@@ -276,8 +278,8 @@ static void pvv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 		pvv_update_patch_requires(sc, pvv);
 		sc->p->pvv_allocation[pvv] = reg;
 	}
-	if(s->stim_regs)
-		s->stim_regs->pvv = sc->p->pervertex_regs+reg;
+	for(r = s->stim; r; r = r->next)
+		r->regs->pvv = sc->p->pervertex_regs+reg;
 }
 
 static bool init_pvv(struct compiler_sc *sc)

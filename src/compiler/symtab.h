@@ -20,11 +20,15 @@
 #define	SF_LIVE		(1 << 2)	/* variable is written to by FN */
 #define	SF_FIXED	(SF_SYSTEM | SF_LIVE)
 
+struct sym_stim {
+	struct stim_regs *regs;
+	struct sym_stim *next;
+};
+
 struct sym {
 	struct fpvm_sym fpvm_sym;
 	int pfv_idx, pvv_idx;	/* index; -1 if not a variable known to FN */
-	struct stim_regs *stim_regs;
-				/* NULL if not a control variable */
+	struct sym_stim *stim;	/* NULL if not a control variable */
 	int flags;
 };
 

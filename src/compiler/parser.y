@@ -379,6 +379,7 @@ assignment ::= ident(I) TOK_ASSIGN midi_fn_type(T) TOK_LPAREN ident(D)
     TOK_RPAREN opt_semi.  {
 	struct sym *sym = I->sym;
 	struct stimuli *stim = compiler_get_stimulus(state->comm->u.sc);
+	struct sym_stim *ref;
 
 	free(I);
 	if(sym->flags & SF_LIVE) {
@@ -387,19 +388,21 @@ assignment ::= ident(I) TOK_ASSIGN midi_fn_type(T) TOK_LPAREN ident(D)
 		free(D);
 		return;
 	}
-	if(sym->stim_regs) {
-		FAIL("\"%s\" is already used as control variable",
-		    sym->fpvm_sym.name);
+	ref = malloc(sizeof(struct sym_stim));
+	if(!ref) {
+		FAIL("out of memory");
 		free(D);
 		return;
 	}
-	sym->stim_regs = stim_bind(stim, D->sym, T);
+	ref->regs = stim_bind(stim, D->sym, T);
 	free(D);
-	if(!sym->stim_regs) {
+	if(!ref->regs) {
 		FAIL("cannot add stimulus for MIDI input \"%s\"",
 		    sym->fpvm_sym.name);
 		return;
 	}
+	ref->next = sym->stim;
+	sym->stim = ref;
 	sym->flags |= SF_ASSIGNED;
 }
 

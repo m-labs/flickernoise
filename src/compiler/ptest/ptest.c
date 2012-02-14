@@ -366,6 +366,7 @@ static void add_midi(const char *s)
 static void play_midi(struct patch *patch)
 {
 	struct sym *sym;
+	struct sym_stim *r;
 	float f = 0;
 
 	sym = unique(trace_var);
@@ -374,12 +375,13 @@ static void play_midi(struct patch *patch)
 		    trace_var);
 		exit(1);
 	}
-	if (!sym->stim_regs) {
+	if (!sym->stim) {
 		fprintf(stderr, "\"%s\" is not a control variable\n",
 		    trace_var);
 		exit(1);
 	}
-	sym->stim_regs->pfv = &f;
+	for (r = sym->stim; r; r = r->next)
+		r->regs->pfv = &f;
 
 	while (midi) {
 		stim_midi_ctrl(patch->stim,

@@ -1,0 +1,24 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "stimuli, errors: bind control variable twice" -c -q \
+  -v sx -m 0=0 -m 0=127 -m 1=0 -m 1=127 -m 0=0 << EOF
+midi "foo" {
+	foo = pot(0);
+	bar = pot(1);
+}
+
+sx = range(foo);
+sx = range(bar);
+EOF
+expect <<EOF
+0
+1
+0
+1
+0
+EOF
+
+###############################################################################
