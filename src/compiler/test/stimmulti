@@ -3,7 +3,7 @@
 
 ###############################################################################
 
-ptest "stimuli, multi: bind control variable twice" -c -q \
+ptest "stimuli, multi: bind control variable twice (same device)" -c -q \
   -v sx -m 0=0 -m 0=127 -m 1=0 -m 1=127 -m 0=0 << EOF
 midi "foo" {
 	foo = pot(0);
@@ -12,6 +12,52 @@ midi "foo" {
 
 sx = range(foo);
 sx = range(bar);
+EOF
+expect <<EOF
+0
+1
+0
+1
+0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, multi: bind control variable twice (2 devs, same addr)" -c -q \
+  -v sx -m 0=0 -m 0=127 -m 0=0 -m 0=127 -m 0=0 << EOF
+midi "foo" {
+	foo_pot = pot(0);
+}
+
+midi "bar" {
+	bar_pot = pot(0);
+}
+
+sx = range(foo_pot);
+sx = range(bar_pot);
+EOF
+expect <<EOF
+0
+1
+0
+1
+0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, multi: bind control variable twice (2 devs, diff addr)" -c -q \
+  -v sx -m 0=0 -m 0=127 -m 1=0 -m 1=127 -m 0=0 << EOF
+midi "foo" {
+	foo_pot = pot(0);
+}
+
+midi "bar" {
+	bar_pot = pot(1);
+}
+
+sx = range(foo_pot);
+sx = range(bar_pot);
 EOF
 expect <<EOF
 0
