@@ -101,25 +101,21 @@ static void midi_proc_button_switch(struct s_midi_ctrl *ct, int value)
 
 void stim_midi_ctrl(struct stimuli *s, int chan, int ctrl, int value)
 {
-	struct s_midi_ctrl *ct;
+	struct s_midi_ctrl *ct = NULL;
 
 	midi_last[chan][ctrl] = value;
 
 	if(!s)
 		return;
 
-	if(s->midi[chan]) {
+	if(s->midi[chan])
 		ct = s->midi[chan]->ctrl[ctrl];
-		if(ct) {
-			ct->proc(ct, value);
-			return;
-		}
-	}
-
-	if(s->midi[0]) {
+	if(!ct && s->midi[0])
 		ct = s->midi[0]->ctrl[ctrl];
-		if(ct)
-			ct->proc(ct, value);
+
+	while(ct) {
+		ct->proc(ct, value);
+		ct = ct->next;
 	}
 }
 
@@ -142,17 +138,14 @@ static struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan,
 	}
 	ch = s->midi[chan];
 
-	if(ch->ctrl[ctrl])
+	ct = calloc(1, sizeof(struct s_midi_ctrl));
+	if(!ct)
 		return NULL;
-
-	ch->ctrl[ctrl] = calloc(1, sizeof(struct s_midi_ctrl));
-	if(!ch->ctrl[ctrl])
-		return NULL;
-
-	ct = ch->ctrl[ctrl];
 
 	ct->proc = proc;
 	ct->regs.pfv = ct->regs.pvv = NULL;
+	ct->next = ch->ctrl[ctrl];
+	ch->ctrl[ctrl] = ct;
 
 	return &ct->regs;
 }
@@ -178,6 +171,7 @@ struct stimuli *stim_get(struct stimuli *s)
 
 void stim_put(struct stimuli *s)
 {
+	struct s_midi_ctrl **ct, *next;
 	int i, j;
 
 	if(!s)
@@ -186,8 +180,14 @@ void stim_put(struct stimuli *s)
 		return;
 	for(i = 0; i != MIDI_CHANS+1; i++)
 		if(s->midi[i]) {
-			for(j = 0; j != MIDI_CTRLS; j++)
-				free(s->midi[i]->ctrl[j]);
+			for(j = 0; j != MIDI_CTRLS; j++) {
+				ct = s->midi[i]->ctrl+j;
+				while(*ct) {
+					next = (*ct)->next;
+					free(*ct);
+					*ct = next;
+				}
+			}
 			free(s->midi[i]);
 		}
 	free(s);
@@ -218,16 +218,14 @@ void stim_redirect(struct stimuli *s, void *new)
 	for(i = 0; i != MIDI_CHANS+1; i++) {
 		if(!s->midi[i])
 			continue;
-		for(j = 0; j != MIDI_CTRLS; j++) {
-			ct = s->midi[i]->ctrl[j];
-			if (!ct)
-				continue;
-			if(ct->regs.pfv)
-				ct->regs.pfv = (void *) ct->regs.pfv+d;
-			if(ct->regs.pvv)
-				ct->regs.pvv = (void *) ct->regs.pvv+d;
-			reset_control(ct, i, j);
-		}
+		for(j = 0; j != MIDI_CTRLS; j++)
+			for(ct = s->midi[i]->ctrl[j]; ct; ct = ct->next) {
+				if(ct->regs.pfv)
+					ct->regs.pfv = (void *) ct->regs.pfv+d;
+				if(ct->regs.pvv)
+					ct->regs.pvv = (void *) ct->regs.pvv+d;
+				reset_control(ct, i, j);
+			}
 	}
 	s->target = new;
 }

@@ -43,6 +43,7 @@ struct s_midi_ctrl {
 	void (*proc)(struct s_midi_ctrl *sct, int value);
 	struct stim_regs regs;
 	long last;		/* for midi_proc_diff_* */
+	struct s_midi_ctrl *next;
 };
 
 struct s_midi_chan {

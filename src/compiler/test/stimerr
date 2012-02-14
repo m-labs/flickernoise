@@ -26,18 +26,4 @@ expect <<EOF
 line 4: cannot add MIDI input "bar" near '}'
 EOF
 
-#------------------------------------------------------------------------------
-
-ptest_fail "stimuli, errors: bind control element twice" -c -q << EOF
-midi "foo" {
-	bar = pot(0);
-}
-
-foo = range(bar);
-bar = button(bar);
-EOF
-expect <<EOF
-line 7: cannot add stimulus for MIDI input "bar" near 'EOF'
-EOF
-
 ###############################################################################
