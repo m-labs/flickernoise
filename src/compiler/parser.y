@@ -400,6 +400,7 @@ assignment ::= ident(I) TOK_ASSIGN midi_fn_type(T) TOK_LPAREN ident(D)
 		    sym->fpvm_sym.name);
 		return;
 	}
+	sym->flags |= SF_ASSIGNED;
 }
 
 midi_fn_type(T) ::= TOK_RANGE.		{ T = ft_range; }

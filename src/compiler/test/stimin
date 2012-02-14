@@ -197,5 +197,15 @@ expect <<EOF
 0
 EOF
 
+#------------------------------------------------------------------------------
+
+ptest "stimuli, input, MIDI: test -Wundefined" -c -q -Wundefined <<EOF
+midi "foo" { bar = switch(1, 0); }
+foo = button(bar);
+per_frame:
+	sx = foo;
+EOF
+expect <<EOF
+EOF
 
 ###############################################################################
