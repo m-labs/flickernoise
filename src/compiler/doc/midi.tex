@@ -21,12 +21,16 @@
 \maketitle
 
 %\setcounter{tocdepth}{1}
-\tableofcontents
+%\tableofcontents
 
 % -----------------------------------------------------------------------------
 
 
 \section{Introduction}
+
+This document describes the mechanisms Flickernoise provides for
+interacting with MIDI controls and explains how patches can make use of
+this functionality.
 
 Note that this work is still in progress. For example,
 \begin{itemize}
@@ -44,8 +48,8 @@ Note that this work is still in progress. For example,
 \section{Quick start}
 
 While the finer details of MIDI controls can get complicated, the
-elements in the following example are often all that is needed to
-make full use of many MIDI devices:
+items in the following example are often all that is needed to
+use many MIDI devices:
 
 \begin{listing}{1}
 midi "Gizmo" {
@@ -73,7 +77,9 @@ The numbers are the respective MIDI controller numbers the device uses.
 They can be found with the MIDI monitor function of the ``MIDI settings''
 dialog in Flickernoise.
 
-In line 9, we bind the {\tt main} control to a variable. This variable is
+In line 9, we bind the {\tt main} control to a variable. This variable
+receives the value 0 if the fader is at its minimum and 1 at its maximum.
+It is
 then used in per-frame and per-vertex equations. As line 13 shows, one
 can also change this variable, e.g., to make the sensitivity slowly decay
 if there is no input from the MIDI device.
@@ -87,30 +93,28 @@ if there is no input from the MIDI device.
 
 \section{Architecture}
 
-For each MIDI device, an entry in the device database is selected.
+Figure \ref{arch} shows how MIDI messages are processed in Flickernoise:
+For each MIDI device, an entry in the device database is selected (1).
 This entry describes the characteristics of the elements of the MIDI
 device, e.g., what kind of control elements they are and what
 addresses they use.
 
-A patch using MIDI devices binds control elements to variables.
+A patch using MIDI devices binds control elements to variables (2).
 When binding, the patch specifies how it expects the element to
 behave, e.g., whether it should produce continuous values between
 0 and 1 or just 0 when ''off'' and 1 when ''on''.
 
-Event messages from the MIDI device identify the element they
+Event messages from the MIDI device (3) identify the element they
 belong to and carry a numeric value indicating the element's state.
-This value is translated according to the element's characteristics
+This value is translated (4) according to the element's characteristics
 from the device database combined with the expected function from
 the patch.
 
-Finally, result is stored in the control variable where it can
+Finally, the result is stored in the control variable (5) where it can
 then be used by the equations in the patch.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-\figmsg
 
 
 \subsection{MIDI control messages}
@@ -121,8 +125,8 @@ Controls can be all sorts of things, including faders, potentiometers,
 and push buttons.
 
 For now, we only consider controls. When a control is actuated, the
-MIDI device generates a MIDI Control Change messages, as shown in
-figure \ref{msg}.
+MIDI device generates a MIDI Control Change message of the structure
+shown in figure \ref{msg}.
 
 Channel numbers are encoded as values from 0 to 15 in the actual
 MIDI message but are commonly presented as 1 to 16 to the user.
@@ -132,8 +136,11 @@ Most MIDI devices use a single channel. The number of this channel
 can sometimes be set by the user. The controller numbers are typically
 fixed.
 
-Flickernoise uses the message type, the channel number, and the controller
+When Flickernoise receives a MIDI message, it
+uses the message type, the channel number, and the controller
 number to determine where to send the value. 
+
+\figmsg
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -141,7 +148,7 @@ number to determine where to send the value.
 
 \subsection{Control variables}
 
-Patches communicate with the outside world though variables. MIDI
+Patches communicate with the outside world through variables. MIDI
 control input is no exception. Instead of using pre-defined names
 like it is the case for {\tt time}, {\tt bass}, etc., the names of
 MIDI control variables can be chosen freely.
@@ -159,8 +166,8 @@ such that updates never happen while the patch is running.
 
 \section{Using controls in patches}
 
-@@@
-
+The following sections describe the syntax and semantics of the
+language constructs that give access to MIDI controls.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -169,15 +176,18 @@ such that updates never happen while the patch is running.
 \subsection{Device database}
 
 The device database tells Flickernoise how to identify MIDI
-devices and how to 
+devices and their elements and how the elements behave. It also
+assigns names to the elements that are then used to refer to
+them in patches.
+
 Device specifications are added to the device database with 
-- global section
+a MIDI device entry that looks as follows:
 
 \begin{expose}
 {\tt midi} {\em identification} \verb"{" {\em element $\ldots$} \verb"}"
 \end{expose}
 
-Each element has the following syntax:
+Each element in the device entry has the following syntax:
 
 \begin{expose}
 {\tt {\em name} =
@@ -185,10 +195,16 @@ Each element has the following syntax:
   {\em control\_number});}
 \end{expose}
 
+{\em device\_type} provides a broad characterization of the control
+element and can be {\tt fader}, {\tt pot}, {\tt differential},
+{\tt button}, or {\tt switch}. Control elements are discussed in
+detail in section \ref{controls}.
+
 {\em channel} is the MIDI channel number, from 1 to 16. If the channel
 is omitted, the element will match any channel.
 
-{\em control\_number}
+{\em control\_number} is a number from 0 to 127 the MIDI device uses
+to identify the control element.
 
 This is the example from the quick start section with channel numbers
 added:
@@ -206,6 +222,8 @@ midi "Gizmo" {
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+
+\figbind
 
 \subsection{Binding}
 \label{binding}
@@ -252,9 +270,18 @@ to what the patch expects. The following functions are available:
 {\em element\_name} is the name of the control element, as in the
 device database.
 
-\figbind
-
-@@@
+The result of binding is a stimulus entry that tells Flickernoise
+how to interpret incoming messages.
+Figure \ref{bind} illustrates the steps in creating the stimulus
+entry: Flickernoise
+selects a control element with the desired name from the available
+devices (1). The information needed to identify messages from this
+control element is copied to the stimulus entry (2). Using the
+device type from the element record (3) and the function from the
+binding instruction, a suitable translator is selected from the
+translation map. Also this is recorded in the stimulus entry (4).
+Finally, the variable is looked up or added to the patch (5) and
+a reference to it is placed in the stimulus entry.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -267,14 +294,14 @@ device database.
 Figure \ref{stim} illustrates how events are translated into changes
 of control variables.
 
-Each time a MIDI control message arrives, Flickernoise looks for a
-stimulus that matches the event type, i.e., MIDI control, the channel
+Each time a MIDI Control Change message arrives, Flickernoise looks for a
+stimulus that matches the message type, i.e., MIDI control, the channel
 number and the controller number (1). If no matching entry exists,
-the event is ignored.
+the message is ignored.
 
 The stimulus tells Flickernoise which translator to use and where
 to store the result. In our example, we have a {\tt pot} to {\tt range}
-translation, which is simply a division by 127 (2). The result,
+translation (2), which is simply a division by 127. The result,
 $\nicefrac{28}{127}=0.220$, is stored in the location of the variable
 {\tt var} (3).
 
@@ -297,6 +324,7 @@ to a value set by the patch. The following example illustrates how
 this can be accomplished:
 
 \begin{listing}{1}
+last = 0;
 cvar = range(foo);
 
 per_frame:
@@ -308,13 +336,60 @@ per_frame:
 
 Instead of writing to the control variable {\tt cvar} directly, we
 propagate any relative changes of {\tt cvar} to {\tt var} in lines
-4 and 5, and only modify {\tt var} in line 7.
+5 and 6, and only modify {\tt var} in line 8.
 
 Note that {\tt var} may assume values outside the range $0\ldots 1$.
-If this is not desirable, it can be clipped after line 4 with
+If this is not desirable, it can be clipped after line 5 with
 
 \begin{listing}{1}
 	var = max(min(var, 1), 0);
+\end{listing}
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+\subsection{Multiple bindings}
+
+So far, we have only seen one element being bound to one control
+variable at a time. A control variable can also be bound to
+multiple elements and the same element can be bound to multiple
+control variables.
+
+Binding the same element to different variables can be useful in
+cases where the translation differs as well. For example, the
+following code snippet would control two parameters with the same
+element:
+
+\begin{listing}{1}
+growth = range(main);
+tilt = cyclic(main);
+
+per_vertex:
+	zoom = growth*0.2;
+	angle = 2*3.14159*tilt;
+	wave_x = cx+0.1*cos(angle);
+	wave_y = cy-0.1*sin(angle);
+\end{listing}
+
+A situation that may be even more common is to have multiple elements
+that change the same variable, e.g., when using multiple input
+devices. Example:
+
+\begin{listing}{1}
+midi "foo" {
+        foo_pot = pot(12);
+}
+
+midi "bar" {
+        bar_pot = pot(34);
+}
+
+sensitivity = range(foo_pot);
+sensitivity = range(bar_pot);
+
+per_frame:
+	wave_scale = sensitivity*20;
 \end{listing}
 
 
@@ -322,15 +397,16 @@ If this is not desirable, it can be clipped after line 4 with
 
 
 \section{Control elements}
+\label{controls}
 
-In the sections below, we describe the various control elements, who
+In the sections below, we describe the various control elements, how
 they are described in the device database, and their behaviour. We
-give examples, that show the physical state of the element, the value
-a MIDI control may typically send for the element in that state, and
+give examples that show the physical state of the element, the value
+a MIDI device may typically send for the element in that state, and
 then the resulting values for the various translations.
 
 Since {\tt range}, {\tt unbounded}, and {\tt cycle} only differ from
-each other in one case, they are usually abbreviated as just
+each other in one case, they are usually abbreviated to just
 ``{\tt range}, $\ldots$''.
 
 
@@ -380,7 +456,7 @@ it to the 0\% position.
 The mapping is quite straightforward: {\tt range}, {\tt unbounded},
 and {\tt cycle} produce a value from 0 to 1 corresponding to the
 position of the knob. {\tt button} and {\tt switch} produce 0 if
-the knob is the lower half of the range, 1 if it is in the upper half.
+the knob is in the lower half of the range, 1 if it is in the upper half.
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -443,8 +519,8 @@ the values change immediately.
 Rotary encoders acting as potentiometers are also declared with
 {\tt pot} and bound with {\tt range}.
 
-The example below shows a rotary encoder covering the full value range
-in one $360^\circ$ turn that is first turned $450^\circ$ clockwise
+The example below shows how a rotary encoder covering the full value range
+in one $360^\circ$ turn behaves when it is first turned $450^\circ$ clockwise
 and then $45^\circ$ counterclockwise:
 
 \begin{expose}
@@ -496,8 +572,8 @@ midi ... {
 var = button(name);
 \end{listing}
 
-The alternative {\tt switch()} turns the control on when the button
-is pressed the first time and then off again when pressed the second
+{\tt switch()} turns the control on when the button
+is pressed the first time and then off again when pressed a second
 time.
 
 Example:
@@ -609,13 +685,13 @@ pressed for exactly one frame duration.
 \label{diff}
 
 The rotary encoders of some controllers send differential values
-instead of the usual absolute values. Differential values allows
+instead of the usual absolute values. Differential values allow
 Flickernoise not only to translate them to absolute values, but
-also enables more sophisticated translations.
+also enable more sophisticated translations.
 
 Differential values are encoded as signed 7 bit numbers. This means
 that values in the range 0--63 represent an increase by that amount
-while values in the range 0--127 represent a decrease by 128 minus
+while values in the range 64--127 represent a decrease by 128 minus
 the value. E.g., a value of 127 would mean a decrease by one.
 
 Differential encoders are declared with {\tt differential()}:
@@ -659,12 +735,12 @@ for the full value range by a total of $405^\circ$:
   Translation
   & 0 & 0.25 & 0.5 & 1 & 1 & \tt range \\
   & 0 & 0.25 & 0.5 & 1 & 1.125 & \tt unbounded \\
-  & 0 & 0.25 & 0.5 & 0 & 0.125 & \tt cyclic \\
+  & 0 & 0.25 & 0.5 & 1 & 0.125 & \tt cyclic \\
 \end{tabular}
 \end{expose}
 
 Continuing the example above, we turn the controller now by
-$90^\circ$ in a counterclockwise direction:
+$90^\circ$ counterclockwise:
 
 \begin{expose}
 \begin{tabular}{lccl}
@@ -726,14 +802,8 @@ zero:
 
 Like the rotary encoders emulating potentiometers described in section
 \ref{encpot}, the values a device sends for differential encoders may be
-increased if turning rapidly.
+increased if turning rapidly. Instead of the very large values used in
+the examples, one would see a sequence of smaller values as the encoder
+is turned.
 
-%   The control variable can assume any value, including negative
-%   values and values greater than one. This can be used with
-%   certain rotary encoders. If the device in question has no
-%   meaningful way to input unbounded values, {\tt unbounded} acts
-%   like {\tt range}.
-%   The control variable has a value between 0 and 1, like with
-%   {\tt range}, but if the control element tries to move outside the
-%   range, the value wraps around. 
 \end{document}
