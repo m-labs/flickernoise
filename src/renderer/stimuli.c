@@ -142,11 +142,13 @@ static struct stim_regs *stim_add_midi_ctrl(struct stimuli *s, int chan,
 	}
 	ch = s->midi[chan];
 
-	if(!ch->ctrl[ctrl]) {
-		ch->ctrl[ctrl] = calloc(1, sizeof(struct s_midi_ctrl));
-		if(!ch->ctrl[ctrl])
-			return NULL;
-	}
+	if(ch->ctrl[ctrl])
+		return NULL;
+
+	ch->ctrl[ctrl] = calloc(1, sizeof(struct s_midi_ctrl));
+	if(!ch->ctrl[ctrl])
+		return NULL;
+
 	ct = ch->ctrl[ctrl];
 
 	ct->proc = proc;
