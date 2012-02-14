@@ -511,7 +511,9 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	if(!finalize_pvv(sc)) goto fail;
 	if(!schedule_pvv(sc)) goto fail;
 
+#ifndef STANDALONE
 	symtab_free();
+#endif
 	stim_db_free(); /* @@@ */
 
 	free(sc);
