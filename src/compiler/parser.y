@@ -478,13 +478,13 @@ assignment ::= TOK_IMAGEFILES TOK_ASSIGN file_list(L) opt_semi. {
 	for(p = L; p; p = p->next) {
 		msg = state->comm->assign_image_name(state->comm, i+1, p->name);
 		if(msg) {
-			free_file_list(L);
 			FAIL(msg);
 			free((void *) msg);
 			return;
 		}
 		i++;
 	}
+	free_file_list(L);
 }
 
 file_list(L) ::= TOK_STRING(N). {
