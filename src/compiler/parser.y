@@ -183,6 +183,35 @@ static struct id *symbolify(struct id *id)
 	return id;
 }
 
+struct file_list {
+	const char *name;
+	struct file_list *next;
+};
+
+static struct file_list *alloc_file_list(const char *name)
+{
+	struct file_list *fn;
+
+	fn = malloc(sizeof(struct file_list));
+	if(!fn)
+		return NULL;
+	fn->name = name;
+	fn->next = NULL;
+	return fn;
+}
+
+static void free_file_list(struct file_list *l)
+{
+	struct file_list *next;
+
+	while(l) {
+		next = l->next;
+		free((void *) l->name);
+		free(l);
+		l = next;
+	}
+}
+
 } /* %include */
 
 
@@ -221,9 +250,11 @@ static struct id *symbolify(struct id *id)
 %type opt_arg {struct ast_node *}
 %type midi_dev_type {enum stim_midi_dev_type}
 %type midi_fn_type {enum stim_midi_fn_type}
-%type midi_addr{struct { int chan, ctrl; }}
+%type midi_addr {struct { int chan, ctrl; }}
+%type file_list {struct file_list *}
 
 %destructor opt_arg { parse_free($$); }
+%destructor file_list { free_file_list($$); }
 
 %syntax_error {
 	FAIL("parse error");
@@ -437,6 +468,32 @@ assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 	free(I);
 	free((void *) N->fname);
 	free(N);
+}
+
+assignment ::= TOK_IMAGEFILES TOK_ASSIGN file_list(L) opt_semi. {
+	const struct file_list *p;
+	const char *msg = NULL;
+	int i = 0;
+
+	for(p = L; p; p = p->next) {
+		msg = state->comm->assign_image_name(state->comm, i+1, p->name);
+		if(msg) {
+			free_file_list(L);
+			FAIL(msg);
+			free((void *) msg);
+			return;
+		}
+		i++;
+	}
+}
+
+file_list(L) ::= TOK_STRING(N). {
+	L = alloc_file_list(N->label);
+}
+
+file_list(L) ::= TOK_STRING(N) TOK_COMMA file_list(T). {
+	L = alloc_file_list(N->label);
+	L->next = T;
 }
 
 

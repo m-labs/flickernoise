@@ -145,6 +145,7 @@ int scan(struct scanner *s)
 
 		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);
 					  return TOK_IMAGEFILE; }
+		<N>"imagefiles"		{ return TOK_IMAGEFILES; }
 
 		<N>[a-zA-Z_0-9]+	{ return TOK_IDENT; }
 		<N>'"'[^"\x00\n\r]*'"'	{ return TOK_STRING; }
