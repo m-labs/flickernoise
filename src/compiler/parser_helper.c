@@ -160,6 +160,9 @@ int parse(const char *expr, int start_token, struct parser_comm *comm)
 			identifier->sym = get_symbol(s);
 			identifier->label = identifier->sym->fpvm_sym.name;
 			break;
+		case TOK_STRING:
+			identifier->label = get_string(s);
+			break;
 		default:
 			identifier->label = (const char *) s->old_cursor;
 			break;

@@ -51,6 +51,9 @@ struct sym *get_symbol(struct scanner *s);
 /* malloc'ed non-unique string */
 const char *get_name(struct scanner *s);
 
+/* malloc'ed quoted string */
+const char *get_string(struct scanner *s);
+
 float get_constant(struct scanner *s);
 
 #endif /* __SCANNER_H */

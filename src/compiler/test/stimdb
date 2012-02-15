@@ -1,0 +1,118 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "stimuli, DB, MIDI: fader(1, 0)" -c -q << EOF
+midi "foo" {
+	bar = fader(1, 0);
+}
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, DB, MIDI: fader(16, 127)" -c -q << EOF
+midi "foo" {
+	bar = fader(16, 127)
+}
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "stimuli, DB, MIDI: fader(17, 0)" -c -q << EOF
+midi "foo" {
+	bar = fader(17, 0);
+}
+EOF
+expect <<EOF
+line 2: MIDI channel must be within 1-16 near ');'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "stimuli, DB, MIDI: fader(1, 128)" -c -q << EOF
+midi "foo" {
+	bar = fader(1, 128);
+}
+EOF
+expect <<EOF
+line 2: MIDI controller must be within 0-127 near ');'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "stimuli, DB, MIDI: fader(0, 0)" -c -q << EOF
+midi "foo" {
+	bar = fader(0, 0);
+}
+EOF
+expect <<EOF
+line 2: MIDI channel must be within 1-16 near ');'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "stimuli, DB, MIDI: fader(1, -1)" -c -q << EOF
+midi "foo" {
+	bar = fader(1, -1);
+}
+EOF
+expect <<EOF
+line 2: MIDI controller must be within 0-127 near ');'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, DB, MIDI: pot(1, 0)" -c -q << EOF
+midi "foo" {
+	bar = pot(1, 0);
+}
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, DB, MIDI: differential(1, 0)" -c -q << EOF
+midi "foo" {
+	bar = differential(1, 0);
+}
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, DB, MIDI: button(1, 0)" -c -q << EOF
+midi "foo" {
+	bar = button(1, 0);
+}
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, DB, MIDI: switch(1, 0)" -c -q << EOF
+midi "foo" {
+	bar = switch(1, 0);
+}
+EOF
+expect <<EOF
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, DB, MIDI: fader(0) (wildcard)" -c -q << EOF
+midi "foo" {
+	bar = fader(0);
+}
+EOF
+expect <<EOF
+EOF
+
+###############################################################################

@@ -107,6 +107,7 @@ struct sym *unique(const char *s)
 	new->fpvm_sym.name = strdup(s);
 	new->pfv_idx = new->pvv_idx = -1;
 	new->flags = 0;
+	new->stim = NULL;
 	return new;
 }
 
@@ -132,6 +133,7 @@ struct sym *unique_n(const char *s, int n)
 	new->fpvm_sym.name = strdup_n(s, n);
 	new->pfv_idx = new->pvv_idx = -1;
 	new->flags = 0;
+	new->stim = NULL;
 	return new;
 }
 
@@ -146,12 +148,28 @@ void symtab_init(void)
 }
 
 
+static void free_stim(struct sym *sym)
+{
+	struct sym_stim *next;
+
+	while(sym->stim) {
+		next = sym->stim->next;
+		free(sym->stim);
+		sym->stim = next;
+	}
+}
+
+
 void symtab_free(void)
 {
 	int i;
 
-	for(i = 0; i != num_user_syms; i++)
+	for(i = 0; i != num_well_known; i++)
+		free_stim(well_known+i);
+	for(i = 0; i != num_user_syms; i++) {
 		free((void *) user_syms[i].fpvm_sym.name);
+		free_stim(user_syms+i);
+	}
 	free(user_syms);
 	user_syms = NULL;
 	num_user_syms = allocated = 0;

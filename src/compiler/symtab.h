@@ -12,15 +12,23 @@
 #define	SYMTAB_H
 
 #include <fpvm/symbol.h>
+#include "../renderer/stimuli.h"
 
 
-#define	SF_SYSTEM	(1 << 0)
-#define	SF_ASSIGNED	(1 << 1)
-#define	SF_FIXED	SF_SYSTEM
+#define	SF_SYSTEM	(1 << 0)	/* variable is predefined */
+#define	SF_ASSIGNED	(1 << 1)	/* variable has been assigned to */
+#define	SF_LIVE		(1 << 2)	/* variable is written to by FN */
+#define	SF_FIXED	(SF_SYSTEM | SF_LIVE)
+
+struct sym_stim {
+	struct stim_regs *regs;
+	struct sym_stim *next;
+};
 
 struct sym {
 	struct fpvm_sym fpvm_sym;
 	int pfv_idx, pvv_idx;	/* index; -1 if not a variable known to FN */
+	struct sym_stim *stim;	/* NULL if not a control variable */
 	int flags;
 };
 

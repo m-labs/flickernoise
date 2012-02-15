@@ -1,0 +1,106 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "stimuli, multi: bind control variable twice (same device)" -c -q \
+  -v sx -m 0=0 -m 0=127 -m 1=0 -m 1=127 -m 0=0 << EOF
+midi "foo" {
+	foo = pot(0);
+	bar = pot(1);
+}
+
+sx = range(foo);
+sx = range(bar);
+EOF
+expect <<EOF
+0
+1
+0
+1
+0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, multi: bind control variable twice (2 devs, same addr)" -c -q \
+  -v sx -m 0=0 -m 0=127 -m 0=0 -m 0=127 -m 0=0 << EOF
+midi "foo" {
+	foo_pot = pot(0);
+}
+
+midi "bar" {
+	bar_pot = pot(0);
+}
+
+sx = range(foo_pot);
+sx = range(bar_pot);
+EOF
+expect <<EOF
+0
+1
+0
+1
+0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, multi: bind control variable twice (2 devs, diff addr)" -c -q \
+  -v sx -m 0=0 -m 0=127 -m 1=0 -m 1=127 -m 0=0 << EOF
+midi "foo" {
+	foo_pot = pot(0);
+}
+
+midi "bar" {
+	bar_pot = pot(1);
+}
+
+sx = range(foo_pot);
+sx = range(bar_pot);
+EOF
+expect <<EOF
+0
+1
+0
+1
+0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, multi: bind control element twice (1)" -c -q \
+  -v foo -m 0=0 -m 0=63 -m 0=127 -m 0=0 << EOF
+midi "foo" {
+	bar = pot(0);
+}
+
+foo = range(bar);
+bar = button(bar);
+EOF
+expect <<EOF
+0
+0.496063
+1
+0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "stimuli, multi: bind control element twice (2)" -c -q \
+  -v bar -m 0=0 -m 0=63 -m 0=127 -m 0=0 << EOF
+midi "foo" {
+	bar = pot(0);
+}
+
+foo = range(bar);
+bar = button(bar);
+EOF
+expect <<EOF
+0
+0
+1
+0
+EOF
+
+###############################################################################

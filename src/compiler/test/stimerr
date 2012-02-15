@@ -1,0 +1,29 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest_fail "stimuli, errors: \"time\" as control variable" -c -q << EOF
+midi "foo" {
+	bar = pot(0);
+}
+
+time = range(bar);
+EOF
+expect <<EOF
+line 6: "time" cannot be used as control variable near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "stimuli, errors: duplicate control element" -c -q << EOF
+midi "foo" {
+	bar = pot(0);
+	bar = pot(1);
+}
+EOF
+expect <<EOF
+line 4: cannot add MIDI input "bar" near '}'
+EOF
+
+###############################################################################

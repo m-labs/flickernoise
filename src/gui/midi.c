@@ -172,7 +172,8 @@ static void load_config(void)
 	const char *val;
 	int value;
 
-	mtk_cmdf(appid, "e_channel.set(-text \"%d\")", config_read_int("midi_channel", 0));
+	mtk_cmdf(appid, "e_channel.set(-text \"%d\")",
+	    config_read_int("midi_channel", 0)+1);
 	for(i=0;i<128;i++) {
 		sprintf(config_key, "midi_%02x", i);
 		val = config_read_string(config_key);
@@ -209,7 +210,7 @@ static void set_config(void)
 		else
 			config_delete(config_key);
 	}
-	config_write_int("midi_channel", mtk_req_i(appid, "e_channel.text"));
+	config_write_int("midi_channel", mtk_req_i(appid, "e_channel.text")-1);
 }
 
 static void update_list(void)
@@ -268,28 +269,42 @@ static void note_event(int code)
 	mtk_cmdf(appid, "e_note.set(-text \"%s\")", note);
 }
 
-static void controller_event(int controller, int value)
+static void controller_event(int chan, int controller, int value)
 {
-	mtk_cmdf(appid, "l_lastctl.set(-text \"%d (%d)\")", controller, value);
-	if(learn != -1)
-		mtk_cmdf(appid, "e_midi%d.set(-text \"%d\")", learn, controller);
+	chan++;
+	if(chan == mtk_req_i(appid, "e_channel.text")) {
+		mtk_cmdf(appid, "l_lastctl.set(-text \"%d.%d = %d\")",
+		    chan, controller, value);
+		if(learn != -1)
+			mtk_cmdf(appid, "e_midi%d.set(-text \"%d\")",
+			    learn, controller);
+	} else {
+		mtk_cmdf(appid, "l_lastctl.set(-text \"(%d.%d = %d)\")",
+		    chan, controller, value);
+	}
 }
 
 static void midi_event(mtk_event *e, int count)
 {
-	int i;
+	int i, chan;
 
 	for(i=0;i<count;i++) {
-		if((e[i].type == EVENT_TYPE_MIDI_NOTEON) || (e[i].type == EVENT_TYPE_MIDI_CONTROLLER) || (e[i].type == EVENT_TYPE_MIDI_PITCH)) {
-			if(((e[i].press.code & 0x0f0000) >> 16) == mtk_req_i(appid, "e_channel.text")) {
-				if(e[i].type == EVENT_TYPE_MIDI_NOTEON)
+		chan = (e[i].press.code & 0x0f0000) >> 16;
+		switch(e[i].type) {
+			case EVENT_TYPE_MIDI_NOTEON:
+				if(chan == mtk_req_i(appid, "e_channel.text")-1)
 					note_event(e[i].press.code & 0x7f);
-				else if(e[i].type == EVENT_TYPE_MIDI_CONTROLLER)
-					controller_event((e[i].press.code & 0x7f00) >> 8, e[i].press.code & 0x7f);
-				else
-					/* EVENT_TYPE_MIDI_PITCH */
-					controller_event(128, e[i].press.code & 0x7f);
-			}
+				break;
+			case EVENT_TYPE_MIDI_CONTROLLER:
+				controller_event(chan,
+				    (e[i].press.code & 0x7f00) >> 8,
+				    e[i].press.code & 0x7f);
+				break;
+			case EVENT_TYPE_MIDI_PITCH:
+				/* EVENT_TYPE_MIDI_PITCH */
+				controller_event(chan, 128,
+				    e[i].press.code & 0x7f);
+				break;
 		}
 	}
 }
@@ -451,7 +466,7 @@ void init_midi(void)
 		"g_parameters0.place(l_parameters, -column 2 -row 1)",
 		"g_parameters0.place(s_parameters2, -column 3 -row 1)",
 		"g_parameters = new Grid()",
-		"l_channel = new Label(-text \"Channel (0-15):\")",
+		"l_channel = new Label(-text \"Channel (1-16):\")",
 		"e_channel = new Entry()",
 		"g_parameters.place(l_channel, -column 1 -row 1)",
 		"g_parameters.place(e_channel, -column 2 -row 1)",

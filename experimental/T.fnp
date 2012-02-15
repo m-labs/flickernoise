@@ -1,0 +1,124 @@
+/*
+ * Highly experimental variant of Tornado (Rain Dance MIDI RMX)
+ */
+fDecay=0.9950000
+fVideoEchoZoom=2.000000
+fVideoEchoAlpha=0.000000
+nVideoEchoOrientation=0
+nWaveMode=2
+bAdditiveWaves=0
+bWaveDots=0
+bMaximizeWaveColor=1
+bTexWrap=1
+mv_a=0
+nMotionVectorsX=12
+nMotionVectorsY=9
+fWaveAlpha=3.000000
+fWaveScale=3.020000
+fWarpAnimSpeed=1.000000
+fWarpScale=2.853000
+zoom=1.031000
+rot=0.000000
+cx=0.500000
+cy=0.500000
+dx=0.000000
+dy=0.000000
+warp=0.309000
+sx=1.000000
+sy=1.000000
+wave_r=0.600000
+wave_g=0.600000
+wave_b=0.600000
+wave_x=0.500000
+wave_y=0.500000
+
+midi "Faderfox LV3" {
+	fader1 = fader(1, 7);
+	fader2 = fader(2, 7);
+	fader3 = fader(3, 7);
+	fader4 = fader(4, 7);
+	fader5 = fader(5, 7);
+	fader6 = fader(6, 7);
+	fader7 = fader(7, 7);
+	fader8 = fader(8, 7);
+
+	enc1 = differential(24);
+	enc2 = differential(25);
+
+	enc1_push = button(28);
+
+	fx1 = switch(9, 4);
+	joy1x = fader(9, 1);
+	joy1y = fader(9, 2);
+
+	fx2 = switch(10, 4);
+	joy2x = fader(10, 1);
+	joy2y = fader(10, 2);
+}
+
+/* MIDI settings for Faderfox LV3 */
+
+whirl = range(fader1);
+growth = range(fader2);
+radius = range(fader3);
+sensitivity = range(fader4);
+
+twist = unbounded(enc1);
+reset_twist = button(enc1_push);	// encoder 1 push
+theta = cyclic(enc2);
+
+red = range(fader5);
+green = range(fader6);
+blue = range(fader7);
+change = range(fader8);
+
+offcenter = switch(fx1);		// FX1
+xoff = range(joy1x);
+yoff = range(joy1y);
+shift = switch(fx2);			// FX2
+xshift = range(joy2x);
+yshift = range(joy2y);
+
+last_reset_twist = 0;
+
+per_frame:
+	/* rotation */
+
+	rot = whirl*2+twist/10;
+	twist = last_reset_twist == reset_twist+1 ? twist : 0;
+	last_reset_twist = reset_twist+1; // avoid 0, so first push is change
+
+	/* growth */
+
+	zoom = 0.9+growth/5;
+
+	/* angle */
+
+	dist = radius/5;
+	tmp = theta*6.2832;
+	wave_x = cx+cos(tmp)*dist;
+	wave_y = cy-sin(tmp)*dist;
+
+	/* sensitivity */
+
+	wave_scale = sensitivity*10;
+
+	/* color */
+
+	t = time*change*5;
+	wave_r = red*( 0.60*sin(0.933*t) + 0.40*sin(1.045*t) );
+	wave_g = green*( 0.60*sin(0.900*t) + 0.40*sin(0.956*t) );
+	wave_b = blue*( 0.60*sin(0.910*t) + 0.40*sin(0.920*t) );
+
+	/* special effects */
+
+//	cx = offcenter ? 0.5+(xoff-0.5)*0.3 : 0.5;
+//	cy = offcenter ? 0.5+(0.5-yoff)*0.3 : 0.5;
+	sx = offcenter ? 0.2*(xoff-0.5)+1 : 1;
+	sy = offcenter ? 0.2*(yoff-0.5)+1 : 1;
+
+	dx = shift ? (xshift-0.5)*0.2 : 0;
+	dy = shift ? (yshift-0.5)*0.2 : 0;
+
+per_vertex:
+	rot = rot + (rad-0.4)*1.7*max(0,min((bass_att-1.1)*1.5,5));

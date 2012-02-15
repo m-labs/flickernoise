@@ -187,13 +187,17 @@ static void all_initials_to_pfv(struct compiler_sc *sc)
 static void pfv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
+	struct sym *s = FPVM2SYM(sym);
+	struct sym_stim *r;
 	int pfv;
 
-	pfv = pfv_from_sym(FPVM2SYM(sym));
+	pfv = pfv_from_sym(s);
 	if(pfv >= 0) {
 		pfv_update_patch_requires(sc, pfv);
 		sc->p->pfv_allocation[pfv] = reg;
 	}
+	for(r = s->stim; r; r = r->next)
+		r->regs->pfv = sc->p->perframe_regs+reg;
 }
 
 static bool init_pfv(struct compiler_sc *sc)
@@ -265,13 +269,17 @@ static void pvv_update_patch_requires(struct compiler_sc *sc, int pvv)
 static void pvv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 {
 	struct compiler_sc *sc = _sc;
+	struct sym *s = FPVM2SYM(sym);
+	struct sym_stim *r;
 	int pvv;
 
-	pvv = pvv_from_sym(FPVM2SYM(sym));
+	pvv = pvv_from_sym(s);
 	if(pvv >= 0) {
 		pvv_update_patch_requires(sc, pvv);
 		sc->p->pvv_allocation[pvv] = reg;
 	}
+	for(r = s->stim; r; r = r->next)
+		r->regs->pvv = sc->p->pervertex_regs+reg;
 }
 
 static bool init_pvv(struct compiler_sc *sc)
@@ -483,6 +491,7 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	sc->p->require = 0;
 	sc->p->original = NULL;
 	sc->p->next = NULL;
+	sc->p->stim = NULL;
 
 	sc->basedir = basedir;
 	sc->rmc = rmc;
@@ -502,7 +511,10 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 	if(!finalize_pvv(sc)) goto fail;
 	if(!schedule_pvv(sc)) goto fail;
 
+#ifndef STANDALONE
 	symtab_free();
+#endif
+	stim_db_free(); /* @@@ */
 
 	free(sc);
 	return p;
@@ -534,6 +546,13 @@ struct patch *patch_compile_filename(const char *filename,
 	return p;
 }
 
+struct stimuli *compiler_get_stimulus(struct compiler_sc *sc)
+{
+	if(!sc->p->stim)
+                sc->p->stim = stim_new(sc->p);
+	return sc->p->stim;
+}
+
 #ifndef STANDALONE
 
 struct patch *patch_copy(struct patch *p)
@@ -553,6 +572,9 @@ struct patch *patch_copy(struct patch *p)
 			img->filename = strdup(img->filename);
 		pixbuf_inc_ref(img->pixbuf);
 	}
+	new_patch->stim = stim_get(p->stim);
+	if(p->stim)
+		stim_redirect(p->stim, new_patch);
 	return new_patch;
 }
 
@@ -567,6 +589,7 @@ void patch_free(struct patch *p)
 		pixbuf_dec_ref(img->pixbuf);
 		free((void *) img->filename);
 	}
+	stim_put(p->stim);
 	free(p);
 }
 
@@ -588,4 +611,4 @@ struct patch *patch_refresh(struct patch *p)
 	return p;
 }
 
-#endif
+#endif /* !STANDALONE */

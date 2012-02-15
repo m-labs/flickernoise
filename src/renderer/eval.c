@@ -129,6 +129,7 @@ static void reinit_pfv(struct patch *p, int pfv)
 static void reinit_all_pfv(struct patch *p)
 {
 	int i;
+
 	for(i=0;i<COMP_PFV_COUNT;i++)
 		reinit_pfv(p, i);
 }

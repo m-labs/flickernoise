@@ -42,6 +42,7 @@ void renderer_add_patch(struct patch *p);
 void renderer_del_patch(struct patch *p);
 struct patch *renderer_get_patch(int spin);
 
+void init_renderer(void);
 void renderer_start(int framebuffer_fd, struct patch *p);
 void renderer_stop(void);
 

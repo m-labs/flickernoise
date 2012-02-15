@@ -28,9 +28,10 @@
 #include <fpvm/fpvm.h>
 
 #include "symtab.h"
+#include "compiler.h"
+#include "parser.h"
 #include "parser_itf.h"
 #include "parser_helper.h"
-#include "parser.h"
 
 
 struct yyParser;
@@ -39,10 +40,12 @@ static void yy_parse_failed(struct yyParser *yypParser);
 typedef const char *(*assign_callback)(struct parser_comm *comm,
 	    struct sym *sym, struct ast_node *node);
 
-#define	FAIL(msg)				\
-	do {					\
-		error(state, msg);		\
-		yy_parse_failed(yypParser);	\
+static struct stim_db_midi *midi_dev;
+
+#define	FAIL(msg, ...)					\
+	do {						\
+		error(state, msg, ##__VA_ARGS__);	\
+		yy_parse_failed(yypParser);		\
 	} while (0)
 
 #define	OTHER_STYLE_new_style	old_style
@@ -215,6 +218,12 @@ static struct id *symbolify(struct id *id)
 %destructor primary_expr { free($$); }
 
 %type context {assign_callback}
+%type opt_arg {struct ast_node *}
+%type midi_dev_type {enum stim_midi_dev_type}
+%type midi_fn_type {enum stim_midi_fn_type}
+%type midi_addr{struct { int chan, ctrl; }}
+
+%destructor opt_arg { parse_free($$); }
 
 %syntax_error {
 	FAIL("parse error");
@@ -239,7 +248,7 @@ start ::= TOK_START_ASSIGN sections. {
 }
 
 
-/* ----- Sections and assignments ------------------------------------------ */
+/* ----- New-style sections and assignments -------------------------------- */
 
 
 sections ::= assignments.
@@ -261,6 +270,10 @@ per_vertex_label ::= TOK_PER_VERTEX TOK_COLON. {
 assignments ::= assignments assignment.
 
 assignments ::= .
+
+
+/* ----- Variable assignments ---------------------------------------------- */
+
 
 assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 	I->sym->flags |= SF_ASSIGNED;
@@ -295,6 +308,122 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 	parse_free(N);
 }
 
+
+/* ----- MIDI device database ---------------------------------------------- */
+
+
+assignment ::= midi_device TOK_LBRACE midi_inputs TOK_RBRACE opt_semi.
+
+midi_device ::= TOK_MIDI TOK_STRING(S). {
+	midi_dev = stim_db_midi(S->label);
+	free(S);
+}
+
+midi_inputs ::= .
+
+midi_inputs ::= midi_inputs midi_input.
+
+midi_input ::= ident(I) TOK_ASSIGN midi_dev_type(T) TOK_LPAREN midi_addr(M)
+    TOK_RPAREN opt_semi. {
+	int ok;
+
+	ok = stim_db_midi_ctrl(midi_dev, I->sym, T, M.chan, M.ctrl);
+	if(!ok) {
+		FAIL("cannot add MIDI input \"%s\"", I->sym->fpvm_sym.name);
+		free(I);
+		return;
+	}
+	free(I);
+}
+
+midi_dev_type(T) ::= TOK_FADER.		{ T = dt_range; }
+midi_dev_type(T) ::= TOK_POT.		{ T = dt_range; }
+midi_dev_type(T) ::= TOK_DIFF.		{ T = dt_diff; }
+midi_dev_type(T) ::= TOK_BUTTON.	{ T = dt_button; }
+midi_dev_type(T) ::= TOK_SWITCH.	{ T = dt_switch; }
+
+midi_addr(M) ::= expr(A) opt_arg(B). {
+	if(B) {
+		if(A->op != op_constant) {
+			FAIL("MIDI channel must be a constant");
+			return;
+		}
+		M.chan = A->contents.constant;
+		if(M.chan < 1 || M.chan > MIDI_CHANS) {
+			FAIL("MIDI channel must be within 1-%d", MIDI_CHANS);
+			return;
+		}
+	} else {
+		B = A;
+		A = NULL;
+		M.chan = 0;
+	}
+	if(B->op != op_constant) {
+		FAIL("MIDI controller must be a constant");
+		return;
+	}
+	M.ctrl = B->contents.constant;
+	if(M.ctrl < 0 || M.ctrl >= MIDI_CTRLS) {
+		FAIL("MIDI controller must be within 0-%d", MIDI_CTRLS-1);
+		return;
+	}
+	parse_free(A);
+	parse_free(B);
+}
+
+
+/* ----- MIDI binding ------------------------------------------------------ */
+
+
+assignment ::= ident(I) TOK_ASSIGN midi_fn_type(T) TOK_LPAREN ident(D)
+    TOK_RPAREN opt_semi.  {
+	struct sym *sym = I->sym;
+	struct stimuli *stim = compiler_get_stimulus(state->comm->u.sc);
+	struct sym_stim *ref;
+
+	free(I);
+	if(sym->flags & SF_LIVE) {
+		FAIL("\"%s\" cannot be used as control variable",
+		    sym->fpvm_sym.name);
+		free(D);
+		return;
+	}
+	ref = malloc(sizeof(struct sym_stim));
+	if(!ref) {
+		FAIL("out of memory");
+		free(D);
+		return;
+	}
+	ref->regs = stim_bind(stim, D->sym, T);
+	free(D);
+	if(!ref->regs) {
+		FAIL("cannot add stimulus for MIDI input \"%s\"",
+		    sym->fpvm_sym.name);
+		return;
+	}
+	ref->next = sym->stim;
+	sym->stim = ref;
+	sym->flags |= SF_ASSIGNED;
+}
+
+midi_fn_type(T) ::= TOK_RANGE.		{ T = ft_range; }
+midi_fn_type(T) ::= TOK_UNBOUNDED.	{ T = ft_unbounded; }
+midi_fn_type(T) ::= TOK_CYCLIC.		{ T = ft_cyclic; }
+midi_fn_type(T) ::= TOK_BUTTON.		{ T = ft_button; }
+midi_fn_type(T) ::= TOK_SWITCH.		{ T = ft_switch; }
+
+opt_arg(E) ::= . {
+	E = NULL;
+}
+
+opt_arg(E) ::= TOK_COMMA expr(A). {
+	E = A;
+}
+
+
+/* ----- Image files ------------------------------------------------------- */
+
+
 assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 	const char *msg;
 
@@ -309,6 +438,10 @@ assignment ::= TOK_IMAGEFILE(I) TOK_ASSIGN TOK_FNAME(N). {
 	free((void *) N->fname);
 	free(N);
 }
+
+
+/* ----- Old-style sections ------------------------------------------------ */
+
 
 assignment ::= context(C). {
 	/*
@@ -338,6 +471,10 @@ old_per_vertex ::= TOK_PER_VERTEX.
 old_per_vertex ::= TOK_PER_VERTEX_UGLY.
 old_per_vertex ::= TOK_PER_PIXEL.
 old_per_vertex ::= TOK_PER_PIXEL_UGLY.
+
+
+/* ----- Semicolons as optional separators or terminators ------------------ */
+
 
 opt_semi ::= opt_semi TOK_SEMI.
 
@@ -581,6 +718,15 @@ ident(O) ::= unary_misc(I).	{ O = symbolify(I); }
 ident(O) ::= binary(I).		{ O = symbolify(I); }
 ident(O) ::= binary_misc(I).	{ O = symbolify(I); }
 ident(O) ::= ternary(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_MIDI(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_FADER(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_POT(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_DIFF(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_BUTTON(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_SWITCH(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_RANGE(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_CYCLIC(I).	{ O = symbolify(I); }
+ident(O) ::= TOK_UNBOUNDED(I).	{ O = symbolify(I); }
 
 unary_misc(O) ::= TOK_ABS(I).	{ O = I; }
 unary_misc(O) ::= TOK_COS(I).	{ O = I; }

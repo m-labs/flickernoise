@@ -61,7 +61,7 @@ ifeq ($(WITH_PDF),1)
 endif
 OBJS += $(addprefix translations/,french.o german.o)
 OBJS += $(addprefix renderer/,framedescriptor.o analyzer.o sampler.o \
-	eval.o line.o wave.o font.o osd.o raster.o renderer.o \
+	eval.o line.o wave.o font.o osd.o raster.o renderer.o stimuli.o \
 	videoinreconf.o)
 OBJS += $(addprefix compiler/,compiler.o parser_helper.o scanner.o \
 	parser.o symtab.o)

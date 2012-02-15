@@ -130,10 +130,21 @@ int scan(struct scanner *s)
 		<N>"per_pixel"[a-z_0-9]*
 					{ return TOK_PER_PIXEL_UGLY; }
 
+		<N>"midi"		{ return TOK_MIDI; }
+		<N>"fader"		{ return TOK_FADER; }
+		<N>"pot"		{ return TOK_POT; }
+		<N>"differential"	{ return TOK_DIFF; }
+		<N>"button"		{ return TOK_BUTTON; }
+		<N>"switch"		{ return TOK_SWITCH; }
+		<N>"range"		{ return TOK_RANGE; }
+		<N>"cyclic"		{ return TOK_CYCLIC; }
+		<N>"unbounded"		{ return TOK_UNBOUNDED; }
+
 		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);
 					  return TOK_IMAGEFILE; }
 
 		<N>[a-zA-Z_0-9]+	{ return TOK_IDENT; }
+		<N>'"'[^"\x00\n\r]*'"'	{ return TOK_STRING; }
 
 		<N>"+"			{ return TOK_PLUS; }
 		<N>"-"			{ return TOK_MINUS; }
@@ -154,6 +165,8 @@ int scan(struct scanner *s)
 		<N>">="			{ return TOK_GE; }
 		<N>"&&"			{ return TOK_ANDAND; }
 		<N>"||"			{ return TOK_OROR; }
+		<N>"{"			{ return TOK_LBRACE; }
+		<N>"}"			{ return TOK_RBRACE; }
 
 		<N,FNAME1>"="		{ if (YYGETCONDITION() == yycFNAME1)
 						YYSETCONDITION(yycFNAME2);
@@ -182,6 +195,18 @@ const char *get_name(struct scanner *s)
 	buf = malloc(n+1);
 	memcpy(buf, s->old_cursor, n);
 	buf[n] = 0;
+	return buf;
+}
+
+const char *get_string(struct scanner *s)
+{
+	char *buf;
+	int n;
+
+	n = s->cursor - s->old_cursor;
+	buf = malloc(n-1);
+	memcpy(buf, s->old_cursor+1, n-2);
+	buf[n-2] = 0;
 	return buf;
 }
 

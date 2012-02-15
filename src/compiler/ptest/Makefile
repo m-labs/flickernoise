@@ -5,7 +5,7 @@ LIBFPVM_X86 = $(MMDIR)/software/libfpvm/x86-linux
 CFLAGS_STANDALONE = -DSTANDALONE=\"standalone.h\"
 CFLAGS = -Wall -g -I.. -I. $(CFLAGS_STANDALONE)
 OBJS = ptest.o scanner.o parser.o parser_helper.o symtab.o compiler.o \
-       libfpvm.a
+       stimuli.o libfpvm.a
 LDLIBS = -lm
 
 # ----- Verbosity control -----------------------------------------------------
@@ -40,6 +40,9 @@ ptest:		$(OBJS)
 		$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
 %.o:		../%.c
+		$(CC) $(CFLAGS) -c -o $@ $<
+
+stimuli.o:	../../renderer/stimuli.c
 		$(CC) $(CFLAGS) -c -o $@ $<
 
 %.c:		%.re

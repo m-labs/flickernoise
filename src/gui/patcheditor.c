@@ -31,12 +31,39 @@
 #include "../input.h"
 #include "guirender.h"
 
+#define	MAX_PATCH_SIZE	32767
+
 static int appid;
 static struct filedialog *fileopen_dlg;
 static struct filedialog *filesave_dlg;
 
 static int modified;
 static char current_filename[384];
+
+static char *protect_string(const char *s)
+{
+	int n = 0;
+	const char *p;
+	char *buf, *d;
+
+	for(p = s; *p; p++)
+		if(*p == '"')
+			n++;
+
+	buf = malloc(p-s+n+1);
+	if(!buf)
+		return NULL;
+
+	d = buf;
+	for(p = s; *p; p++) {
+		if(*p == '"')
+			*d++ = '\\';
+		*d++ = *p;
+	}
+	*d = 0;
+
+	return buf;
+}
 
 static void update_wintitle(void)
 {
@@ -72,48 +99,67 @@ static void openbtn_callback(mtk_event *e, void *arg)
 
 static void openok_callback(void *arg)
 {
-	char buf[32768];
+	char buf[MAX_PATCH_SIZE+1];
 	FILE *fd;
 	int r;
+	char *s;
 
-	get_filedialog_selection(fileopen_dlg, current_filename, sizeof(current_filename));
+	get_filedialog_selection(fileopen_dlg,
+	    current_filename, sizeof(current_filename));
 	modified = 0;
 	update_wintitle();
 
 	fd = fopen(current_filename, "r");
 	if(!fd) {
-		mtk_cmdf(appid, "status.set(-text \"Unable to open file (%s)\")", strerror(errno));
+		mtk_cmdf(appid,
+		    "status.set(-text \"Unable to open file (%s)\")",
+		    strerror(errno));
 		return;
 	}
-	r = fread(buf, 1, 32767, fd);
+	r = fread(buf, 1, sizeof(buf), fd);
 	fclose(fd);
 	if(r < 0) {
 		mtk_cmd(appid, "status.set(-text \"Unable to read file\")");
 		return;
 	}
 	buf[r] = 0;
-	mtk_cmdf(appid, "ed.set(-text \"%s\")", buf);
+
+	s = protect_string(buf);
+	if(!s) {
+		mtk_cmd(appid,
+		    "status.set(-text \"No room to expand quotes\")");
+		return;
+	}
+	mtk_cmdf(appid, "ed.set(-text \"%s\")", s);
+	free(s);
+
 	mtk_cmd(appid, "edf.expose(0, 0)");
 }
 
 static void save_current(void)
 {
-	char buf[32768];
+	char buf[MAX_PATCH_SIZE+1];
 	FILE *fd;
 
 	fd = fopen(current_filename, "w");
 	if(!fd) {
-		mtk_cmdf(appid, "status.set(-text \"Unable to open file (%s)\")", strerror(errno));
+		mtk_cmdf(appid,
+		    "status.set(-text \"Unable to open file (%s)\")",
+		    strerror(errno));
 		return;
 	}
-	mtk_req(appid, buf, 32768, "ed.text");
+	mtk_req(appid, buf, sizeof(buf), "ed.text");
 	if(fwrite(buf, 1, strlen(buf), fd) < 0) {
-		mtk_cmdf(appid, "status.set(-text \"Unable to write file (%s)\")", strerror(errno));
+		mtk_cmdf(appid,
+		    "status.set(-text \"Unable to write file (%s)\")",
+		    strerror(errno));
 		fclose(fd);
 		return;
 	}
 	if(fclose(fd) != 0)
-		mtk_cmdf(appid, "status.set(-text \"Unable to close file (%s)\")", strerror(errno));
+		mtk_cmdf(appid,
+		    "status.set(-text \"Unable to close file (%s)\")",
+		    strerror(errno));
 }
 
 static void saveas_callback(mtk_event *e, void *arg)
@@ -134,7 +180,8 @@ static void save_callback(mtk_event *e, void *arg)
 
 static void saveasok_callback(void *arg)
 {
-	get_filedialog_selection(filesave_dlg, current_filename, sizeof(current_filename));
+	get_filedialog_selection(filesave_dlg,
+	    current_filename, sizeof(current_filename));
 	modified = 0;
 	update_wintitle();
 	save_current();
@@ -142,16 +189,18 @@ static void saveasok_callback(void *arg)
 
 static void rmc(const char *m)
 {
+	m = protect_string(m);
 	mtk_cmdf(appid, "status.set(-text \"%s\")", m);
+	free((void *) m);
 }
 
 static void run_callback(mtk_event *e, void *arg)
 {
 	struct patch *p;
-	char code[32768];
+	char code[MAX_PATCH_SIZE+1];
 
 	mtk_cmd(appid, "status.set(-text \"Ready.\")");
-	mtk_req(appid, code, 32768, "ed.text");
+	mtk_req(appid, code, sizeof(code), "ed.text");
 	p = patch_compile_filename(current_filename, code, rmc);
 	if(p == NULL)
 		return;
@@ -213,8 +262,10 @@ void init_patcheditor(void)
 		"w = new Window(-content g -title \"untitled\" -workw 400 -workh 300)",
 		0);
 
-	fileopen_dlg = create_filedialog("Open patch", 0, "fnp", openok_callback, NULL, NULL, NULL);
-	filesave_dlg = create_filedialog("Save patch", 1, "fnp", saveasok_callback, NULL, NULL, NULL);
+	fileopen_dlg = create_filedialog("Open patch", 0, "fnp",
+	    openok_callback, NULL, NULL, NULL);
+	filesave_dlg = create_filedialog("Save patch", 1, "fnp",
+	    saveasok_callback, NULL, NULL, NULL);
 
 	mtk_bind(appid, "b_new", "commit", new_callback, NULL);
 	mtk_bind(appid, "b_open", "commit", openbtn_callback, NULL);
