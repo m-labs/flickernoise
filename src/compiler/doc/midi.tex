@@ -10,6 +10,9 @@
 \newenvironment{expose}{\vskip3mm\qquad\begin{raggedright}}{%
 \end{raggedright}\vskip3mm}
 
+\widowpenalty=5000
+\clubpenalty=300
+
 \input floats.inc
 
 \begin{document}
@@ -67,15 +70,15 @@ per_frame:
 	sensitivity = sensitivity*0.99;
 \end{listing}
 
-In lines 1 through 6 we describe the controls the MIDI device called
+In lines 1 through 7 we describe the controls the MIDI device called
 ``Gizmo'' provides. In this case, we have one fader, one potentiometer,
 two buttons, and one switch. We assign them names that represent their
 role: {\tt main}
 for the principal fader, {\tt aux} for the potentiometer, and so on.
 
-The numbers are the respective MIDI controller numbers the device uses.
-They can be found with the MIDI monitor function of the ``MIDI settings''
-dialog in Flickernoise.
+The arguments 102, 103, $\ldots$, are the numbers of the MIDI controllers.
+They depend on the device and can be found with the MIDI monitor function
+of the ``MIDI settings'' dialog in Flickernoise.
 
 In line 9, we bind the {\tt main} control to a variable. This variable
 receives the value 0 if the fader is at its minimum and 1 at its maximum.
@@ -206,8 +209,9 @@ is omitted, the element will match any channel.
 {\em control\_number} is a number from 0 to 127 the MIDI device uses
 to identify the control element.
 
-This is the example from the quick start section with channel numbers
-added:
+Below is the example from the quick start section with channel numbers
+added. We will use the {\tt aux} element as the basis for further
+examples.
 
 \begin{listing}{1}
 midi "Gizmo" {
@@ -312,12 +316,13 @@ $\nicefrac{28}{127}=0.220$, is stored in the location of the variable
 \subsection{Writing to control variables}
 
 A patch can overwrite the values of control variables. In the case of
-per-frame variables, they retain their modified content across
+user-defined per-frame variables, they retain their modified content across
 frames until a new event arrives. The new event will always overwrite
 the previous value of the variable without regard for any changes that
 may have been made.
 
-Changes to per-vertex variables are lost at the end of the program.
+Changes to per-vertex variables are lost at the end of the program
+and so are changes to per-frame variables that are not user-defined.
 
 It is sometimes desirable to make a control change a variable relative
 to a value set by the patch. The following example illustrates how
@@ -802,8 +807,8 @@ zero:
 
 Like the rotary encoders emulating potentiometers described in section
 \ref{encpot}, the values a device sends for differential encoders may be
-increased if turning rapidly. Instead of the very large values used in
-the examples, one would see a sequence of smaller values as the encoder
-is turned.
+increased if turning rapidly. Furthermore, instead of the very large values
+used in these examples, one would see a sequence of smaller values as the
+encoder is turned.
 
 \end{document}

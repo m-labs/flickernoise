@@ -14,11 +14,14 @@ PICS = arch msg bind stim \
 
 GEN = nocvars.inc
 
-.PHONY:			all xpdf clean
+.PHONY:			all again xpdf clean
 
 all:			midi.pdf
 
 midi.pdf:		midi.tex floats.inc $(PICS:%=%.$(PICEXT)) $(GEN)
+			pdflatex midi
+
+again:			midi.tex floats.inc $(PICS:%=%.$(PICEXT)) $(GEN)
 			pdflatex midi
 
 xpdf:			midi.pdf
