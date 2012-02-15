@@ -79,7 +79,8 @@ int scan(struct scanner *s)
 	s->old_cursor = s->cursor;
 
 	/*!re2c
-		quot = [^"\x00\n\r\t];	/* character in quoted string */
+		quot = [^"\x00\n\r\t\\]|"\\"[^\x00\n\r\t];
+					/* character in quoted string */
 		fnedg = [^ \x00\n\r\t];	/* character at edge of file name */
 		fnins = fnedg|" ";	/* character inside file name */
 
@@ -205,13 +206,18 @@ const char *get_name(struct scanner *s)
 
 const char *get_string(struct scanner *s)
 {
-	char *buf;
+	const unsigned char *p;
+	char *buf, *d;
 	int n;
 
 	n = s->cursor - s->old_cursor;
-	buf = malloc(n-1);
-	memcpy(buf, s->old_cursor+1, n-2);
-	buf[n-2] = 0;
+	buf = d = malloc(n-1);
+	for(p = s->old_cursor+1; p != s->cursor-1; p++) {
+		if(*p == '\\')
+			p++;
+		*d++ = *p;
+	}
+	*d = 0;
 	return buf;
 }
 
