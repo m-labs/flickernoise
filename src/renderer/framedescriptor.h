@@ -84,6 +84,8 @@ struct frame_descriptor {
 	float image_a[IMAGE_COUNT];
 	float image_x[IMAGE_COUNT], image_y[IMAGE_COUNT];
 	float image_zoom[IMAGE_COUNT];
+	int image_index[IMAGE_COUNT];
+
 	struct tmu_vertex *vertices;
 };
 

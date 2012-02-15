@@ -123,10 +123,12 @@ image1_a	pfv_image1_a	-1
 image1_x	pfv_image1_x	-1
 image1_y	pfv_image1_y	-1
 image1_zoom	pfv_image1_zoom	-1
+image1_index	pfv_image1_index -1
 image2_a	pfv_image2_a	-1
 image2_x	pfv_image2_x	-1
 image2_y	pfv_image2_y	-1
 image2_zoom	pfv_image2_zoom	-1
+image2_index	pfv_image2_index -1
 
 #
 # Aliases

@@ -230,10 +230,12 @@ static void set_frd_from_pfv(struct patch *p, struct frame_descriptor *frd)
 	frd->image_x[0] = read_pfv(p, pfv_image1_x);
 	frd->image_y[0] = read_pfv(p, pfv_image1_y);
 	frd->image_zoom[0] = read_pfv(p, pfv_image1_zoom);
+	frd->image_index[0] = read_pfv(p, pfv_image1_index);
 	frd->image_a[1] = read_pfv(p, pfv_image2_a);
 	frd->image_x[1] = read_pfv(p, pfv_image2_x);
 	frd->image_y[1] = read_pfv(p, pfv_image2_y);
 	frd->image_zoom[1] = read_pfv(p, pfv_image2_zoom);
+	frd->image_index[1] = read_pfv(p, pfv_image2_index);
 }
 
 static unsigned int pfpudummy[2] __attribute__((aligned(sizeof(struct tmu_vertex))));
@@ -312,8 +314,12 @@ static rtems_task eval_task(rtems_task_argument argument)
 		/* NB: we do not increment reference count and assume pixbufs
 		 * will be valid until the renderer has fully stopped.
 		 */
-		for(i=0;i<IMAGE_COUNT;i++)
-			frd->images[i] = p->images[i].pixbuf;
+		for(i=0;i<IMAGE_COUNT;i++) {
+			int n = frd->image_index[i];
+
+			frd->images[i] = n >= 0 && n < IMAGE_COUNT ?
+			    p->images[n].pixbuf : NULL;
+		}
 		
 		reinit_all_pfv(p);
 		set_pfv_from_frd(p, frd);

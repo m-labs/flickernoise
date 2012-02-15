@@ -143,10 +143,12 @@ enum {
 	pfv_image1_x,
 	pfv_image1_y,
 	pfv_image1_zoom,
+	pfv_image1_index,
 	pfv_image2_a,
 	pfv_image2_x,
 	pfv_image2_y,
 	pfv_image2_zoom,
+	pfv_image2_index,
 
 	COMP_PFV_COUNT /* must be last */
 };

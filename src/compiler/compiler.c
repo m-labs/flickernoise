@@ -158,9 +158,11 @@ static void load_defaults(struct compiler_sc *sc)
 	sc->p->pfv_initial[pfv_image1_x] = 0.5;
 	sc->p->pfv_initial[pfv_image1_y] = 0.5;
 	sc->p->pfv_initial[pfv_image1_zoom] = 1.0;
+	sc->p->pfv_initial[pfv_image1_index] = 0;
 	sc->p->pfv_initial[pfv_image2_x] = 0.5;
 	sc->p->pfv_initial[pfv_image2_y] = 0.5;
 	sc->p->pfv_initial[pfv_image2_zoom] = 1.0;
+	sc->p->pfv_initial[pfv_image2_index] = 1;
 }
 
 static void set_initial(struct compiler_sc *sc, int pfv, float x)
