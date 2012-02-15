@@ -84,4 +84,13 @@ expect <<EOF
 line 2: image number out of bounds near 'EOF'
 EOF
 
+#------------------------------------------------------------------------------
+
+ptest_fail "image: imagefile2=f<tab>oo" -c <<EOF
+imagefile2=f	oo
+EOF
+expect <<EOF
+line 1: parse error near 'oo'
+EOF
+
 ###############################################################################

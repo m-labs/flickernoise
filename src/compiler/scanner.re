@@ -173,7 +173,7 @@ int scan(struct scanner *s)
 					  return TOK_ASSIGN; }
 		<N>";"			{ return TOK_SEMI; }
 
-		<FNAME2>[^ \x00\n\r\t]|[^ \x00\n\r\t][^\n\x00]*[^ \x00\n\r\t]
+		<FNAME2>[^ \x00\n\r\t]|[^ \x00\n\r\t][^\x00\n\r\t]*[^ \x00\n\r\t]
 					{ return TOK_FNAME; }
 
 		<*>[\x01-\xff]		{ return TOK_ERROR; }
