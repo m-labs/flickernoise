@@ -27,6 +27,14 @@ enum scanner_cond {
 	yycN = 1,
 	yycFNAME1,
 	yycFNAME2,
+	yycFNS1,
+	yycFNS2,
+};
+
+enum fns_state {
+	fns_idle,	/* not near a file name list */
+	fns_latent,	/* after a file name, will drop unless seeing comma */
+	fns_comma,	/* test for comma */
 };
 
 struct scanner {
@@ -35,6 +43,7 @@ struct scanner {
 	unsigned char *old_cursor;
 	unsigned char *cursor;
 	unsigned char *limit;
+	enum fns_state fns_state;
 	int lineno;
 };
 

@@ -88,9 +88,22 @@ EOF
 
 ptest_fail "image: imagefile2=f<tab>oo" -c <<EOF
 imagefile2=f	oo
+sx = 0;
 EOF
 expect <<EOF
-line 1: parse error near 'oo'
+line 2: parse error near 'sx'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "image: imagefile1=<NL> foo" <<EOF
+imagefile1=
+ foo
+sx = 0;
+EOF
+expect <<EOF
+image 1 = "foo"
+sx = 0
 EOF
 
 ###############################################################################

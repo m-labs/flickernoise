@@ -491,8 +491,17 @@ file_list(L) ::= TOK_STRING(N). {
 	L = alloc_file_list(N->label);
 }
 
+file_list(L) ::= TOK_FNAME(N). {
+	L = alloc_file_list(N->fname);
+}
+
 file_list(L) ::= TOK_STRING(N) TOK_COMMA file_list(T). {
 	L = alloc_file_list(N->label);
+	L->next = T;
+}
+
+file_list(L) ::= TOK_FNAME(N) TOK_COMMA file_list(T). {
+	L = alloc_file_list(N->fname);
 	L->next = T;
 }
 

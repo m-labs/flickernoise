@@ -1,0 +1,151 @@
+#!/bin/sh
+. ./Common
+
+# WORK IN PROGRESS
+
+###############################################################################
+
+ptest 'image: imagefiles="hello"' <<EOF
+imagefiles="hello"
+EOF
+expect <<EOF
+image 1 = "hello"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles = "foo", "bar"' <<EOF
+imagefiles = "foo", "bar"
+EOF
+expect <<EOF
+image 1 = "foo"
+image 2 = "bar"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles = "foo", "bar";' <<EOF
+imagefiles = "foo", "bar";
+EOF
+expect <<EOF
+image 1 = "foo"
+image 2 = "bar"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles = "\\"hell\\"o";' <<EOF
+imagefiles = "\\"hell\\"o";
+EOF
+expect <<EOF
+image 1 = ""hell"o"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles=foo' <<EOF
+imagefiles=foo
+sx = 0;
+EOF
+expect <<EOF
+image 1 = "foo"
+sx = 0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles= bar;' <<EOF
+imagefiles = bar;
+sx = 0;
+EOF
+expect <<EOF
+image 1 = "bar"
+sx = 0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles = foo, bar' <<EOF
+imagefiles = foo, bar
+EOF
+expect <<EOF
+image 1 = "foo"
+image 2 = "bar"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles = foo , /*test*/ bar;' <<EOF
+imagefiles = foo , /* test */ bar;
+sx = 0;
+EOF
+expect <<EOF
+image 1 = "foo"
+image 2 = "bar"
+sx = 0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles = foo , // te st<NL> bar;' <<EOF
+imagefiles = foo , // te st
+  bar;
+sx = 0;
+EOF
+expect <<EOF
+image 1 = "foo"
+image 2 = "bar"
+sx = 0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles = foo , /bar;' <<EOF
+imagefiles = foo , /bar;
+sx = 0;
+EOF
+expect <<EOF
+image 1 = "foo"
+image 2 = "/bar"
+sx = 0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles = /, bar;' <<EOF
+imagefiles = /, bar;
+sx = 0;
+EOF
+expect <<EOF
+image 1 = "/"
+image 2 = "bar"
+sx = 0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles = foo, <NL> bar;' <<EOF
+imagefiles = foo,
+    bar;
+sx = 0;
+EOF
+expect <<EOF
+image 1 = "foo"
+image 2 = "bar"
+sx = 0
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image: imagefiles = foo <NL>, bar;' <<EOF
+imagefiles = foo
+    , bar;
+sx = 0;
+EOF
+expect <<EOF
+image 1 = "foo"
+image 2 = "bar"
+sx = 0
+EOF
+
+###############################################################################

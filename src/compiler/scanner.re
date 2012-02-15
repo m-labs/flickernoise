@@ -40,13 +40,15 @@ struct scanner *new_scanner(unsigned char *input)
 	struct scanner *s;
 
 	s = malloc(sizeof(struct scanner));
-	if(s == NULL) return NULL;
+	if(s == NULL)
+		return NULL;
 
 	s->cond = yycN;
 	s->marker = input;
 	s->old_cursor = input;
 	s->cursor = input;
 	s->limit = input + strlen((char *)input);
+	s->fns_state = fns_idle;
 	s->lineno = 1;
 
 	return s;
@@ -67,6 +69,12 @@ static int nls(const unsigned char *s, const unsigned char *end)
 	return n;
 }
 
+static void idle(struct scanner *s)
+{
+	if(s->fns_state == fns_comma)
+		s->fns_state = fns_latent;
+}
+
 /*
  * Regular expression for C-style comments by Stephen Ostermiller, from
  * http://ostermiller.org/findcomment.html
@@ -75,24 +83,46 @@ static int nls(const unsigned char *s, const unsigned char *end)
 int scan(struct scanner *s)
 {
 	std:
-	if(s->cursor == s->limit) return TOK_EOF;
+	if(s->cursor == s->limit)
+		return TOK_EOF;
 	s->old_cursor = s->cursor;
+
+	switch(s->fns_state) {
+	case fns_idle:
+		break;
+	case fns_latent:
+		s->fns_state = fns_comma;
+		break;
+	case fns_comma:
+		s->fns_state = fns_idle;
+		break;
+	default:
+		abort();
+	}
 
 	/*!re2c
 		quot = [^"\x00\n\r\t\\]|"\\"[^\x00\n\r\t];
 					/* character in quoted string */
 		fnedg = [^ \x00\n\r\t];	/* character at edge of file name */
 		fnins = fnedg|" ";	/* character inside file name */
+		fnsedg = [^ \x00\n\r\t",;];
+					/* character at edge of file names */
+		fnsedg1 = [^ \x00\n\r\t",;/];
+					/* work around / * and // */
+		fnsedg2 = [^ \x00\n\r\t",;/*];
+					/* saw /, avoid * and / */
+		fnsins = fnsedg|" ";	/* character inside file names */
 
 		<*>[\x00]		{ abort(); }
 
-		<*>[\x20\r\t]		{ goto std; }
-		<*>"\n"			{ s->lineno++;
-					  YYSETCONDITION(yycN);
+		<*>[\x20\r\t]		{ idle(s);
+					  goto std; }
+		<*>"\n"			{ idle(s);
+					  s->lineno++;
 					  goto std; }
 
-		<N>"//"[^\n\x00]*	{ goto std; }
-		<N>"/*"([^*\x00]|("*"+([^*/\x00])))*"*"+"/"
+		<N,FNS2>"//"[^\n\x00]*	{ goto std; }
+		<N,FNS2>"/*"([^*\x00]|("*"+([^*/\x00])))*"*"+"/"
 					{ s->lineno += nls(s->old_cursor,
 					      s->cursor);
 					  goto std; }
@@ -147,10 +177,15 @@ int scan(struct scanner *s)
 
 		<N>"imagefile"[1-9]	{ YYSETCONDITION(yycFNAME1);
 					  return TOK_IMAGEFILE; }
-		<N>"imagefiles"		{ return TOK_IMAGEFILES; }
+		<N>"imagefiles"		{ YYSETCONDITION(yycFNS1);
+					  return TOK_IMAGEFILES; }
 
 		<N>[a-zA-Z_0-9]+	{ return TOK_IDENT; }
+
 		<N>'"'quot*'"'		{ return TOK_STRING; }
+		<FNS2>'"'quot*'"'	{ s->fns_state = fns_latent;
+					  YYSETCONDITION(yycN);
+					  return TOK_STRING; }
 
 		<N>"+"			{ return TOK_PLUS; }
 		<N>"-"			{ return TOK_MINUS; }
@@ -159,7 +194,6 @@ int scan(struct scanner *s)
 		<N>"%"			{ return TOK_PERCENT; }
 		<N>"("			{ return TOK_LPAREN; }
 		<N>")"			{ return TOK_RPAREN; }
-		<N>","			{ return TOK_COMMA; }
 		<N>"?"			{ return TOK_QUESTION; }
 		<N>":"			{ return TOK_COLON; }
 		<N>"!"			{ return TOK_NOT; }
@@ -174,13 +208,24 @@ int scan(struct scanner *s)
 		<N>"{"			{ return TOK_LBRACE; }
 		<N>"}"			{ return TOK_RBRACE; }
 
-		<N,FNAME1>"="		{ if (YYGETCONDITION() == yycFNAME1)
+		<N>","			{ if(s->fns_state == fns_comma)
+						YYSETCONDITION(yycFNS2);
+					  return TOK_COMMA; }
+
+		<N,FNAME1,FNS1>"="	{ if (YYGETCONDITION() == yycFNAME1)
 						YYSETCONDITION(yycFNAME2);
+					  else if (YYGETCONDITION() == yycFNS1)
+						YYSETCONDITION(yycFNS2);
 					  return TOK_ASSIGN; }
 		<N>";"			{ return TOK_SEMI; }
 
 		<FNAME2>fnedg|fnedg(fnins)*fnedg
-					{ return TOK_FNAME; }
+					{ YYSETCONDITION(yycN);
+					  return TOK_FNAME; }
+		<FNS2>fnsedg|fnsedg1(fnsins)*fnsedg|"/"fnsedg2|"/"fnsedg2(fnsins)*fnsedg
+					{ YYSETCONDITION(yycN);
+					  s->fns_state = fns_latent;
+					  return TOK_FNAME; }
 
 		<*>[\x01-\xff]		{ return TOK_ERROR; }
 	*/
