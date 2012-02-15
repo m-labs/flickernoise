@@ -79,6 +79,7 @@ int scan(struct scanner *s)
 	s->old_cursor = s->cursor;
 
 	/*!re2c
+		quot = [^"\x00\n\r\t];	/* character in quoted string */
 		fnedg = [^ \x00\n\r\t];	/* character at edge of file name */
 		fnins = fnedg|" ";	/* character inside file name */
 
@@ -148,7 +149,7 @@ int scan(struct scanner *s)
 		<N>"imagefiles"		{ return TOK_IMAGEFILES; }
 
 		<N>[a-zA-Z_0-9]+	{ return TOK_IDENT; }
-		<N>'"'[^"\x00\n\r]*'"'	{ return TOK_STRING; }
+		<N>'"'quot*'"'		{ return TOK_STRING; }
 
 		<N>"+"			{ return TOK_PLUS; }
 		<N>"-"			{ return TOK_MINUS; }
