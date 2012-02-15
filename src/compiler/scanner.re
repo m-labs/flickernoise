@@ -79,6 +79,9 @@ int scan(struct scanner *s)
 	s->old_cursor = s->cursor;
 
 	/*!re2c
+		fnedg = [^ \x00\n\r\t];	/* character at edge of file name */
+		fnins = fnedg|" ";	/* character inside file name */
+
 		<*>[\x00]		{ abort(); }
 
 		<*>[\x20\r\t]		{ goto std; }
@@ -173,7 +176,7 @@ int scan(struct scanner *s)
 					  return TOK_ASSIGN; }
 		<N>";"			{ return TOK_SEMI; }
 
-		<FNAME2>[^ \x00\n\r\t]|[^ \x00\n\r\t][^\x00\n\r\t]*[^ \x00\n\r\t]
+		<FNAME2>fnedg|fnedg(fnins)*fnedg
 					{ return TOK_FNAME; }
 
 		<*>[\x01-\xff]		{ return TOK_ERROR; }
