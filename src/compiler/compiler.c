@@ -411,11 +411,18 @@ static const char *assign_image_name(struct parser_comm *comm,
 	struct compiler_sc *sc = comm->u.sc;
 	char *totalname;
 	struct image *img;
-#endif
 
-	if(number > IMAGE_COUNT)
-		return strdup("image number out of bounds");
-#ifndef STANDALONE
+	if(number > sc->p->n_images) {
+		int i;
+
+		sc->p->images = realloc(sc->p->images,
+		    number*sizeof(struct image));
+		for(i = sc->p->n_images; i != number; i++) {
+			sc->p->images[i].pixbuf = NULL;
+			sc->p->images[i].filename = NULL;
+		}
+		sc->p->n_images = number;
+	}
 	number--;
 	
 	if(*name == '/')
@@ -472,7 +479,6 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 {
 	struct compiler_sc *sc;
 	struct patch *p;
-	int i;
 
 	sc = malloc(sizeof(struct compiler_sc));
 	if(sc == NULL) {
@@ -485,10 +491,8 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 		free(sc);
 		return NULL;
 	}
-	for(i=0;i<IMAGE_COUNT;i++) {
-		sc->p->images[i].pixbuf = NULL;
-		sc->p->images[i].filename = NULL;
-	}
+	sc->p->images = NULL;
+	sc->p->n_images = 0;
 	sc->p->ref = 1;
 	sc->p->require = 0;
 	sc->p->original = NULL;
@@ -561,6 +565,7 @@ struct patch *patch_copy(struct patch *p)
 {
 	struct patch *new_patch;
 	struct image *img;
+	int i;
 
 	new_patch = malloc(sizeof(struct patch));
 	assert(new_patch != NULL);
@@ -568,11 +573,15 @@ struct patch *patch_copy(struct patch *p)
 	new_patch->ref = 1;
 	new_patch->original = p;
 	new_patch->next = NULL;
-	for(img = new_patch->images;
-	    img != new_patch->images+IMAGE_COUNT; img++) {
-		if(img->filename)
-			img->filename = strdup(img->filename);
-		pixbuf_inc_ref(img->pixbuf);
+	if(p->images) {
+		new_patch->images = malloc(p->n_images*sizeof(struct image));
+		for(i = 0; i != p->n_images; i++) {
+			img = new_patch->images+i;
+			*img = p->images[i];
+			if(img->filename)
+				img->filename = strdup(img->filename);
+			pixbuf_inc_ref(img->pixbuf);
+		}
 	}
 	new_patch->stim = stim_get(p->stim);
 	if(p->stim)
@@ -587,10 +596,11 @@ void patch_free(struct patch *p)
 	assert(p->ref);
 	if(--p->ref);
 		return;
-	for(img = p->images; img != p->images+IMAGE_COUNT; img++) {
+	for(img = p->images; img != p->images+p->n_images; img++) {
 		pixbuf_dec_ref(img->pixbuf);
 		free((void *) img->filename);
 	}
+	free(p->images);
 	stim_put(p->stim);
 	free(p);
 }
@@ -600,7 +610,7 @@ struct patch *patch_refresh(struct patch *p)
 	struct image *img;
 	struct pixbuf *pixbuf;
 
-	for(img = p->images; img != p->images+IMAGE_COUNT; img++) {
+	for(img = p->images; img != p->images+p->n_images; img++) {
 		if(!img->pixbuf)
 			continue;
 		pixbuf = pixbuf_update(img->pixbuf);

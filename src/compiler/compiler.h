@@ -230,7 +230,8 @@ struct image {
 
 struct patch {
 	/* per-frame */
-	struct image images[IMAGE_COUNT];	/* images used in this patch */
+	struct image *images;	/* images used in this patch */
+	int n_images;		/* number of images */
 	float pfv_initial[COMP_PFV_COUNT];	/* patch initial conditions */
 	int pfv_allocation[COMP_PFV_COUNT];	/* where per-frame variables
 						   are mapped in PFPU regf,

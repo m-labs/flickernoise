@@ -317,7 +317,7 @@ static rtems_task eval_task(rtems_task_argument argument)
 		for(i=0;i<IMAGE_COUNT;i++) {
 			int n = frd->image_index[i];
 
-			frd->images[i] = n >= 0 && n < IMAGE_COUNT ?
+			frd->images[i] = n >= 0 && n < p->n_images ?
 			    p->images[n].pixbuf : NULL;
 		}
 		
