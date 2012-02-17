@@ -1,7 +1,11 @@
-imagefiles=pacman.jpg, ghost.jpg, pleiades.jpg
-decay=0.6
-image1_a=0.6
-image2_a=0.6
+imagefiles =
+   pacman:	pacman.jpg,
+   ghost:	ghost.jpg,
+   pleiades:	pleiades.jpg;
+
+decay = 0.6;
+image1_a = 0.6;
+image2_a = 0.6;
 
 midi "Faderfox LV3" {
 	fad1 = fader(1, 7);
@@ -17,12 +21,12 @@ midi "Faderfox LV3" {
 	joy2y = pot(10, 2);
 };
 
-fad1 = range(fad1);
-fad8 = range(fad8);
+size_pac = range(fad1);
+size_ghost = range(fad8);
 
-green1 = button(green1);
-green2 = button(green2);
-green8 = button(green8);
+pac_ghost = button(green1);
+pac_stars = button(green2);
+ghost_pac = button(green8);
 
 joy1x = range(joy1x);
 joy1y = range(joy1y);
@@ -30,10 +34,10 @@ joy2x = range(joy2x);
 joy2y = range(joy2y);
 
 per_frame:
-	image1_zoom = fad1*5+0.1;
-	image2_zoom = fad8*6+0.1;
-	image1_index = green1+2*green2;
-	image2_index = !green8;
+	image1_zoom = size_pac*5+0.1;
+	image2_zoom = size_ghost*6+0.1;
+	image1_index = pac_ghost ? ghost : pac_stars ? pleiades : pacman;
+	image2_index = ghost_pac ? pacman : ghost;
 
 	sx = 1.06;
 	sy = 1.06;
