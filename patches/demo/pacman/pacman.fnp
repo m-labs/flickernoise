@@ -1,16 +1,47 @@
-imagefile1=pacman.jpg
-imagefile2=ghost.jpg
+imagefiles=pacman.jpg, ghost.jpg, pleiades.jpg
 decay=0.6
 image1_a=0.6
 image2_a=0.6
-per_frame=image1_zoom=midi5*5+0.1
-per_frame=image2_zoom=midi6*6+0.1
-sx=1.06
-sy=1.06
-per_frame=cx=0.5+0.1*sin(1.82*time)
-per_frame=cy=0.5+0.1*sin(0.97*time)
-per_frame=rot=0.05*sin(0.4*time)
-per_frame=image1_x=midi1
-per_frame=image1_y=1-midi2
-per_frame=image2_x=midi3
-per_frame=image2_y=1-midi4
+
+midi "Faderfox LV3" {
+	fad1 = fader(1, 7);
+	fad8 = fader(8, 7);
+
+	green1 = button(1, 16);
+	green2 = button(2, 16);
+	green8 = button(8, 16);
+
+	joy1x = pot(9, 1);
+	joy1y = pot(9, 2);
+	joy2x = pot(10, 1);
+	joy2y = pot(10, 2);
+};
+
+fad1 = range(fad1);
+fad8 = range(fad8);
+
+green1 = button(green1);
+green2 = button(green2);
+green8 = button(green8);
+
+joy1x = range(joy1x);
+joy1y = range(joy1y);
+joy2x = range(joy2x);
+joy2y = range(joy2y);
+
+per_frame:
+	image1_zoom = fad1*5+0.1;
+	image2_zoom = fad8*6+0.1;
+	image1_index = green1+2*green2;
+	image2_index = !green8;
+
+	sx = 1.06;
+	sy = 1.06;
+	cx = 0.5+0.1*sin(1.82*time);
+	cy = 0.5+0.1*sin(0.97*time);
+	rot = 0.05*sin(0.4*time);
+
+	image1_x = joy1x;
+	image1_y = 1-joy1y;
+	image2_x = joy2x; 
+	image2_y = 1-joy2y;
