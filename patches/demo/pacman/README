@@ -1,16 +1,27 @@
-The following invocation of midi2osc ...
+The "pacman" patch illustrates the use of images with MIDI controls.
+It also demonstrates the use of image tags.
 
-./midi2osc c8.1=c0.0 c8.2=c0.1 c9.1=c0.2 c9.2=c0.3 c0.7=c0.4 c7.7=c0.5 m1
+To install the patch, run "make" (needs netpbm and ImageMagick).
 
-... assigns the Faderfox LV3 controls to the M1 default MIDI
-configuration (0 through 7) with pacman.fnp as follows:
+Then upload pacman.fnp and the images with ftp:
 
-Left joystick: pacman position
-Right joystick: ghost position
-Fader 1 (leftmost): pacman size
-Fader 2 (rightmost): ghost size
+ftp milkymist
+ftp> put pacman.fnp
+ftp> put pacman.jpg
+ftp> put ghost.jpg
+ftp> put ../../pleiades.jpg pleiades.jpg
 
-The result can be seen here:
+The patch comes with MIDI bindings for the Faderfox LV3:
+
+- left joystick: pacman position
+- right joystick: ghost position
+- fader 1 (leftmost): pacman size
+- fader 2 (rightmost): ghost size
+- green button 1: change pacman to ghost image
+- green button 2: change pacman to Pleiades image
+- green button 8: change ghost to pacman image
+
+The result of an earlier version can be seen here:
 http://www.youtube.com/watch?v=JuSjp_zKarI
 
 The background music in the video is "Over the Edge / Stephanie RMX"
