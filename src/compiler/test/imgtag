@@ -1,0 +1,113 @@
+#!/bin/sh
+. ./Common
+
+# WORK IN PROGRESS
+
+###############################################################################
+
+ptest 'image tags: imagefiles=foo:bar' <<EOF
+imagefiles=foo:bar
+EOF
+expect <<EOF
+image 1 = "bar"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image tags: imagefiles=foo: bar' <<EOF
+imagefiles=foo: bar
+EOF
+expect <<EOF
+image 1 = "bar"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image tags: imagefiles=foo:<NL> bar' <<EOF
+imagefiles=foo:
+  bar
+EOF
+expect <<EOF
+image 1 = "bar"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image tags: imagefiles=foo-:bar' <<EOF
+imagefiles=foo-:bar
+EOF
+expect <<EOF
+image 1 = "foo-:bar"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image tags: imagefiles=0foo:bar' <<EOF
+imagefiles=0foo:bar
+EOF
+expect <<EOF
+image 1 = "0foo:bar"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image tags: imagefiles=:bar' <<EOF
+imagefiles=:bar
+EOF
+expect <<EOF
+image 1 = ":bar"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail 'image tags: imagefiles=a:,b:bar' <<EOF
+imagefiles=a:,b:bar
+EOF
+expect <<EOF
+line 1: scan error near ','
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail 'image tags: imagefiles=a:;' <<EOF
+imagefiles=a:;
+EOF
+expect <<EOF
+line 1: scan error near ';'
+EOF
+
+#------------------------------------------------------------------------------
+
+#
+# We could support this syntax, e.g.,
+# 1) scanning it as tag "a" and name "b:bar", or
+# 2) allowing mutiple tags per file
+# but either case seems a bit far-fetched.
+#
+
+ptest_fail 'image tags: imagefiles=a:b:bar' <<EOF
+imagefiles=a:b:bar
+EOF
+expect <<EOF
+line 1: parse error near 'b'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image tags: imagefiles=foo:"bar"' <<EOF
+imagefiles=foo:"bar"
+EOF
+expect <<EOF
+image 1 = "bar"
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image tags: imagefiles="bar:x"' <<EOF
+imagefiles="bar:x"
+EOF
+expect <<EOF
+image 1 = "bar:x"
+EOF
+
+###############################################################################
