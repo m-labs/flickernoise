@@ -224,7 +224,14 @@ int scan(struct scanner *s)
 		<FNAME2>fnedg|fnedg(fnins)*fnedg
 					{ YYSETCONDITION(yycN);
 					  return TOK_FNAME; }
-		<FNS2>fnsedg|fnsedg1(fnsins)*fnsedg|"/"fnsedg2|"/"fnsedg2(fnsins)*fnsedg
+		<FNS2>id":"		{ return TOK_TAG; }
+		<FNS2>fnsedg|
+		    id|
+		    id(fnsedg\":")|
+		    id(fnsins\[a-zA-Z_0-9:])fnsins*fnsedg|
+		    (fnsedg1\[a-zA-Z_])(fnsins)*fnsedg|
+		    "/"fnsedg2|
+		    "/"fnsedg2(fnsins)*fnsedg
 					{ YYSETCONDITION(yycN);
 					  s->fns_state = fns_latent;
 					  return TOK_FNAME; }
@@ -237,6 +244,12 @@ struct sym *get_symbol(struct scanner *s)
 {
 	return unique_n((const char *) s->old_cursor,
 	    s->cursor - s->old_cursor);
+}
+
+struct sym *get_tag(struct scanner *s)
+{
+	return unique_n((const char *) s->old_cursor,
+	    s->cursor - s->old_cursor-1);
 }
 
 const char *get_name(struct scanner *s)

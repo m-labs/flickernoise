@@ -57,6 +57,8 @@ int scan(struct scanner *s);
  */
 struct sym *get_symbol(struct scanner *s);
 
+struct sym *get_tag(struct scanner *s);
+
 /* malloc'ed non-unique string */
 const char *get_name(struct scanner *s);
 

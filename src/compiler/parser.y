@@ -185,10 +185,11 @@ static struct id *symbolify(struct id *id)
 
 struct file_list {
 	const char *name;
+	struct sym *tag;
 	struct file_list *next;
 };
 
-static struct file_list *alloc_file_list(const char *name)
+static struct file_list *alloc_file_list(const char *name, const struct id *id)
 {
 	struct file_list *fn;
 
@@ -196,6 +197,7 @@ static struct file_list *alloc_file_list(const char *name)
 	if(!fn)
 		return NULL;
 	fn->name = name;
+	fn->tag = id ? id->sym : NULL;
 	fn->next = NULL;
 	return fn;
 }
@@ -252,9 +254,11 @@ static void free_file_list(struct file_list *l)
 %type midi_fn_type {enum stim_midi_fn_type}
 %type midi_addr {struct { int chan, ctrl; }}
 %type file_list {struct file_list *}
+%type opt_tag {struct id *}
 
 %destructor opt_arg { parse_free($$); }
 %destructor file_list { free_file_list($$); }
+%destructor opt_tag { free($$); }
 
 %syntax_error {
 	FAIL("parse error");
@@ -487,23 +491,30 @@ assignment ::= TOK_IMAGEFILES TOK_ASSIGN file_list(L) opt_semi. {
 	free_file_list(L);
 }
 
-file_list(L) ::= TOK_STRING(N). {
-	L = alloc_file_list(N->label);
+file_list(L) ::= opt_tag(I) TOK_STRING(N). {
+	L = alloc_file_list(N->label, I);
+	free(I);
 }
 
-file_list(L) ::= TOK_FNAME(N). {
-	L = alloc_file_list(N->fname);
+file_list(L) ::= opt_tag(I) TOK_FNAME(N). {
+	L = alloc_file_list(N->fname, I);
+	free(I);
 }
 
-file_list(L) ::= TOK_STRING(N) TOK_COMMA file_list(T). {
-	L = alloc_file_list(N->label);
+file_list(L) ::= opt_tag(I) TOK_STRING(N) TOK_COMMA file_list(T). {
+	L = alloc_file_list(N->label, I);
 	L->next = T;
+	free(I);
 }
 
-file_list(L) ::= TOK_FNAME(N) TOK_COMMA file_list(T). {
-	L = alloc_file_list(N->fname);
+file_list(L) ::= opt_tag(I) TOK_FNAME(N) TOK_COMMA file_list(T). {
+	L = alloc_file_list(N->fname, I);
 	L->next = T;
+	free(I);
 }
+
+opt_tag(I) ::= .		{ I = NULL; }
+opt_tag(I) ::= TOK_TAG(T).	{ I = T; }
 
 
 /* ----- Old-style sections ------------------------------------------------ */
