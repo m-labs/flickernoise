@@ -260,7 +260,10 @@ static void parse_only(const char *pgm)
 				printf("\n");
 				user = 1;
 			}
-			printf("%s\n", sym->fpvm_sym.name);
+			if (sym->flags & SF_CONST)
+				printf("%s = %g\n", sym->fpvm_sym.name, sym->f);
+			else
+				printf("%s\n", sym->fpvm_sym.name);
 		}
 	}
 	symtab_free();
