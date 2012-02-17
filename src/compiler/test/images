@@ -34,11 +34,10 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail 'image: imagefiles = "foo", "bar", "bang"' -c <<EOF
+ptest 'image: imagefiles = "foo", "bar", "bang"' -c -q <<EOF
 imagefiles = "foo", "bar", "bang"
 EOF
 expect <<EOF
-line 2: image number out of bounds near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
@@ -84,11 +83,10 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail 'image: imagefiles = foo, bar, bang' -c <<EOF
+ptest 'image: imagefiles = foo, bar, bang' -c -q <<EOF
 imagefiles = foo, bar, bang
 EOF
 expect <<EOF
-line 2: image number out of bounds near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------

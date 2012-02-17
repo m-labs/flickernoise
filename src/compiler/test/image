@@ -77,11 +77,10 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest_fail "image: imagefile3=foo" -c <<EOF
+ptest "image: imagefile3=foo" -c -q <<EOF
 imagefile3=foo
 EOF
 expect <<EOF
-line 2: image number out of bounds near 'EOF'
 EOF
 
 #------------------------------------------------------------------------------
