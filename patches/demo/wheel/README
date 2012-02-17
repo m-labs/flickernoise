@@ -1,0 +1,36 @@
+The "wheel" patch illustrates the use image sequences to create
+animations.
+
+To install the patch, run the script "gen" (needs transfig):
+
+./gen
+
+Then upload wheel.fnp and the PNGs with ftp:
+
+ftp milkymist
+ftp> prompt
+ftp> put wheel.fnp
+ftp> mput w*.png
+
+The patch comes with MIDI bindings for the Faderfox LV3:
+
+- the left half of the controller is for image channel 1, the
+  right half is for image channel 2. They're identical except
+  that the default positions of the images differ.
+
+- faders 1 and 2 sets the image size and alpha channel
+
+- faders 3 and 4 set the sensitivity to bass and treble
+
+- encoder 1 adjusts the frame rate. The rate can be negative,
+  resulting in counterclockwise rotation (with the faux motion
+  blur looking a little odd).
+
+- pushing encoder 1 sets the speed to zero and holds it at zero.
+  The frame number can be changed by turning the encoder. Pushing
+  encoder 1 releases the speed.
+
+- blue button 1 sets the speed to one. Blue button 2 reverses the
+  speed.
+
+- FX1 enables setting the image position with the joystick.

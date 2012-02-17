@@ -1,0 +1,118 @@
+/*
+ * wheel.fnp - Demonstrate moving pictures
+ */
+
+imagefiles=w01.png, w02.png, w03.png, w04.png,
+    w05.png, w06.png, w07.png, w08.png, w09.png,
+    w10.png, w11.png, w12.png, w13.png, w14.png,
+    w15.png, w16.png, w17.png, w18.png, w19.png,
+    w20.png, w21.png, w22.png, w23.png, w24.png;
+
+decay = 0;
+
+midi "Faderfox LV3" {
+	fad1 = fader(1, 7);
+	fad2 = fader(2, 7);
+	fad3 = fader(3, 7);
+	fad4 = fader(4, 7);
+	fad5 = fader(5, 7);
+	fad6 = fader(6, 7);
+	fad7 = fader(7, 7);
+	fad8 = fader(8, 7);
+
+	enc1 = differential(24);
+	enc2 = differential(25);
+	enc3 = differential(26);
+	enc4 = differential(27);
+
+	enc1_push = button(28);
+	enc2_push = button(29);
+	enc3_push = button(30);
+	enc4_push = button(31);
+
+	green1 = button(1, 16);
+	green2 = button(2, 16);
+	green3 = button(3, 16);
+	green4 = button(4, 16);
+	green5 = button(5, 16);
+	green6 = button(6, 16);
+	green7 = button(7, 16);
+	green8 = button(8, 16);
+
+	blue1 = button(1, 17);
+	blue2 = button(2, 17);
+	blue3 = button(3, 17);
+	blue4 = button(4, 17);
+	blue5 = button(5, 17);
+	blue6 = button(6, 17);
+	blue7 = button(7, 17);
+	blue8 = button(8, 17);
+
+	fx1 = switch(9, 4);
+	joy1x = pot(9, 1);
+	joy1y = pot(9, 2);
+
+	fx2 = switch(10, 4);
+	joy2x = pot(10, 1);
+	joy2y = pot(10, 2);
+};
+
+size1 = range(fad1);		/* image size */
+alpha1 = range(fad2);		/* image alpha */
+bass1 = range(fad3);		/* sensitivity to bass */
+treb1 = range(fad4);		/* sensitivity to treble */
+size2 = range(fad5);
+alpha2 = range(fad6);
+bass2 = range(fad7);
+treb2 = range(fad8);
+
+speed1 = unbounded(enc1);	/* speed of rotation, relative to off1 */
+speed2 = unbounded(enc3);
+
+reset1 = unbounded(enc1_push);	/* reset speed (and adjust position) */
+reset2 = unbounded(enc3_push);
+
+start1 = button(blue1);		/* set speed to 1 step/frame = 1 rpm */
+rev1 = button(blue2);		/* reverse rotation */
+start2 = button(blue5);
+rev2 = button(blue6);
+
+fx1 = switch(fx1);		/* enable joystick */
+joy1x = range(joy1x);		/* X position of image */
+joy1y = range(joy1y);		/* Y position */
+fx2 = switch(fx2);
+joy2x = range(joy2x);
+joy2y = range(joy2y);
+
+per_frame:
+	scale = 4;
+
+	image1_zoom = size1*size1*7+0.1+20*sin(5*bass1*bass)+10*sin(treb1*treb);
+	image2_zoom = size2*size2*7+0.1+20*sin(5*bass2*bass)+10*sin(treb2*treb);
+	image1_a = alpha1;
+	image2_a = alpha2;
+
+	f1 = f1+(speed1-off1)*scale;
+	f1 = f1 < 0 ? f1+24 : f1;
+	f1 = f1 >= 24 ? f1-24 : f1;
+	off1 = reset1 ? speed1 : start1 ? speed1-1/scale : off1;
+	off1 = rev1 ? 2*speed1-off1 : off1;
+
+	f2 = f2+(speed2-off2)*scale;
+	f2 = f2 < 0 ? f2+24 : f2;
+	f2 = f2 >= 24 ? f2-24 : f2;
+	off2 = reset2 ? speed2 : start2 ? speed2-1/scale : off2;
+	off2 = rev2 ? 2*speed2-off2 : off2;
+
+	image1_index = f1;
+	image2_index = f2;
+
+	image1_x = fx1 ? joy1x : 0.3;
+	image1_y = fx1 ? 1-joy1y : 0.5;
+	image2_x = fx2 ? joy2x : 0.7;
+	image2_y = fx2 ? 1-joy2y : 0.5;
+
+	start1 = 0;
+	start2 = 0;
+	rev1 = 0;
+	rev2 = 0;

@@ -1,0 +1,11 @@
+#!/bin/sh -x
+for n in 01 02 03 04 05 06 07 08 09 \
+      10 11 12 13 14 15 16 17 18 19 \
+      20 21 22 23 24; do
+	./figfilt `echo $n | sed s/^0//` <wheel.fig |
+	    fig2dev -L png -S 4 -m 0.311 -g black >w$n.png
+	#
+	# When making changes to the image, adjust the -m parameter such
+	# that the resulting size of the PNG is 216x216 pixels.
+	#
+done

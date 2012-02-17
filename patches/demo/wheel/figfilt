@@ -1,0 +1,23 @@
+#!/usr/bin/perl
+$skip = 0;
+$skipping = 0;
+while (<STDIN>) {
+	if (/^#/ && $. != 1) {
+		$skip = 1;
+		for $key (@ARGV) {
+			if ($_ =~ /^# $key$/) {
+				$skip = 0;
+				last;
+			}
+		}
+		print unless $skip;
+		next;
+	}
+	if (/^\s/) {
+		print unless $skipping;
+		next;
+	}
+	print unless $skip;
+	$skipping = $skip;
+	$skip = 0;
+}
