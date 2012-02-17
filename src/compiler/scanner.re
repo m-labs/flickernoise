@@ -101,6 +101,8 @@ int scan(struct scanner *s)
 	}
 
 	/*!re2c
+		id = [a-zA-Z_][a-zA-Z_0-9]*;
+					/* identifier */
 		quot = [^"\x00\n\r\t\\]|"\\"[^\x00\n\r\t];
 					/* character in quoted string */
 		fnedg = [^ \x00\n\r\t];	/* character at edge of file name */
@@ -180,7 +182,7 @@ int scan(struct scanner *s)
 		<N>"imagefiles"		{ YYSETCONDITION(yycFNS1);
 					  return TOK_IMAGEFILES; }
 
-		<N>[a-zA-Z_0-9]+	{ return TOK_IDENT; }
+		<N>id			{ return TOK_IDENT; }
 
 		<N>'"'quot*'"'		{ return TOK_STRING; }
 		<FNS2>'"'quot*'"'	{ s->fns_state = fns_latent;
