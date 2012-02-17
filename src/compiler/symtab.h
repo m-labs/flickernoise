@@ -18,6 +18,7 @@
 #define	SF_SYSTEM	(1 << 0)	/* variable is predefined */
 #define	SF_ASSIGNED	(1 << 1)	/* variable has been assigned to */
 #define	SF_LIVE		(1 << 2)	/* variable is written to by FN */
+#define	SF_CONST	(1 << 3)	/* "variable" is a constant */
 #define	SF_FIXED	(SF_SYSTEM | SF_LIVE)
 
 struct sym_stim {
@@ -29,6 +30,7 @@ struct sym {
 	struct fpvm_sym fpvm_sym;
 	int pfv_idx, pvv_idx;	/* index; -1 if not a variable known to FN */
 	struct sym_stim *stim;	/* NULL if not a control variable */
+	float f;		/* undefined unless SF_CONST */
 	int flags;
 };
 

@@ -318,6 +318,10 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 	 * - must be in the initial section
 	 * - must not assign to a per-frame system variable
 	 */
+	if(I->sym->flags & SF_CONST) {
+		FAIL("\"%s\" is a constant", I->sym->fpvm_sym.name);
+		return;
+	}
 	if(state->comm->assign_per_frame &&
 	    state->assign != state->comm->assign_per_frame &&
 	    state->assign != state->comm->assign_per_vertex &&
@@ -416,6 +420,12 @@ assignment ::= ident(I) TOK_ASSIGN midi_fn_type(T) TOK_LPAREN ident(D)
 	struct stimuli *stim = compiler_get_stimulus(state->comm->u.sc);
 	struct sym_stim *ref;
 
+	if(I->sym->flags & SF_CONST) {
+		FAIL("\"%s\" is a constant", I->sym->fpvm_sym.name);
+		free(I);
+		free(D);
+		return;
+	}
 	free(I);
 	if(sym->flags & SF_LIVE) {
 		FAIL("\"%s\" cannot be used as control variable",
@@ -485,6 +495,15 @@ assignment ::= TOK_IMAGEFILES TOK_ASSIGN file_list(L) opt_semi. {
 			FAIL(msg);
 			free((void *) msg);
 			return;
+		}
+		if(p->tag) {
+			if(p->tag->flags & (SF_ASSIGNED | SF_SYSTEM)) {
+				FAIL("tag \"%s\" is already in use",
+				    p->tag->fpvm_sym.name);
+				return;
+			}
+			p->tag->flags |= SF_ASSIGNED | SF_CONST;
+			p->tag->f = i;
 		}
 		i++;
 	}
@@ -756,7 +775,10 @@ primary_expr(N) ::= ident(I). {
 	    !(I->sym->flags & (SF_SYSTEM | SF_ASSIGNED)))
 		warn(state, "reading undefined variable %s",
 		    I->sym->fpvm_sym.name);
-	N = node(I->token, I->sym, NULL, NULL, NULL);
+	if(I->sym->flags & SF_CONST)
+		N = constant(I->sym->f);
+	else
+		N = node(I->token, I->sym, NULL, NULL, NULL);
 	free(I);
 }
 

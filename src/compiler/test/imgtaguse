@@ -1,0 +1,113 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest 'image tags: x,bar:y -> bar = 1' -s <<EOF
+imagefiles=x,bar:y
+EOF
+sedit "/=/p;d"
+expect <<EOF
+image 1 = "x"
+image 2 = "y"
+bar = 1
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest 'image tags: use tag in equation' <<EOF
+imagefiles=x,bar:y
+
+per_frame:
+	foo = bar;
+EOF
+expect <<EOF
+image 1 = "x"
+image 2 = "y"
+per_frame = foo = 1
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail 'image tags: try to use system variable as tag' <<EOF
+imagefiles=sx:foo
+EOF
+expect <<EOF
+image 1 = "foo"
+line 2: tag "sx" is already in use near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail 'image tags: try to use global user variable as tag' <<EOF
+foo = 0;
+imagefiles=foo:bar
+EOF
+expect <<EOF
+image 1 = "bar"
+line 3: tag "foo" is already in use near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+#
+# @@@ We should probably simply disallow "imagefiles" in non-global sections.
+#
+
+ptest_fail 'image tags: try to use per-frame variable as tag' <<EOF
+per_frame:
+	foo = 1;
+imagefiles=foo:bar
+EOF
+expect <<EOF
+per_frame = foo = 1
+image 1 = "bar"
+line 4: tag "foo" is already in use near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail 'image tags: try to use control variable as tag' -c <<EOF
+midi "foo" { bar = fader(0); }
+blah = range(bar);
+imagefiles=blah:bar
+EOF
+expect <<EOF
+line 4: tag "blah" is already in use near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail 'image tags: try to assign to tag (global)' <<EOF
+imagefiles=foo:bar
+foo = 0;
+EOF
+expect <<EOF
+image 1 = "bar"
+line 3: "foo" is a constant near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail 'image tags: try to assign to tag (per-frame)' <<EOF
+imagefiles=foo:bar
+per_frame:
+	foo = 1;
+EOF
+expect <<EOF
+image 1 = "bar"
+line 4: "foo" is a constant near 'EOF'
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail 'image tags: try to assign to tag (control variable)' -c <<EOF
+midi "foo" { bar = fader(0); }
+imagefiles=blah:bar
+blah = range(bar);
+EOF
+expect <<EOF
+line 4: "blah" is a constant near 'EOF'
+EOF
+
+###############################################################################
