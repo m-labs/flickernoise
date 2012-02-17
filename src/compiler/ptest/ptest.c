@@ -30,6 +30,9 @@ static const char *trace_var = NULL;
 static const char *buffer;
 
 
+/* ----- Parse the patch into the AST -------------------------------------- */
+
+
 static void dump_ast(const struct ast_node *ast);
 
 
@@ -270,6 +273,9 @@ static void parse_only(const char *pgm)
 }
 
 
+/* ----- Compile the patch into PFPU code ---------------------------------- */
+
+
 /*
  * "sym" and "field" are used to access a field chosen by the caller in the
  * "struct sym". For this, the caller provides a buffer (sym) and a pointer to
@@ -415,6 +421,9 @@ static void compile(const char *pgm)
 }
 
 
+/* ----- Compile the patch into FPVM code ---------------------------------- */
+
+
 static const char *assign_raw(struct parser_comm *comm,
     struct sym *sym, struct ast_node *node)
 {
@@ -471,6 +480,9 @@ static void compile_vm(const char *pgm)
 	free((void *) comm.msg);
 	exit(1);
 }
+
+
+/* ----- Command-line processing ------------------------------------------- */
 
 
 static void free_buffer(void)
