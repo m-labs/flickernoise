@@ -1,0 +1,20 @@
+The following invocation of midi2osc ...
+
+./midi2osc c8.1=c0.0 c8.2=c0.1 c9.1=c0.2 c9.2=c0.3 c0.7=c0.4 c7.7=c0.5 m1
+
+... assigns the Faderfox LV3 controls to the M1 default MIDI
+configuration (0 through 7) with pacman.fnp as follows:
+
+Left joystick: pacman position
+Right joystick: ghost position
+Fader 1 (leftmost): pacman size
+Fader 2 (rightmost): ghost size
+
+The result can be seen here:
+http://www.youtube.com/watch?v=JuSjp_zKarI
+
+The background music in the video is "Over the Edge / Stephanie RMX"
+by BOCrew, licensed under CC-BY:
+
+http://ccmixter.org/content/BOCrew/BOCrew_-_Over_the_Edge_Stephanie_RMX.mp3
+http://ccmixter.org/files/BOCrew/23932
