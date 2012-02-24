@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <rtems/shell.h>
 
 #include <mtklib.h>
 
@@ -33,10 +34,6 @@
 static int unlock;
 
 /* Ugly APIs need ugly hacks. */
-int rtems_shell_main_cp(int argc, char *argv[]);
-int rtems_shell_main_rm(int argc, char *argv[]);
-int rtems_shell_main_mv(int argc, char *argv[]);
-
 static void call_cp(char *from, char *to)
 {
 	char *cp_argv[6] = { "cp", "-PRp", "--", from, to, NULL };
