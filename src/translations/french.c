@@ -237,11 +237,11 @@ struct mtk_i18n_entry translation_french[] = {
 	
 	// About
 	{ "Flickernoise is free software, released under GNU GPL version 3.\n"
-	"Copyright (C) 2010, 2011 Flickernoise developers.\n"
+	"Copyright (C) 2010, 2011, 2012 Flickernoise developers.\n"
 	"Milkymist is a trademark of S\xe9""bastien Bourdeauducq.\n"
 	"Web: www.milkymist.org",
 	 "Flickernoise est un logiciel libre, sous licence GNU GPL version 3.\n"
-	"Copyright (C) 2010, 2011 d\xe9""veloppeurs Flickernoise.\n"
+	"Copyright (C) 2010, 2011, 2012 d\xe9""veloppeurs Flickernoise.\n"
 	"Milkymist est une marque de S\xe9""bastien Bourdeauducq.\n"
 	"Web: www.milkymist.org" },
 	

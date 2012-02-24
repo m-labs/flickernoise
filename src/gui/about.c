@@ -58,7 +58,7 @@ void init_about(void)
 	mtk_cmdf(appid, "mac = new Label(-text \"\eEthernet MAC: %02x:%02x:%02x:%02x:%02x:%02x\")", macadr[0], macadr[1], macadr[2], macadr[3], macadr[4], macadr[5]);
 	mtk_cmd_seq(appid, "sep2 = new Separator(-vertical no)",
 		"info = new Label(-text \"Flickernoise is free software, released under GNU GPL version 3.\n"
-		"Copyright (C) 2010, 2011 Flickernoise developers.\n"
+		"Copyright (C) 2010, 2011, 2012 Flickernoise developers.\n"
 		"Milkymist is a trademark of S\xe9""bastien Bourdeauducq.\n"
 		"Web: www.milkymist.org\" -font \"monospaced\")",
 
