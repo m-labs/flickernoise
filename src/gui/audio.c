@@ -184,9 +184,9 @@ void init_audio(void)
 
 		"gv = new Grid()",
 
-		"l_bass = new Label(-text \"Bass\")",
-		"l_mid  = new Label(-text \"Mid\")",
-		"l_treb = new Label(-text \"Treb\")",
+		"l_bass = new Label(-text \"\eBass\")",
+		"l_mid  = new Label(-text \"\eMid\")",
+		"l_treb = new Label(-text \"\eTreb\")",
 		"ld_bass = new LoadDisplay(-from 3 -to 0 -orient vertical)",
 		"ld_mid  = new LoadDisplay(-from 6 -to 0 -orient vertical)",
 		"ld_treb = new LoadDisplay(-from 6 -to 0 -orient vertical)",

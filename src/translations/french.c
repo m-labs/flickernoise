@@ -96,7 +96,7 @@ struct mtk_i18n_entry translation_french[] = {
 	// MIDI settings
 	{ "MIDI settings",					"Param\xe8""tres MIDI" },
 	{ "Global parameters",					"Param\xe8""tres globaux" },
-	{ "Channel (0-15):",					"Canal (0-15) :" },
+	{ "Channel (1-16):",					"Canal (1-16) :" },
 	{ "Note:",						"Note :" },
 	{ "Controller mapping",					"Connexion des contr\xf4""leurs" },
 	{ "Latest active controller:",				"Dernier contr\xf4""leur actif :" },
@@ -130,6 +130,7 @@ struct mtk_i18n_entry translation_french[] = {
 	{ "Preview",						"Pr\xe9""visualisation" },
 	{ "None",						"Aucun" },
 	{ "Unknown",						"Inconnu" },
+	{ "Full Screen",					"Plein \xe9""cran" },
 	
 	// RSS wall
 	{ "Wall:",						"Mur :" },
