@@ -48,7 +48,7 @@ BINDIR = bin
 
 OBJS = yaffs.o version.o shellext.o sysconfig.o config.o fb.o input.o \
        keymap.o fbgrab.o shortcuts.o osc.o pngwrite.o patchpool.o \
-       flashvalid.o main.o
+       flashvalid.o usbfirmware.o main.o
 OBJS += $(addprefix pixbuf/,dither.o loaderjpeg.o loaderpng.o manager.o)
 OBJS += $(addprefix gui/,messagebox.o filedialog.o resmgr.o guirender.o \
 	performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o \

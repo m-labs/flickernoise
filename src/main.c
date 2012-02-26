@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011, 2012 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@
 
 #include "yaffs.h"
 #include "version.h"
+#include "usbfirmware.h"
 #include "renderer/videoinreconf.h"
 #include "renderer/renderer.h"
 #include "shellext.h"
@@ -188,6 +189,7 @@ rtems_task Init(rtems_task_argument argument)
 	mount("/dev/flash5", "/ssd", "yaffs", RTEMS_FILESYSTEM_READ_WRITE, "");
 	
 	init_version();
+	load_usb_firmware();
 	init_videoinreconf();
 
 	sysconfig_load();
