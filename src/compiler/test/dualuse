@@ -39,8 +39,7 @@ dummy = 0	/* scanner switches one token after section */
 if = max*int
 EOF
 expect <<EOF
-per_frame = dummy = 0
-line 3: parse error near 'if'
+line 3: parse error near '='
 EOF
 
 ###############################################################################

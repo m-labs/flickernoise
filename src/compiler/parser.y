@@ -252,6 +252,7 @@ static void free_file_list(struct file_list *l)
 %destructor primary_expr { free($$); }
 
 %type context {assign_callback}
+%type opt_if {struct ast_node *}
 %type opt_arg {struct ast_node *}
 %type midi_dev_type {enum stim_midi_dev_type}
 %type midi_fn_type {enum stim_midi_fn_type}
@@ -259,6 +260,7 @@ static void free_file_list(struct file_list *l)
 %type file_list {struct file_list *}
 %type opt_tag {struct id *}
 
+%destructor opt_if { free($$); }
 %destructor opt_arg { parse_free($$); }
 %destructor file_list { free_file_list($$); }
 %destructor opt_tag { free($$); }
@@ -313,7 +315,7 @@ assignments ::= .
 /* ----- Variable assignments ---------------------------------------------- */
 
 
-assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
+assignment ::= ident(I) TOK_ASSIGN expr(N) opt_if(IF) opt_semi. {
 	I->sym->flags |= SF_ASSIGNED;
 	/*
 	 * The conditions are as follows:
@@ -335,10 +337,20 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 			    "to zero");
 			return;
 		}
+		if(IF) {
+			FAIL("initialization cannot be conditional");
+			return;
+		}
 		IS_STYLE(new_style);
 	} else {
 		const char *msg;
 
+		if(IF) {
+			struct ast_node *var;
+
+			var = node(I->token, I->sym, NULL, NULL, NULL);
+			N = conditional(IF, N, var);
+		}
 		msg = state->assign(state->comm, I->sym, N);
 		free(I);
 		if(msg) {
@@ -347,8 +359,16 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_semi. {
 			return;
 		}
 	}
+	/*
+	 * Q: Why don't we parse_free(IF) ?
+	 * A: If IF is non-NULL, it's now in the AST under N and gets free
+	 * with it.
+	 */
 	parse_free(N);
 }
+
+opt_if(IF) ::= .			{ IF = NULL; }
+opt_if(IF) ::= TOK_IF_NEW expr(E).	{ IF = E; }
 
 
 /* ----- MIDI device database ---------------------------------------------- */

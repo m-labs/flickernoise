@@ -1,0 +1,34 @@
+#!/bin/sh
+. ./Common
+
+###############################################################################
+
+ptest "statement modifier: foo = foo+1 if cond" <<EOF
+per_frame:
+foo = foo+1 if cond
+EOF
+expect <<EOF
+per_frame = foo = (if cond (+ foo 1) foo)
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest "statement modifier: foo = foo+1 if !cond" <<EOF
+per_frame:
+foo = foo+1 if !cond
+EOF
+expect <<EOF
+per_frame = foo = (if cond foo (+ foo 1))
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "statement modifier: initial = 0 if 1 (error)" <<EOF
+foo = 0
+bar = 0 if 1
+EOF
+expect <<EOF
+line 3: initialization cannot be conditional near 'EOF'
+EOF
+
+###############################################################################
