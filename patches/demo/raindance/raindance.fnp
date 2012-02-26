@@ -51,7 +51,16 @@ midi "Faderfox LV3" {
 	enc3_push = switch(30);
 	enc4_push = switch(31);
 
+	green1 = button(1, 16);
+	green2 = button(2, 16);
+	green3 = button(3, 16);
+	green4 = button(4, 16);
 	green8 = button(8, 16);
+
+	blue1 = button(1, 17);
+	blue2 = button(2, 17);
+	blue3 = button(3, 17);
+	blue4 = button(4, 17);
 
 	fx1 = switch(9, 4);
 	joy1x = fader(9, 1);
@@ -96,29 +105,57 @@ twist_offset = 0;
 last_reset_sens = 0;
 sens_offset = 0;
 
+switch_rot = button(green1);
+set_rot = button(blue1);
+alt_rot = 0;
+alt_theta = 0;
+
+switch_zoom = button(green2);
+set_zoom = button(blue2);
+alt_zoom = 0;
+
+switch_dist = button(green3);
+set_dist = button(blue3);
+alt_dist = 0;
+
+switch_sens = button(green4);
+set_sens = button(blue4);
+alt_sens = 0;
+
 per_frame:
 	/* rotation */
 
 	rot = whirl*2.2+(twist-twist_offset)/10;
 	twist_offset = twist if last_reset_twist != reset_twist+1;
 	last_reset_twist = reset_twist+1; // avoid 0, so first push is change
+	alt_rot = rot if set_rot;
+	rot = alt_rot if switch_rot;
 
 	/* growth */
 
 	zoom = 0.9+growth/5;
+	alt_zoom = zoom if set_zoom;
+	zoom = alt_zoom if switch_zoom;
 
 	/* angle */
 
 	dist = radius/5;
-	tmp = theta*6.2832;
+	alt_dist = dist if set_dist;
+	dist = alt_dist if switch_dist;
+
+	tmp = (switch_rot ? alt_theta : theta)*6.2832;
 	wave_x = cx+cos(tmp)*dist;
 	wave_y = cy-sin(tmp)*dist;
+
+	alt_theta = theta if set_rot;
 
 	/* sensitivity */
 
 	wave_scale = sensitivity*10+sens_fine-sens_offset;
 	sens_offset = sens_fine if last_reset_sens != reset_sens+1;
 	last_reset_sens = reset_sens+1; // avoid 0, so first push is change
+	alt_sens = wave_scale if set_sens;
+	wave_scale = alt_sens if switch_sens;
 
 	/* color */
 
@@ -144,6 +181,13 @@ per_frame:
 
 	dx = shift ? (xshift-0.5)*0.2 : 0;
 	dy = shift ? (yshift-0.5)*0.2 : 0;
+
+	/* reset on-only buttons */
+
+	set_rot = 0;
+	set_zoom = 0;
+	set_dist = 0;
+	set_sens = 0;
 
 per_vertex:
 	rot = rot + (rad-0.4)*1.7*max(0,min((bass_att-1.1)*1.5,5));
