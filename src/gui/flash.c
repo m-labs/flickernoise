@@ -397,14 +397,14 @@ static void download_images(void)
 	rescue = sysconfig_is_rescue();
 	
 	if(rescue || (strcmp(available_socbios, soc) != 0)) {
-		strcpy(bitstream_name, "/ramdisk/soc.fpg");
-		strcpy(bios_name, "/ramdisk/bios.bin");
+		strcpy(bitstream_name, "/soc.fpg");
+		strcpy(bios_name, "/bios.bin");
 	} else {
 		bitstream_name[0] = 0;
 		bios_name[0] = 0;
 	}
 	if(rescue || (strcmp(available_application, VERSION) != 0))
-		strcpy(application_name, "/ramdisk/flickernoise.fbi");
+		strcpy(application_name, "/flickernoise.fbi");
 	else
 		application_name[0] = 0;
 
