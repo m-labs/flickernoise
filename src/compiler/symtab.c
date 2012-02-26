@@ -18,7 +18,7 @@
 #include "symtab.h"
 
 
-#define	INITIAL_ALLOC	64
+#define	INITIAL_ALLOC	256
 
 
 struct key_n {
