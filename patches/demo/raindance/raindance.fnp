@@ -45,9 +45,11 @@ midi "Faderfox LV3" {
 
 	enc1 = differential(24);
 	enc2 = differential(25);
+	enc4 = differential(27);
 
 	enc1_push = switch(28);
 	enc3_push = switch(30);
+	enc4_push = switch(31);
 
 	fx1 = switch(9, 4);
 	joy1x = fader(9, 1);
@@ -68,6 +70,8 @@ sensitivity = range(fader4);
 twist = unbounded(enc1);
 reset_twist = button(enc1_push);	// encoder 1 push
 theta = cyclic(enc2);
+sens_fine = unbounded(enc4);
+reset_sens = switch(enc4_push);
 
 thick = switch(enc3_push);
 
@@ -85,6 +89,8 @@ yshift = range(joy2y);
 
 last_reset_twist = 0;
 twist_offset = 0;
+last_reset_sens = 0;
+sens_offset = 0;
 
 per_frame:
 	/* rotation */
@@ -106,7 +112,9 @@ per_frame:
 
 	/* sensitivity */
 
-	wave_scale = sensitivity*10;
+	wave_scale = sensitivity*10+sens_fine-sens_offset;
+	sens_offset = sens_fine if last_reset_sens != reset_sens+1;
+	last_reset_sens = reset_sens+1; // avoid 0, so first push is change
 
 	/* color */
 
