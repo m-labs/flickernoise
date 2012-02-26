@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011, 2012 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,6 @@ enum {
 
 #define IDMX_COUNT	8
 #define OSC_COUNT	4
-#define MIDI_COUNT	8
 #define DMX_COUNT	8
 #define IMAGE_COUNT	2
 
@@ -55,7 +54,6 @@ struct frame_descriptor {
 	float bass_att, mid_att, treb_att;
 	float idmx[IDMX_COUNT];
 	float osc[OSC_COUNT];
-	float midi[MIDI_COUNT];
 
 	float decay;
 	float wave_mode;

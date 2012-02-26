@@ -108,15 +108,6 @@ osc2		pfv_osc2	pvv_osc2	SF_LIVE
 osc3		pfv_osc3	pvv_osc3	SF_LIVE
 osc4		pfv_osc4	pvv_osc4	SF_LIVE
 
-midi1		pfv_midi1	pvv_midi1	SF_LIVE
-midi2		pfv_midi2	pvv_midi2	SF_LIVE
-midi3		pfv_midi3	pvv_midi3	SF_LIVE
-midi4		pfv_midi4	pvv_midi4	SF_LIVE
-midi5		pfv_midi5	pvv_midi5	SF_LIVE
-midi6		pfv_midi6	pvv_midi6	SF_LIVE
-midi7		pfv_midi7	pvv_midi7	SF_LIVE
-midi8		pfv_midi8	pvv_midi8	SF_LIVE
-
 video_a		pfv_video_a	-1
 
 image1_a	pfv_image1_a	-1

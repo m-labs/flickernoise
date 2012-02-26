@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011, 2012 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,6 @@ static float bass, mid, treb;
 static float bass_att, mid_att, treb_att;
 static float idmx[IDMX_COUNT];
 static float osc[OSC_COUNT];
-static float midi[MIDI_COUNT];
 
 static void sampler_callback(struct frame_descriptor *frd)
 {
@@ -57,8 +56,6 @@ static void sampler_callback(struct frame_descriptor *frd)
 		idmx[i] = frd->idmx[i];
 	for(i=0;i<OSC_COUNT;i++)
 		osc[i] = frd->osc[i];
-	for(i=0;i<MIDI_COUNT;i++)
-		midi[i] = frd->midi[i];
 	sampler_return(frd);
 }
 
@@ -88,15 +85,6 @@ static float *get_variable(const char *name)
 	else if(strcmp(name, "osc2") == 0) return &osc[1];
 	else if(strcmp(name, "osc3") == 0) return &osc[2];
 	else if(strcmp(name, "osc4") == 0) return &osc[3];
-	
-	else if(strcmp(name, "midi1") == 0) return &midi[0];
-	else if(strcmp(name, "midi2") == 0) return &midi[1];
-	else if(strcmp(name, "midi3") == 0) return &midi[2];
-	else if(strcmp(name, "midi4") == 0) return &midi[3];
-	else if(strcmp(name, "midi5") == 0) return &midi[4];
-	else if(strcmp(name, "midi6") == 0) return &midi[5];
-	else if(strcmp(name, "midi7") == 0) return &midi[6];
-	else if(strcmp(name, "midi8") == 0) return &midi[7];
 
 	else return NULL;
 }
