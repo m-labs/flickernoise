@@ -35,6 +35,7 @@
 
 
 struct yyParser;
+int syntax_is_new_style = 0;
 static void yy_parse_failed(struct yyParser *yypParser);
 
 typedef const char *(*assign_callback)(struct parser_comm *comm,
@@ -58,6 +59,7 @@ static struct stim_db_midi *midi_dev;
 			return;					\
 		}						\
 		state->style = which;				\
+		syntax_is_new_style = which == new_style;	\
 	} while (0)
 
 static const enum ast_op tok2op[] = {
@@ -79,6 +81,7 @@ static const enum ast_op tok2op[] = {
 	[TOK_I2F]	= op_i2f,
 	[TOK_F2I]	= op_f2i,
 	[TOK_IF]	= op_if,
+	[TOK_IF_NEW]	= op_if,
 	[TOK_TSIGN]	= op_tsign,
 	[TOK_QUAKE]	= op_quake,
 	[TOK_SQR]	= op_sqr,
@@ -753,6 +756,11 @@ primary_expr(N) ::= TOK_BOR TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_RPAREN. {
 
 
 primary_expr(N) ::= TOK_IF TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_COMMA
+    expr(C) TOK_RPAREN. {
+	N = conditional(A, B, C);
+}
+
+primary_expr(N) ::= TOK_IF_NEW TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_COMMA
     expr(C) TOK_RPAREN. {
 	N = conditional(A, B, C);
 }
