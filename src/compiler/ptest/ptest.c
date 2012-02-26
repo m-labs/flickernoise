@@ -401,11 +401,11 @@ static void play_midi(struct patch *patch)
 }
 
 
-static void compile(const char *pgm)
+static void compile(const char *pgm, int framework)
 {
 	struct patch *patch;
 
-	patch = patch_compile("/", pgm, report);
+	patch = patch_do_compile("/", pgm, report, framework);
 	if (!patch) {
 		symtab_free();
 		exit(1);
@@ -497,10 +497,11 @@ static void free_buffer(void)
 static void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [-c [-c]|-f error] [-m [chan.]ctrl=value ...] [-n runs]\n"
+"usage: %s [-c [-c [-c]]|-f error] [-m [chan.]ctrl=value ...] [-n runs]\n"
 "       %*s [-q] [-s] [-v var] [-Wwarning ...] [expr]\n\n"
-"  -c        generate code and dump generated code (unless -q is set)\n"
+"  -c        generate PFPU code and dump generated code (unless -q is set)\n"
 "  -c -c     generate and dump VM code\n"
+"  -c -c -c  generate and dump PFPU code (without patch framework)\n"
 "  -f error  fail any assignment with specified error message\n"
 "  -m [chan.]ctrl=value\n"
 "            send a MIDI message to the stimuli subsystem\n"
@@ -582,10 +583,13 @@ int main(int argc, char **argv)
 			parse_only(buffer);
 			break;
 		case 1:
-			compile(buffer);
+			compile(buffer, 1);
 			break;
 		case 2:
 			compile_vm(buffer);
+			break;
+		case 3:
+			compile(buffer, 0);
 			break;
 		default:
 			usage(*argv);

@@ -14,7 +14,7 @@ EOF
 #------------------------------------------------------------------------------
 
 ptest "dual use: sin = sqr-if" <<EOF
-per_frame:
+per_frame=
 sin = sqr-if
 EOF
 expect <<EOF
@@ -23,12 +23,23 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "dual use: if = max*int" <<EOF
-per_frame:
+ptest "dual use: if = max*int (old style)" <<EOF
+per_frame=
 if = max*int
 EOF
 expect <<EOF
 per_frame = if = (* (max) (int))
+EOF
+
+#------------------------------------------------------------------------------
+
+ptest_fail "dual use: if = max*int (new style)" <<EOF
+per_frame:
+dummy = 0	/* scanner switches one token after section */
+if = max*int
+EOF
+expect <<EOF
+line 3: parse error near '='
 EOF
 
 ###############################################################################
