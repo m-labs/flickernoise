@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
+ * Copyright (C) 2010, 2011, 2012 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -170,7 +170,6 @@ static void load_config(void)
 	char config_key[8];
 	int i;
 	const char *val;
-	int value;
 
 	mtk_cmdf(appid, "e_channel.set(-text \"%d\")",
 	    config_read_int("midi_channel", 0)+1);
@@ -182,27 +181,13 @@ static void load_config(void)
 		else
 			midi_bindings[i][0] = 0;
 	}
-	for(i=0;i<MIDI_COUNT;i++) {
-		sprintf(config_key, "midi%d", i+1);
-		value = config_read_int(config_key, i);
-		mtk_cmdf(appid, "e_midi%d.set(-text \"%d\")", i, value);
-	}
 }
 
 static void set_config(void)
 {
 	char config_key[16];
 	int i;
-	int value;
 
-	for(i=0;i<MIDI_COUNT;i++) {
-		sprintf(config_key, "e_midi%d.text", i);
-		value = mtk_req_i(appid, config_key);
-		if((value < 0) || (value > 128))
-			value = i;
-		sprintf(config_key, "midi%d", i+1);
-		config_write_int(config_key, value);
-	}
 	for(i=0;i<128;i++) {
 		sprintf(config_key, "midi_%02x", i);
 		if(midi_bindings[i][0] != 0)
@@ -302,8 +287,7 @@ static void midi_event(mtk_event *e, int count)
 				break;
 			case EVENT_TYPE_MIDI_PITCH:
 				/* EVENT_TYPE_MIDI_PITCH */
-				controller_event(chan, 128,
-				    e[i].press.code & 0x7f);
+				// TODO
 				break;
 		}
 	}
@@ -364,17 +348,6 @@ static void addupdate_callback(mtk_event *e, void *arg)
 	update_list();
 	mtk_cmd(appid, "e_note.set(-text \"\")");
 	mtk_cmd(appid, "e_filename.set(-text \"\")");
-}
-
-static void press_callback(mtk_event *e, void *arg)
-{
-	learn = (int)arg;
-	assert(learn >= 0 && learn < MIDI_COUNT);
-}
-
-static void release_callback(mtk_event *e, void *arg)
-{
-	learn = -1;
 }
 
 static int cmpstringp(const void *p1, const void *p2)
@@ -451,29 +424,17 @@ static void autobuild_callback(mtk_event *e, void *arg)
 
 void init_midi(void)
 {
-	int i;
-	
 	appid = mtk_init_app("MIDI");
 
 	mtk_cmd_seq(appid,
 		"g = new Grid()",
-
-		"g_parameters0 = new Grid()",
-		"l_parameters = new Label(-text \"Global parameters\" -font \"title\")",
-		"s_parameters1 = new Separator(-vertical no)",
-		"s_parameters2 = new Separator(-vertical no)",
-		"g_parameters0.place(s_parameters1, -column 1 -row 1)",
-		"g_parameters0.place(l_parameters, -column 2 -row 1)",
-		"g_parameters0.place(s_parameters2, -column 3 -row 1)",
+		 
 		"g_parameters = new Grid()",
-		"l_channel = new Label(-text \"Channel (1-16):\")",
+		"l_channel = new Label(-text \"Patch switch channel (1-16):\")",
 		"e_channel = new Entry()",
 		"g_parameters.place(l_channel, -column 1 -row 1)",
 		"g_parameters.place(e_channel, -column 2 -row 1)",
-
-		"g_sep = new Grid()",
-
-		"g_patch = new Grid()",
+		"g.place(g_parameters, -column 1 -row 0)",
 
 		"g_existing0 = new Grid()",
 		"l_existing = new Label(-text \"Existing bindings\" -font \"title\")",
@@ -512,64 +473,33 @@ void init_midi(void)
 		"b_addupdate = new Button(-text \"Add/update\")",
 		"b_autobuild = new Button(-text \"Auto build\")",
 		
-		"g_patch.place(g_existing0, -column 1 -row 1)",
-		"g_patch.place(lst_existingf, -column 1 -row 2)",
-		"g_patch.rowconfig(2, -size 130)",
-		"g_patch.place(g_addedit0, -column 1 -row 3)",
-		"g_patch.place(g_addedit1, -column 1 -row 4)",
-		"g_patch.place(b_addupdate, -column 1 -row 5)",
-		"g_patch.place(b_autobuild, -column 1 -row 6)",
+		"g.place(g_existing0, -column 1 -row 1)",
+		"g.place(lst_existingf, -column 1 -row 2)",
+		"g.rowconfig(2, -size 130)",
+		"g.place(g_addedit0, -column 1 -row 3)",
+		"g.place(g_addedit1, -column 1 -row 4)",
+		"g.place(b_addupdate, -column 1 -row 5)",
+		"g.place(b_autobuild, -column 1 -row 6)",
 		
-		"g_var = new Grid()",
-		
-		"g_cmap0 = new Grid()",
-		"l_cmap = new Label(-text \"Controller mapping\" -font \"title\")",
-		"s_cmap1 = new Separator(-vertical no)",
-		"s_cmap2 = new Separator(-vertical no)",
-		"g_cmap0.place(s_cmap1, -column 1 -row 1)",
-		"g_cmap0.place(l_cmap, -column 2 -row 1)",
-		"g_cmap0.place(s_cmap2, -column 3 -row 1)",
-		
-		"g_vars = new Grid()",
-		"g_vars.columnconfig(2, -size 55)",
-		
+		"g_lastctl = new Grid()",
 		"l_lastctltxt = new Label(-text \"Latest active controller:\")",
 		"l_lastctl = new Label()",
-		
-		"g_var.place(g_cmap0, -column 1 -row 1)",
-		"g_var.place(g_vars, -column 1 -row 2)",
-		"g_var.place(l_lastctltxt, -column 1 -row 3)",
-		"g_var.place(l_lastctl, -column 1 -row 4)",
-
-		"g_sep.place(g_patch, -column 1 -row 1)",
-		"sep = new Separator(-vertical yes)",
-		"g_sep.place(sep, -column 2 -row 1)",
-		"g_sep.place(g_var, -column 3 -row 1)",
+		"g_lastctl.place(l_lastctltxt, -column 1 -row 1)",
+		"g_lastctl.place(l_lastctl, -column 2 -row 1)",
+		"g.place(g_lastctl, -column 1 -row 7)",
 		
 		"g_btn = new Grid()",
 		"b_ok = new Button(-text \"OK\")",
 		"b_cancel = new Button(-text \"Cancel\")",
-		"g_btn.columnconfig(1, -size 450)",
+		"g_btn.columnconfig(1, -size 250)",
 		"g_btn.place(b_ok, -column 2 -row 1)",
 		"g_btn.place(b_cancel, -column 3 -row 1)",
 
-		"g.place(g_parameters0, -column 1 -row 1)",
-		"g.place(g_parameters, -column 1 -row 2)",
-		"g.place(g_sep, -column 1 -row 3)",
-		"g.rowconfig(4, -size 10)",
-		"g.place(g_btn, -column 1 -row 5)",
+		"g.rowconfig(8, -size 10)",
+		"g.place(g_btn, -column 1 -row 9)",
 
 		"w = new Window(-content g -title \"MIDI settings\" -workx 10)",
 		0);
-
-	for(i=0;i<MIDI_COUNT;i++) {
-		mtk_cmdf(appid, "l_midi%d = new Label(-text \"\emidi%d\")", i, i+1);
-		mtk_cmdf(appid, "e_midi%d = new Entry()", i);
-		mtk_cmdf(appid, "g_vars.place(l_midi%d, -column 1 -row %d)", i, i);
-		mtk_cmdf(appid, "g_vars.place(e_midi%d, -column 2 -row %d)", i, i);
-		mtk_bindf(appid, "l_midi%d", "press", press_callback, (void *)i, i);
-		mtk_bindf(appid, "l_midi%d", "release", release_callback, NULL, i);
-	}
 
 	mtk_bind(appid, "lst_existing", "selchange", selchange_callback, NULL);
 	mtk_bind(appid, "lst_existing", "selcommit", selchange_callback, NULL);

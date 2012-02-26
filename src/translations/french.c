@@ -1,6 +1,6 @@
 /*
  * Flickernoise
- * Copyright (C) 2011 Sebastien Bourdeauducq
+ * Copyright (C) 2011, 2012 Sebastien Bourdeauducq
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,9 +96,8 @@ struct mtk_i18n_entry translation_french[] = {
 	// MIDI settings
 	{ "MIDI settings",					"Param\xe8""tres MIDI" },
 	{ "Global parameters",					"Param\xe8""tres globaux" },
-	{ "Channel (1-16):",					"Canal (1-16) :" },
+	{ "Patch switch channel (1-16):",			"Canal de s\xe9""lection de patch (1-16) :" },
 	{ "Note:",						"Note :" },
-	{ "Controller mapping",					"Connexion des contr\xf4""leurs" },
 	{ "Latest active controller:",				"Dernier contr\xf4""leur actif :" },
 	{ "Select MIDI patch",					"S\xe9""lection du patch MIDI" },
 	

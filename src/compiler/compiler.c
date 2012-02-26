@@ -118,8 +118,7 @@ static void pfv_update_patch_requires(struct compiler_sc *sc, int pfv)
 		sc->p->require |= REQUIRE_DMX;
 	if(pfv >= pfv_osc1 && pfv <= pfv_osc4)
 		sc->p->require |= REQUIRE_OSC;
-	if(pfv >= pfv_midi1 && pfv <= pfv_midi8)
-		sc->p->require |= REQUIRE_MIDI;
+	// TODO: MIDI detection
 	if(pfv == pfv_video_a)
 		sc->p->require |= REQUIRE_VIDEO;
 }
@@ -264,8 +263,7 @@ static void pvv_update_patch_requires(struct compiler_sc *sc, int pvv)
 		sc->p->require |= REQUIRE_DMX;
 	if(pvv >= pvv_osc1 && pvv <= pvv_osc4)
 		sc->p->require |= REQUIRE_OSC;
-	if(pvv >= pvv_midi1 && pvv <= pvv_midi8)
-		sc->p->require |= REQUIRE_MIDI;
+	// TODO: MIDI detection
 }
 
 static void pvv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)

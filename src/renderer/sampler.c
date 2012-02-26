@@ -82,18 +82,6 @@ static void get_dmx_variables(int fd, float *out)
 	}
 }
 
-static int midi_channel;
-static int midi_map[MIDI_COUNT];
-static int midi_controllers[129];
-
-static void get_midi_variables(float *out)
-{
-	int i;
-	
-	for(i=0;i<MIDI_COUNT;i++)
-		out[i] = ((float)midi_controllers[midi_map[i]])/127.0;
-}
-
 static rtems_id returned_q;
 static rtems_id sampler_terminated;
 
@@ -195,10 +183,9 @@ static rtems_task sampler_task(rtems_task_argument argument)
 		recorded_descriptor->frame = frame++;
 		recorded_descriptor->time = time;
 		time += 1.0/FPS;
-		/* Get DMX/OSC/MIDI inputs */
+		/* Get DMX/OSC inputs */
 		get_dmx_variables(dmx_fd, recorded_descriptor->idmx);
 		get_osc_variables(recorded_descriptor->osc);
-		get_midi_variables(recorded_descriptor->midi);
 		/* Update status and send downstream */
 		recorded_descriptor->status = FRD_STATUS_SAMPLED;
 		callback(recorded_descriptor);
@@ -271,8 +258,6 @@ static void midi_ctrl_event(struct patch *p, mtk_event *e)
 	ctrl = (e->press.code & 0x7f00) >> 8;
 	value = e->press.code & 0x7f;
 
-	if(chan == midi_channel)
-		midi_controllers[ctrl] = value;
 	if(p)
 		stim_midi_ctrl(p->stim, chan+1, ctrl, value);
 }
@@ -289,8 +274,7 @@ static void midi_pitch_event(mtk_event *e)
 	chan = (e->press.code & 0x0f0000) >> 16;
 	value = e->press.code & 0x7f;
 
-	if(chan == midi_channel)
-		midi_controllers[128] = value;
+	// TODO
 }
 
 static void event_callback(mtk_event *e, int count)
@@ -323,13 +307,6 @@ void sampler_start(frd_callback callback)
 	for(i=0;i<IDMX_COUNT;i++) {
 		sprintf(confname, "idmx%d", i+1);
 		idmx_map[i] = config_read_int(confname, i+1)-1;
-	}
-	midi_channel = config_read_int("midi_channel", 0);
-	for(i=0;i<MIDI_COUNT;i++) {
-		sprintf(confname, "midi%d", i+1);
-		midi_map[i] = config_read_int(confname, i);
-		if((midi_map[i] < 0) || (midi_map[i] > 128))
-			midi_map[i] = i;
 	}
 
 	sc = rtems_message_queue_create(
