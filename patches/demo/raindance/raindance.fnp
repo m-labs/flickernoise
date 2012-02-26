@@ -47,6 +47,7 @@ midi "Faderfox LV3" {
 	enc2 = differential(25);
 
 	enc1_push = switch(28);
+	enc3_push = switch(30);
 
 	fx1 = switch(9, 4);
 	joy1x = fader(9, 1);
@@ -67,6 +68,8 @@ sensitivity = range(fader4);
 twist = unbounded(enc1);
 reset_twist = button(enc1_push);	// encoder 1 push
 theta = cyclic(enc2);
+
+thick = switch(enc3_push);
 
 red = range(fader5);
 green = range(fader6);
@@ -111,6 +114,10 @@ per_frame:
 	wave_r = red*( 0.60*sin(0.933*t) + 0.40*sin(1.045*t) );
 	wave_g = green*( 0.60*sin(0.900*t) + 0.40*sin(0.956*t) );
 	wave_b = blue*( 0.60*sin(0.910*t) + 0.40*sin(0.920*t) );
+
+	/* line thickness */
+
+	wave_thick = thick;
 
 	/* special effects */
 
