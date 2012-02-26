@@ -284,7 +284,7 @@ static void pvv_bind_callback(void *_sc, struct fpvm_sym *sym, int reg)
 		r->regs->pvv = sc->p->pervertex_regs+reg;
 }
 
-static bool init_pvv(struct compiler_sc *sc)
+static bool init_pvv(struct compiler_sc *sc, int framework)
 {
 	int i;
 
@@ -294,7 +294,7 @@ static bool init_pvv(struct compiler_sc *sc)
 	fpvm_set_bind_callback(&sc->pvv_fragment, pvv_bind_callback, sc);
 
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_SOURCE);
-	if(!compile_chunk(&sc->pvv_fragment, INIT_PVV_FNP))
+	if(framework && !compile_chunk(&sc->pvv_fragment, INIT_PVV_FNP))
 		goto fail_assign;
 	fpvm_set_bind_mode(&sc->pvv_fragment, FPVM_BIND_ALL);
 
@@ -474,8 +474,8 @@ static bool parse_patch(struct compiler_sc *sc, const char *patch_code)
 	return ok;
 }
 
-struct patch *patch_compile(const char *basedir, const char *patch_code,
-    report_message rmc)
+struct patch *patch_do_compile(const char *basedir, const char *patch_code,
+    report_message rmc, int framework)
 {
 	struct compiler_sc *sc;
 	struct patch *p;
@@ -507,14 +507,14 @@ struct patch *patch_compile(const char *basedir, const char *patch_code,
 
 	load_defaults(sc);
 	if(!init_pfv(sc)) goto fail;
-	if(!init_pvv(sc)) goto fail;
+	if(!init_pvv(sc, framework)) goto fail;
 
 	if(!parse_patch(sc, patch_code))
 		goto fail;
 
-	if(!finalize_pfv(sc)) goto fail;
+	if(framework && !finalize_pfv(sc)) goto fail;
 	if(!schedule_pfv(sc)) goto fail;
-	if(!finalize_pvv(sc)) goto fail;
+	if(framework && !finalize_pvv(sc)) goto fail;
 	if(!schedule_pvv(sc)) goto fail;
 
 #ifndef STANDALONE
@@ -530,6 +530,12 @@ fail:
 	free(sc->p);
 	free(sc);
 	return NULL;
+}
+
+struct patch *patch_compile(const char *basedir, const char *patch_code,
+    report_message rmc)
+{
+	return patch_do_compile(basedir, patch_code, rmc, 1);
 }
 
 struct patch *patch_compile_filename(const char *filename,

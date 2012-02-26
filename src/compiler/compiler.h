@@ -267,8 +267,17 @@ typedef void (*report_message)(const char *);
 struct compiler_sc;
 
 void init_fpvm(struct fpvm_fragment *fragment, int vector_mode);
+
+/*
+ * Flickernoise only uses patch_compile. patch_do_compile allows disabling
+ * the patch framework, which is useful for code analysis in ptest.
+ */
+
+struct patch *patch_do_compile(const char *basedir, const char *patch_code,
+    report_message rmc, int framework);
 struct patch *patch_compile(const char *basedir, const char *patch_code,
     report_message rmc);
+
 struct patch *patch_compile_filename(const char *filename,
     const char *patch_code, report_message rmc);
 struct stimuli *compiler_get_stimulus(struct compiler_sc *sc);
