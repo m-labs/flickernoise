@@ -159,7 +159,6 @@ static int midistr(const char *str)
 
 static int appid;
 static struct filedialog *browse_dlg;
-static int learn = -1;
 
 static int w_open;
 
@@ -246,25 +245,31 @@ static void selchange_callback(mtk_event *e, void *arg)
 	}
 }
 
-static void note_event(int code)
+static void note_event(int chan, int code)
 {
 	char note[16];
 	
+	chan++;
+	
 	strmidi(note, code);
-	mtk_cmdf(appid, "e_note.set(-text \"%s\")", note);
+	if(chan == mtk_req_i(appid, "e_channel.text")) {
+		mtk_cmdf(appid, "e_note.set(-text \"%s\")", note);
+		mtk_cmdf(appid, "l_lastctl.set(-text \"\e%d = %s\")",
+		    chan, note);
+	} else {
+		mtk_cmdf(appid, "l_lastctl.set(-text \"\e(%d = %s)\")",
+		    chan, note);
+	}
 }
 
 static void controller_event(int chan, int controller, int value)
 {
 	chan++;
 	if(chan == mtk_req_i(appid, "e_channel.text")) {
-		mtk_cmdf(appid, "l_lastctl.set(-text \"%d.%d = %d\")",
+		mtk_cmdf(appid, "l_lastctl.set(-text \"\e%d.%d = %d\")",
 		    chan, controller, value);
-		if(learn != -1)
-			mtk_cmdf(appid, "e_midi%d.set(-text \"%d\")",
-			    learn, controller);
 	} else {
-		mtk_cmdf(appid, "l_lastctl.set(-text \"(%d.%d = %d)\")",
+		mtk_cmdf(appid, "l_lastctl.set(-text \"\e(%d.%d = %d)\")",
 		    chan, controller, value);
 	}
 }
@@ -277,8 +282,7 @@ static void midi_event(mtk_event *e, int count)
 		chan = (e[i].press.code & 0x0f0000) >> 16;
 		switch(e[i].type) {
 			case EVENT_TYPE_MIDI_NOTEON:
-				if(chan == mtk_req_i(appid, "e_channel.text")-1)
-					note_event(e[i].press.code & 0x7f);
+				note_event(chan, e[i].press.code & 0x7f);
 				break;
 			case EVENT_TYPE_MIDI_CONTROLLER:
 				controller_event(chan,

@@ -426,7 +426,7 @@ static int suitable_for_simple(struct patch *p)
 	suitable = 1;
 	if(p->require & REQUIRE_DMX) suitable = 0;
 	if(p->require & REQUIRE_OSC) suitable = 0;
-	if(p->require & REQUIRE_MIDI) suitable = 0;
+	if(p->require & REQUIRE_STIM) suitable = 0;
 	if((p->require & REQUIRE_VIDEO) && !input_video) suitable = 0;
 	return suitable;
 }

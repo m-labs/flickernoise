@@ -201,7 +201,7 @@ enum {
 
 #define REQUIRE_DMX	(1 << 0)
 #define REQUIRE_OSC	(1 << 1)
-#define REQUIRE_MIDI	(1 << 2)
+#define REQUIRE_STIM	(1 << 2)
 #define REQUIRE_VIDEO	(1 << 3)
 
 struct image {
@@ -235,7 +235,7 @@ struct patch {
 	float pervertex_regs[PFPU_REG_COUNT];	/* PFPU initial per-vertex
 						   regf */
 	/* meta */
-	unsigned int require;	/* bitmask: dmx, osc, midi, video */
+	unsigned int require;	/* bitmask: dmx, osc, stim, video */
 	void *original;		/* original patch (with initial register
 				   values) */
 	int ref;		/* reference count */
