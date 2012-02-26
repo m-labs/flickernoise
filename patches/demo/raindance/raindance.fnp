@@ -51,6 +51,8 @@ midi "Faderfox LV3" {
 	enc3_push = switch(30);
 	enc4_push = switch(31);
 
+	green8 = button(8, 16);
+
 	fx1 = switch(9, 4);
 	joy1x = fader(9, 1);
 	joy1y = fader(9, 2);
@@ -79,6 +81,8 @@ red = range(fader5);
 green = range(fader6);
 blue = range(fader7);
 change = range(fader8);
+
+wrap = button(green8);
 
 offcenter = switch(fx1);		// FX1
 xoff = range(joy1x);
@@ -126,6 +130,10 @@ per_frame:
 	/* line thickness */
 
 	wave_thick = thick;
+
+	/* smear or wrap */
+
+	bTexWrap = wrap;
 
 	/* special effects */
 
