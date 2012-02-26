@@ -46,7 +46,7 @@ midi "Faderfox LV3" {
 	enc1 = differential(24);
 	enc2 = differential(25);
 
-	enc1_push = button(28);
+	enc1_push = switch(28);
 
 	fx1 = switch(9, 4);
 	joy1x = fader(9, 1);
@@ -81,12 +81,13 @@ xshift = range(joy2x);
 yshift = range(joy2y);
 
 last_reset_twist = 0;
+twist_offset = 0;
 
 per_frame:
 	/* rotation */
 
-	rot = whirl*2+twist/10;
-	twist = last_reset_twist == reset_twist+1 ? twist : 0;
+	rot = whirl*2.2+(twist-twist_offset)/10;
+	twist_offset = twist if last_reset_twist != reset_twist+1;
 	last_reset_twist = reset_twist+1; // avoid 0, so first push is change
 
 	/* growth */
