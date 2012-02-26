@@ -1,7 +1,9 @@
-per_frame=video_a=above(sin(16*time),0.91)
 zoom=0.90
 decay=1
 ob_a=1
 ob_size=0.005
-per_frame=dx=sin(time*1.162)*0.005
-per_frame=dy=sin(time*0.966)*0.005
+
+per_frame:
+video_a = above(sin(16*time),0.91)
+dx = sin(time*1.162)*0.005
+dy = sin(time*0.966)*0.005

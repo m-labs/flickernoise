@@ -25,11 +25,15 @@ wave_g=0.570000
 wave_b=1.000000
 wave_x=0.5
 wave_y=0.5
-per_frame=wave_r = wave_r + 0.250*( 0.60*sin(10.937*time) + 0.40*sin(1.470*time) );
-per_frame=wave_g = wave_g + 0.300*( 0.60*sin(11.344*time) + 0.40*sin(1.041*time) );
-per_frame=wave_b = wave_b + 0.250*( 0.60*sin(21.251*time) + 0.40*sin(1.355*time) );
-per_frame=rot = 0.01* (0.60*sin(0.381*time) + 0.40*sin(0.579*time) );
-per_frame=cx = cx + 0.060*sin(0.374*time) + 0.040*sin(0.294*time);
-per_frame=cy = cy + 0.060*sin(0.393*time) + 0.040*sin(0.223*time);
-per_frame=decay=below(sin(1.5*time),0.95)*0.15+0.85
-per_vertex=zoom=1+sin(sin(42*cos(0.5*time)*rad)+bass)*0.1-0.03*cos(x/y)
+
+per_frame:
+wave_r = wave_r + 0.250*( 0.60*sin(10.937*time) + 0.40*sin(1.470*time) );
+wave_g = wave_g + 0.300*( 0.60*sin(11.344*time) + 0.40*sin(1.041*time) );
+wave_b = wave_b + 0.250*( 0.60*sin(21.251*time) + 0.40*sin(1.355*time) );
+rot = 0.01* (0.60*sin(0.381*time) + 0.40*sin(0.579*time) );
+cx = cx + 0.060*sin(0.374*time) + 0.040*sin(0.294*time);
+cy = cy + 0.060*sin(0.393*time) + 0.040*sin(0.223*time);
+decay=below(sin(1.5*time),0.95)*0.15+0.85
+
+per_vertex:
+zoom=1+sin(sin(42*cos(0.5*time)*rad)+bass)*0.1-0.03*cos(x/y)

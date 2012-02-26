@@ -46,8 +46,12 @@ mv_r=1.000000
 mv_g=1.000000
 mv_b=1.000000
 mv_a=0.000000
-per_frame=video_a=above(sin(13*time),0.95)
-per_frame=wave_r = wave_r + 0.120*( 0.60*sin(0.733*time) + 0.40*sin(0.345*time) );
-per_frame=wave_g = wave_g + 0.120*( 0.60*sin(0.600*time) + 0.40*sin(0.456*time) );
-per_frame=wave_b = wave_b + 0.100*( 0.60*sin(0.510*time) + 0.40*sin(0.550*time) );
-per_vertex=rot=rot*(-0.2+sqr(cos(rad*8+x-time*0.8)));
+
+per_frame:
+video_a=above(sin(13*time),0.95)
+wave_r = wave_r + 0.120*( 0.60*sin(0.733*time) + 0.40*sin(0.345*time) );
+wave_g = wave_g + 0.120*( 0.60*sin(0.600*time) + 0.40*sin(0.456*time) );
+wave_b = wave_b + 0.100*( 0.60*sin(0.510*time) + 0.40*sin(0.550*time) );
+
+per_vertex:
+rot=rot*(-0.2+sqr(cos(rad*8+x-time*0.8)));

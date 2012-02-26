@@ -8,8 +8,12 @@ ob_b=1
 ib_a=1
 ib_size=0.01
 rot=0.1
-per_frame=ob_r=0.5+0.2*sin(4.2*time+8)
-per_frame=ob_g=0.5+0.2*sin(2.5*time+9)
-per_frame=ob_b=0.5+0.2*sin(6.34*time+3)
-per_vertex=dx=0.08*sin(20*y)*cos(time)
-per_vertex=dy=0.08*sin(20*x)*sin(time)
+
+per_frame:
+ob_r = 0.5+0.2*sin(4.2*time+8)
+ob_g = 0.5+0.2*sin(2.5*time+9)
+ob_b = 0.5+0.2*sin(6.34*time+3)
+
+per_vertex:
+dx = 0.08*sin(20*y)*cos(time)
+dy = 0.08*sin(20*x)*sin(time)

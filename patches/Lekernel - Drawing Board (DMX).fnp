@@ -1,2 +1,3 @@
-per_frame=video_a=0.4*idmx1
-per_frame=decay=below(sin(1.5*time),0.95)*0.15+0.85
+per_frame:
+video_a=0.4*idmx1
+decay=below(sin(1.5*time),0.95)*0.15+0.85

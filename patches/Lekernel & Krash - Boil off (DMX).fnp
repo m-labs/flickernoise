@@ -41,26 +41,30 @@ mv_r=1
 mv_g=1
 mv_b=1
 mv_a=0
-per_frame=video_a=0.4*idmx1
-per_frame=decay=1-video_a
-per_frame=q1 = (bass_att + mid_att + treb_att) /3;
-per_frame=q2 = time + 1000;
-per_frame=bass_thresh = above(bass_att,bass_thresh)*2 + (1-above(bass_att,bass_thresh))*((bass_thresh-1.4)*0.95+1.4);
-per_frame=treb_thresh = above(treb_att,treb_thresh)*2 + (1-above(treb_att,treb_thresh))*((treb_thresh-1.5)*0.85+1.2);
-per_frame=bass_on = above(bass_thresh,1.9);
-per_frame=treb_on = above(treb_thresh,1.9);
-per_frame=swapcolour = bass_on - treb_on;
-per_frame=red_aim = if(equal(swapcolour,1),1,if(equal(swapcolour,0),0.9,0.7));
-per_frame=green_aim = if(equal(swapcolour,1),0.7,if(equal(swapcolour,0),0.3,0.6));
-per_frame=blue_aim = if(equal(swapcolour,1),0,if(equal(swapcolour,0),0.2,0.8));
-per_frame=red = red + (red_aim - red)*0.5;
-per_frame=green = green + (green_aim - green)*0.5;
-per_frame=blue = blue + (blue_aim - blue)*0.5;
-per_frame=wave_r = red;
-per_frame=wave_g = green;
-per_frame=wave_b = blue;
-per_vertex=dy = 0.1*(1-q1);
-per_vertex=dy = below(dy,0.02)*dy - 0.02;
-per_vertex=w=time%20
-per_vertex=dy = idmx2*(dy + 0.01*(sin((x*q2*0.483*w) + (y*q2*1.238)) + sin((x*q2*1.612) + (y*q2*0.648))));
-per_vertex=dx = idmx2*0.01*(sin((y*q2*0.43) + (x*q2*1.28*w)) + sin((y*q2*1.62) + (x*q2*0.68*idmx2)))
+
+per_frame:
+video_a=0.4*idmx1
+decay=1-video_a
+q1 = (bass_att + mid_att + treb_att) /3;
+q2 = time + 1000;
+bass_thresh = above(bass_att,bass_thresh)*2 + (1-above(bass_att,bass_thresh))*((bass_thresh-1.4)*0.95+1.4);
+treb_thresh = above(treb_att,treb_thresh)*2 + (1-above(treb_att,treb_thresh))*((treb_thresh-1.5)*0.85+1.2);
+bass_on = above(bass_thresh,1.9);
+treb_on = above(treb_thresh,1.9);
+swapcolour = bass_on - treb_on;
+red_aim = if(equal(swapcolour,1),1,if(equal(swapcolour,0),0.9,0.7));
+green_aim = if(equal(swapcolour,1),0.7,if(equal(swapcolour,0),0.3,0.6));
+blue_aim = if(equal(swapcolour,1),0,if(equal(swapcolour,0),0.2,0.8));
+red = red + (red_aim - red)*0.5;
+green = green + (green_aim - green)*0.5;
+blue = blue + (blue_aim - blue)*0.5;
+wave_r = red;
+wave_g = green;
+wave_b = blue;
+
+per_vertex:
+dy = 0.1*(1-q1);
+dy = below(dy,0.02)*dy - 0.02;
+w=time%20
+dy = idmx2*(dy + 0.01*(sin((x*q2*0.483*w) + (y*q2*1.238)) + sin((x*q2*1.612) + (y*q2*0.648))));
+dx = idmx2*0.01*(sin((y*q2*0.43) + (x*q2*1.28*w)) + sin((y*q2*1.62) + (x*q2*0.68*idmx2)))

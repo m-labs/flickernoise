@@ -3,5 +3,7 @@ decay=0.8
 fVideoEchoZoom=0.999514
 fVideoEchoAlpha=0.500000
 nVideoEchoOrientation=1
-per_frame=zoom=1+0.1*sin(time)
-per_frame=rot=0.06*sin(1.3*time)
+
+per_frame:
+zoom = 1+0.1*sin(time)
+rot = 0.06*sin(1.3*time)
