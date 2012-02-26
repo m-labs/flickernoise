@@ -93,16 +93,16 @@ per_frame:
 	image2_a = alpha2;
 
 	f1 = f1+(speed1-off1)*scale;
-	f1 = f1 < 0 ? f1+24 : f1;
-	f1 = f1 >= 24 ? f1-24 : f1;
+	f1 = f1+24 if f1 < 0;
+	f1 = f1-24 if f1 >= 24;
 	off1 = reset1 ? speed1 : start1 ? speed1-1/scale : off1;
-	off1 = rev1 ? 2*speed1-off1 : off1;
+	off1 = 2*speed1-off1 if rev1;
 
 	f2 = f2+(speed2-off2)*scale;
-	f2 = f2 < 0 ? f2+24 : f2;
-	f2 = f2 >= 24 ? f2-24 : f2;
+	f2 = f2+24 if f2 < 0;
+	f2 = f2-24 if f2 >= 24;
 	off2 = reset2 ? speed2 : start2 ? speed2-1/scale : off2;
-	off2 = rev2 ? 2*speed2-off2 : off2;
+	off2 = 2*speed2-off2 if rev2;
 
 	image1_index = f1;
 	image2_index = f2;
