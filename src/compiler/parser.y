@@ -158,11 +158,15 @@ static struct ast_node *constant(float n)
 static struct ast_node *conditional(struct ast_node *a,
     struct ast_node *b, struct ast_node *c)
 {
-	if(a->op == op_bnot) {
+	while(a->op == op_bnot) {
 		struct ast_node *next = a->contents.branches.a;
+		struct ast_node *tmp;
 
 		parse_free_one(a);
-		return node_op(op_if, next, c, b);
+		a = next;
+		tmp = b;
+		b = c;
+		c = tmp;
 	}
 	if(a->op != op_constant)
 		return node_op(op_if, a, b, c);
