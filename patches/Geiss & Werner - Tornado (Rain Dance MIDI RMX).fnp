@@ -28,14 +28,46 @@ wave_g=0.600000
 wave_b=0.600000
 wave_x=0.500000
 wave_y=0.500000
-per_frame=wave_scale=midi4*20;
-per_frame=t=time*midi8*5;
-per_frame=wave_r = midi5*( 0.60*sin(0.933*t) + 0.40*sin(1.045*t) );
-per_frame=wave_g = midi6*( 0.60*sin(0.900*t) + 0.40*sin(0.956*t) );
-per_frame=wave_b = midi7*( 0.60*sin(0.910*t) + 0.40*sin(0.920*t) );
-per_frame=zoom = zoom + 0.023*( 0.60*sin(0.339*time) + 0.40*sin(0.276*time) );
-per_frame=rot = rot + 0.030*( 0.60*sin(0.381*time) + 0.40*sin(0.579*time) );
-per_frame=rot=midi1*2;
-per_frame=wave_x=0.5+midi3/5;
-per_frame=zoom=0.9+midi2/5;
-per_vertex=rot = rot + (rad-0.4)*1.7*max(0,min((bass_att-1.1)*1.5,5));
+
+/*
+ * Example for converting a patch using old-style midiN variables to the
+ * new-style MIDI database.
+ *
+ * An extended and more radically modernized version of this patch can be
+ * found under demo/raindance/
+ */
+
+midi "iCon i-creativ" {
+	padx = fader(12);
+	pady = fader(13);
+	fader = fader(7);
+	e1 = pot(40);
+	vfader1 = fader(102);
+	vfader2 = fader(103);
+	vfader3 = fader(104);
+	vfader4 = fader(105);
+}
+
+midi1 = range(padx);
+midi2 = range(pady);
+midi3 = range(fader);
+midi4 = range(e1);
+midi5 = range(vfader1);
+midi6 = range(vfader2);
+midi7 = range(vfader3);
+midi8 = range(vfader4);
+
+per_frame:
+wave_scale=midi4*20;
+t=time*midi8*5;
+wave_r = midi5*( 0.60*sin(0.933*t) + 0.40*sin(1.045*t) );
+wave_g = midi6*( 0.60*sin(0.900*t) + 0.40*sin(0.956*t) );
+wave_b = midi7*( 0.60*sin(0.910*t) + 0.40*sin(0.920*t) );
+zoom = zoom + 0.023*( 0.60*sin(0.339*time) + 0.40*sin(0.276*time) );
+rot = rot + 0.030*( 0.60*sin(0.381*time) + 0.40*sin(0.579*time) );
+rot=midi1*2;
+wave_x=0.5+midi3/5;
+zoom=0.9+midi2/5;
+
+per_vertex:
+rot = rot + (rad-0.4)*1.7*max(0,min((bass_att-1.1)*1.5,5));
