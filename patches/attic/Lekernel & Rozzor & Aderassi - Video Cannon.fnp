@@ -1,0 +1,59 @@
+fDecay=0.9
+fVideoEchoZoom=1.000000
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=1
+nWaveMode=0
+bAdditiveWaves=0
+bWaveDots=0
+bWaveThick=1
+bMaximizeWaveColor=0
+bTexWrap=1
+fWaveAlpha=100.000000
+fWaveScale=0.463937
+fWarpAnimSpeed=1.000000
+fWarpScale=1.000000
+zoom=1.000000
+rot=0.000000
+cx=0.500000
+cy=0.500000
+dx=0.000010
+dy=0.000010
+warp=0.010000
+sx=1.000000
+sy=1.000000
+wave_r=0.600000
+wave_g=0.600000
+wave_b=0.600000
+wave_x=0.500000
+wave_y=0.100000
+ob_size=0.00000
+ob_r=1.000000
+ob_g=1.000000
+ob_b=1.000000
+ob_a=1.000000
+ib_size=0.0000
+ib_r=1.000000
+ib_g=1.000000
+ib_b=1.000000
+ib_a=1.000000
+nMotionVectorsX=0.000000
+nMotionVectorsY=0.000000
+mv_dx=0.000000
+mv_dy=0.000000
+mv_l=1.000000
+mv_r=1.000000
+mv_g=1.000000
+mv_b=1.000000
+mv_a=0.000000
+dmx1=1.0
+video_a=0.7
+per_frame=kick = if(above(bass_att,kick), 2, kick*0.96);
+per_frame=dx_r = equal(kick,2)*0.018*sin(6*time) + (1-equal(kick,2))*dx_r;
+per_frame=dy_r = equal(kick,2)*0.015*sin(7*time) + (1-equal(kick,2))*dy_r;
+per_frame=dy = dy + 2*dy_r * 0.5*sin(0.8*time);
+per_frame=dx = dx + 2*dx_r * 0.5*sin(time);
+per_frame=warp = warp + if (below(kick,0), 0.5*treb, 0);
+per_frame=q2 = kick;
+per_frame=decay=below(sin(1.5*time),0.95)*0.15+0.85
+per_vertex=rot = rot + 0.3*(0.2*sin(1-rad)*5 - 0.2*sin(0.05*rad)*5) * q2;
+per_vertex=cx = if(above(dy,-.5),1-rot * 2,rot*q2);

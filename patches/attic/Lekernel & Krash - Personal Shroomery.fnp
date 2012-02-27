@@ -1,0 +1,8 @@
+nWaveMode=0
+zoom=0.9
+rot=0.1
+video_a=0.8
+ob_a=1
+ob_size=0.01
+per_vertex=dx=0.08*sin(20*y)*cos(time)
+per_vertex=dy=0.08*sin(20*x)*sin(time)

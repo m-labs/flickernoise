@@ -1,0 +1,19 @@
+fDecay=0.95
+fVideoEchoZoom=1
+fVideoEchoAlpha=0.5
+nVideoEchoOrientation=1
+nWaveMode=0
+bMaximizeWaveColor=1
+bTexWrap=1
+fWarpAnimSpeed=1
+fWarpScale=1
+zoom=1
+video_a=0.6
+per_frame=cx = cx + 0.225*( 0.60*sin(0.350*time) + 0.40*sin(0.350*time) );
+per_frame=cy = cy + 0.225*( 0.60*sin(0.350*time) + 0.40*sin(0.350*time) );
+per_frame=dx = 0.005 + 0.002*( 0.60*sin(0.234*time) + 0.40*sin(0.277*time) );
+per_frame=dy = 0.005 + 0.002*( 0.60*sin(0.234*time) + 0.40*sin(0.277*time) );
+per_frame=dx_residual=max(bass, bass_att)-1;
+per_frame=dy_residual=min(bass, bass_att)-1;
+per_frame=dx = if(above(bass_att+bass,2.8),0.25,dx);
+per_vertex=rot = 0.03*sin(0.84*time)-0.013*cos(0.784*time)+0.02*sin(1-rad);

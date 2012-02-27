@@ -1,0 +1,67 @@
+fDecay=1.000000
+fVideoEchoZoom=0.999600
+fVideoEchoAlpha=0.500000
+nVideoEchoOrientation=0
+nWaveMode=7
+bAdditiveWaves=0
+bWaveDots=0
+bWaveThick=0
+bMaximizeWaveColor=1
+bTexWrap=1
+fWaveAlpha=0.001000
+fWaveScale=0.763002
+fWarpAnimSpeed=5.995790
+fWarpScale=1.331000
+zoom=0.998531
+rot=0.000000
+cx=0.500000
+cy=0.500000
+dx=0.000000
+dy=0.000000
+warp=0.010000
+sx=1.000000
+sy=1.000000
+wave_r=0.500000
+wave_g=0.500000
+wave_b=0.500000
+wave_x=0.500000
+wave_y=0.500000
+ob_size=0.010000
+ob_r=0.000000
+ob_g=0.900000
+ob_b=0.200000
+ob_a=1.000000
+ib_size=0.000000
+ib_r=0.500000
+ib_g=0.500000
+ib_b=0.500000
+ib_a=0.230000
+nMotionVectorsX=0.000000
+nMotionVectorsY=48.000000
+mv_dx=0.000000
+mv_dy=0.000000
+mv_l=5.000000
+mv_r=1.000000
+mv_g=1.000000
+mv_b=1.000000
+mv_a=0.000000
+warp=0
+per_frame=ob_r = 0.7 - 0.3*(0.5*sin(time*0.701)+ 0.3*cos(time*0.438));
+per_frame=ob_g = 0.5- 0.4*sin(time*5.924);
+per_frame=ob_b = 0.45 - 0.3*cos(time*0.816);
+per_frame=beat = above(bass,0.6);
+per_frame=q5 = if(beat,100*sin(time),q5);
+per_frame=q3 = if(beat,100*sin(time),q3);
+per_frame=oldq3 = q3;
+per_frame=ib_size = 0.02;
+per_frame=ib_r = ib_r + 0.5*sin(time*2.424);
+per_frame=ib_g = ib_g + 0.5*sin(time*2.247);
+per_frame=ib_b = ib_b - 0.5*sin(time*1.131);
+per_frame=dx = dx -0.008*(0.6*sin(time*0.23)+0.5*cos(time*0.153));
+per_frame=dy = dy - 0.008*(0.6*sin(time*0.21)+0.5*cos(time*0.142));
+per_frame=fVideoEchoZoom=fVideoEchoZoom-.3*sin(time*(q5*0.01));
+per_vertex=box=abs(x*2-0.4*sin(q3)) + abs(y*2+0.4*sin(q5));
+per_vertex=q1 = 4.05+(sin(x+0.237*time)-cos(y+0.513*time));
+per_vertex=zoom = if(above(box,1),q1*.1,zoom);
+per_vertex=rot = if(above(box,1),sin(0.885*time),0)*(x+y)-rad*sin(q5)*0.5
+

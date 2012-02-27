@@ -1,0 +1,20 @@
+fDecay=0.9
+nWaveMode=0
+bTexWrap=0
+fWarpAnimSpeed=53.523884
+fWarpScale=0.408391
+zoom=1
+rot=0
+cx=0.5
+cy=0.5
+dx=0
+dy=0
+warp=1
+sx=1
+sy=1
+video_a=0.5
+per_frame=q1 = (bass_att + mid_att + treb_att)*0.3;
+per_frame=q2=time+1000
+per_vertex=dy = 0.1*(1-q1);
+per_vertex=dy = below(dy,0.02)*dy - 0.02;
+per_vertex=dy = dy + 0.01*(sin((x*q2*0.483) + (y*q2*1.238)) + sin((x*q2*1.612) + (y*q2*0.648)));

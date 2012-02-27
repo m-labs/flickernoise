@@ -1,0 +1,20 @@
+fDecay=0.900000
+nWaveMode=0
+bTexWrap=1
+fWarpAnimSpeed=1.000000
+fWarpScale=1.772000
+zoom=1.099000
+rot=0.000000
+cx=0.500000
+cy=0.500000
+warp=0.290000
+video_a=0.7
+per_frame=zoom = zoom + 0.010*( 0.60*sin(0.339*time) + 0.40*sin(0.276*time) );
+per_frame=rot = rot + 0.035*( 0.60*sin(0.381*time) + 0.40*sin(0.539*time) );
+per_frame=cx = cx + 0.030*( 0.60*sin(0.374*time) + 0.40*sin(0.194*time) );
+per_frame=cy = cy + 0.037*( 0.60*sin(0.274*time) + 0.40*sin(0.394*time) );
+per_frame=q = time;
+per_frame=dx = dx + 0.019*( 0.60*sin(100.334*q)+ 0.40*sin(250.277*q));
+per_frame=dy = dy + 0.019*( 0.60*sin(200.384*q) + 0.40*sin(150.247*q));
+per_frame=sx = sx + 0.010*( 0.60*sin(0.313*time) + 0.40*sin(0.383*time) );
+per_vertex=rot=rot+rad*0.18*sin(0.6*time*0.439+0.4*time*0.338);

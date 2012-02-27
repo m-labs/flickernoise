@@ -1,0 +1,58 @@
+fDecay=1.000000
+fVideoEchoZoom=1.000000
+fVideoEchoAlpha=0.000000
+nVideoEchoOrientation=3
+nWaveMode=6
+bAdditiveWaves=1
+bWaveDots=0
+bWaveThick=1
+bMaximizeWaveColor=0
+bTexWrap=1
+fWaveAlpha=1.000000
+fWaveScale=1.599179
+fWarpAnimSpeed=1.000000
+fWarpScale=1.000000
+zoom=1.000000
+rot=0.000000
+cx=0.500000
+cy=0.500000
+dx=0.000000
+dy=0.000000
+warp=0
+sx=1.000000
+sy=1.000000
+wave_r=0.410000
+wave_g=0.400000
+wave_b=0.400000
+wave_x=0.500000
+wave_y=0.500000
+ob_size=0.005000
+ob_r=0.000000
+ob_g=0.000000
+ob_b=0.000000
+ob_a=1.000000
+ib_size=0.000000
+ib_r=0.000000
+ib_g=0.000000
+ib_b=0.000000
+ib_a=0.000000
+nMotionVectorsX=12.000000
+nMotionVectorsY=9.000000
+mv_dx=0.000000
+mv_dy=0.000000
+mv_l=0.900000
+mv_r=1.000000
+mv_g=1.000000
+mv_b=1.000000
+mv_a=0.000000
+per_frame=bass_on=if(above(bass_att,1.3),1,0);
+per_frame=treb_on=if(above(treb_att,1.3),1,0);
+per_frame=state = 1 + bass;
+per_frame=wave_r = wave_r + 0.25*(0.6*sin(0.784*time) + 0.4*sin(0.986*time))*state;
+per_frame=wave_g = wave_g + 0.25*(0.6*sin(0.671*time) + 0.4*sin(1.164*time))*(4-state);
+per_frame=wave_b = wave_b + 0.25*(0.6*sin(1.423*time) + 0.4*sin(0.687*time))*(4/state);
+per_frame=wave_x=if(below(state,1.7),wave_x+.1*sin(time*13),wave_x);
+per_frame=net_effect = bass+0.3;
+per_frame=zoom = 0.99 * net_effect;
+per_frame=rot = 0.03 * net_effect * sin(time);
+per_frame=wave_size=6*state + 3;
