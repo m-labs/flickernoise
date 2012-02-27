@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
 #include <assert.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -22,6 +23,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <rtems.h>
+#include <system_conf.h>
 #include <bsp/milkymist_usbinput.h>
 
 #include "usbfirmware.h"
@@ -35,12 +37,37 @@ static struct usbinput_firmware_description firmware_desc = {
 	.length = sizeof(input_firmware)
 };
 
-void load_usb_firmware(void)
+static void do_load_usb_firmware(
+    const struct usbinput_firmware_description *dsc)
 {
 	int fd;
 	
 	fd = open("/dev/usbinput", O_RDONLY);
-	ioctl(fd, USBINPUT_LOAD_FIRMWARE, &firmware_desc);
+	ioctl(fd, USBINPUT_LOAD_FIRMWARE, dsc);
 	assert(fd != -1);
 	close(fd);
+}
+
+void load_usb_firmware(void)
+{
+	do_load_usb_firmware(&firmware_desc);
+}
+
+int load_usb_firmware_file(const char *name)
+{
+	FILE *file;
+	unsigned char buf[SOFTUSB_PMEM_SIZE];
+	struct usbinput_firmware_description dsc = {
+		.data = buf,
+	};
+
+	file = fopen(name, "r");
+	if(!file)
+		return 0;
+	dsc.length = fread(buf, 1, sizeof(buf), file);
+	fclose(file);
+	if(dsc.length <= 0)
+		return 0;
+	do_load_usb_firmware(&dsc);
+	return 1;
 }

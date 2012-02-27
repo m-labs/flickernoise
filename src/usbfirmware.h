@@ -19,5 +19,6 @@
 #define __USBFIRMWARE_H
 
 void load_usb_firmware(void);
+int load_usb_firmware_file(const char *name);
 
 #endif /* __USBFIRMWARE_H */
