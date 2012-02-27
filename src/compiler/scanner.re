@@ -21,7 +21,6 @@
 #include <malloc.h>
 
 #include "symtab.h"
-#include "parser_itf.h" /* for syntax_is_new_style */
 #include "scanner.h"
 
 #define YYCTYPE     unsigned char
@@ -147,8 +146,7 @@ int scan(struct scanner *s)
 		<N>"f2i"		{ return TOK_F2I; }
 		<N>"icos"		{ return TOK_ICOS; }
 		<N>"i2f"		{ return TOK_I2F; }
-		<N>"if"			{ return syntax_is_new_style ?
-					    TOK_IF_NEW : TOK_IF; }
+		<N>"if"			{ return TOK_IF; }
 		<N>"int"		{ return TOK_INT; }
 		<N>"invsqrt"		{ return TOK_INVSQRT; }
 		<N>"isin"		{ return TOK_ISIN; }

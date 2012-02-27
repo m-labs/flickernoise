@@ -35,7 +35,6 @@
 
 
 struct yyParser;
-int syntax_is_new_style = 0;
 static void yy_parse_failed(struct yyParser *yypParser);
 
 typedef const char *(*assign_callback)(struct parser_comm *comm,
@@ -59,7 +58,6 @@ static struct stim_db_midi *midi_dev;
 			return;					\
 		}						\
 		state->style = which;				\
-		syntax_is_new_style = which == new_style;	\
 	} while (0)
 
 static const enum ast_op tok2op[] = {
@@ -81,7 +79,6 @@ static const enum ast_op tok2op[] = {
 	[TOK_I2F]	= op_i2f,
 	[TOK_F2I]	= op_f2i,
 	[TOK_IF]	= op_if,
-	[TOK_IF_NEW]	= op_if,
 	[TOK_TSIGN]	= op_tsign,
 	[TOK_QUAKE]	= op_quake,
 	[TOK_SQR]	= op_sqr,
@@ -371,8 +368,8 @@ assignment ::= ident(I) TOK_ASSIGN expr(N) opt_if(IF) opt_semi. {
 	parse_free(N);
 }
 
-opt_if(IF) ::= .			{ IF = NULL; }
-opt_if(IF) ::= TOK_IF_NEW expr(E).	{ IF = E; }
+opt_if(IF) ::= .		{ IF = NULL; }
+opt_if(IF) ::= TOK_IF expr(E).	{ IF = E; }
 
 
 /* ----- MIDI device database ---------------------------------------------- */
@@ -784,11 +781,6 @@ primary_expr(N) ::= TOK_IF TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_COMMA
 	N = conditional(A, B, C);
 }
 
-primary_expr(N) ::= TOK_IF_NEW TOK_LPAREN expr(A) TOK_COMMA expr(B) TOK_COMMA
-    expr(C) TOK_RPAREN. {
-	N = conditional(A, B, C);
-}
-
 
 /* ----- Primary expressions ----------------------------------------------- */
 
@@ -848,7 +840,6 @@ ident(O) ::= unary(I).		{ O = symbolify(I); }
 ident(O) ::= unary_misc(I).	{ O = symbolify(I); }
 ident(O) ::= binary(I).		{ O = symbolify(I); }
 ident(O) ::= binary_misc(I).	{ O = symbolify(I); }
-ident(O) ::= ternary(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_MIDI(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_FADER(I).	{ O = symbolify(I); }
 ident(O) ::= TOK_POT(I).	{ O = symbolify(I); }
@@ -881,5 +872,3 @@ binary(O) ::= TOK_EQUAL(I).	{ O = I; }
 binary(O) ::= TOK_MAX(I).	{ O = I; }
 binary(O) ::= TOK_MIN(I).	{ O = I; }
 binary_misc(O) ::= TOK_TSIGN(I).	{ O = I; }
-
-ternary(O) ::= TOK_IF(I).	{ O = I; }

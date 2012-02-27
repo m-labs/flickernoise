@@ -54,8 +54,6 @@ struct parser_state {
 	} style; 
 };
 
-extern int syntax_is_new_style;
-
 void *ParseAlloc(void *(*mallocProc)(size_t));
 void ParseFree(void *p, void (*freeProc)(void*));
 void Parse(void *yyp, int yymajor, struct id *yyminor,
