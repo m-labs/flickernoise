@@ -79,18 +79,41 @@ equiv1()
 
 equiv2()
 {
+	#
+	# "plus" and "minus" are adjusted up by one to ignore also the +++ and
+	# --- lines at the beginning of the diff. On output, this adjustment
+	# is hidden from the user.
+	#
+
+	plus=0
+	minus=0
+	while [ "$1" ]; do
+		case "$1" in
+			+[0-9]*)	plus=`expr ${1#+} + 1`;;
+			-[0-9]*)	minus=`expr ${1#-} + 1`;;
+			*)		break;;
+		esac
+		shift
+	done
 	$VALGRIND ${PTST:-../ptest/ptest} "$@" >_two 2>&1 || {
 		echo FAILED "($SCRIPT)" 1>&2
 		cat _two
 		rm -f _out _two
 		exit 1
 	}
-	diff -u _out _two >_diff || {
+	diff -u _out _two >_diff
+	if [ `grep -c '^+' _diff` -ne $plus ] ||
+	   [ `grep -c '^-' _diff` -ne $minus ]; then
 		echo FAILED "($SCRIPT)" 1>&2
 		cat _diff 1>&2
+		if [ $plus != 0 -o $minus != 0 ]; then
+			[ $plus = 0 ] || plus=`expr $plus - 1`
+			[ $minus = 0 ] || minus=`expr $minus - 1`
+			echo "(Ignoring +$plus -$minus)" 1>&2
+		fi
 		rm -f _out _two _diff
 		exit 1
-	}
+	fi
 	echo PASSED 1>&2
 	rm -f _out _two _diff
 	passed=`expr ${passed:-0} + 1`
