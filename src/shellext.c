@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
+#include <assert.h>
 #include <bsp/milkymist_pfpu.h>
 #include <bsp/milkymist_tmu.h>
 
@@ -250,6 +250,7 @@ static int main_pfpu(int argc, char **argv)
 #define	COMLOC_DEBUG(offset)	COMLOCV(SOFTUSB_DMEM_BASE+0x1001+(offset))
 
 static uint8_t debug_consume = 0;
+static volatile int keypress_wait;
 
 static void usb_debug_flush(void)
 {
@@ -266,24 +267,41 @@ static void usb_debug_flush(void)
 		putchar('\n');
 }
 
+static rtems_task keypress_task(rtems_task_argument argument)
+{
+	char buf[1];
+
+	read(0, buf, 1);
+	keypress_wait = 0;
+	rtems_task_delete(RTEMS_SELF);
+}
+
 static int usb_debug(int argc, char **argv)
 {
-	unsigned long n = 0;
-	char *end;
-	time_t t;
+	rtems_id task_id;
+	rtems_status_code sc;
 
-	if(argc == 2) {
-		n = strtoul(argv[1], &end, 0);
-		if(*end) {
-			fprintf(stderr, "invalid interval: \"%s\"\n", argv[1]);
-			return 1;
-		}
+	if(argc == 1) {
+		usb_debug_flush();
+		return 0;
 	}
 
-	time(&t);
-	t += n;
-	do usb_debug_flush();
-	while (time(NULL) < t);
+	keypress_wait = 1;
+
+	sc =  rtems_task_create(rtems_build_name('U', 'D', 'B', 'G'),
+            //2, 10*1024 /*RTEMS_MINIMUM_STACK_SIZE*/,
+            2, RTEMS_MINIMUM_STACK_SIZE,
+	    RTEMS_PREEMPT | RTEMS_NO_TIMESLICE | RTEMS_NO_ASR,
+	    0, &task_id);
+	assert(sc == RTEMS_SUCCESSFUL);
+	sc = rtems_task_start(task_id, keypress_task, 0);
+	assert(sc == RTEMS_SUCCESSFUL);
+
+	do {
+		usb_debug_flush();
+		rtems_task_wake_after(1);
+	}
+	while(keypress_wait);
 
 	return 0;
 }
@@ -302,7 +320,7 @@ static void usb_usage(void)
 {
 	printf("  usb [help]\n");
 	printf("  usb load file\n");
-	printf("  usb debug [seconds]\n");
+	printf("  usb debug [wait]\n");
 }
 
 static int main_usb(int argc, char **argv)
@@ -313,7 +331,8 @@ static int main_usb(int argc, char **argv)
 	}
 	if(!strcmp(argv[1], "load") && argc == 3)
 		return usb_load(argc-1, argv+1);
-	if(!strcmp(argv[1], "debug") && (argc == 2 || argc == 3))
+	if(!strcmp(argv[1], "debug") &&
+	    (argc == 2 || (argc == 3 && !strcmp(argv[2], "wait"))))
 		return usb_debug(argc-1, argv+1);
 	usb_usage();
 	return 1;
