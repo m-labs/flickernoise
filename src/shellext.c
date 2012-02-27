@@ -231,7 +231,7 @@ static int main_pfpu(int argc, char **argv)
 
 static uint8_t debug_consume = 0;
 
-static void navre_debug_flush(void)
+static void usb_debug_flush(void)
 {
 	int nl = 1;
 	char c;
@@ -246,7 +246,7 @@ static void navre_debug_flush(void)
 		putchar('\n');
 }
 
-static int navre_debug(int argc, char **argv)
+static int usb_debug(int argc, char **argv)
 {
 	unsigned long n = 0;
 	char *end;
@@ -262,13 +262,13 @@ static int navre_debug(int argc, char **argv)
 
 	time(&t);
 	t += n;
-	do navre_debug_flush();
+	do usb_debug_flush();
 	while (time(NULL) < t);
 
 	return 0;
 }
 
-static int navre_load(int argc, char **argv)
+static int usb_load(int argc, char **argv)
 {
 	if(!load_usb_firmware_file(argv[1])) {
 		fprintf(stderr, "load failed\n");
@@ -278,24 +278,24 @@ static int navre_load(int argc, char **argv)
 	return 0;
 }
 
-static void navre_usage(void)
+static void usb_usage(void)
 {
-	printf("  navre [help]\n");
-	printf("  navre load file\n");
-	printf("  navre debug [seconds]\n");
+	printf("  usb [help]\n");
+	printf("  usb load file\n");
+	printf("  usb debug [seconds]\n");
 }
 
-static int main_navre(int argc, char **argv)
+static int main_usb(int argc, char **argv)
 {
 	if(argc < 2 || !strcmp(argv[1], "help")) {
-		navre_usage();
+		usb_usage();
 		return 0;
 	}
 	if(!strcmp(argv[1], "load") && argc == 3)
-		return navre_load(argc-1, argv+1);
+		return usb_load(argc-1, argv+1);
 	if(!strcmp(argv[1], "debug") && (argc == 2 || argc == 3))
-		return navre_debug(argc-1, argv+1);
-	navre_usage();
+		return usb_debug(argc-1, argv+1);
+	usb_usage();
 	return 1;
 }
 
@@ -345,10 +345,10 @@ rtems_shell_cmd_t shellext_pfpu = {
 };
 
 rtems_shell_cmd_t shellext = {
-	"navre",			/* name */
-	"navre command ...",		/* usage */
+	"usb",				/* name */
+	"usb command ...",		/* usage */
 	"flickernoise",			/* topic */
-	main_navre,			/* command */
+	main_usb,			/* command */
 	NULL,				/* alias */
 	&shellext_pfpu			/* next */
 };
