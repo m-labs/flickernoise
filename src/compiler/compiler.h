@@ -246,7 +246,17 @@ struct patch {
 };
 
 typedef void (*report_message)(const char *);
-struct compiler_sc;
+
+struct compiler_sc {
+	struct patch *p;
+
+	const char *basedir;
+	report_message rmc;
+	int linenr;
+
+	struct fpvm_fragment pfv_fragment;
+	struct fpvm_fragment pvv_fragment;
+};
 
 void init_fpvm(struct fpvm_fragment *fragment, int vector_mode);
 

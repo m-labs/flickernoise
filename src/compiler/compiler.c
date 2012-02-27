@@ -37,17 +37,6 @@
 
 #include "infra-fnp.h"
 
-struct compiler_sc {
-	struct patch *p;
-
-	const char *basedir;
-	report_message rmc;
-	int linenr;
-
-	struct fpvm_fragment pfv_fragment;
-	struct fpvm_fragment pvv_fragment;
-};
-
 static void comp_report(struct compiler_sc *sc, const char *format, ...)
 {
 	va_list args;
