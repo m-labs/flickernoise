@@ -42,6 +42,10 @@
 #define	PFPU_SPREG_COUNT 2
 #endif
 
+
+/* ----- viread/viwrite ---------------------------------------------------- */
+
+
 static int main_viwrite(int argc, char **argv)
 {
 	unsigned int reg, val;
@@ -97,6 +101,10 @@ static int main_viread(int argc, char **argv)
 	return 0;
 }
 
+
+/* ----- erase ------------------------------------------------------------- */
+
+
 static int main_erase(int argc, char **argv)
 {
 	int fd;
@@ -148,6 +156,10 @@ static int main_erase(int argc, char **argv)
 	return 0;
 }
 
+
+/* ----- fbgrab ------------------------------------------------------------ */
+
+
 static int main_fbgrab(int argc, char **argv)
 {
 	int ret = 0;
@@ -159,6 +171,10 @@ static int main_fbgrab(int argc, char **argv)
 
 	return ret;
 }
+
+
+/* ----- pfpu -------------------------------------------------------------- */
+
 
 static int main_pfpu(int argc, char **argv)
 {
@@ -221,6 +237,10 @@ static int main_pfpu(int argc, char **argv)
 
 	return 0;
 }
+
+
+/* ----- usb --------------------------------------------------------------- */
+
 
 #define	SOFTUSB_DMEM_BASE	(0xa0020000)
 #define	COMLOC(x)		(*(unsigned char *)(x))
@@ -298,6 +318,10 @@ static int main_usb(int argc, char **argv)
 	usb_usage();
 	return 1;
 }
+
+
+/* ----- Command definitions ----------------------------------------------- */
+
 
 static rtems_shell_cmd_t shellext_viwrite = {
 	"viwrite",			/* name */
