@@ -1,0 +1,27 @@
+#!/bin/sh
+. ./Common
+. ./Patches
+
+###############################################################################
+
+PATCHDIR=../../../patches
+
+check_eq()
+{
+	fix=
+	case "$n" in
+	"Lekernel - Pulsating photography.fnp")		fix="+4 -4";;
+	"Lekernel - Star Ballet (Bass Travel Mix).fnp")	fix="+5 -5";;
+	"Lekernel - Star Ballet (Fountain Mix).fnp")	fix="+7 -7";;
+	"Lekernel - Star Ballet.fnp")			fix="+4 -4";;
+	"Lekernel - Starpainter.fnp")			fix="+2 -2";;
+	esac
+
+	equiv1 "reform: $n" <"$PATCHDIR/attic/$n"
+	equiv2 $fix <"$PATCHDIR/$n"
+}
+
+
+foreach_patch check_eq
+
+###############################################################################
