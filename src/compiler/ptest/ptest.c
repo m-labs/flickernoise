@@ -420,6 +420,7 @@ static void compile(const char *pgm, int framework)
 	if (trace_var)
 		play_midi(patch);
 	symtab_free();
+	stim_put(patch->stim);
 	/*
 	 * We can't use patch_free here because that function also accesses
 	 * image data, which isn't available in standalone builds. A simple
