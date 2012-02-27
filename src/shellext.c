@@ -26,14 +26,17 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <bsp/milkymist_pfpu.h>
 #include <bsp/milkymist_tmu.h>
 
 #include "shellext.h"
 #include "fbgrab.h"
+#include "usbfirmware.h"
 
 #ifndef PFPU_SPREG_COUNT
 #define	PFPU_SPREG_COUNT 2
@@ -219,6 +222,83 @@ static int main_pfpu(int argc, char **argv)
 	return 0;
 }
 
+#define	SOFTUSB_DMEM_BASE	(0xa0020000)
+#define	COMLOC(x)		(*(unsigned char *)(x))
+#define	COMLOCV(x)		(*(volatile unsigned char *)(x))
+
+#define	COMLOC_DEBUG_PRODUCE	COMLOCV(SOFTUSB_DMEM_BASE+0x1000)
+#define	COMLOC_DEBUG(offset)	COMLOCV(SOFTUSB_DMEM_BASE+0x1001+(offset))
+
+static uint8_t debug_consume = 0;
+
+static void navre_debug_flush(void)
+{
+	int nl = 1;
+	char c;
+
+	while(debug_consume != COMLOC_DEBUG_PRODUCE) {
+		c = COMLOC_DEBUG(debug_consume);
+		putchar(c);
+		nl = c == '\n';
+                debug_consume++;
+        }
+	if(!nl)
+		putchar('\n');
+}
+
+static int navre_debug(int argc, char **argv)
+{
+	unsigned long n = 0;
+	char *end;
+	time_t t;
+
+	if(argc == 2) {
+		n = strtoul(argv[1], &end, 0);
+		if(*end) {
+			fprintf(stderr, "invalid interval: \"%s\"\n", argv[1]);
+			return 1;
+		}
+	}
+
+	time(&t);
+	t += n;
+	do navre_debug_flush();
+	while (time(NULL) < t);
+
+	return 0;
+}
+
+static int navre_load(int argc, char **argv)
+{
+	if(!load_usb_firmware_file(argv[1])) {
+		fprintf(stderr, "load failed\n");
+		return 2;
+	}
+	debug_consume = 0;
+	return 0;
+}
+
+static void navre_usage(void)
+{
+	printf("  navre [help]\n");
+	printf("  navre load file\n");
+	printf("  navre debug [seconds]\n");
+}
+
+static int main_navre(int argc, char **argv)
+{
+	if(argc < 2 || !strcmp(argv[1], "help")) {
+		navre_usage();
+		return 0;
+	}
+	if(!strcmp(argv[1], "load") && argc == 3)
+		return navre_load(argc-1, argv+1);
+	if(!strcmp(argv[1], "debug") && (argc == 2 || argc == 3))
+		return navre_debug(argc-1, argv+1);
+	navre_usage();
+	return 1;
+}
+
 static rtems_shell_cmd_t shellext_viwrite = {
 	"viwrite",			/* name */
 	"viwrite register value",	/* usage */
@@ -255,11 +335,20 @@ static rtems_shell_cmd_t shellext_fbgrab = {
 	&shellext_erase			/* next */
 };
 
-rtems_shell_cmd_t shellext = {
+rtems_shell_cmd_t shellext_pfpu = {
 	"pfpu",				/* name */
 	"pfpu reg ... code ...",	/* usage */
 	"flickernoise",			/* topic */
 	main_pfpu,			/* command */
 	NULL,				/* alias */
 	&shellext_fbgrab		/* next */
+};
+
+rtems_shell_cmd_t shellext = {
+	"navre",			/* name */
+	"navre command ...",		/* usage */
+	"flickernoise",			/* topic */
+	main_navre,			/* command */
+	NULL,				/* alias */
+	&shellext_pfpu			/* next */
 };
