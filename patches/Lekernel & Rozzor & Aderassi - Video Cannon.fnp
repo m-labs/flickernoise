@@ -47,6 +47,9 @@ mv_b=1.000000
 mv_a=0.000000
 dmx1=1.0
 video_a=0.7
+kick = 0;
+dx_r = 0;
+dy_r = 0;
 
 per_frame:
 kick = if(above(bass_att,kick), 2, kick*0.96);

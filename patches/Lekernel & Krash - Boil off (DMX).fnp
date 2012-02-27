@@ -41,6 +41,11 @@ mv_r=1
 mv_g=1
 mv_b=1
 mv_a=0
+bass_thresh = 0;
+treb_thresh = 0;
+red = 0;
+green = 0;
+blue = 0;
 
 per_frame:
 video_a=0.4*idmx1
