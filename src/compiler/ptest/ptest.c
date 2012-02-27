@@ -239,9 +239,12 @@ static const char *read_stdin(void)
 
 static void parse_only(const char *pgm)
 {
-	struct fpvm_fragment fragment;
+	static struct patch patch;
+	static struct compiler_sc sc = {
+		.p = &patch,
+	};
 	struct parser_comm comm = {
-		.u.fragment = &fragment,
+		.u.sc = &sc,
 		.assign_default = assign_default,
 		.assign_per_frame = assign_per_frame,
 		.assign_per_vertex = assign_per_vertex,
@@ -267,6 +270,8 @@ static void parse_only(const char *pgm)
 		}
 	}
 	symtab_free();
+	stim_db_free(); /* @@@ */
+	stim_put(patch.stim);
 	if (ok)
 		return;
 	fflush(stdout);
