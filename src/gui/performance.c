@@ -197,6 +197,7 @@ static int first_event;
 
 static void close_callback(mtk_event *e, void *arg)
 {
+	if(started) return;
 	mtk_cmd(appid, "w.close()");
 }
 
@@ -214,24 +215,28 @@ static void update_buttons(void)
 
 static void simple_callback(mtk_event *e, void *arg)
 {
+	if(started) return;
 	simple_mode = 1;
 	update_buttons();
 }
 
 static void file_callback(mtk_event *e, void *arg)
 {
+	if(started) return;
 	simple_mode = 0;
 	update_buttons();
 }
 
 static void dt_callback(mtk_event *e, void *arg)
 {
+	if(started) return;
 	dt_mode = !dt_mode;
 	update_buttons();
 }
 
 static void as_callback(mtk_event *e, void *arg)
 {
+	if(started) return;
 	as_mode = !as_mode;
 	update_buttons();
 }
