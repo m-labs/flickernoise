@@ -44,6 +44,11 @@ static int brightness;
 static int contrast;
 static int hue;
 
+static int old_format;
+static int old_brightness;
+static int old_contrast;
+static int old_hue;
+
 static unsigned short preview_fb[180*144];
 
 enum {
@@ -58,7 +63,6 @@ static void set_config(void)
 	config_write_int("vin_brightness", brightness);
 	config_write_int("vin_contrast", contrast);
 	config_write_int("vin_hue", hue);
-	cp_notify_changed();
 }
 
 static void set_format(int f)
@@ -124,6 +128,7 @@ static void slide_callback(mtk_event *e, void *arg)
 static void format_callback(mtk_event *e, void *arg)
 {
 	set_format((int)arg);
+	set_config();
 }
 
 void load_videoin_config(void)
@@ -211,6 +216,7 @@ static void stop_callback(void)
 		resmgr_release(RESOURCE_VIDEOIN);
 		return;
 	}
+	load_videoin_config();
 	input_add_callback(preview_update);
 }
 
@@ -236,11 +242,18 @@ static void fullscreen_callback(mtk_event *e, void *arg)
 static void ok_callback(mtk_event *e, void *arg)
 {
 	set_config();
+	cp_notify_changed();
 	close_videoin_window();
 }
 
 static void close_callback(mtk_event *e, void *arg)
 {
+	format = old_format;
+	brightness = old_brightness;
+	contrast = old_contrast;
+	hue = old_hue;
+	set_config();
+
 	close_videoin_window();
 }
 
@@ -368,6 +381,11 @@ void open_videoin_window(void)
 	
 	w_open = 1;
 	load_videoin_config();
+	old_format = format;
+	old_brightness = brightness;
+	old_contrast = contrast;
+	old_hue = hue;
+
 	next_update = rtems_clock_get_ticks_since_boot() + UPDATE_PERIOD;
 	input_add_callback(preview_update);
 	mtk_cmd(appid, "w.open()");
