@@ -52,6 +52,15 @@ enum {
 	CONTROL_HUE
 };
 
+static void set_config(void)
+{
+	config_write_int("vin_format", format);
+	config_write_int("vin_brightness", brightness);
+	config_write_int("vin_contrast", contrast);
+	config_write_int("vin_hue", hue);
+	cp_notify_changed();
+}
+
 static void set_format(int f)
 {
 	ioctl(video_fd, VIDEO_SET_FORMAT, f);
@@ -109,6 +118,7 @@ static void slide_callback(mtk_event *e, void *arg)
 	
 	val = mtk_req_i(appid, guiname);
 	set_value(control, val);
+	set_config();
 }
 
 static void format_callback(mtk_event *e, void *arg)
@@ -127,15 +137,6 @@ void load_videoin_config(void)
 	mtk_cmdf(appid, "s_brightness.set(-value %d)", brightness);
 	mtk_cmdf(appid, "s_contrast.set(-value %d)", contrast);
 	mtk_cmdf(appid, "s_hue.set(-value %d)", hue);
-}
-
-static void set_config(void)
-{
-	config_write_int("vin_format", format);
-	config_write_int("vin_brightness", brightness);
-	config_write_int("vin_contrast", contrast);
-	config_write_int("vin_hue", hue);
-	cp_notify_changed();
 }
 
 static int w_open;
