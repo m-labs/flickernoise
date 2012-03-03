@@ -307,10 +307,14 @@ static int usb_debug(int argc, char **argv)
 
 static int usb_load(int argc, char **argv)
 {
-	if(!load_usb_firmware_file(argv[1])) {
+	int size;
+
+	size = load_usb_firmware_file(argv[1]);
+	if(size < 0) {
 		fprintf(stderr, "load failed\n");
 		return 2;
 	}
+	printf("loaded %d byte%s\n", size, size == 1 ? "" : "s");
 	debug_consume = 0;
 	return 0;
 }

@@ -63,11 +63,10 @@ int load_usb_firmware_file(const char *name)
 
 	file = fopen(name, "r");
 	if(!file)
-		return 0;
+		return -1;
 	dsc.length = fread(buf, 1, sizeof(buf), file);
 	fclose(file);
-	if(dsc.length <= 0)
-		return 0;
-	do_load_usb_firmware(&dsc);
-	return 1;
+	if(dsc.length >= 0)
+		do_load_usb_firmware(&dsc);
+	return dsc.length;
 }
