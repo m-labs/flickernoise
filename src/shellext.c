@@ -251,10 +251,10 @@ static int main_pfpu(int argc, char **argv)
 
 static uint8_t debug_consume = 0;
 static volatile int keypress_wait;
+static int nl = 1;
 
 static void usb_debug_flush(void)
 {
-	int nl = 1;
 	char c;
 
 	while(debug_consume != COMLOC_DEBUG_PRODUCE) {
@@ -263,8 +263,14 @@ static void usb_debug_flush(void)
 		nl = c == '\n';
                 debug_consume++;
         }
-	if(!nl)
+}
+
+static void end_line(void)
+{
+	if(!nl) {
 		putchar('\n');
+		nl = 1;
+	}
 }
 
 static rtems_task keypress_task(rtems_task_argument argument)
@@ -283,6 +289,7 @@ static int usb_debug(int argc, char **argv)
 
 	if(argc == 1) {
 		usb_debug_flush();
+		end_line();
 		return 0;
 	}
 
@@ -301,6 +308,7 @@ static int usb_debug(int argc, char **argv)
 		rtems_task_wake_after(1);
 	}
 	while(keypress_wait);
+	end_line();
 
 	return 0;
 }
