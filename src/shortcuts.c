@@ -1,7 +1,7 @@
 /*
  * Flickernoise
  * Copyright (C) 2010, 2011 Sebastien Bourdeauducq
- * Copyright (C) 2011 Xiangfu Liu <xiangfu@sharism.cc>
+ * Copyright (C) 2011 Xiangfu Liu <xiangfu@openmobilefree.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,12 +30,42 @@
 #include "gui/guirender.h"
 #include "gui/flash.h"
 #include "shortcuts.h"
+#include "renderer/osd.h"
 
 static int ctrl, alt;
 static int f9_pressed;
 static rtems_interval f9_press_time;
 static int f10_pressed;
 static rtems_interval f10_press_time;
+
+static void help(void)
+{
+	static int i = 0;
+
+	char *help[] = {
+		"Ctrl+H: Help message",
+		"Hold F9 / Hold left button: Web update",
+		"F1: Set video in CVBS green",
+		"F2: Set video in CVBS blue",
+		"F3: Set video in CVBS red",
+		"F5: Increase brightness",
+		"F6: Decrease brightness",
+		"F7: Increase contrast",
+		"F8: Decrease contrast",
+		"Esc: Exit fun",
+		"F1: Show patch name(simple mode)",
+		"F9: Next patch(simple mode)",
+		"F11: Previous patch(simple mode)",
+		"Ctrl+Alt+Del / Hold F10 / Hold middle button: Reboot",
+		"Ctrl+Pause: Screenshot",
+		"Ctrl+F1: Switch resolution",
+		0,
+	};
+
+	if(!fb_get_mode()) return;
+	osd_event(help[i++]);
+	if(!help[i]) i = 0;
+}
 
 static void switch_resolution(void)
 {
@@ -82,6 +112,8 @@ static void shortcuts_callback(mtk_event *e, int count)
 				switch_resolution();
 			else if(ctrl && (e[i].press.code == MTK_KEY_PAUSE))
 				fbgrab(NULL);
+			else if(ctrl && (e[i].press.code == MTK_KEY_H))
+				help();
 			else if(e[i].press.code == MTK_KEY_F9) {
 				f9_pressed = 1;
 				f9_press_time = rtems_clock_get_ticks_since_boot();
