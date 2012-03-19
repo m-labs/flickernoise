@@ -330,7 +330,8 @@ static int usb_load(int argc, char **argv)
 static void usb_usage(void)
 {
 	printf("  usb [help]\n");
-	printf("  usb load file\n");
+	printf("  usb restore\n");
+	printf("  usb load softusb-input.bin\n");
 	printf("  usb debug [wait]\n");
 }
 
@@ -338,6 +339,10 @@ static int main_usb(int argc, char **argv)
 {
 	if(argc < 2 || !strcmp(argv[1], "help")) {
 		usb_usage();
+		return 0;
+	}
+	if(!strcmp(argv[1], "restore") && argc == 2) {
+		load_usb_firmware();
 		return 0;
 	}
 	if(!strcmp(argv[1], "load") && argc == 3)
