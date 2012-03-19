@@ -42,16 +42,11 @@ static void help(void)
 {
 	static int i = 0;
 
-	char *help[] = {
-		"Ctrl+H: Help message",
+	const char *help_msg[] = {
 		"Hold F9 / Hold left button: Web update",
-		"F1: Set video in CVBS green",
-		"F2: Set video in CVBS blue",
-		"F3: Set video in CVBS red",
-		"F5: Increase brightness",
-		"F6: Decrease brightness",
-		"F7: Increase contrast",
-		"F8: Decrease contrast",
+		"F1 / F2 / F3: Set video in CVBS green/blue/red",
+		"F5 / F6: Increase/decrease brightness",
+		"F7 / F8: Increase/decrease contrast",
 		"Esc: Exit fun",
 		"F1: Show patch name(simple mode)",
 		"F9: Next patch(simple mode)",
@@ -63,8 +58,8 @@ static void help(void)
 	};
 
 	if(!fb_get_mode()) return;
-	osd_event(help[i++]);
-	if(!help[i]) i = 0;
+	osd_event(help_msg[i++]);
+	if(!help_msg[i]) i = 0;
 }
 
 static void switch_resolution(void)
