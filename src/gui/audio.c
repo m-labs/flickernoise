@@ -45,6 +45,7 @@ static int line_vol;
 static int line_mute;
 static int mic_vol;
 static int mic_mute;
+static int mic_boost;
 
 static float bass, mid, treb;
 
@@ -118,17 +119,31 @@ static void mute_callback(mtk_event *e, void *arg)
 	}
 }
 
+static void set_micboost(int boost)
+{
+	ioctl(mixer_fd, SOUND_MIXER_WRITE(SOUND_MIXER_MIC_BOOST), &boost);
+}
+
+static void micboost_callback(mtk_event *e, void *arg)
+{
+	mic_boost = !mic_boost;
+	mtk_cmdf(appid, "b_micboost.set(-state %s)", mic_boost ? "on" : "off");
+	set_micboost(mic_boost);
+}
+
 void load_audio_config(void)
 {
 	line_vol = config_read_int("line_vol", 100);
 	line_mute = config_read_int("line_mute", 0);
 	mic_vol = config_read_int("mic_vol", 100);
 	mic_mute = config_read_int("mic_mute", 0);
+	mic_boost = config_read_int("mic_boost", 1);
 	
 	mtk_cmdf(appid, "s_linevol.set(-value %d)", 100-line_vol);
 	mtk_cmdf(appid, "b_mutline.set(-state %s)", line_mute ? "on" : "off");
 	mtk_cmdf(appid, "s_micvol.set(-value %d)", 100-mic_vol);
 	mtk_cmdf(appid, "b_mutmic.set(-state %s)", mic_mute ? "on" : "off");
+	mtk_cmdf(appid, "b_micboost.set(-state %s)", mic_boost ? "on" : "off");
 
 	if(line_mute)
 		set_level(0, 0);
@@ -138,6 +153,8 @@ void load_audio_config(void)
 		set_level(1, 0);
 	else
 		set_level(1, mic_vol);
+
+	set_micboost(mic_boost);
 }
 
 static void set_config(void)
@@ -146,6 +163,7 @@ static void set_config(void)
 	config_write_int("line_mute", line_mute);
 	config_write_int("mic_vol", mic_vol);
 	config_write_int("mic_mute", mic_mute);
+	config_write_int("mic_boost", mic_boost);
 	cp_notify_changed();
 }
 
@@ -195,9 +213,11 @@ void init_audio(void)
 		"s_linevol = new Scale(-from 0 -to 100 -value 0 -orient vertical)",
 		"l_micvol = new Label(-text \"Mic volume\")",
 		"s_micvol = new Scale(-from 0 -to 100 -value 0 -orient vertical)",
+		"l_micboost = new Label(-text \"Mic boost\")",
 
 		"b_mutline = new Button(-text \"Mute\")",
 		"b_mutmic = new Button(-text \"Mute\")",
+		"b_micboost = new Button(-text \"Enable\")",
 
 		"gv.place(l_linevol, -column 1 -row 1)",
 		"gv.place(s_linevol, -column 1 -row 2)",
@@ -206,6 +226,9 @@ void init_audio(void)
 		"gv.place(l_micvol, -column 2 -row 1)",
 		"gv.place(s_micvol, -column 2 -row 2)",
 		"gv.place(b_mutmic, -column 2 -row 3)",
+
+		"gv.place(l_micboost, -column 3 -row 1)",
+		"gv.place(b_micboost, -column 3 -row 3)",
 
 		"gv.rowconfig(2, -size 180)",
 
@@ -246,6 +269,7 @@ void init_audio(void)
 
 	mtk_bind(appid, "b_mutline", "press", mute_callback, (void *)0);
 	mtk_bind(appid, "b_mutmic", "press", mute_callback, (void *)1);
+	mtk_bind(appid, "b_micboost", "press", micboost_callback, NULL);
 
 	mtk_bind(appid, "b_ok", "commit", ok_callback, NULL);
 	mtk_bind(appid, "b_cancel", "commit", close_callback, NULL);
