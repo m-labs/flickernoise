@@ -36,6 +36,8 @@
 
 #include "guirender.h"
 
+static int ctrl;
+
 static void set_led(char c)
 {
 	int fd;
@@ -124,12 +126,15 @@ static void input_cb(mtk_event *e, int count)
 
 	for(i=0;i<count;i++) {
 		if((e[i].type == EVENT_TYPE_PRESS) && 
-		   (e[i].press.code == MTK_KEY_ESC)) {
+		   (e[i].press.code == MTK_KEY_ESC) && ctrl) {
 			guirender_stop();
 			mtk_input(&e[i+1], count-i-1);
 		}
 		if(e[i].type == EVENT_TYPE_PRESS) {
 			switch(e[i].press.code) {
+				case MTK_KEY_LEFTCTRL:
+					ctrl = 1;
+					break;
 				case MTK_KEY_F1:
 					set_video_format(VIDEO_FORMAT_CVBS6);
 					break;
@@ -152,6 +157,9 @@ static void input_cb(mtk_event *e, int count)
 					adjust_contrast(-5);
 					break;
 			}
+		} else if (e[i].type == EVENT_TYPE_RELEASE) {
+				if(e[i].release.code == MTK_KEY_LEFTCTRL)
+					ctrl = 0;
 		}
 	}
 }
