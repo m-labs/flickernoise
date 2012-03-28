@@ -476,9 +476,9 @@ static void simple_mode_event(mtk_event *e, int *next)
 		osd_event_cb(simple_mode_current->filename, osd_off);
 		showing_title = 1;
 	}
-	if(e->press.code == MTK_KEY_F11)
+	if(e->press.code == MTK_KEY_F11 || e->press.code == MTK_KEY_RIGHT)
 		*next = 1;
-	if(e->press.code == MTK_KEY_F9)
+	if(e->press.code == MTK_KEY_F9 || e->press.code == MTK_KEY_LEFT)
 		*next = -1;
 }
 
