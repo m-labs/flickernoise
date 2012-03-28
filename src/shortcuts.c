@@ -105,7 +105,7 @@ static void shortcuts_callback(mtk_event *e, int count)
 				clean_shutdown(1);
 			else if(ctrl && (e[i].press.code == MTK_KEY_F1))
 				switch_resolution();
-			else if(ctrl && (e[i].press.code == MTK_KEY_PAUSE))
+			else if(e[i].press.code == MTK_KEY_SYSRQ)
 				fbgrab(NULL);
 			else if(ctrl && (e[i].press.code == MTK_KEY_H))
 				help();
