@@ -79,7 +79,7 @@ static void set_level(int channel, unsigned int val)
 {
 	int request;
 
-	val = val | (val << 8);
+	val = channel ? val | (mic_boost << 8) : val | (val << 8);
 	request = channel ? SOUND_MIXER_WRITE(SOUND_MIXER_MIC) : SOUND_MIXER_WRITE(SOUND_MIXER_LINE);
 	ioctl(mixer_fd, request, &val);
 }
@@ -119,9 +119,9 @@ static void mute_callback(mtk_event *e, void *arg)
 	}
 }
 
-static void set_micboost(int boost)
+static inline void set_micboost(int boost)
 {
-	ioctl(mixer_fd, SOUND_MIXER_WRITE(SOUND_MIXER_MIC_BOOST), &boost);
+	set_level(1, (mic_mute ? 0 : mic_vol) | (boost << 8));
 }
 
 static void micboost_callback(mtk_event *e, void *arg)
@@ -145,16 +145,17 @@ void load_audio_config(void)
 	mtk_cmdf(appid, "b_mutmic.set(-state %s)", mic_mute ? "on" : "off");
 	mtk_cmdf(appid, "b_micboost.set(-state %s)", mic_boost ? "on" : "off");
 
+	set_micboost(mic_boost);
+
 	if(line_mute)
 		set_level(0, 0);
 	else
 		set_level(0, line_vol);
+
 	if(mic_mute)
 		set_level(1, 0);
 	else
 		set_level(1, mic_vol);
-
-	set_micboost(mic_boost);
 }
 
 static void set_config(void)
