@@ -29,6 +29,7 @@
 #include "fb.h"
 #include "gui/guirender.h"
 #include "gui/flash.h"
+#include "gui/cp.h"
 #include "shortcuts.h"
 #include "renderer/osd.h"
 
@@ -48,6 +49,7 @@ static void help(void)
 		"F5 / F6: Increase/decrease brightness",
 		"F7 / F8: Increase/decrease contrast",
 		"Ctrl+Esc: Exit fun",
+		"Ctrl+Enter: Start rendering",
 		"F1: Show patch name(simple mode)",
 		"F9 / RIGHT: Next patch(simple mode)",
 		"F11 / LEFT: Previous patch(simple mode)",
@@ -79,6 +81,11 @@ static void switch_resolution(void)
 	}
 }
 
+static void autostart(void)
+{
+	if(!fb_get_mode()) cp_autostart();
+}
+
 static void shortcuts_callback(mtk_event *e, int count)
 {
 	int i;
@@ -105,6 +112,8 @@ static void shortcuts_callback(mtk_event *e, int count)
 				clean_shutdown(1);
 			else if(ctrl && (e[i].press.code == MTK_KEY_F1))
 				switch_resolution();
+			else if(ctrl && (e[i].press.code == MTK_KEY_ENTER))
+				autostart();
 			else if(e[i].press.code == MTK_KEY_SYSRQ)
 				fbgrab(NULL);
 			else if(ctrl && (e[i].press.code == MTK_KEY_H))
