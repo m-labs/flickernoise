@@ -17,6 +17,7 @@
 
 #include <rtems.h>
 #include <stdio.h>
+#include <libgen.h>
 #include <mtklib.h>
 
 #include "performance.h"
@@ -52,19 +53,17 @@ static int appid;
 static struct filedialog *load_dlg;
 static struct filedialog *save_dlg;
 
-static int changed;
+static char default_config[8192] = "/ssd/default.per";
 
 void cp_notify_changed(void)
 {
-	if(changed) return;
-	changed = 1;
-	mtk_cmd(appid, "w.set(-title \"Control panel *\")");
-}
+	if(!strcmp(default_config, "/ssd/default.per"))
+		mtk_cmd(appid, "w.set(-title \"Control panel\")");
+	else
+		mtk_cmdf(appid, "w.set(-title \"\e%s\")",
+			 basename(default_config));
 
-static void clear_changed(void)
-{
-	mtk_cmd(appid, "w.set(-title \"Control panel\")");
-	changed = 0;
+	config_save(default_config);
 }
 
 static void on_config_change(void)
@@ -77,15 +76,19 @@ static void on_config_change(void)
 
 static void loadok_callback(void *arg)
 {
-	char buf[8192];
+	char buf[4096];
 
-	get_filedialog_selection(load_dlg, buf, 8192);
+	get_filedialog_selection(load_dlg, buf, sizeof(buf));
 	if(!config_load(buf)) {
-		messagebox("Performance load", "Unable to load the performance file");
+		messagebox("Performance load",
+			   "Unable to load the performance file");
 		return;
 	}
+
+	strcpy(default_config, buf);
+
 	on_config_change();
-	clear_changed();
+	cp_notify_changed();
 }
 
 static void saveok_callback(void *arg)
@@ -93,8 +96,12 @@ static void saveok_callback(void *arg)
 	char buf[4096];
 
 	get_filedialog_selection(save_dlg, buf, sizeof(buf));
+
 	config_save(buf);
-	clear_changed();
+
+	strcpy(default_config, buf);
+	on_config_change();
+	cp_notify_changed();
 }
 
 enum {
@@ -112,7 +119,6 @@ enum {
 	CP_ITEM_EDITOR,
 	CP_ITEM_MONITOR,
 
-	CP_ITEM_NEW,
 	CP_ITEM_LOAD,
 	CP_ITEM_SAVE,
 	CP_ITEM_FIRSTPATCH,
@@ -165,17 +171,13 @@ static void cp_callback(mtk_event *e, void *arg)
 			open_monitor_window();
 			break;
 
-		case CP_ITEM_NEW:
-			config_free();
-			on_config_change();
-			clear_changed();
-			break;
 		case CP_ITEM_LOAD:
 			open_filedialog(load_dlg);
 			break;
 		case CP_ITEM_SAVE:
 			open_filedialog(save_dlg);
 			break;
+
 		case CP_ITEM_FIRSTPATCH:
 			open_firstpatch_window();
 			break;
@@ -279,14 +281,12 @@ void init_cp(void)
 		"g_performance0.place(l_performance, -column 2 -row 1)",
 		"g_performance0.place(s_performance2, -column 3 -row 1)",
 		"g_performance = new Grid()",
-		"b_new = new Button(-text \"New\")",
 		"b_load = new Button(-text \"Load\")",
-		"b_save = new Button(-text \"Save\")",
+		"b_save = new Button(-text \"Save as\")",
 		"b_firstpatch = new Button(-text \"First patch\")",
 		"b_start = new Button(-text \"Start\")",
-		"g_performance.place(b_new, -column 1 -row 1)",
-		"g_performance.place(b_load, -column 2 -row 1)",
-		"g_performance.place(b_save, -column 3 -row 1)",
+		"g_performance.place(b_load, -column 1 -row 1)",
+		"g_performance.place(b_save, -column 2 -row 1)",
 		"g.place(g_performance0, -column 1 -row 8)",
 		"g.place(g_performance, -column 1 -row 9)",
 		"g.place(b_firstpatch, -column 1 -row 10)",
@@ -344,7 +344,6 @@ void init_cp(void)
 	mtk_bind(appid, "b_webupdate", "commit", cp_callback, (void *)CP_ITEM_WEBUPDATE);
 	mtk_bind(appid, "b_editor", "commit", cp_callback, (void *)CP_ITEM_EDITOR);
 	mtk_bind(appid, "b_monitor", "commit", cp_callback, (void *)CP_ITEM_MONITOR);
-	mtk_bind(appid, "b_new", "commit", cp_callback, (void *)CP_ITEM_NEW);
 	mtk_bind(appid, "b_load", "commit", cp_callback, (void *)CP_ITEM_LOAD);
 	mtk_bind(appid, "b_save", "commit", cp_callback, (void *)CP_ITEM_SAVE);
 	mtk_bind(appid, "b_firstpatch", "commit", cp_callback, (void *)CP_ITEM_FIRSTPATCH);
@@ -361,6 +360,9 @@ void init_cp(void)
 
 	load_dlg = create_filedialog("Load performance", 0, "per", loadok_callback, NULL, NULL, NULL);
 	save_dlg = create_filedialog("Save performance", 1, "per", saveok_callback, NULL, NULL, NULL);
+
+	config_load(default_config);
+	on_config_change();
 }
 
 void cp_autostart(void)
@@ -388,6 +390,8 @@ void cp_autostart(void)
 				return;
 			}
 			on_config_change();
+			strcpy(default_config, autostart);
+			cp_notify_changed();
 			start_performance(0, 0, 0);
 			break;
 	}
