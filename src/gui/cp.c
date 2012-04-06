@@ -53,16 +53,22 @@ static int appid;
 static struct filedialog *load_dlg;
 static struct filedialog *save_dlg;
 
-static char default_config[8192] = "/ssd/default.per";
+static char default_config[4096] = "/ssd/default.per";
 
-void cp_notify_changed(void)
+static void update_title_default_config(char * config_name)
 {
+	if(config_name) strcpy(default_config, config_name);
+
 	if(!strcmp(default_config, "/ssd/default.per"))
 		mtk_cmd(appid, "w.set(-title \"Control panel\")");
 	else
 		mtk_cmdf(appid, "w.set(-title \"\e%s\")",
 			 basename(default_config));
+}
 
+void cp_notify_changed(void)
+{
+	update_title_default_config(NULL);
 	config_save(default_config);
 }
 
@@ -85,10 +91,8 @@ static void loadok_callback(void *arg)
 		return;
 	}
 
-	strcpy(default_config, buf);
-
 	on_config_change();
-	cp_notify_changed();
+	update_title_default_config(buf);
 }
 
 static void saveok_callback(void *arg)
@@ -98,10 +102,7 @@ static void saveok_callback(void *arg)
 	get_filedialog_selection(save_dlg, buf, sizeof(buf));
 
 	config_save(buf);
-
-	strcpy(default_config, buf);
-	on_config_change();
-	cp_notify_changed();
+	update_title_default_config(buf);
 }
 
 enum {
@@ -390,8 +391,7 @@ void cp_autostart(void)
 				return;
 			}
 			on_config_change();
-			strcpy(default_config, autostart);
-			cp_notify_changed();
+			update_title_default_config(autostart);
 			start_performance(0, 0, 0);
 			break;
 	}
