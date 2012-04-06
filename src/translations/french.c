@@ -44,7 +44,6 @@ struct mtk_i18n_entry translation_french[] = {
 
 	// Control panel
 	{ "Control panel",					"Panneau de contr\xf4""le" },
-	{ "Control panel *",					"Panneau de contr\xf4""le *" },
 	{ "Interfaces",						"Interfaces" },
 	{ "Keyboard",						"Clavier" },
 	{ "IR remote",						"T\xe9""l\xe9""commande IR" },
