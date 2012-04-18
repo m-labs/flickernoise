@@ -187,6 +187,16 @@ rtems_task Init(rtems_task_argument argument)
 	/*start_memcard();*/
 	mkdir("/ssd", 0777);
 	mount("/dev/flash5", "/ssd", "yaffs", RTEMS_FILESYSTEM_READ_WRITE, "");
+	/*
+	 * Older versions of RTEMS-YAFFS created the file system with the
+	 * (persistent) root inode set to 0666. RTEMS didn't check permissions
+	 * at that time but does now, causing most operations to fail (EACCES)
+	 * on file systems created before the transition.
+	 *
+	 * The "chmod" below transparently updates the permission of /ssd files
+	 * systems.
+	 */
+	chmod("/ssd", YAFFS_ROOT_MODE);
 	
 	init_version();
 	load_usb_firmware();
