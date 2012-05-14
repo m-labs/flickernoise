@@ -42,7 +42,7 @@ LDFLAGS = -mbarrel-shift-enabled -mmultiply-enabled -mdivide-enabled \
 	  -msign-extend-enabled -B$(RTEMS_MAKEFILE_PATH)/lib \
 	  -specs bsp_specs -qrtems
 LIBS = -lnfs -lftpd -ltelnetd -lyaffs2 -lmtk -llop -lfpvm -lpng -ljpeg \
-      -lcurl -lexpat -lz -lm
+      -lcurl -lexpat -ljansson -lz -lm
 OBJDIR = obj
 BINDIR = bin
 
@@ -53,7 +53,8 @@ OBJS += $(addprefix pixbuf/,dither.o loaderjpeg.o loaderpng.o manager.o)
 OBJS += $(addprefix gui/,messagebox.o filedialog.o resmgr.o guirender.o \
 	performance.o cp.o keyboard.o ir.o audio.o midi.o oscsettings.o \
 	dmxspy.o dmxdesk.o dmx.o videoin.o rsswall.o patcheditor.o monitor.o \
-	firstpatch.o filemanager.o sysettings.o about.o flash.o shutdown.o)
+	firstpatch.o filemanager.o sysettings.o about.o flash.o shutdown.o \
+	wireless.o )
 ifeq ($(WITH_PDF),1)
 	OBJS += $(addprefix gui/,pdfreader.o)
 	CFLAGS += -DWITH_PDF

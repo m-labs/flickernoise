@@ -85,6 +85,7 @@
 #include "gui/about.h"
 #include "gui/flash.h"
 #include "gui/filedialog.h"
+#include "gui/wireless.h"
 
 static rtems_task gui_task(rtems_task_argument argument)
 {
@@ -120,6 +121,7 @@ static rtems_task gui_task(rtems_task_argument argument)
 	init_about();
 	init_flash();
 	init_shutdown();
+	init_wireless();
 
 	cp_autostart();
 	

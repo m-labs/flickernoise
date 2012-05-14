@@ -24,6 +24,7 @@
 #include "../sysconfig.h"
 #include "filedialog.h"
 #include "sysettings.h"
+#include "wireless.h"
 
 static int appid;
 static struct filedialog *browse_wallpaper_dlg;
@@ -66,6 +67,11 @@ static void dhcp_callback(mtk_event *e, void *arg)
 	sysconfig_get_ipconfig(&en, NULL, NULL, NULL, NULL, NULL);
 	sysconfig_set_ipconfig(!en, 0, 0, 0, 0, 0);
 	update_network();
+}
+
+static void wireless_callback(mtk_event *e, void *arg)
+{
+	open_wireless_window();
 }
 
 static int current_asmode;
@@ -206,8 +212,10 @@ void init_sysettings(void)
 		"g_network1 = new Grid()",
 		"l_dhcp = new Label(-text \"DHCP client:\")",
 		"b_dhcp = new Button(-text \"Enable\")",
+		"b_wireless = new Button(-text \"Wireless over Ethernet\")",
 		"g_network1.place(l_dhcp, -column 1 -row 1)",
 		"g_network1.place(b_dhcp, -column 2 -row 1)",
+		"g_network1.place(b_wireless, -column 3 -row 1)",
 		"g_network2 = new Grid()",
 		"l_ip = new Label(-text \"IP address:\")",
 		"e_ip = new Entry()",
@@ -314,6 +322,7 @@ void init_sysettings(void)
 	mtk_bind(appid, "b_kbd_german", "press", layout_callback, (void *)SC_KEYBOARD_LAYOUT_GERMAN);
 
 	mtk_bind(appid, "b_dhcp", "press", dhcp_callback, NULL);
+	mtk_bind(appid, "b_wireless", "press", wireless_callback, NULL);
 
 	mtk_bind(appid, "b_asmode_none", "press", asmode_callback, (void *)SC_AUTOSTART_NONE);
 	mtk_bind(appid, "b_asmode_simple", "press", asmode_callback, (void *)SC_AUTOSTART_SIMPLE);
