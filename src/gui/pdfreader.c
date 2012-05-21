@@ -19,9 +19,9 @@
 #include <fitz.h>
 #include <mupdf.h>
 
-#include "util.h"
+#include "../util.h"
 #include "filedialog.h"
-#include "color.h"
+#include "../color.h"
 #include "messagebox.h"
 #include "pdfreader.h"
 
