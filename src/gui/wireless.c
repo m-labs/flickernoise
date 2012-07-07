@@ -225,7 +225,7 @@ static char *jget_key(const json_t *obj, const char *key, int required)
 		return NULL;
 	}
 
-	str = json_string_value(tmp);
+	str = (char *)json_string_value(tmp);
 	if(!str) {
 		printf("JSON key '%s' is not a string", key);
 		return NULL;
@@ -330,32 +330,50 @@ static void scan_callback(mtk_event *e, void *arg)
 	curl = curl_easy_init();
 
 	val = json_rpc_call(curl, url, userpass, rpc_req_login, 5);
-	if(!val)
+	if(!val) {
+		curl_easy_cleanup(curl);
 		return;
-
+	}
 
 	key = jget_key(val, "result", 0);
-	if(!key)
+	if(!key) {
+		json_decref(val);
+		curl_easy_cleanup(curl);
 		return;
+	}
 		
 	url_token = malloc(100);
+	if(!url_token) {
+		json_decref(val);
+		curl_easy_cleanup(curl);
+		messagebox("Error", "Out of memory");
+		return;
+	}
+
 	strcpy(url_token, URL_703N"/sys?auth=\0");
 	url_token = strcat(url_token, key);
 
 	json_decref(val);
 
 	val = json_rpc_call(curl, (char *)url_token, userpass, rpc_req_scan, 10);
-	if(!val)
-		goto free_url;
+	if(!val) {
+		free(url_token);
+		curl_easy_cleanup(curl);
+		return;
+	}
+
 	key = jget_key(val, "result", 0);
-	if(!key)
-		goto free_url;
+	if(!key) {
+		free(url_token);
+		json_decref(val);
+		curl_easy_cleanup(curl);
+		return;
+	}
+
 	update_list(key);
-	json_decref(val);
 
-free_url:
 	free(url_token);
-
+	json_decref(val);
 	curl_easy_cleanup(curl);
 }
 
@@ -370,31 +388,47 @@ static int status(void)
 	char *essid, *ip, *tmp;
 	int ret = 1;
 
+	mtk_cmd(appid, "l_essid.set(-text \"Disconnect\")");
+	mtk_cmd(appid, "l_ip.set(-text \"0.0.0.0\")");
+
 	curl = curl_easy_init();
 
 	val = json_rpc_call(curl, (char *)url, userpass, rpc_req_login, 5);
-	if(!val)
+	if(!val) {
+		curl_easy_cleanup(curl);
 		return ret;
+	}
 
 	url_token = malloc(100);
+	if(!url_token) {
+		json_decref(val);
+		curl_easy_cleanup(curl);
+		messagebox("Error", "Out of memory");
+		return ret;
+	}
+	strcpy(url_token, URL_703N"/sys?auth=");
 
 	key = jget_key(val, "result", 0);
-	strcpy(url_token, URL_703N"/sys?auth=");
 	url_token = strcat(url_token, key);
 
 	json_decref(val);
 
 	val = json_rpc_call(curl, (char *)url_token, userpass, rpc_req_status, 30);
-	if(!val)
-		goto free_url;
+	if(!val) {
+		curl_easy_cleanup(curl);
+		free(url_token);
+		return ret;
+	}
 
 	key = jget_key(val, "result", 0);
 
 	essid = strdup(key);
 	if(!essid) {
-		mtk_cmd(appid, "l_essid.set(-text \"Disconnect\")");
-		mtk_cmd(appid, "l_ip.set(-text \"0.0.0.0\")");
-		goto free_url;
+		free(url_token);
+		json_decref(val);
+		curl_easy_cleanup(curl);
+		messagebox("Error", "Out of memory");
+		return ret;
 	}
 
 	ip = strchr(essid, '\n');
@@ -406,16 +440,13 @@ static int status(void)
 
 	mtk_cmdf(appid, "l_essid.set(-text \"%s\")", essid);
 	mtk_cmdf(appid, "l_ip.set(-text \"%s\")", ip);
+
 	free(essid);
-
-	json_decref(val);
-
-	ret = 0;
-free_url:
 	free(url_token);
+	json_decref(val);
 	curl_easy_cleanup(curl);
 
-	return ret;
+	return 0;
 }
 
 static void status_callback(mtk_event *e, void *arg)
@@ -454,12 +485,15 @@ static void connect_callback(mtk_event *e, void *arg)
 
 	val = json_rpc_call(curl, (char *)url, userpass, rpc_req_login, 5);
 	if(!val) {
+		curl_easy_cleanup(curl);
 		messagebox("Error", "Cannot reach wireless gadget");
 		return;
 	}
 
 	url_token = malloc(100);
 	if(!url_token) {
+		json_decref(val);
+		curl_easy_cleanup(curl);
 		messagebox("Error", "Out of memory");
 		return;
 	}
@@ -481,16 +515,16 @@ static void connect_callback(mtk_event *e, void *arg)
 
 	val = json_rpc_call(curl, (char *)url_token, userpass, rpc_req_set, 30);
 	if(!val) {
+		free(url_token);
+		curl_easy_cleanup(curl);
 		messagebox("Error", "Cannot reach wireless gadget");
-		goto free_url;
+		return;
 	}
 	json_decref(val);
 
 	status();
 
-free_url:
 	free(url_token);
-
 	curl_easy_cleanup(curl);
 }
 
