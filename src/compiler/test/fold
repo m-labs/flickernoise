@@ -48,7 +48,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "constant folding: sx = a+1 (nothign to fold)" << EOF
+ptest "constant folding: sx = a+1 (nothing to fold)" << EOF
 sx = a+1
 EOF
 expect <<EOF
@@ -57,7 +57,7 @@ EOF
 
 #------------------------------------------------------------------------------
 
-ptest "constant folding: sx = 1+b (nothign to fold)" << EOF
+ptest "constant folding: sx = 1+b (nothing to fold)" << EOF
 sx = 1+b
 EOF
 expect <<EOF
